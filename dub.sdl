@@ -1,8 +1,10 @@
 
-name "k3ds"
-description "The Kitty 3D System"
+name "kdk"
+description "The Kitty Development Kit"
 authors "needleful"
 license "GPL-3.0"
 
 dependency "derelict-sdl2" version="~>3.0.0-beta"
 dependency "derelict-gl3" version="~>2.0.0-beta"
+
+libs "sdl2" platform="posix"
