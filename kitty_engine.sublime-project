@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"build_systems": [
+		{
+			"name":"Build (Dub)",
+			"linux": {
+				"cmd": [
+					"dub",
+					"build"
+				]
+			},
+			"working_dir":"$project_path"
+		},
+		{
+			"name":"Run Daisy",
+			"linux": {
+				"cmd": [
+					"./daisy"
+				]
+			},
+			"working_dir":"$project_path"
+		}
+	]
+}

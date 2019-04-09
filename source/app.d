@@ -20,7 +20,7 @@ int main()
 	return return_code;
 }
 
-@nogc nothrow int run()
+int run()
 {
 	import core.memory;
 	bool should_exit = false;
@@ -43,19 +43,11 @@ int main()
 	{
 		return 3;
 	}
-
-	InputData* data = cast(InputData*) pureMalloc(InputData.sizeof*2);
-	InputData* oldInput = data[0];
-	InputData* newInput = data[1];
 	
 	SDL_Event event;
 	while(!should_exit)
 	{
 
-		while(SDL_PollEvent(&event))
-		{
-
-		}
 		glClearColor(0.5, 0.5, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(window);
@@ -72,10 +64,6 @@ int main()
 		if(glContext != null)
 		{
 			SDL_GL_DeleteContext(glContext);
-		}
-		if(inData != null)
-		{
-			pureFree(inData);
 		}
 		SDL_Quit();
 	}

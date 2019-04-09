@@ -1,8 +1,7 @@
-
-name "kdk"
-description "The Kitty Development Kit"
+name "daisy"
+description "The Daise Game Engine"
 authors "needleful"
-license "GPL-3.0"
+license "GPL v3.0"
 
 dependency "derelict-sdl2" version="~>3.0.0-beta"
 dependency "derelict-gl3" version="~>2.0.0-beta"

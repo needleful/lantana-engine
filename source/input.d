@@ -11,16 +11,27 @@ const int CONCURRENT_INPUTS_LIMIT = 16;
 
 struct InputData
 {
+	enum Action
+	{
+		UP,
+		DOWN,
+		LEFT,
+		RIGHT,
+		PAUSE,
+		ACTION_COUNT
+	}
+	enum Status
+	{
+		UP,
+		DOWN,
+		JUST_PRESSED,
+		JUST_RELEASED,
+	}
 	// Currently held position of sticks
 	Vec2 analog_left, analog_right;
 	// Relative mouse movement since last frame
 	Vec2 mouse_movement;
-	// Buttons pressed this frame
-	int[CONCURRENT_INPUTS_LIMIT] pressed;
-	// Buttons pressed on a previous frame
-	int[CONCURRENT_INPUTS_LIMIT] held;
-	// Buttons released this frame
-	int[CONCURRENT_INPUTS_LIMIT] released;
-	ubyte pressed_count, held_count, released_count;
+	// Status of all buttons
+	Status[Action.ACTION_COUNT] pressed;
 }
 
