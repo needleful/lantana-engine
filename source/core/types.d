@@ -2,9 +2,14 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module core_types;
+module core.types;
 
 struct Vec2
 {
-	double x, y;
+	float x, y;
+}
+
+struct Vec3
+{
+	float x, y, z;
 }

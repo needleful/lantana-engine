@@ -1,71 +1,42 @@
-// Part of the Kitty3D System (k3ds)
+// Part of the Daisy Engine
 // developed by needleful
 // Licensed under GPL v3.0
 
-import derelict.sdl2.sdl;
-import derelict.opengl;
 import std.stdio;
-mixin glFreeFuncs!(GLVersion.gl33);
 
+import core.types;
+import graphics.context;
+import graphics.buffer;
 import input;
 
 int main()
 {
-	DerelictSDL2.load();
-	DerelictGL3.load();
-
-	int return_code = run();
-
-	printf("Returned with %d\n", return_code);
-	return return_code;
-}
-
-int run()
-{
-	import core.memory;
-	bool should_exit = false;
 	float usec_delta = 1;
 
-	if(SDL_Init(SDL_INIT_VIDEO) < 0){
+	GContext gg;
+	if(!gg.init(720, 512, "Daisy Engine"))
+	{
+		printf("Failed to initialize Daisy.\n");
 		return 1;
 	}
-	SDL_Window* window = SDL_CreateWindow(
-		cast(const char*)"Kitty Development Kit", 
-		cast(int)SDL_WINDOWPOS_CENTERED, cast(int)SDL_WINDOWPOS_CENTERED, 
-		720, 512, SDL_WINDOW_OPENGL);
-	if(window == null)
-	{
-		return 2;
-	}
 
-	SDL_GLContext glContext = SDL_GL_CreateContext(window);
-	if(glContext == null)
-	{
-		return 3;
-	}
-	
-	SDL_Event event;
-	while(!should_exit)
-	{
+	Vec3[1] verts = [Vec3(0,0,0)];
 
-		glClearColor(0.5, 0.5, 1, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapWindow(window);
-		SDL_Delay(3000);
-		should_exit = 1;	
+	printf("Made vertices");
+	VertexBuffer buf = gg.make_buffer(verts);
+	printf("Made buffer");
+
+	while(gg.should_run)
+	{
+		gg.begin_frame();
+		gg.poll_events();
+
+		gg.end_frame();
 	}
 
 	scope(exit)
 	{
-		if(window != null)
-		{
-			SDL_DestroyWindow(window);
-		}
-		if(glContext != null)
-		{
-			SDL_GL_DeleteContext(glContext);
-		}
-		SDL_Quit();
+		gg.cleanup();
 	}
 
 	return 0;
