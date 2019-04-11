@@ -16,10 +16,10 @@
 			"working_dir":"$project_path"
 		},
 		{
-			"name":"Run Daisy",
+			"name":"Run Lantana",
 			"linux": {
 				"cmd": [
-					"./daisy"
+					"./lantana"
 				]
 			},
 			"working_dir":"$project_path"

@@ -6,10 +6,10 @@ module core.types;
 
 struct Vec2
 {
-	float x, y;
+	align(1): float x, y;
 }
 
 struct Vec3
 {
-	float x, y, z;
+	align(1): float x, y, z;
 }

@@ -1,11 +1,10 @@
-// Part of the Daisy Engine
+// Part of the Lantana Engine
 // developed by needleful
 // Licensed under GPL v3.0
 
-module input;
+module game.input;
 
 import core.types;
-import derelict.sdl2.sdl;
 
 const int CONCURRENT_INPUTS_LIMIT = 16;
 
