@@ -13,6 +13,7 @@ import derelict.sdl2.sdl;
 import core.types;
 import graphics.buffer;
 import graphics.gl;
+import graphics.material;
 
 struct Window
 {
@@ -20,6 +21,7 @@ struct Window
 	SDL_GLContext glContext;
 	SDL_Event event;
 	bool should_run;
+	uint time;
 
 	public this (int width, int height, string name)
 	{
@@ -63,7 +65,7 @@ struct Window
 				throw new Exception(format("Failed to create OpenGL context: %s", SDL_GetError()));
 			}
 		}
-
+		time = SDL_GetTicks();
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
@@ -74,26 +76,10 @@ struct Window
 		SDL_Quit();
 	}
 
-	VertexBuffer make_buffer(Vec3[] vertices)
+	void render_buffers(Material mat, VertexBuffer[] buffers)
 	{
-		VertexBuffer v = VertexBuffer();
-		v.id = 0;
-		v.vertices = vertices;
+		mat.matId.glUseProgram();
 
-		glGenBuffers(1, &v.id);
-
-		glBindBuffer(GL_ARRAY_BUFFER, v.id);
-
-		glBufferData(GL_ARRAY_BUFFER, v.bytesize, v.vertices.ptr, GL_STATIC_DRAW);
-
-		printf("%u\n", v.bytesize);
-
-		assert(glGetError() == GL_NO_ERROR);
-		return v;
-	}
-
-	void render_buffers(VertexBuffer[] buffers)
-	{
 		foreach(VertexBuffer buf; buffers)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, buf.id);
@@ -110,6 +96,7 @@ struct Window
 
 	void poll_events()
 	{
+		time = SDL_GetTicks();
 		while(SDL_PollEvent(&event))
 		{
 			switch(event.type)
@@ -136,7 +123,7 @@ struct Window
 	void begin_frame()
 	{
 		// Frame color is irrelevant, since it should never be seen in normal execution
-		glClearColor(0.5, 0.5, 1, 1);
+		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 		assert(glGetError() == GL_NO_ERROR);
 	}
@@ -145,5 +132,10 @@ struct Window
 	{
 		SDL_GL_SwapWindow(window);
 		assert(glGetError() == GL_NO_ERROR);
+	}
+
+	@property uint delta_ms()
+	{
+		return SDL_GetTicks() - time;
 	}
 }

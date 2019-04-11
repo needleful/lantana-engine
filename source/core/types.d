@@ -4,12 +4,104 @@
 
 module core.types;
 
-struct Vec2
-{
-	align(1): float x, y;
-}
+alias Vec2 = Vector!(float, 2);
+alias Vec3 = Vector!(float, 3);
+alias Vec4 = Vector!(float, 4);
 
-struct Vec3
+struct Vector(T, uint Size)
 {
-	align(1): float x, y, z;
+	T[Size] data;
+
+	static if (Size >= 1)
+	{
+		@property T x() {
+			return data[0];
+		}
+
+		@property T r() {
+			return data[0];
+		}
+
+		static if (Size == 1)
+		{
+			this(T x)
+			{
+				data[0] = x;
+			}
+		}
+	}
+	static if (Size >= 2)
+	{
+		@property T y() {
+			return data[1];
+		}
+
+		@property T g() {
+			return data[1];
+		}
+
+		static if (Size == 2)
+		{
+			this(T x, T y)
+			{
+				data[0] = x;
+				data[1] = y;
+			}
+		}
+	}
+	static if (Size >= 3)
+	{
+		@property T z()
+		{
+			return data[2];
+		}
+
+		@property T b()
+		{
+			return data[2];
+		}
+
+		static if(Size == 3)
+		{
+			this(T x, T y, T z)
+			{
+				data[0] = x;
+				data[1] = y;
+				data[2] = z;
+			}
+		}
+	}
+	static if (Size >= 4)
+	{
+		@property T w()
+		{
+			return data[3];
+		}
+
+		@property T a()
+		{
+			return data[3];
+		}
+
+		static if(Size == 3)
+		{
+			this(T x, T y, T z, T w)
+			{
+				data[0] = x;
+				data[1] = y;
+				data[2] = z;
+				data[3] = w;
+			}
+		}
+	}
+
+	bool opEquals()(auto ref const Vector!(T, Size) rhs)
+	{
+		bool result = true;
+		static foreach(uint i; 0..Size)
+		{
+			result = result && (data[i] == rhs.data[i]);
+		}
+		return result;
+	}
 }
