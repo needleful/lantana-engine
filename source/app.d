@@ -35,8 +35,6 @@ int main()
 	test_mat.set_param("color", Vec3(0.2, 0.4, 1));
 	test_mat.set_param("scale", 0.2);
 
-	assert(verts[0] == Vec3(-1, -1, 0));
-
 	while(ww.should_run)
 	{
 		ww.poll_events();

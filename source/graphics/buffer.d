@@ -10,12 +10,13 @@ import core.types;
 
 alias VboId = GLuint;
 
+// Lower level construct for rendering,
+// part of a model.
 struct VertexBuffer
 {
 	VboId id;
 	Vec3[] vertices;
 
-	// A vertexbuffer can't be made without a window and OpenGL loaded
 	this(Vec3[] verts)
 	{
 		vertices = verts;

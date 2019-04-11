@@ -8,10 +8,18 @@ alias Vec2 = Vector!(float, 2);
 alias Vec3 = Vector!(float, 3);
 alias Vec4 = Vector!(float, 4);
 
+alias Mat2 = Matrix!(float, 2, 2);
+alias Mat3 = Matrix!(float, 3, 3);
+alias Mat4 = Matrix!(float, 4, 4);
+
 struct Vector(T, uint Size)
 {
 	T[Size] data;
 
+	this(T[Size] d)
+	{
+		data = d;
+	}
 	static if (Size >= 1)
 	{
 		@property T x() {
@@ -104,4 +112,9 @@ struct Vector(T, uint Size)
 		}
 		return result;
 	}
+}
+
+struct Matrix(T, uint Rows, uint Columns)
+{
+	T[Rows][Columns] data;
 }
