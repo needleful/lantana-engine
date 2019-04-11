@@ -103,6 +103,11 @@ struct Vector(T, uint Size)
 		}
 	}
 
+	ref T opIndex(uint ind)
+	{
+		return data[ind];
+	}
+
 	bool opEquals()(auto ref const Vector!(T, Size) rhs)
 	{
 		bool result = true;
@@ -116,5 +121,25 @@ struct Vector(T, uint Size)
 
 struct Matrix(T, uint Rows, uint Columns)
 {
-	T[Rows][Columns] data;
+	Vector!(T, Columns)[Rows] data;
+
+	this(T[Rows][Columns] input)
+	{
+		static foreach(int i; 0..Rows)
+		{
+			data[i] = Vector!(T, Columns)(input[i]);
+		}
+	}
+
+	ref T opIndex(uint i, uint j)
+	{
+		assert(i < Rows && j < Columns);
+		return data[i][j];
+	}
+
+	ref Vector!(T, Columns) opIndex(int i)
+	{
+		assert(i < Rows);
+		return data[i];
+	}
 }
