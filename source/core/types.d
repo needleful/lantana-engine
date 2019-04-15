@@ -12,6 +12,62 @@ alias Mat2 = Matrix!(float, 2, 2);
 alias Mat3 = Matrix!(float, 3, 3);
 alias Mat4 = Matrix!(float, 4, 4);
 
+struct Transform
+{
+	Mat4 matrix;
+	this(float[4][4] matrix)
+	{
+		this.matrix = Mat4(matrix); 
+	}
+
+	@property float pos_x()
+	{
+		return matrix[3][0];
+	}
+	@property float pos_y()
+	{
+		return matrix[3][1];
+	}
+	@property float pos_z()
+	{
+		return matrix[3][2];
+	}
+
+	@property void pos_x(float val)
+	{
+		matrix[3][0] = val;
+	}
+	@property void pos_y(float val)
+	{
+		matrix[3][1] = val;
+	}
+	@property void pos_z(float val)
+	{
+		matrix[3][2] = val;
+	}
+
+	void scale(float scale)
+	{
+		matrix[0][0] = scale;
+		matrix[1][1] = scale;
+		matrix[2][2] = scale;
+	}
+
+	void scale(Vec3 scale)
+	{
+		matrix[0][0] = scale.x;
+		matrix[1][1] = scale.y;
+		matrix[2][2] = scale.z;
+	}
+
+	void translate(Vec3 direction)
+	{
+		matrix[3][0] += direction.x;
+		matrix[3][1] += direction.y;
+		matrix[3][2] += direction.z;
+	}
+}
+
 struct Vector(T, uint Size)
 {
 	static assert(Size > 0);
@@ -38,22 +94,38 @@ struct Vector(T, uint Size)
 		return Size*T.sizeof;
 	}
 
-	@property T x() {
+	@property const T x() {
 		return data[0];
 	}
 
-	@property T r() {
+	@property const T r() {
 		return data[0];
+	}
+
+	@property void x(T val) {
+		data[0] = val;
+	}
+
+	@property void r(T val) {
+		data[0] = val;
 	}
 
 	static if (Size >= 2)
 	{
-		@property T y() {
+		@property const T y() {
 			return data[1];
 		}
 
-		@property T g() {
+		@property const T g() {
 			return data[1];
+		}
+
+		@property void y(T val) {
+			data[1] = val;
+		}
+
+		@property void g(T val) {
+			data[1] = val;
 		}
 
 		static if (Size == 2)
@@ -67,14 +139,24 @@ struct Vector(T, uint Size)
 	}
 	static if (Size >= 3)
 	{
-		@property T z()
+		@property const T z()
 		{
 			return data[2];
 		}
 
-		@property T b()
+		@property const T b()
 		{
 			return data[2];
+		}
+
+		@property void z(T val)
+		{
+			data[2] = val;
+		}
+
+		@property void b(T val)
+		{
+			data[2] = val;
 		}
 
 		static if(Size == 3)
@@ -89,12 +171,12 @@ struct Vector(T, uint Size)
 	}
 	static if (Size >= 4)
 	{
-		@property T w()
+		@property const T w()
 		{
 			return data[3];
 		}
 
-		@property T a()
+		@property const T a()
 		{
 			return data[3];
 		}
@@ -109,6 +191,24 @@ struct Vector(T, uint Size)
 				data[3] = w;
 			}
 		}
+	}
+
+	Vector!(T, Size) opBinary(string op)(T val)
+	{
+		auto v = Vector!(T, Size)();
+		static foreach(uint i; 0..Size)
+		{
+			static if(op == "*")
+			{
+				v.data[i] = data[i]*val;
+			}
+			else static if(op == "/")
+			{
+				v.data[i] = data[i]/val;
+			}
+			else static assert(false, "Operator not supported for vectors and scalars: "~op);
+		}
+		return v;
 	}
 
 	ref T opIndex(uint ind)

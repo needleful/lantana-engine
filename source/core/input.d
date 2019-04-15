@@ -2,7 +2,12 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module game.input;
+module core.input;
+
+debug
+{
+	import std.stdio;
+}
 
 import core.types;
 
@@ -14,8 +19,10 @@ struct Input
 		DOWN,
 		LEFT,
 		RIGHT,
+		JUMP,
 		PAUSE,
-		ACTION_COUNT
+		ACTION_COUNT,
+		UNKNOWN
 	}
 	enum Status
 	{
@@ -35,10 +42,12 @@ struct Input
 	{
 		if(status[a] == Status.JUST_PRESSED || status[a] == Status.DOWN)
 		{
+			//printf("pressed %d [%d, pressed]\n", a, status[a]);
 			status[a] = Status.DOWN;
 		}
 		else
 		{
+			//printf("pressed %d [%d, released]\n", a, status[a]);
 			status[a] = Status.JUST_PRESSED;
 		}
 	}
@@ -69,7 +78,7 @@ struct Input
 
 	const bool is_pressed(Action a)
 	{
-		return status[a] == Status.DOWN || Status.JUST_PRESSED;
+		return status[a] == Status.DOWN || status[a]  == Status.JUST_PRESSED;
 	}
 	const bool is_just_pressed(Action a)
 	{
@@ -78,6 +87,35 @@ struct Input
 	const bool is_just_released(Action a)
 	{
 		return status[a] == Status.JUST_RELEASED;
+	}
+	debug
+	{
+		const void print()
+		{
+			write("Input: [ ");
+			foreach(Status s; status)
+			{
+				switch(s)
+				{
+					case Status.UP:
+						write("u ");
+						break;
+					case Status.DOWN:
+						write("d ");
+						break;
+					case Status.JUST_PRESSED:
+						write("P ");
+						break;
+					case Status.JUST_RELEASED:
+						write("R ");
+						break;
+					default:
+						write("? ");
+						break;
+				}
+			}
+			writeln("]");
+		}	
 	}
 }
 

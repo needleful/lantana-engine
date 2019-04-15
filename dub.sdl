@@ -8,3 +8,7 @@ dependency "derelict-gl3" version="~>2.0.0-beta"
 versions "DerelictGL3_CustomFreeFuncs"
 
 libs "sdl2" platform="posix"
+
+configuration "game" {
+	targetType "executable"
+}

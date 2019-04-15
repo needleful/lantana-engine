@@ -6,17 +6,18 @@
 	],
 	"build_systems": [
 		{
-			"name":"Build (Dub)",
+			"name":"Build Game",
 			"linux": {
 				"cmd": [
 					"dub",
-					"build"
+					"build",
+					"--config=game"
 				]
 			},
 			"working_dir":"$project_path"
 		},
 		{
-			"name":"Run Lantana",
+			"name":"Run Game",
 			"linux": {
 				"cmd": [
 					"./lantana"
