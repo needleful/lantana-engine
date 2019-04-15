@@ -1,4 +1,4 @@
-// Part of the Kitty3D System (k3ds)
+// Part of the Lantana Engine
 // developed by needleful
 // Licensed under GPL v3.0
 
@@ -14,30 +14,38 @@ alias Mat4 = Matrix!(float, 4, 4);
 
 struct Vector(T, uint Size)
 {
+	static assert(Size > 0);
 	T[Size] data;
 
 	this(T[Size] d)
 	{
 		data = d;
 	}
-	static if (Size >= 1)
+	this(T val)
 	{
-		@property T x() {
-			return data[0];
-		}
-
-		@property T r() {
-			return data[0];
-		}
-
-		static if (Size == 1)
+		static foreach(uint i; 0..Size)
 		{
-			this(T x)
-			{
-				data[0] = x;
-			}
+			data[i] = val;
 		}
 	}
+	@property T *bytes()
+	{
+		return data.ptr;
+	}
+
+	@property const uint bytesize()
+	{
+		return Size*T.sizeof;
+	}
+
+	@property T x() {
+		return data[0];
+	}
+
+	@property T r() {
+		return data[0];
+	}
+
 	static if (Size >= 2)
 	{
 		@property T y() {
@@ -129,6 +137,11 @@ struct Matrix(T, uint Rows, uint Columns)
 		{
 			data[i] = Vector!(T, Columns)(input[i]);
 		}
+	}
+
+	@property T *bytes()
+	{
+		return data[0].bytes;
 	}
 
 	ref T opIndex(uint i, uint j)

@@ -33,13 +33,22 @@ int main()
 	auto test_mat = Material("data/shaders/test.vert", "data/shaders/test.frag");
 
 	test_mat.set_param("color", Vec3(0.2, 0.4, 1));
-	test_mat.set_param("scale", 0.2);
+
+	auto transform = Mat4([
+		[1,0,0,0],
+		[0,1,0,0],
+		[0,0,1,0],
+		[0,0,0,1]
+	]);
+
+	test_mat.set_param("transform", [transform]);
 
 	while(ww.should_run)
 	{
 		ww.poll_events();
 
-		test_mat.set_param("scale", 1+sin(ww.time/2000.0)*0.2);
+		transform[3, 3] = 1+sin(ww.time/2000.0)*0.2;
+		test_mat.set_param("transform", [transform]);
 		ww.begin_frame();
 
 		ww.render_buffers(test_mat, buffers);

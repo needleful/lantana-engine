@@ -2,7 +2,6 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-
 module graphics.material;
 
 import std.file;
@@ -18,7 +17,7 @@ struct Material
 {
 	MaterialId matId;
 
-	this(string vert_file, string frag_file)
+	this(const string vert_file, const string frag_file)
 	{
 		matId = glCreateProgram();
 

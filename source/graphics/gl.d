@@ -24,65 +24,82 @@ void set_uniform(T)(GLint uniform, T value)
 {
 	scope(exit) glcheck;
 
-	static assert(false, "This type is not supported as a uniform");
-}
+	static if (is(T == Vec4))
+	{
+		uniform.glUniform4f(value.x, value.y, value.z, value.w);
+	}
+	else static if (is(T == Vec4[]))
+	{
+		uniform.glUniform4fv(value.length, value.ptr);
+	}
+	else static if (is(T == Vec3))
+	{
+		uniform.glUniform3f(value.x, value.y, value.z);
+	}
+	else static if (is(T == Vec3[]))
+	{
+		uniform.glUniform3fv(value.length, value.ptr);
+	}
+	else static if (is(T == Vec2))
+	{
+		uniform.glUniform2f(value.x, value.y);
+	}
+	else static if (is(T == Vec2[]))
+	{
+		uniform.glUniform2fv(value.length, value.ptr);
+	}
 
-void set_uniform(T: Vec4)(GLint uniform, Vec4 value)
-{
-	uniform.glUniform4f(value.x, value.y, value.z, value.w);
-}
+	else static if (is(T == Mat4))
+	{
+		uniform.glUniformMatrix4fv(1, GL_FALSE, value.bytes);
+	}
+	else static if (is(T == Mat4[]))
+	{
+		uniform.glUniformMatrix4fv(cast(int)value.length, GL_FALSE, value[0].bytes);
+	}
+	else static if (is(T == Mat3))
+	{
+		uniform.glUniformMatrix3fv(1, GL_FALSE, value.bytes);
+	}
+	else static if (is(T == Mat3[]))
+	{
+		uniform.glUniformMatrix3fv(cast(int)value.length, GL_FALSE, value[0].bytes);
+	}
+	else static if (is(T == Mat2))
+	{
+		uniform.glUniformMatrix2fv(1, GL_FALSE, value.bytes);
+	}
+	else static if (is(T == Mat2[]))
+	{
+		uniform.glUniformMatrix2fv(cast(int)value.length, GL_FALSE, value[0].bytes);
+	}
 
-void set_uniform(T: Vec4[])(GLint uniform, Vec4[] value)
-{
-	uniform.glUniform4fv(value.length, value.ptr);
-}
-
-void set_uniform(T: Vec3)(GLint uniform, Vec3 value)
-{
-	uniform.glUniform3f(value.x, value.y, value.z);
-}
-
-void set_uniform(T: Vec3[])(GLint uniform, Vec3[] value)
-{
-	uniform.glUniform3fv(value.length, value.ptr);
-}
-
-void set_uniform(T: Vec2)(GLint uniform, Vec2 value)
-{
-	uniform.glUniform2f(value.x, value.y);
-}
-
-void set_uniform(T: Vec2[])(GLint uniform, Vec2[] value)
-{
-	uniform.glUniform2fv(value.length, value.ptr);
-}
-
-void set_uniform(T: float)(GLint uniform, float value)
-{
-	uniform.glUniform1f(value);
-}
-
-void set_uniform(T: float[])(GLint uniform, float[] value)
-{
-	uniform.glUniform1fv(value.length, value.ptr);
-}
-
-void set_uniform(T: int)(GLint uniform, int value)
-{
-	uniform.glUniform1i(value);
-}
-
-void set_uniform(T: int[])(GLint uniform, int[] value)
-{
-	uniform.glUniform1iv(value.length, value.ptr);
-}
-
-void set_uniform(T: uint)(GLint uniform, uint value)
-{
-	uniform.glUniform1ui(value);
-}
-
-void set_uniform(T: uint[])(GLint uniform, uint[] value)
-{
-	uniform.glUniform1uiv(value.length, value.ptr);
+	else static if (is(T == float))
+	{
+		uniform.glUniform1f(value);
+	}
+	else static if (is(T == float[]))
+	{
+		uniform.glUniform1fv(value.length, value.ptr);
+	}
+	else static if (is(T == int))
+	{
+		uniform.glUniform1i(value);
+	}
+	else static if (is(T == int[]))
+	{
+		uniform.glUniform1iv(value.length, value.ptr);
+	}
+	else static if (is(T == uint))
+	{
+		uniform.glUniform1ui(value);
+	}
+	else static if (is(T == uint[]))
+	{
+		uniform.glUniform1uiv(value.length, value.ptr);
+	}
+	else
+	{
+		static assert(false, "This type is not supported as a uniform");
+	}
 }
