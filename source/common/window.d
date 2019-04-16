@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module core.window;
+module common.window;
 
 import std.exception;
 import std.format;
@@ -10,8 +10,9 @@ import std.stdio;
 
 import derelict.sdl2.sdl;
 
-import core.types;
-import core.input;
+import common.math.transform;
+import common.math.vector;
+import common.input;
 import graphics.buffer;
 import graphics.gl;
 import graphics.material;

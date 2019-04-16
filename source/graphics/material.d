@@ -8,7 +8,6 @@ import std.file;
 import std.format;
 import std.stdio;
 
-import core.types;
 import graphics.gl;
 
 alias MaterialId = GLuint;

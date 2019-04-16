@@ -11,4 +11,10 @@ libs "sdl2" platform="posix"
 
 configuration "game" {
 	targetType "executable"
+	excludedSourceFiles "source/tools/*"
+}
+
+configuration "tools" {
+	targetType "executable"
+	excludedSourceFiles "source/tools/*"
 }

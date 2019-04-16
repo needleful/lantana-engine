@@ -5,9 +5,10 @@
 import std.math;
 import std.stdio;
 
-import core.types;
-import core.input;
-import core.window;
+import common.math.vector;
+import common.math.transform;
+import common.input;
+import common.window;
 import graphics.buffer;
 import graphics.material;
 
@@ -36,12 +37,7 @@ int main()
 
 	test_mat.set_param("color", Vec3(0.2, 0.4, 1));
 
-	auto transform = Transform([
-		[1,0,0,0],
-		[0,1,0,0],
-		[0,0,1,0],
-		[0,0,0,1]
-	]);
+	auto transform = Transform(1, Vec3(0,0,0));
 
 	test_mat.set_param("transform", transform.matrix);
 

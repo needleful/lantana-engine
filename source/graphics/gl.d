@@ -8,7 +8,8 @@ mixin glFreeFuncs!(GLVersion.gl33);
 
 import std.format;
 
-import core.types;
+import common.math.vector;
+import common.math.matrix;
 
 void glcheck()
 {
