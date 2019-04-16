@@ -69,6 +69,14 @@ struct Vector(T, uint Size)
 		return data[0];
 	}
 
+	@property const T x() {
+		return data[0];
+	}
+
+	@property const T r() {
+		return data[0];
+	}
+
 	static if (Size >= 2)
 	{
 		@property ref T y() {
@@ -76,6 +84,14 @@ struct Vector(T, uint Size)
 		}
 
 		@property ref T g() {
+			return data[1];
+		}
+
+		@property const T y() {
+			return data[1];
+		}
+
+		@property const T g() {
 			return data[1];
 		}
 
@@ -100,6 +116,16 @@ struct Vector(T, uint Size)
 			return data[2];
 		}
 
+		@property const T z()
+		{
+			return data[2];
+		}
+
+		@property const T b()
+		{
+			return data[2];
+		}
+
 		static if(Size == 3)
 		{
 			this(T x, T y, T z)
@@ -118,6 +144,16 @@ struct Vector(T, uint Size)
 		}
 
 		@property ref T a()
+		{
+			return data[3];
+		}
+
+		@property const T w()
+		{
+			return data[3];
+		}
+
+		@property const T a()
 		{
 			return data[3];
 		}
@@ -195,6 +231,11 @@ struct Vector(T, uint Size)
 	}
 
 	ref T opIndex(uint ind)
+	{
+		return data[ind];
+	}
+
+	const T opIndex(uint ind)
 	{
 		return data[ind];
 	}

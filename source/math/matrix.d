@@ -51,23 +51,6 @@ struct Matrix(T, uint Rows, uint Columns)
 		return data[i][j];
 	}
 
-	Matrix!(T, Rows, Columns2) opMul(uint Columns2)(const Matrix!(T, Columns, Columns2) rhs)
-	{
-		auto d = Matrix!(T, Rows, Columns2)();
-		static foreach(uint i; 0..Rows)
-		{
-			static foreach(uint j; 0..Columns2)
-			{
-				d[i, j] = 0;
-				static foreach(uint k; 0..Columns)
-				{
-					d[i, j] += this[i, k] * rhs[k, j];
-				}
-			}
-		}
-		return d;
-	}
-
 	static if(Rows == Columns)
 	{
 		void opMulAssign(const Matrix!(T, Rows, Columns) rhs)

@@ -4,8 +4,8 @@
 
 module math.transform;
 
+import math.angles;
 import math.matrix;
-import math.quaternion;
 import math.vector;
 
 
@@ -14,13 +14,14 @@ struct Transform
 	private Mat4 _matrix;
 	private Vec3 _position;
 	private Vec3 _scale;
-	private Quat _rotation;
+	private Vec3 _axis;
+	private Angles _angles;
 
 	this(float scale, Vec3 position)
 	{
 		_scale = Vec3(scale);
 		_position = position;
-		_rotation = Quat(0,-1,0.2,0.2);
+		_angles = Angles(Vec3(0, 0, 1), 0);
 		compute_matrix();
 	}
 
@@ -32,7 +33,7 @@ struct Transform
 			[0.0f,     0.0f,     _scale.z, 0],
 			[0.0f,     0.0f,     0.0f,   1.0f]
 		]);
-		_matrix *= _rotation.to_matrix();
+		_matrix *= _angles.to_matrix();
 		_matrix[3, 0] = _position.x;
 		_matrix[3, 1] = _position.y;
 		_matrix[3, 2] = _position.z;
@@ -56,5 +57,10 @@ struct Transform
 		_position.x += v.x;
 		_position.y += v.y;
 		_position.z += v.z;
+	}
+
+	void rotate_radians(float rad)
+	{
+		_angles.rotate(rad);
 	}
 }

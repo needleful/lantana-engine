@@ -37,7 +37,7 @@ int main()
 
 	test_mat.set_param("color", Vec3(0.2, 0.4, 1));
 
-	auto transform = Transform(1, Vec3(0,0,0));
+	auto transform = Transform(0.5, Vec3(0,0,0));
 
 	test_mat.set_param("transform", transform.matrix);
 
@@ -70,7 +70,8 @@ int main()
 		}
 
 		transform.translate(direction*0.016);
-		transform.scale(0.5+sin(ww.time/2000.0)*0.2);
+		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
+		transform.rotate_radians(0.01);
 		
 		test_mat.set_param(transformId, transform.matrix);
 
