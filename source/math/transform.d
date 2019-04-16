@@ -25,7 +25,7 @@ struct Transform
 
 	void compute_matrix()
 	{
-		_matrix.update([
+		_matrix.set([
 			[_scale.x, 0.0f,     0.0f,     0],
 			[0.0f,     _scale.y, 0.0f,     0],
 			[0.0f,     0.0f,     _scale.z, 0],

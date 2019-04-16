@@ -26,7 +26,7 @@ struct Matrix(T, uint Rows, uint Columns)
 	// An alternative to re-creating a matrix
 	// not certain if it makes a difference performance-wise,
 	// but it feels like it would be faster than making a new matrix
-	void update(T[Rows][Columns] input)
+	void set(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
 		{
@@ -37,7 +37,7 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	@property T *bytes()
+	@property T *ptr()
 	{
 		return data[0].ptr;
 	}

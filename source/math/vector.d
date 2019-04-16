@@ -51,7 +51,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@property T *bytes()
+	@property T *ptr()
 	{
 		return data.ptr;
 	}
@@ -150,6 +150,48 @@ struct Vector(T, uint Size)
 			else static assert(false, "Operator not supported for vectors and scalars: "~op);
 		}
 		return v;
+	}
+
+	Vector!(T, Size) opBinary(string op)(Vector!(T, Size) rhs)
+	{
+		auto v = Vector!(T, Size)();
+		static foreach(uint i; 0..Size)
+		{
+			static if(op == "+")
+			{
+				v.data[i] = data[i] + rhs.data[i];
+			}
+			else static if(op == "-")
+			{
+				v.data[i] = data[i] - rhs.data[i];
+			}
+			else
+			{
+				static assert(false, "Operator not supported between vectors: "~op);
+			}
+		}
+	}
+
+	T dot(Vector!(T, Size) rhs)
+	{
+		T res = 0;
+		static foreach(uint i; 0..Size)
+		{
+			res += data[i] * rhs.data[i];
+		}
+		return res;
+	}
+
+	static if(Size == 3)
+	{
+		Vector!(T, Size) cross(Vector!(T, Size) rhs)
+		{
+			return(Vector!(T, Size)(
+				y*rhs.z - z*rhs.y,
+				-(x*rhs.z - z*rhs.x),
+				x*rhs.y - y*rhs.x)
+			);
+		}
 	}
 
 	ref T opIndex(uint ind)
