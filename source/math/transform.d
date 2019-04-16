@@ -18,7 +18,7 @@ struct Transform
 	private Vec3 _scale;
 	private Angles _angles;
 
-	this(float scale, Vec3 position)
+	this(const float scale, const Vec3 position)
 	{
 		_scale = Vec3(scale);
 		_position = position;
@@ -46,31 +46,31 @@ struct Transform
 		return _matrix;
 	}
 
-	void scale(float s)
+	void scale(const float s)
 	{
 		_scale.x = s;
 		_scale.y = s;
 		_scale.z = s;
 	}
 
-	void scale(Vec3 scale)
+	void scale(const Vec3 scale)
 	{
 		_scale = scale;
 	}
 
-	void translate(Vec3 v)
+	void translate(const Vec3 v)
 	{
 		_position.x += v.x;
 		_position.y += v.y;
 		_position.z += v.z;
 	}
 
-	void rotate_radians(float rad)
+	void rotate_radians(const float rad)
 	{
 		_angles.rotate(rad);
 	}
 
-	void rotate_degrees(float deg)
+	void rotate_degrees(const float deg)
 	{
 		_angles.rotate((deg/180.0) * PI);
 	}

@@ -17,11 +17,11 @@ struct Vector(T, uint Size)
 	static assert(Size > 0);
 	T[Size] data;
 
-	this(T[Size] d)
+	this(const T[Size] d)
 	{
 		data = d;
 	}
-	this(T val)
+	this(const T val)
 	{
 		static foreach(uint i; 0..Size)
 		{
@@ -172,7 +172,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	Vector!(T, Size) opBinary(string op)(T val)
+	const Vector!(T, Size) opBinary(string op)(const T val)
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
@@ -190,7 +190,7 @@ struct Vector(T, uint Size)
 		return v;
 	}
 
-	Vector!(T, Size) opBinary(string op)(Vector!(T, Size) rhs)
+	const Vector!(T, Size) opBinary(string op)(const Vector!(T, Size) rhs)
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
@@ -210,7 +210,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat)
+	const Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat)
 	{
 		Vector!(T, Column) temp;
 		static foreach(uint i; 0..Column)
@@ -223,7 +223,7 @@ struct Vector(T, uint Size)
 		return temp;
 	}
 
-	T dot(Vector!(T, Size) rhs)
+	const T dot(Vector!(T, Size) rhs)
 	{
 		T res = 0;
 		static foreach(uint i; 0..Size)
@@ -255,7 +255,7 @@ struct Vector(T, uint Size)
 		return data[ind];
 	}
 
-	bool opEquals()(auto ref const Vector!(T, Size) rhs)
+	const bool opEquals()(auto ref const Vector!(T, Size) rhs)
 	{
 		bool result = true;
 		static foreach(uint i; 0..Size)

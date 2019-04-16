@@ -21,7 +21,7 @@ struct Quat
 		this.z = z;
 	}
 
-	this(float angle, Vec3 v)
+	this(float angle, const Vec3 v)
 	{
 		float s = sin(angle);
 		w = cos(angle);
@@ -39,7 +39,7 @@ struct Quat
 	}
 
 	// Returns a row-major transformation matrix
-	Mat4 to_matrix()
+	const Mat4 to_matrix()
 	{
 		return Mat4([
 			[1.0f - 2*y*y - 2*z*z,        2*x*y - 2*w*z,        2*x*z + 2*w*y, 0.0f],
