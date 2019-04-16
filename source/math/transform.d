@@ -18,7 +18,7 @@ struct Transform
 	private Vec3 _scale;
 	private Angles _angles;
 
-	this(const float scale, const Vec3 position)
+	@nogc this(const float scale, const Vec3 position)
 	{
 		_scale = Vec3(scale);
 		_position = position;
@@ -26,7 +26,7 @@ struct Transform
 		compute_matrix();
 	}
 
-	void compute_matrix()
+	@nogc void compute_matrix()
 	{
 		_matrix.set([
 			[_scale.x, 0.0f,     0.0f,     0],
@@ -40,37 +40,37 @@ struct Transform
 		_matrix[3, 2] = _position.z;
 	}
 
-	@property ref Mat4 matrix()
+	@nogc @property ref Mat4 matrix()
 	{
 		compute_matrix();
 		return _matrix;
 	}
 
-	void scale(const float s)
+	@nogc void scale(const float s)
 	{
 		_scale.x = s;
 		_scale.y = s;
 		_scale.z = s;
 	}
 
-	void scale(const Vec3 scale)
+	@nogc void scale(const Vec3 scale)
 	{
 		_scale = scale;
 	}
 
-	void translate(const Vec3 v)
+	@nogc void translate(const Vec3 v)
 	{
 		_position.x += v.x;
 		_position.y += v.y;
 		_position.z += v.z;
 	}
 
-	void rotate_radians(const float rad)
+	@nogc void rotate_radians(const float rad)
 	{
 		_angles.rotate(rad);
 	}
 
-	void rotate_degrees(const float deg)
+	@nogc void rotate_degrees(const float deg)
 	{
 		_angles.rotate((deg/180.0) * PI);
 	}

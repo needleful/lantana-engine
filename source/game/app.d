@@ -8,6 +8,7 @@ import std.stdio;
 import math.vector;
 import math.transform;
 import sys.input;
+import sys.memory;
 import sys.window;
 import graphics.buffer;
 import graphics.material;
@@ -20,16 +21,20 @@ int main()
 
 	Window ww = Window(720, 512, "Lantana");
 	Input ii = Input();
+	MemoryStack mm = MemoryStack(2048);
+	assert(mm.capacity == 2048);
 
-	Vec3[3] verts = [
-		Vec3(-1, -1, 0),
-		Vec3( 1, -1, 0),
-		Vec3( 0,  1, 0),
-	];
+	Vec3[] verts = mm.reserve_list!Vec3(3);
+	assert(mm.space_used == ulong.sizeof*2 + Vec3.sizeof*3);
+	assert(verts.length == 3);
+
+	verts[0] = Vec3(-1, -1, 0);
+	verts[1] = Vec3( 1, -1, 0);
+	verts[2] = Vec3( 0,  1, 0);
 
 	auto buf = VertexBuffer(verts);
 
-	assert(verts.sizeof == buf.bytesize);
+	assert(verts.length*Vec3.sizeof == buf.bytesize);
 
 	VertexBuffer[1] buffers = [buf];
 
@@ -37,7 +42,9 @@ int main()
 
 	test_mat.set_param("color", Vec3(0.2, 0.4, 1));
 
-	auto transform = Transform(0.5, Vec3(0,0,0));
+	auto transform = mm.create!Transform(0.5, Vec3(0,0,0));
+
+	assert(mm.space_used == ulong.sizeof*2 + Vec3.sizeof*3 + Transform.sizeof);
 
 	test_mat.set_param("transform", transform.matrix);
 

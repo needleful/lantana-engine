@@ -12,7 +12,7 @@ struct Matrix(T, uint Rows, uint Columns)
 {
 	T[Rows][Columns] data;
 
-	this(T[Rows][Columns] input)
+	@nogc this(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
 		{
@@ -23,7 +23,7 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	void set(T[Rows][Columns] input)
+	@nogc void set(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
 		{
@@ -34,18 +34,18 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	@property T *ptr()
+	@nogc @property T *ptr()
 	{
 		return data[0].ptr;
 	}
 
-	ref T opIndex(uint i, uint j)
+	@nogc ref T opIndex(uint i, uint j)
 	{
 		assert(i < Rows && j < Columns);
 		return data[i][j];
 	}
 
-	const T opIndex(uint i, uint j)
+	@nogc const T opIndex(uint i, uint j)
 	{
 		assert(i < Rows && j < Columns);
 		return data[i][j];
@@ -53,7 +53,7 @@ struct Matrix(T, uint Rows, uint Columns)
 
 	static if(Rows == Columns)
 	{
-		void opMulAssign(const Matrix!(T, Rows, Columns) rhs)
+		@nogc void opMulAssign(const Matrix!(T, Rows, Columns) rhs)
 		{
 			T[Rows][Columns] d;
 			static foreach(uint i; 0..Rows)

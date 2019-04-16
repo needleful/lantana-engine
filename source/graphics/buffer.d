@@ -10,8 +10,6 @@ import math.vector;
 
 alias VboId = GLuint;
 
-// Lower level construct for rendering,
-// part of a model.
 struct VertexBuffer
 {
 	VboId id;
@@ -30,7 +28,7 @@ struct VertexBuffer
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	@property ulong bytesize()
+	@property const ulong bytesize()
 	{
 		return vertices.length*Vec3.sizeof;
 	}

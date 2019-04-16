@@ -57,7 +57,7 @@ struct Window
 	bool should_run;
 	uint time;
 
-	public this (int width, int height, string name)
+	this (int width, int height, string name)
 	{
 		DerelictSDL2.load();
 		DerelictGL3.load();

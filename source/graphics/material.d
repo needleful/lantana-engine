@@ -47,9 +47,9 @@ struct Material
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	bool can_render()
+	const bool can_render()
 	{
-		scope(exit) assert(glGetError() == GL_NO_ERROR);
+		scope(exit) glcheck;
 
 		matId.glValidateProgram();
 		GLint success;
@@ -77,7 +77,7 @@ struct Material
 		}
 	}
 
-	UniformId get_param_id(string param)
+	const UniformId get_param_id(string param)
 	{
 		scope(exit)
 		{
