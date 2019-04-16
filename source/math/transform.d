@@ -4,6 +4,8 @@
 
 module math.transform;
 
+import std.math : PI;
+
 import math.angles;
 import math.matrix;
 import math.vector;
@@ -14,14 +16,13 @@ struct Transform
 	private Mat4 _matrix;
 	private Vec3 _position;
 	private Vec3 _scale;
-	private Vec3 _axis;
 	private Angles _angles;
 
 	this(float scale, Vec3 position)
 	{
 		_scale = Vec3(scale);
 		_position = position;
-		_angles = Angles(Vec3(0, 0, 1), 0);
+		_angles = Angles(Vec3(0, 1, 0), 0);
 		compute_matrix();
 	}
 
@@ -31,7 +32,7 @@ struct Transform
 			[_scale.x, 0.0f,     0.0f,     0],
 			[0.0f,     _scale.y, 0.0f,     0],
 			[0.0f,     0.0f,     _scale.z, 0],
-			[0.0f,     0.0f,     0.0f,   1.0f]
+			[0.0f,     0.0f,     0.0f,  1.0f]
 		]);
 		_matrix *= _angles.to_matrix();
 		_matrix[3, 0] = _position.x;
@@ -52,6 +53,11 @@ struct Transform
 		_scale.z = s;
 	}
 
+	void scale(Vec3 scale)
+	{
+		_scale = scale;
+	}
+
 	void translate(Vec3 v)
 	{
 		_position.x += v.x;
@@ -62,5 +68,10 @@ struct Transform
 	void rotate_radians(float rad)
 	{
 		_angles.rotate(rad);
+	}
+
+	void rotate_degrees(float deg)
+	{
+		_angles.rotate((deg/180.0) * PI);
 	}
 }

@@ -45,6 +45,8 @@ int main()
 
 	Vec3 direction = Vec3(0,0,0);
 
+	transform.rotate_degrees(30);
+
 	while(ww.should_run)
 	{
 		ww.poll_events(ii);
@@ -70,8 +72,8 @@ int main()
 		}
 
 		transform.translate(direction*0.016);
-		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_radians(0.01);
+		transform.scale(0.5+sin(ww.time/2000.0)*0.2);
+		transform.rotate_degrees(1);
 		
 		test_mat.set_param(transformId, transform.matrix);
 

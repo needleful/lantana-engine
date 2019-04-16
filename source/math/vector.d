@@ -6,6 +6,8 @@ module math.vector;
 
 import std.math;
 
+import math.matrix;
+
 alias Vec2 = Vector!(float, 2);
 alias Vec3 = Vector!(float, 3);
 alias Vec4 = Vector!(float, 4);
@@ -206,6 +208,19 @@ struct Vector(T, uint Size)
 				static assert(false, "Operator not supported between vectors: "~op);
 			}
 		}
+	}
+
+	Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat)
+	{
+		Vector!(T, Column) temp;
+		static foreach(uint i; 0..Column)
+		{
+			static foreach(uint j; 0..Size)
+			{
+				temp[i] += data[j]*mat[i, j];
+			}
+		}
+		return temp;
 	}
 
 	T dot(Vector!(T, Size) rhs)

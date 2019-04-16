@@ -17,7 +17,8 @@ struct Angles
 	this(Vec3 axis, float angle)
 	{
 		this.axis = axis;
-		axis.normalize();
+		this.axis.normalize();
+
 		this.angle = angle;
 		normalize_angle();
 	}
