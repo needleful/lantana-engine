@@ -5,10 +5,10 @@
 import std.math;
 import std.stdio;
 
-import common.math.vector;
-import common.math.transform;
-import common.input;
-import common.window;
+import math.vector;
+import math.transform;
+import sys.input;
+import sys.window;
 import graphics.buffer;
 import graphics.material;
 

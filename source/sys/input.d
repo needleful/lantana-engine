@@ -2,14 +2,14 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module common.input;
+module sys.input;
 
 debug
 {
 	import std.stdio;
 }
 
-import common.math.vector;
+import math.vector;
 
 struct Input
 {

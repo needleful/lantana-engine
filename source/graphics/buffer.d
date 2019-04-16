@@ -6,7 +6,7 @@ module graphics.buffer;
 
 import graphics.gl;
 
-import common.math.vector;
+import math.vector;
 
 alias VboId = GLuint;
 

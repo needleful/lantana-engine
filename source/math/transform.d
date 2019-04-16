@@ -2,10 +2,10 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module common.math.transform;
+module math.transform;
 
-import common.math.matrix;
-import common.math.vector;
+import math.matrix;
+import math.vector;
 
 
 struct Transform

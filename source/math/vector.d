@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module common.math.vector;
+module math.vector;
 
 import std.math;
 
