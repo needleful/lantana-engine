@@ -23,9 +23,6 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	// An alternative to re-creating a matrix
-	// not certain if it makes a difference performance-wise,
-	// but it feels like it would be faster than making a new matrix
 	void set(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
@@ -46,5 +43,48 @@ struct Matrix(T, uint Rows, uint Columns)
 	{
 		assert(i < Rows && j < Columns);
 		return data[i][j];
+	}
+
+	const T opIndex(uint i, uint j)
+	{
+		assert(i < Rows && j < Columns);
+		return data[i][j];
+	}
+
+	Matrix!(T, Rows, Columns2) opMul(uint Columns2)(const Matrix!(T, Columns, Columns2) rhs)
+	{
+		auto d = Matrix!(T, Rows, Columns2)();
+		static foreach(uint i; 0..Rows)
+		{
+			static foreach(uint j; 0..Columns2)
+			{
+				d[i, j] = 0;
+				static foreach(uint k; 0..Columns)
+				{
+					d[i, j] += this[i, k] * rhs[k, j];
+				}
+			}
+		}
+		return d;
+	}
+
+	static if(Rows == Columns)
+	{
+		void opMulAssign(const Matrix!(T, Rows, Columns) rhs)
+		{
+			T[Rows][Columns] d;
+			static foreach(uint i; 0..Rows)
+			{
+				static foreach(uint j; 0..Columns)
+				{
+					d[i][j] = 0;
+					static foreach(uint k; 0..Columns)
+					{
+						d[i][j] += this[i, k] * rhs[k, j];
+					}
+				}
+			}
+			set(d);
+		}
 	}
 }

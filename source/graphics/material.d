@@ -11,6 +11,7 @@ import std.stdio;
 import graphics.gl;
 
 alias MaterialId = GLuint;
+alias UniformId = GLuint;
 
 struct Material 
 {
@@ -76,7 +77,20 @@ struct Material
 		}
 	}
 
-	bool set_param(T)(string param, T value)
+	UniformId get_param_id(string param)
+	{
+		scope(exit)
+		{
+			glUseProgram(0);
+			glcheck;
+		}
+		matId.glUseProgram();
+
+		return matId.glGetUniformLocation(param.ptr);
+
+	}
+
+	bool set_param(T)(const string param, auto ref T value)
 	{
 		scope(exit) 
 		{
@@ -86,7 +100,7 @@ struct Material
 
 		matId.glUseProgram();
 
-		GLint uniform = matId.glGetUniformLocation(param.ptr);
+		GLuint uniform = matId.glGetUniformLocation(param.ptr);
 
 		if(uniform == -1)
 		{
@@ -101,6 +115,44 @@ struct Material
 		}
 		else
 		{
+			static if(is(T == double))
+			{
+				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");
+				set_uniform!float(uniform, cast(float)value);
+				return true;
+			}
+			else
+			{
+				set_uniform!T(uniform, value);
+				return true;
+			}
+		}
+	}
+
+	bool set_param(T)(const UniformId uniform, auto ref T value)
+	{
+
+		if(uniform == -1)
+		{
+			debug{
+				throw new Exception(format(
+					"No uniform of type %s with id %u", T.stringof, uniform));
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			scope(exit) 
+			{
+				glUseProgram(0);
+				glcheck();
+			}
+			
+			matId.glUseProgram();
+
 			static if(is(T == double))
 			{
 				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");

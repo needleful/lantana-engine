@@ -41,6 +41,8 @@ int main()
 
 	test_mat.set_param("transform", transform.matrix);
 
+	UniformId transformId = test_mat.get_param_id("transform");
+
 	Vec3 direction = Vec3(0,0,0);
 
 	while(ww.should_run)
@@ -70,7 +72,7 @@ int main()
 		transform.translate(direction*0.016);
 		transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		
-		test_mat.set_param("transform", transform.matrix);
+		test_mat.set_param(transformId, transform.matrix);
 
 		ww.begin_frame();
 
