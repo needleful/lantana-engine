@@ -8,11 +8,18 @@ alias Mat2 = Matrix!(float, 2, 2);
 alias Mat3 = Matrix!(float, 3, 3);
 alias Mat4 = Matrix!(float, 4, 4);
 
+static immutable Mat4 Mat4_Identity = Mat4([
+		[1, 0, 0, 0f],
+		[0, 1, 0, 0f],
+		[0, 0, 1, 0f],
+		[0, 0, 0, 1f]
+	]);
+
 struct Matrix(T, uint Rows, uint Columns)
 {
 	T[Rows][Columns] data;
 
-	@nogc this(T[Rows][Columns] input)
+	@nogc @safe this(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
 		{
@@ -23,7 +30,7 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	@nogc void set(T[Rows][Columns] input)
+	@nogc @safe void set(T[Rows][Columns] input)
 	{
 		static foreach(int i; 0..Rows)
 		{
@@ -34,18 +41,18 @@ struct Matrix(T, uint Rows, uint Columns)
 		}
 	}
 
-	@nogc @property T *ptr()
+	@nogc @safe @property T *ptr()
 	{
-		return data[0].ptr;
+		return &data[0][0];
 	}
 
-	@nogc ref T opIndex(uint i, uint j)
+	@nogc @safe ref T opIndex(uint i, uint j)
 	{
 		assert(i < Rows && j < Columns);
 		return data[i][j];
 	}
 
-	@nogc const T opIndex(uint i, uint j)
+	@nogc @safe const T opIndex(uint i, uint j)
 	{
 		assert(i < Rows && j < Columns);
 		return data[i][j];
@@ -53,7 +60,7 @@ struct Matrix(T, uint Rows, uint Columns)
 
 	static if(Rows == Columns)
 	{
-		@nogc void opMulAssign(const Matrix!(T, Rows, Columns) rhs)
+		@nogc @safe void opMulAssign(const Matrix!(T, Rows, Columns) rhs)
 		{
 			T[Rows][Columns] d;
 			static foreach(uint i; 0..Rows)

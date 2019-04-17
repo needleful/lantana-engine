@@ -52,9 +52,8 @@ int main()
 	elems[8] = Tri(2, 3, 7);
 	elems[9] = Tri(2, 7, 6);
 
-	elems[10] = Tri(0, 4, 5);
-	elems[11] = Tri(0, 4, 1);
-
+	elems[10] = Tri(0, 5, 1);
+	elems[11] = Tri(0, 4, 5);
 
 	Mesh test_mesh = Mesh(verts, elems);
 	group.meshes = [test_mesh];
@@ -93,7 +92,7 @@ int main()
 
 		transform.translate(input*0.016);
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_degrees(1);
+		transform.rotate_degrees_axis(0.5, Vec3(1,1,1));
 		
 		group.material.set_param(transformId, transform.matrix);
 
