@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module sys.memory;
+module lanlib.sys.memory;
 
 import core.stdc.stdlib : malloc, free;
 import std.conv : emplace;

@@ -6,8 +6,8 @@ module math.quaternion;
 
 import std.math;
 
-import math.matrix;
-import math.vector;
+import lanlib.math.matrix;
+import lanlib.math.vector;
 
 struct Quat
 {

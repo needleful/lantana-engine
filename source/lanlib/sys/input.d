@@ -2,14 +2,14 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module sys.input;
+module lanlib.sys.input;
 
 debug
 {
 	import std.stdio;
 }
 
-import math.vector;
+import lanlib.math.vector;
 
 struct Input
 {
@@ -38,7 +38,7 @@ struct Input
 	// Status of all buttons
 	Status[Action.ACTION_COUNT] status;
 
-	void press(Action a)
+	@nogc void press(Action a)
 	{
 		if(status[a] == Status.JUST_PRESSED || status[a] == Status.DOWN)
 		{
@@ -52,7 +52,7 @@ struct Input
 		}
 	}
 
-	void release(Action a)
+	@nogc void release(Action a)
 	{
 		if(status[a] == Status.JUST_RELEASED || status[a] == Status.UP)
 		{
@@ -65,7 +65,7 @@ struct Input
 	}
 
 	// Reset input, for example when re-entering the window
-	void clear()
+	@nogc void clear()
 	{
 		analog_left = Vec2(0,0);
 		analog_right = Vec2(0,0);
@@ -76,15 +76,15 @@ struct Input
 		}
 	}
 
-	const bool is_pressed(Action a)
+	@nogc const bool is_pressed(Action a)
 	{
 		return status[a] == Status.DOWN || status[a]  == Status.JUST_PRESSED;
 	}
-	const bool is_just_pressed(Action a)
+	@nogc const bool is_just_pressed(Action a)
 	{
 		return status[a] == Status.JUST_PRESSED;
 	}
-	const bool is_just_released(Action a)
+	@nogc const bool is_just_released(Action a)
 	{
 		return status[a] == Status.JUST_RELEASED;
 	}

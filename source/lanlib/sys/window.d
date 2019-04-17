@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module sys.window;
+module lanlib.sys.window;
 
 import std.exception;
 import std.format;
@@ -10,14 +10,12 @@ import std.stdio;
 
 import derelict.sdl2.sdl;
 
-import math.transform;
-import math.vector;
-import sys.input;
-import graphics.buffer;
-import graphics.gl;
-import graphics.material;
+import lanlib.math.transform;
+import lanlib.math.vector;
+import lanlib.sys.input;
+import lanlib.sys.gl;
 
-static Input.Action from_scancode(SDL_Scancode code)
+@nogc static Input.Action from_scancode(SDL_Scancode code)
 {
 	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
 	{
@@ -76,6 +74,9 @@ struct Window
 
 		assert(width > 0 && height > 0 && name.length > 0);
 
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
 		window = SDL_CreateWindow(
 			name.ptr, cast(int)SDL_WINDOWPOS_CENTERED, cast(int)SDL_WINDOWPOS_CENTERED, 
 			width, height, SDL_WINDOW_OPENGL);
@@ -99,36 +100,25 @@ struct Window
 				throw new Exception(format("Failed to create OpenGL context: %s", SDL_GetError()));
 			}
 		}
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		// Frame color is irrelevant, since it should never be seen in normal execution
+		glClearColor(0, 0, 0, 1);
+		glClearDepth(1.0f);
+
 		time = SDL_GetTicks();
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	~this ()
+	@nogc ~this ()
 	{
 		SDL_DestroyWindow(window);
 		SDL_GL_DeleteContext(glContext);
 		SDL_Quit();
 	}
 
-	void render_buffers(Material mat, VertexBuffer[] buffers)
-	{
-		mat.matId.glUseProgram();
-
-		foreach(VertexBuffer buf; buffers)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, buf.id);
-			glEnableVertexAttribArray(0);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-			glDrawArrays(GL_TRIANGLES, 0, cast(uint)buf.vertices.length);
-
-			glDisableVertexAttribArray(0);
-
-			assert(glGetError() == GL_NO_ERROR);
-		}
-	}
-
-	void poll_events(ref Input input)
+	@nogc void poll_events(ref Input input)
 	{
 		foreach(ref Input.Status status; input.status)
 		{
@@ -180,15 +170,13 @@ struct Window
 		}
 	}
 
-	void begin_frame()
+	@nogc void begin_frame()
 	{
-		// Frame color is irrelevant, since it should never be seen in normal execution
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	void end_frame()
+	@nogc void end_frame()
 	{
 		SDL_GL_SwapWindow(window);
 		assert(glGetError() == GL_NO_ERROR);

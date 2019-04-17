@@ -2,9 +2,9 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module graphics.text;
+module components.render.text;
 
-struct TextRenderer
+struct Text
 {
-	
+	string text;
 }

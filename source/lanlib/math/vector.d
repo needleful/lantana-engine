@@ -2,11 +2,11 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module math.vector;
+module lanlib.math.vector;
 
 import std.math;
 
-import math.matrix;
+import lanlib.math.matrix;
 
 alias Vec2 = Vector!(float, 2);
 alias Vec3 = Vector!(float, 3);
@@ -29,7 +29,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @property const T length_squared()
+	@nogc @property const double length_squared()
 	{
 		T l_sq = 0;
 		static foreach(uint i; 0..Size)
@@ -39,14 +39,14 @@ struct Vector(T, uint Size)
 		return l_sq;
 	}
 
-	@nogc @property const T length()
+	@nogc @property const double length()
 	{
 		return sqrt(length_squared);
 	}
 
 	@nogc void normalize()
 	{
-		T len = length;
+		T len = cast(T)length;
 		static foreach(uint i; 0..Size)
 		{
 			data[i] /= len;

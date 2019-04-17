@@ -2,14 +2,17 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module graphics.gl;
+module lanlib.sys.gl;
 public import derelict.opengl;
 mixin glFreeFuncs!(GLVersion.gl33);
 
-import std.format;
+debug
+{
+	import std.format;
+}
 
-import math.vector;
-import math.matrix;
+import lanlib.math.vector;
+import lanlib.math.matrix;
 
 @nogc void glcheck()
 {
@@ -101,6 +104,6 @@ void set_uniform(T)(GLint uniform, ref T value)
 	}
 	else
 	{
-		static assert(false, "This type is not supported as a uniform");
+		static assert(false, "This type is not supported as a uniform: "~T.stringof);
 	}
 }

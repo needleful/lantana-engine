@@ -2,14 +2,13 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module math.transform;
+module lanlib.math.transform;
 
 import std.math : PI;
 
-import math.angles;
-import math.matrix;
-import math.vector;
-
+import lanlib.math.angles;
+import lanlib.math.matrix;
+import lanlib.math.vector;
 
 struct Transform
 {
