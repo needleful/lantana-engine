@@ -20,7 +20,7 @@
 			"name":"Run Game",
 			"linux": {
 				"cmd": [
-					"./lantana"
+					"./bin/game"
 				]
 			},
 			"working_dir":"$project_path"

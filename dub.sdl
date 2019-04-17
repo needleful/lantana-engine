@@ -10,13 +10,18 @@ versions "DerelictGL3_CustomFreeFuncs"
 dependency "derelict-imgui" path="thirdparty/derelict-imgui"
 
 libs "sdl2" platform="posix"
+copyFiles "thirdparty/derelict-imgui/cimgui/cimgui/cimgui.so"
+
+targetPath "bin"
 
 configuration "game" {
 	targetType "executable"
+	targetName "game"
 	excludedSourceFiles "source/app/tools/*"
 }
 
 configuration "tools" {
 	targetType "executable"
+	targetName "editor"
 	excludedSourceFiles "source/app/game.d"
 }
