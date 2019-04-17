@@ -20,7 +20,7 @@
 			"name":"Run Game",
 			"linux": {
 				"cmd": [
-					"./bin/game"
+					"./game"
 				]
 			},
 			"working_dir":"$project_path"

@@ -72,8 +72,8 @@ int main()
 	UniformId transformId = group.material.get_param_id("transform");
 	group.material.set_param(transformId, transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
-	//Mat4 m = Mat4_Identity;
-	group.material.set_param("projection", proj.matrix);
+	Mat4 m = Mat4_Identity;
+	group.material.set_param("projection", m);
 
 	Vec3 input = Vec3(0,0,0);
 
@@ -103,7 +103,7 @@ int main()
 
 		transform.translate(input*0.016);
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_degrees_axis(0.5, Vec3(1,1,1));
+		transform.rotate_degrees(0.5, 0.5, 0.5);
 		
 		group.material.set_param(transformId, transform.matrix);
 

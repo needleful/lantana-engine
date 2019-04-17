@@ -1,7 +1,7 @@
 .dub
 dub.selections.*
 *.sublime-workspace
-bin
+game
 *.a
 *.so
 *.o
