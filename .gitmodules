@@ -1,0 +1,3 @@
+[submodule "thirdparty/derelict-imgui"]
+	path = thirdparty/derelict-imgui
+	url = https://github.com/needleful/DerelictImgui.git

@@ -5,13 +5,18 @@
 import std.math;
 import std.stdio;
 
+import lanlib.math.matrix;
+import lanlib.math.projection;
 import lanlib.math.vector;
 import lanlib.math.transform;
+
 import lanlib.sys.input;
 import lanlib.sys.memory;
 import lanlib.sys.window;
+
 import components.render.mesh;
 import components.render.material;
+
 import systems.render.mesh;
 
 int main()
@@ -59,10 +64,14 @@ int main()
 	group.meshes = [test_mesh];
 
 	auto transform = mm.create!Transform(0.5, Vec3(0,0,0));
+
+	auto proj = mm.create!Projection(720.0/512, 30, 0.001, 1);
 	
 	UniformId transformId = group.material.get_param_id("transform");
 	group.material.set_param(transformId, transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
+	//Mat4 m = Mat4_Identity;
+	group.material.set_param("projection", proj.matrix);
 
 	Vec3 input = Vec3(0,0,0);
 
