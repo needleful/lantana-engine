@@ -3,3 +3,5 @@ dub.selections.*
 *.sublime-workspace
 lantana
 *.a
+*.so
+*.o

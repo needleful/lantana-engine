@@ -18,6 +18,7 @@ import components.render.mesh;
 import components.render.material;
 
 import systems.render.mesh;
+import systems.render.ui;
 
 int main()
 {
@@ -25,6 +26,7 @@ int main()
 		writeln("Running Lantana in debug mode!");
 	}
 	Window ww = Window(720, 512, "Lantana");
+	UIRenderer ui = UIRenderer(&ww);
 	Input ii = Input();
 	MemoryStack mm = MemoryStack(2048);
 
