@@ -13,7 +13,7 @@ struct Quat
 {
 	float w, x, y, z;
 
-	@nogc his(float w, float x, float y, float z)
+	@nogc this(float w, float x, float y, float z)
 	{
 		this.w = w;
 		this.x = x;
