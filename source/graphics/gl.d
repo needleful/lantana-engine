@@ -11,7 +11,7 @@ import std.format;
 import math.vector;
 import math.matrix;
 
-void glcheck()
+@nogc void glcheck()
 {
 	debug
 	{

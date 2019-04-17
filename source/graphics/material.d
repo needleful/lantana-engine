@@ -47,7 +47,7 @@ struct Material
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	const bool can_render()
+	@nogc const bool can_render()
 	{
 		scope(exit) glcheck;
 
@@ -77,7 +77,7 @@ struct Material
 		}
 	}
 
-	const UniformId get_param_id(string param)
+	@nogc const UniformId get_param_id(string param)
 	{
 		scope(exit)
 		{
@@ -90,7 +90,7 @@ struct Material
 
 	}
 
-	bool set_param(T)(const string param, auto ref T value)
+	@nogc bool set_param(T)(const string param, auto ref T value)
 	{
 		scope(exit) 
 		{
@@ -129,7 +129,7 @@ struct Material
 		}
 	}
 
-	bool set_param(T)(const UniformId uniform, auto ref T value)
+	@nogc bool set_param(T)(const UniformId uniform, auto ref T value)
 	{
 
 		if(uniform == -1)
