@@ -17,11 +17,12 @@ struct Vector(T, uint Size)
 	static assert(Size > 0);
 	T[Size] data;
 
-	@nogc @safe this(const T[Size] d)
+	this(const T[Size] d) @nogc @safe nothrow
 	{
 		data = d;
 	}
-	@nogc @safe this(const T val)
+
+	this(const T val) @nogc @safe nothrow
 	{
 		static foreach(uint i; 0..Size)
 		{
@@ -29,7 +30,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @safe const Vector!(T, Size) opUnary(string op)()
+	const Vector!(T, Size) opUnary(string op)() @nogc @safe nothrow
 	{
 		Vector!(T, Size) result;
 		static if(op == "-")
@@ -46,9 +47,9 @@ struct Vector(T, uint Size)
 		return result;
 	}
 
-	@nogc @safe @property const double length_squared()
+	@property const double length_squared() @nogc @safe
 	{
-		T l_sq = 0;
+		double l_sq = 0;
 		static foreach(uint i; 0..Size)
 		{
 			l_sq += data[i]*data[i];
@@ -56,12 +57,12 @@ struct Vector(T, uint Size)
 		return l_sq;
 	}
 
-	@nogc @safe @property const double length()
+	@property const double length() @nogc @safe nothrow
 	{
 		return sqrt(length_squared);
 	}
 
-	@nogc @safe void normalize()
+	void normalize() @nogc @safe nothrow
 	{
 		T len = cast(T)length;
 		static foreach(uint i; 0..Size)
@@ -70,49 +71,41 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @safe @property T *ptr()
+	@property T *ptr() @nogc @safe nothrow
 	{
 		return &data[0];
 	}
 
-	@nogc @safe @property const uint bytesize()
+	@property const uint bytesize() @nogc @safe nothrow
 	{
 		return Size*T.sizeof;
 	}
 
-	@nogc @safe @property ref T x() {
+	@property ref T x() @nogc @safe nothrow
+	{
 		return data[0];
 	}
 
-	@nogc @safe @property ref T r() {
+	@property const T x() @nogc @safe nothrow
+	{
 		return data[0];
 	}
 
-	@nogc @safe @property const T x() {
-		return data[0];
-	}
-
-	@nogc @safe @property const T r() {
-		return data[0];
-	}
+	alias x r;
 
 	static if (Size >= 2)
 	{
-		@nogc @safe @property ref T y() {
+		@property ref T y() @nogc @safe nothrow
+		{
 			return data[1];
 		}
 
-		@nogc @safe @property ref T g() {
+		@property const T y() @nogc @safe nothrow
+		{
 			return data[1];
 		}
 
-		@nogc @safe @property const T y() {
-			return data[1];
-		}
-
-		@nogc @safe @property const T g() {
-			return data[1];
-		}
+		alias y g;
 
 		static if (Size == 2)
 		{
@@ -125,25 +118,17 @@ struct Vector(T, uint Size)
 	}
 	static if (Size >= 3)
 	{
-		@nogc @safe @property ref T z()
+		@property ref T z() @nogc @safe nothrow
 		{
 			return data[2];
 		}
 
-		@nogc @safe @property ref T b()
+		@property const T z() @nogc @safe nothrow
 		{
 			return data[2];
 		}
 
-		@nogc @safe @property const T z()
-		{
-			return data[2];
-		}
-
-		@nogc @safe @property const T b()
-		{
-			return data[2];
-		}
+		alias z b;
 
 		static if(Size == 3)
 		{
@@ -157,25 +142,17 @@ struct Vector(T, uint Size)
 	}
 	static if (Size >= 4)
 	{
-		@nogc @safe @property ref T w()
+		@property ref T w() @nogc @safe nothrow
 		{
 			return data[3];
 		}
 
-		@nogc @safe @property ref T a()
+		@property const T w() @nogc @safe nothrow
 		{
 			return data[3];
 		}
 
-		@nogc @safe @property const T w()
-		{
-			return data[3];
-		}
-
-		@nogc @safe @property const T a()
-		{
-			return data[3];
-		}
+		alias w a;
 
 		static if(Size == 3)
 		{
@@ -207,7 +184,7 @@ struct Vector(T, uint Size)
 		return v;
 	}
 
-	Vector!(T, Size) opBinary(string op)(const Vector!(T, Size) rhs) @nogc @safe const
+	const Vector!(T, Size) opBinary(string op)(const Vector!(T, Size) rhs) @nogc @safe nothrow
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
@@ -227,7 +204,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	void opOpAssign(string op)(const Vector!(T, Size) rhs) @nogc @safe
+	void opOpAssign(string op)(const Vector!(T, Size) rhs) @nogc @safe nothrow
 	{
 		static foreach(uint i; 0..Size)
 		{
@@ -246,7 +223,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat) @nogc @safe const
+	const Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat) @nogc @safe nothrow
 	{
 		Vector!(T, Column) temp;
 		static foreach(uint i; 0..Column)
@@ -259,7 +236,7 @@ struct Vector(T, uint Size)
 		return temp;
 	}
 
-	@nogc @safe const T dot(Vector!(T, Size) rhs)
+	const T dot(Vector!(T, Size) rhs) @nogc @safe nothrow
 	{
 		T res = 0;
 		static foreach(uint i; 0..Size)
@@ -271,7 +248,7 @@ struct Vector(T, uint Size)
 
 	static if(Size == 3)
 	{
-		@nogc @safe Vector!(T, Size) cross(Vector!(T, Size) rhs)
+		Vector!(T, Size) cross(Vector!(T, Size) rhs) @nogc @safe nothrow
 		{
 			return(Vector!(T, Size)(
 				y*rhs.z - z*rhs.y,
@@ -281,17 +258,17 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @safe ref T opIndex(uint ind)
+	ref T opIndex(uint ind) @nogc @safe nothrow
 	{
 		return data[ind];
 	}
 
-	@nogc @safe const T opIndex(uint ind)
+	const T opIndex(uint ind) @nogc @safe nothrow
 	{
 		return data[ind];
 	}
 
-	@nogc @safe const bool opEquals()(auto ref const Vector!(T, Size) rhs)
+	const bool opEquals()(auto ref const Vector!(T, Size) rhs) @nogc @safe nothrow
 	{
 		bool result = true;
 		static foreach(uint i; 0..Size)

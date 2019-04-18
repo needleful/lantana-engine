@@ -20,7 +20,7 @@ struct Mesh
 	Vec3[] vertices;
 	Tri[] triangles;
 
-	this(Vec3[] verts, Tri[] elements)
+	this(Vec3[] verts, Tri[] elements) @nogc
 	{
 		this.vertices = verts;
 		this.triangles = elements;
@@ -36,12 +36,12 @@ struct Mesh
 		glcheck;
 	}
 
-	@property const ulong vertsize()
+	@property const ulong vertsize() @safe @nogc nothrow
 	{
 		return vertices.length*Vec3.sizeof;
 	}
 
-	@property const ulong trisize()
+	@property const ulong trisize() @safe @nogc nothrow
 	{
 		return triangles.length*Tri.sizeof;
 	}

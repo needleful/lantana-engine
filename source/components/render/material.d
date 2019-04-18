@@ -15,12 +15,12 @@ struct Material
 {
 	MaterialId matId;
 
-	@nogc this(GLuint matId)
+	this(MaterialId matId) @safe @nogc nothrow
 	{
 		this.matId = matId;
 	}
 
-	@nogc const bool can_render()
+	const bool can_render() @nogc
 	{
 		scope(exit) glcheck;
 
@@ -50,7 +50,7 @@ struct Material
 		}
 	}
 
-	@nogc const UniformId get_param_id(string param)
+	const UniformId get_param_id(string param) @nogc
 	{
 		scope(exit)
 		{
@@ -63,7 +63,7 @@ struct Material
 
 	}
 
-	@nogc bool set_param(T)(const string param, auto ref T value)
+	bool set_param(T)(const string param, auto ref T value) @nogc
 	{
 		scope(exit) 
 		{
@@ -102,7 +102,7 @@ struct Material
 		}
 	}
 
-	@nogc bool set_param(T)(const UniformId uniform, auto ref T value)
+	bool set_param(T)(const UniformId uniform, auto ref T value) @nogc
 	{
 
 		if(uniform == -1)

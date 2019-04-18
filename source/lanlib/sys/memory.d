@@ -21,7 +21,7 @@ struct MemoryStack
 {
 	ubyte *data;
 
-	@nogc this(uint capacity)
+	this(uint capacity) @nogc
 	{
 		assert(capacity > ulong.sizeof*2);
 		data = cast(ubyte*) malloc(capacity);

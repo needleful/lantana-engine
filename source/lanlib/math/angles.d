@@ -14,7 +14,7 @@ struct Angles
 	Vec3 axis;
 	float angle;
 
-	@nogc this(Vec3 axis, float angle)
+	this(Vec3 axis, float angle) @nogc @safe nothrow
 	{
 		this.axis = axis;
 		this.axis.normalize();
@@ -23,7 +23,7 @@ struct Angles
 		normalize_angle();
 	}
 
-	@nogc void normalize_angle()
+	void normalize_angle() @nogc @safe nothrow
 	{
 		while(angle > 2*PI)
 		{
@@ -35,13 +35,13 @@ struct Angles
 		}
 	}
 
-	@nogc void rotate(float f)
+	void rotate(float f) @nogc @safe nothrow
 	{
 		angle += f;
 		normalize_angle();
 	}
 
-	@nogc const Mat4 to_matrix()
+	const Mat4 to_matrix() @nogc @safe nothrow
 	{
 		float c = cos(angle);
 		float s = sin(angle);

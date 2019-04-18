@@ -6,12 +6,12 @@ module lanlib.math.func;
 
 public import std.math: sin, cos, tan, PI;
 
-@safe @nogc float radians(float degrees)
+float radians(float degrees) @nogc @safe nothrow
 {
 	return (degrees/180)*PI;
 }
 
-@safe @nogc void sincos(float radians, ref float s, ref float c)
+void sincos(float radians, ref float s, ref float c) @nogc @safe nothrow
 {
 	s = sin(radians);
 	c = cos(radians);

@@ -16,14 +16,14 @@ struct Camera
 	Vec3 pos;
 	Vec2 rot;
 
-	this(Vec3 position, float aspect, float fov) @safe @nogc
+	this(Vec3 position, float aspect, float fov) @safe @nogc nothrow
 	{
 		projection = Projection(aspect, fov, 0.0001, 8000);
 		pos = position;
 		rot = Vec2(0,0);
 	}
 
-	Mat4 vp() @safe @nogc @property
+	@property Mat4 vp() @safe @nogc nothrow
 	{
 		Vec3 f = forward();
 		Vec3 r = right();
@@ -42,7 +42,7 @@ struct Camera
 		return res;
 	}
 
-	Vec3 forward()  @safe @nogc @property
+	@property Vec3 forward() @safe @nogc nothrow
 	{
 		float rx = radians(rot.x);
 		float ry = radians(rot.y);
@@ -52,7 +52,7 @@ struct Camera
 			cos(ry)*cos(rx));
 	}
 
-	Vec3 right()  @safe @nogc @property
+	@property Vec3 right() @safe @nogc nothrow
 	{
 		double rx = radians(rot.x);
 		double ry = radians(rot.y);

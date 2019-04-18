@@ -13,7 +13,7 @@ struct Quat
 {
 	float w, x, y, z;
 
-	@nogc this(float w, float x, float y, float z)
+	this(float w, float x, float y, float z) @nogc @safe nothrow
 	{
 		this.w = w;
 		this.x = x;
@@ -21,7 +21,7 @@ struct Quat
 		this.z = z;
 	}
 
-	@nogc this(float angle, const Vec3 v)
+	this(float angle, const Vec3 v) @nogc @safe nothrow
 	{
 		float s = sin(angle);
 		w = cos(angle);
@@ -30,7 +30,7 @@ struct Quat
 		z = v.z*s;
 	}
 
-	@nogc void normalize()
+	void normalize() @nogc @safe nothrow
 	{
 		float len = sqrt(x*x + y*y + z*z);
 		x /= len;
@@ -39,7 +39,7 @@ struct Quat
 	}
 
 	// Returns a row-major transformation matrix
-	@nogc const Mat4 to_matrix()
+	const Mat4 to_matrix() @nogc @safe nothrow
 	{
 		return Mat4([
 			[1.0f - 2*y*y - 2*z*z,        2*x*y - 2*w*z,        2*x*z + 2*w*y, 0.0f],

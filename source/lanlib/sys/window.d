@@ -15,7 +15,7 @@ import lanlib.math.vector;
 import lanlib.sys.input;
 import lanlib.sys.gl;
 
-@nogc static Input.Action from_scancode(SDL_Scancode code)
+static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 {
 	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
 	{
@@ -114,14 +114,14 @@ struct Window
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	@nogc ~this ()
+	~this () @nogc nothrow
 	{
 		SDL_DestroyWindow(window);
 		SDL_GL_DeleteContext(glContext);
 		SDL_Quit();
 	}
 
-	@nogc void poll_events(ref Input input)
+	void poll_events(ref Input input) @nogc nothrow
 	{
 		foreach(ref Input.Status status; input.status)
 		{
@@ -173,19 +173,19 @@ struct Window
 		}
 	}
 
-	@nogc void begin_frame()
+	void begin_frame() @nogc
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	@nogc void end_frame()
+	void end_frame() @nogc
 	{
 		SDL_GL_SwapWindow(window);
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	@property uint delta_ms()
+	@property uint delta_ms() @nogc nothrow
 	{
 		return SDL_GetTicks() - time;
 	}

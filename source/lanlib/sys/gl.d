@@ -14,7 +14,7 @@ debug
 import lanlib.math.vector;
 import lanlib.math.matrix;
 
-@nogc void glcheck()
+void glcheck() @nogc @safe
 {
 	debug
 	{
@@ -24,7 +24,7 @@ import lanlib.math.matrix;
 	}
 }
 
-void set_uniform(T)(GLint uniform, ref T value)
+void set_uniform(T)(GLint uniform, ref T value) @nogc
 {
 	scope(exit) glcheck;
 
