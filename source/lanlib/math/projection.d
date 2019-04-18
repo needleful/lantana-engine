@@ -6,6 +6,7 @@ module lanlib.math.projection;
 
 import std.math: tan, PI;
 
+import lanlib.math.func;
 import lanlib.math.matrix;
 
 struct Projection
@@ -28,18 +29,17 @@ struct Projection
 
 	@nogc @safe void compute_matrix()
 	{
-		float fov_rad = (fov/180)*PI;
-		float t = 1.0/tan(fov_rad/2);
-		float ar = 1.0/aspect_ratio;
+		float t = tan(radians(fov)/2);
+		float ar = aspect_ratio;
 
 		float z1 = (-near_plane - far_plane)/(near_plane - far_plane);
 		float z2 = (2*near_plane*far_plane)/(near_plane - far_plane); 
 
 		_matrix.set([
-			[ar*t,  0,  0, 0f],
-			[   0,  t,  0, 0f],
-			[   0, z1, z2, 0f],
-			[   0, 0,   1, 0f]
+			[1/(ar*t),   0,  0, 0f],
+			[       0, 1/t,  0, 0f],
+			[       0,   0, z1, 1f],
+			[       0,   0, z2, 0f]
 		]);
 	}
 

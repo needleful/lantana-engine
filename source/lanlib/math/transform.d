@@ -100,13 +100,13 @@ struct Transform
 		]);
 	}
 
-	@nogc @safe const Vec3 forward()
-	{
-		float sx, sy, cx, cy;
+	//@nogc @safe const Vec3 forward()
+	//{
+	//	float sx, sy, cx, cy;
 
-		sincos( radians( _rotation.x ), sx, cx );
-		sincos( radians( _rotation.y ), sy, cy );
+	//	sincos( radians( _rotation.x ), sx, cx );
+	//	sincos( radians( _rotation.y ), sy, cy );
 
-		return Vec3( cp * cy, cp * sy, -sp );
-	}
+	//	return Vec3( ... );
+	//}
 }

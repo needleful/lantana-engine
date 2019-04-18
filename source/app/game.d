@@ -6,7 +6,6 @@ import std.math;
 import std.stdio;
 
 import lanlib.math.matrix;
-import lanlib.math.projection;
 import lanlib.math.vector;
 import lanlib.math.transform;
 
@@ -14,6 +13,7 @@ import lanlib.sys.input;
 import lanlib.sys.memory;
 import lanlib.sys.window;
 
+import components.render.camera;
 import components.render.mesh;
 import components.render.material;
 
@@ -67,13 +67,12 @@ int main()
 
 	auto transform = mm.create!Transform(0.5, Vec3(0,0,0));
 
-	auto proj = mm.create!Projection(720.0/512, 30, 0.001, 1);
+	auto cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
 	UniformId transformId = group.material.get_param_id("transform");
 	group.material.set_param(transformId, transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
-	Mat4 m = Mat4_Identity;
-	group.material.set_param("projection", m);
+	group.material.set_param("projection", cam.vp);
 
 	Vec3 input = Vec3(0,0,0);
 
@@ -83,27 +82,28 @@ int main()
 
 		input.x = 0.0f;
 		input.y = 0.0f;
+		input.z = 0.0f;
 
 		if(ii.is_pressed(Input.Action.LEFT))
 		{
-			input.x = input.x - 1;
+			input.x -= 1;
 		}
 		if(ii.is_pressed(Input.Action.RIGHT))
 		{
-			input.x = input.x + 1;
+			input.x += 1;
 		}
 		if(ii.is_pressed(Input.Action.UP))
 		{
-			input.y = input.y + 1;
+			input.z += 1;
 		}
 		if(ii.is_pressed(Input.Action.DOWN))
 		{
-			input.y = input.y - 1;
+			input.z -= 1;
 		}
 
 		transform.translate(input*0.016);
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_degrees(0.5, 0.5, 0.5);
+		transform.rotate_degrees(0, 0, 0.5);
 		
 		group.material.set_param(transformId, transform.matrix);
 
