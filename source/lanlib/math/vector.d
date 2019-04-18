@@ -189,7 +189,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @safe const Vector!(T, Size) opBinary(string op)(const T val)
+	Vector!(T, Size) opBinary(string op)(const T val) @nogc @safe const
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
@@ -207,7 +207,7 @@ struct Vector(T, uint Size)
 		return v;
 	}
 
-	@nogc @safe const Vector!(T, Size) opBinary(string op)(const Vector!(T, Size) rhs)
+	Vector!(T, Size) opBinary(string op)(const Vector!(T, Size) rhs) @nogc @safe const
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
@@ -227,7 +227,26 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	@nogc @safe const Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat)
+	void opOpAssign(string op)(const Vector!(T, Size) rhs) @nogc @safe
+	{
+		static foreach(uint i; 0..Size)
+		{
+			static if(op == "+")
+			{
+				data[i] += rhs.data[i];
+			}
+			else static if(op == "-")
+			{
+				data[i] -= rhs.data[i];
+			}
+			else
+			{
+				static assert(false, "Operator not supported between vectors: "~op);
+			}
+		}
+	}
+
+	Vector!(T, Column) mult(uint Column)(Matrix!(T, Size, Column) mat) @nogc @safe const
 	{
 		Vector!(T, Column) temp;
 		static foreach(uint i; 0..Column)

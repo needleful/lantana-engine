@@ -4,7 +4,7 @@
 
 module lanlib.math.func;
 
-import std.math: sin, cos, PI;
+public import std.math: sin, cos, tan, PI;
 
 @safe @nogc float radians(float degrees)
 {

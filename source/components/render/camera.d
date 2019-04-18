@@ -5,26 +5,63 @@
 
 module components.render.camera;
 
+import lanlib.math.func;
 import lanlib.math.matrix;
 import lanlib.math.projection;
-import lanlib.math.transform;
 import lanlib.math.vector;
 
 struct Camera
 {
 	Projection projection;
-	Transform transform;
+	Vec3 pos;
+	Vec2 rot;
 
-	@safe @nogc this(Vec3 position, float aspect, float fov)
+	this(Vec3 position, float aspect, float fov) @safe @nogc
 	{
 		projection = Projection(aspect, fov, 0.0001, 8000);
-		transform = Transform(1, -position);
+		pos = position;
+		rot = Vec2(0,0);
 	}
 
-	@safe @nogc @property Mat4 vp()
+	Mat4 vp() @safe @nogc @property
 	{
-		Mat4 mat = projection.matrix;
-		mat *= transform.matrix;
-		return mat;
+		Vec3 f = forward();
+		Vec3 r = right();
+		Vec3 u = f.cross(r);
+
+		Mat4 res = Mat4([
+			[r.x, r.y, r.z, 0f],
+			[u.x, u.y, u.z, 0f],
+			[f.x, f.y, f.z, 0f],
+			[  0,   0,   0, 1f]
+		]);
+
+		res *= projection.matrix;
+
+		res[0, 3] = -pos.x;
+		res[1, 3] = -pos.y;
+		res[2, 3] = -pos.z;
+
+		return res;
+	}
+
+	Vec3 forward()  @safe @nogc @property
+	{
+		float rx = radians(rot.x);
+		float ry = radians(rot.y);
+		return Vec3(
+			cos(ry)*sin(rx),
+			sin(ry),
+			cos(ry)*cos(rx));
+	}
+
+	Vec3 right()  @safe @nogc @property
+	{
+		double rx = radians(rot.x);
+		double ry = radians(rot.y);
+		return Vec3(
+			sin(rx - 3.14f / 2.0f),
+			0,
+			cos(rx - 3.14f / 2.0f));
 	}
 }

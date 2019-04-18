@@ -103,7 +103,7 @@ int main()
 			input.z -= 1;
 		}
 
-		cam.transform.translate(-input*0.016);
+		cam.pos += input;
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		transform.rotate_degrees(0, 0.5, 0.5);
 		
