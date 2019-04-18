@@ -33,14 +33,11 @@ struct Camera
 			[r.x, r.y, r.z, 0f],
 			[u.x, u.y, u.z, 0f],
 			[f.x, f.y, f.z, 0f],
-			[  0,   0,   0, 1f]
+			[pos.dot(r), pos.dot(u), pos.dot(f), 1f]
 		]);
 
 		res *= projection.matrix;
 
-		res[0, 3] = -pos.x;
-		res[1, 3] = -pos.y;
-		res[2, 3] = -pos.z;
 
 		return res;
 	}

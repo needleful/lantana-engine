@@ -96,14 +96,14 @@ int main()
 		}
 		if(ii.is_pressed(Input.Action.UP))
 		{
-			input.z += 1;
+			input.z -= 1;
 		}
 		if(ii.is_pressed(Input.Action.DOWN))
 		{
-			input.z -= 1;
+			input.z += 1;
 		}
 
-		cam.pos += input;
+		cam.pos += input*0.016;
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		transform.rotate_degrees(0, 0.5, 0.5);
 		
