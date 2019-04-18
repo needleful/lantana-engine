@@ -65,17 +65,19 @@ int main()
 	Mesh test_mesh = Mesh(verts, elems);
 	group.meshes = [test_mesh];
 
-	auto transform = mm.create!Transform(0.5, Vec3(0,0,0));
+	auto transform = mm.create!Transform(0.5, Vec3(0,0,2));
 
 	auto cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
 	UniformId transformId = group.material.get_param_id("transform");
+	UniformId projId = group.material.get_param_id("projection");
+
 	group.material.set_param(transformId, transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
-	group.material.set_param("projection", cam.vp);
 
 	Vec3 input = Vec3(0,0,0);
 
+	Mat4 ident = Mat4_Identity;
 	while(ww.should_run)
 	{
 		ww.poll_events(ii);
@@ -101,11 +103,12 @@ int main()
 			input.z -= 1;
 		}
 
-		transform.translate(input*0.016);
+		cam.transform.translate(-input*0.016);
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_degrees(0, 0, 0.5);
+		transform.rotate_degrees(0, 0.5, 0.5);
 		
 		group.material.set_param(transformId, transform.matrix);
+		group.material.set_param(projId, cam.vp);
 
 		ww.begin_frame();
 

@@ -17,8 +17,8 @@ struct Camera
 
 	@safe @nogc this(Vec3 position, float aspect, float fov)
 	{
-		projection = Projection(aspect, fov, 0.0001, 1000);
-		transform = Transform(1, position);
+		projection = Projection(aspect, fov, 0.0001, 8000);
+		transform = Transform(1, -position);
 	}
 
 	@safe @nogc @property Mat4 vp()

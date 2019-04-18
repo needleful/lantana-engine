@@ -29,6 +29,23 @@ struct Vector(T, uint Size)
 		}
 	}
 
+	@nogc @safe const Vector!(T, Size) opUnary(string op)()
+	{
+		Vector!(T, Size) result;
+		static if(op == "-")
+		{
+			static foreach(uint i; 0..Size)
+			{
+				result.data[i] = -data[i];
+			}
+		}
+		else
+		{
+			static assert(false, "Unknown unary vector operator: "~op);
+		}
+		return result;
+	}
+
 	@nogc @safe @property const double length_squared()
 	{
 		T l_sq = 0;

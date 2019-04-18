@@ -93,9 +93,9 @@ struct Transform
 		sincos(radians(_rotation.z), sz, cz);
 
 		return Mat4([
-			[cx*cy,   sz*sx*cy - cz*sy, sz*sy + cz*sx*cy, 0f],
-			[cx*sy,   cz*cy + sz*sx*sy, cz*sx*sy - sz*cy, 0f],
-			[  -sx,              sz*cx,            cz*cx, 0f],
+			[cy*cz,   sx*sy*cz - cx*sz, sx*sz + cx*sy*cz, 0f],
+			[cy*sz,   cx*cz + sx*sy*sz, cx*sy*sz - sx*cz, 0f],
+			[  -sy,              sx*cy,            cx*cy, 0f],
 			[    0,                  0,                0, 1f]
 		]);
 	}
