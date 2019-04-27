@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.window;
+module lanlib.sys.sdl;
 
 import std.exception;
 import std.format;
@@ -47,7 +47,7 @@ static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 	}
 }
 
-struct Window
+struct SDLWindow
 {
 	SDL_Window *window;
 	SDL_GLContext glContext;

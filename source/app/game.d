@@ -11,7 +11,7 @@ import lanlib.math.transform;
 
 import lanlib.sys.input;
 import lanlib.sys.memory;
-import lanlib.sys.window;
+import lanlib.sys.sdl;
 
 import render.camera;
 import render.material;
@@ -22,7 +22,7 @@ int main()
 	debug {
 		writeln("Running Lantana in debug mode!");
 	}
-	Window ww = Window(720, 512, "Lantana");
+	SDLWindow ww = SDLWindow(720, 512, "Lantana");
 	Input ii = Input();
 	MemoryStack mm = MemoryStack(2048);
 
@@ -61,7 +61,8 @@ int main()
 	Mesh* test_mesh = mm.create!Mesh(verts, elems);
 	MeshInstance[] meshes = mm.reserve_list!MeshInstance(1);
 
-	meshes[0] = MeshInstance(test_mesh, Transform(0.5, Vec3(0,0,2)));
+	meshes[0].mesh = test_mesh;
+	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
@@ -103,7 +104,7 @@ int main()
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		meshes[0].transform.rotate_degrees(0, 0.5, 0.5);
 		
-		group.material.set_param(group.transform, meshes[0].transform.matrix);
+		group.material.set_param(group.transform, Transform(0.5, Vec3(0,0,2)));
 		group.material.set_param(projId, cam.vp);
 
 		ww.begin_frame();
