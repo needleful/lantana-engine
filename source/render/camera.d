@@ -3,7 +3,7 @@
 // Licensed under GPL v3.0
 
 
-module components.render.camera;
+module render.camera;
 
 import lanlib.math.func;
 import lanlib.math.matrix;

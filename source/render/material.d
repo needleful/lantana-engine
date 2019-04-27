@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module components.render.material;
+module render.material;
 
 import std.format;
 
@@ -18,6 +18,12 @@ struct Material
 	this(MaterialId matId) @safe @nogc nothrow
 	{
 		this.matId = matId;
+	}
+
+	const void enable() @nogc
+	{
+		assert(can_render());
+		matId.glUseProgram();
 	}
 
 	const bool can_render() @nogc

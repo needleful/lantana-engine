@@ -13,12 +13,9 @@ import lanlib.sys.input;
 import lanlib.sys.memory;
 import lanlib.sys.window;
 
-import components.render.camera;
-import components.render.mesh;
-import components.render.material;
-
-import systems.render.mesh;
-import systems.render.ui;
+import render.camera;
+import render.material;
+import render.mesh;
 
 int main()
 {
@@ -26,11 +23,10 @@ int main()
 		writeln("Running Lantana in debug mode!");
 	}
 	Window ww = Window(720, 512, "Lantana");
-	UIRenderer ui = UIRenderer(&ww);
 	Input ii = Input();
 	MemoryStack mm = MemoryStack(2048);
 
-	MeshGroup group = MeshGroup();
+	MeshGroup* group = mm.create!MeshGroup();
 	group.load_material("data/shaders/test.vert", "data/shaders/test.frag");
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
@@ -62,17 +58,17 @@ int main()
 	elems[10] = Tri(0, 5, 1);
 	elems[11] = Tri(0, 4, 5);
 
-	Mesh test_mesh = Mesh(verts, elems);
-	group.meshes = [test_mesh];
+	Mesh* test_mesh = mm.create!Mesh(verts, elems);
+	MeshInstance[] meshes = mm.reserve_list!MeshInstance(1);
 
-	auto transform = mm.create!Transform(0.5, Vec3(0,0,2));
+	meshes[0] = MeshInstance(test_mesh, Transform(0.5, Vec3(0,0,2)));
 
-	auto cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
+	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
 	UniformId transformId = group.material.get_param_id("transform");
 	UniformId projId = group.material.get_param_id("projection");
 
-	group.material.set_param(transformId, transform.matrix);
+	group.material.set_param(transformId, meshes[0].transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
 
 	Vec3 input = Vec3(0,0,0);
@@ -105,14 +101,14 @@ int main()
 
 		cam.pos += input*0.016;
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		transform.rotate_degrees(0, 0.5, 0.5);
+		meshes[0].transform.rotate_degrees(0, 0.5, 0.5);
 		
-		group.material.set_param(transformId, transform.matrix);
+		group.material.set_param(group.transform, meshes[0].transform.matrix);
 		group.material.set_param(projId, cam.vp);
 
 		ww.begin_frame();
 
-		group.render();
+		group.render(meshes);
 
 		ww.end_frame();
 	}

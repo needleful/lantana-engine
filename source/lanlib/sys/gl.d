@@ -6,6 +6,9 @@ module lanlib.sys.gl;
 public import derelict.opengl;
 mixin glFreeFuncs!(GLVersion.gl33);
 
+import std.file;
+import std.stdio;
+
 debug
 {
 	import std.format;
@@ -22,6 +25,43 @@ void glcheck() @nogc @safe
 		assert(err == GL_NO_ERROR, 
 			format("OpenGL had an error: %d", err));
 	}
+}
+
+GLuint compile_shader(string filename, GLenum type)
+{
+	assert(exists(filename), format("Shader file does not exist: %s", filename));
+
+	File input = File(filename, "r");
+	GLuint shader = glCreateShader(type);
+
+	char[] s;
+	s.length = input.size;
+	assert(s.length > 0, format("Shader file empty: %s", filename));
+
+	input.rawRead(s);
+
+	GLchar*[1] source = [s.ptr];
+	int[1] lengths = [cast(GLint)s.length];
+
+	shader.glShaderSource(1, source.ptr, lengths.ptr);
+	shader.glCompileShader();
+
+	GLint success;
+	shader.glGetShaderiv(GL_COMPILE_STATUS, &success);
+	if(!success)
+	{
+		GLint loglen;
+		shader.glGetShaderiv(GL_INFO_LOG_LENGTH, &loglen);
+
+		char[] error;
+		error.length = loglen;
+		shader.glGetShaderInfoLog(loglen, null, error.ptr);
+
+		throw new Exception(format("Shader file did not compile: %s || %s", filename, error));
+	}
+
+	assert(glGetError() == GL_NO_ERROR);
+	return shader;
 }
 
 void set_uniform(T)(GLint uniform, ref T value) @nogc
