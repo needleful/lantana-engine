@@ -10,7 +10,6 @@ import std.stdio;
 
 import derelict.sdl2.sdl;
 
-import lanlib.types.transform;
 import lanlib.types.vector;
 import lanlib.sys.input;
 import lanlib.sys.gl;

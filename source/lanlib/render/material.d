@@ -2,14 +2,54 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module render.material;
+module lanlib.render.material;
 
 import std.format;
+import std.stdio;
 
 import lanlib.sys.gl;
 
 alias MaterialId = GLuint;
 alias UniformId = GLuint;
+
+
+Material load_material(const string vert_file, const string frag_file)
+{
+	scope(exit) assert(glGetError() == GL_NO_ERROR);
+	GLuint matId = glCreateProgram();
+
+	GLuint vert_shader = compile_shader(vert_file, GL_VERTEX_SHADER);
+	GLuint frag_shader = compile_shader(frag_file, GL_FRAGMENT_SHADER);
+
+	matId.glAttachShader(vert_shader);
+	matId.glAttachShader(frag_shader);
+
+	matId.glLinkProgram();
+
+	GLint success;
+	matId.glGetProgramiv(GL_LINK_STATUS, &success);
+
+	if(!success)
+	{
+		debug
+		{
+			GLint loglen;
+			matId.glGetProgramiv(GL_INFO_LOG_LENGTH, &loglen);
+
+			char[] error;
+			error.length = loglen;
+
+			matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
+			throw new Exception(format(
+			"Failed to link program: %s || %s || %s", vert_file, frag_file, error));
+		}
+		else
+		{
+			return Material(-1);
+		}
+	}
+	return Material(matId);
+}
 
 struct Material 
 {
@@ -69,11 +109,13 @@ struct Material
 
 	}
 
-	bool set_param(T)(const string param, auto ref T value) @nogc
+	// Returns the ID of the param for more efficient setting next time
+	// returns -1 if there was no parameter of this name
+	UniformId set_param(T)(const string param, auto ref T value) @nogc
 	{
 		scope(exit) 
 		{
-			glUseProgram(0);
+			//glUseProgram(0);
 			glcheck();
 		}
 
@@ -87,10 +129,6 @@ struct Material
 				throw new Exception(format(
 					"Could not find material parameter of type %s: %s", T.stringof, param));
 			}
-			else
-			{
-				return false;
-			}
 		}
 		else
 		{
@@ -98,14 +136,13 @@ struct Material
 			{
 				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");
 				set_uniform!float(uniform, cast(float)value);
-				return true;
 			}
 			else
 			{
 				set_uniform!T(uniform, value);
-				return true;
 			}
 		}
+		return uniform;
 	}
 
 	bool set_param(T)(const UniformId uniform, auto ref T value) @nogc

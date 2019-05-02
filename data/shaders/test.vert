@@ -5,10 +5,11 @@ in vec2 UV;
 
 out vec2 vert_uv;
 
+uniform vec2 uv_offset;
 uniform vec2 translate;
 uniform vec2 scale;
 uniform vec2 cam_position;
-uniform vec2 cam_resolution;
+uniform ivec2 cam_resolution;
 
 void main()
 {
