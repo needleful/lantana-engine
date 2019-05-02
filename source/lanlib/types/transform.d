@@ -2,13 +2,13 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.transform;
+module lanlib.types.transform;
 
 import std.math: sin, cos;
 
-import lanlib.math.func;
-import lanlib.math.matrix;
-import lanlib.math.vector;
+import lanlib.types.func;
+import lanlib.types.matrix;
+import lanlib.types.vector;
 
 struct Transform
 {

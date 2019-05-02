@@ -2,16 +2,13 @@ name "lantana"
 description "The Lantana Game Engine"
 authors "needleful"
 license "GPL v3.0"
+version "0.1.0"
 
 dependency "derelict-sdl2" version="~>3.0.0-beta"
 dependency "derelict-gl3" version="~>2.0.0-beta"
 versions "DerelictGL3_CustomFreeFuncs"
 
-dependency "derelict-imgui" path="thirdparty/derelict-imgui"
-
 libs "sdl2" platform="posix"
-copyFiles "thirdparty/derelict-imgui/cimgui/cimgui/cimgui.so"
-lflags "cimgui.so" "-rpath=."
 
 configuration "game" {
 	targetType "executable"

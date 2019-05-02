@@ -2,12 +2,12 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.angles;
+module lanlib.types.angles;
 
 import std.math;
 
-import lanlib.math.matrix;
-import lanlib.math.vector;
+import lanlib.types.matrix;
+import lanlib.types.vector;
 
 struct Angles
 {

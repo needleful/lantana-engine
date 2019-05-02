@@ -14,8 +14,8 @@ debug
 	import std.format;
 }
 
-import lanlib.math.vector;
-import lanlib.math.matrix;
+import lanlib.types.vector;
+import lanlib.types.matrix;
 
 void glcheck() @nogc @safe
 {

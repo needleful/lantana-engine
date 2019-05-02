@@ -11,12 +11,7 @@ struct Entity
 	EntityID id;
 }
 
-struct System(C: Component)
+class System(Component)
 {
-	void process(C[] components);
-}
-
-struct Component
-{
-	EntityID entity;
+	Component[EntityID] components;
 }

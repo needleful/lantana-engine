@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.func;
+module lanlib.types.func;
 
 public import std.math: sin, cos, tan, PI;
 

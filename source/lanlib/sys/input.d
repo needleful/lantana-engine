@@ -9,7 +9,7 @@ debug
 	import std.stdio;
 }
 
-import lanlib.math.vector;
+import lanlib.types.vector;
 
 struct Input
 {

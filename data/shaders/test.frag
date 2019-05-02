@@ -1,12 +1,17 @@
 #version 130
 
-uniform vec3 color;
+uniform sampler2D in_tex;
 
-in vec4 vert_color;
+in vec2 vert_uv;
 out vec3 out_color;
 
 
 void main()
 {
-	out_color = vert_color.rgb+color;
+	vec3 c = texture(in_tex, vert_uv).rgb;
+	if(c == vec3(1, 1, 0))
+	{
+		discard;
+	}
+	out_color = c;
 }

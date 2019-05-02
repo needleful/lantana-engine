@@ -2,12 +2,12 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.projection;
+module lanlib.types.projection;
 
 import std.math: tan, PI;
 
-import lanlib.math.func;
-import lanlib.math.matrix;
+import lanlib.types.func;
+import lanlib.types.matrix;
 
 struct Projection
 {

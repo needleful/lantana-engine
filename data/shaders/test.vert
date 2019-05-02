@@ -1,17 +1,21 @@
 #version 130
 
-in vec3 position;
+in vec2 position;
+in vec2 UV;
 
-out vec4 vert_color;
+out vec2 vert_uv;
 
-uniform mat4 transform;
-uniform mat4 projection;
+uniform vec2 translate;
+uniform vec2 scale;
+uniform vec2 cam_position;
+uniform vec2 cam_resolution;
 
 void main()
 {
-	vec4 world_pos = transform * vec4(position.x, position.y, position.z, 1.0);
-	vert_color = clamp(world_pos, 0.0, 1.0);
-	vert_color.a = 1.0;
-
-	gl_Position = projection * world_pos;
+	vert_uv = UV;
+	// Camera-space position
+	vec2 pos = position + translate - cam_position;
+	// camera-space scale
+	vec2 s = scale/cam_resolution;
+	gl_Position = vec4(pos*s, 0, 1);
 }

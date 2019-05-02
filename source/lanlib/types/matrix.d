@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.matrix;
+module lanlib.types.matrix;
 
 alias Mat2 = Matrix!(float, 2, 2);
 alias Mat3 = Matrix!(float, 3, 3);

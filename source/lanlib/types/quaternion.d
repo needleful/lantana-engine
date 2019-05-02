@@ -2,12 +2,12 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module math.quaternion;
+module lanlib.types.quaternion;
 
 import std.math;
 
-import lanlib.math.matrix;
-import lanlib.math.vector;
+import lanlib.types.matrix;
+import lanlib.types.vector;
 
 struct Quat
 {

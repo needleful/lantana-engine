@@ -2,11 +2,11 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.math.vector;
+module lanlib.types.vector;
 
 import std.math;
 
-import lanlib.math.matrix;
+import lanlib.types.matrix;
 
 alias Vec2 = Vector!(float, 2);
 alias Vec3 = Vector!(float, 3);
