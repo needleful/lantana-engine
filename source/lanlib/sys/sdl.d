@@ -86,6 +86,9 @@ struct SDLWindow
 			throw new Exception(format("Failed to create window: %s", SDL_GetError()));
 		}
 
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
 		glContext = SDL_GL_CreateContext(window);
 		if(glContext == null)
 		{
@@ -101,11 +104,8 @@ struct SDLWindow
 			}
 		}
 
-		//SDL_SetRelativeMouseMode(SDL_TRUE);
-		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
-
-		//glEnable(GL_MULTISAMPLE);
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		glEnable(GL_MULTISAMPLE);
 
 		// Our default OpenGL settings
 		glEnable(GL_CULL_FACE);
@@ -153,10 +153,17 @@ struct SDLWindow
 						case SDL_WINDOWEVENT_CLOSE:
 							should_run = false;
 							break;
-						default:
-							//Nothing
+						case SDL_WINDOWEVENT_MAXIMIZED:
+							continue;
+						case SDL_WINDOWEVENT_RESIZED:
+							continue;
+						case SDL_WINDOWEVENT_SIZE_CHANGED:
+							int w, h;
+							window.SDL_GetWindowSize(&w, &h);
+							glViewport(0, 0, w, h);
 							break;
-
+						default:
+							break;
 					}
 					break;
 				case SDL_KEYDOWN:
