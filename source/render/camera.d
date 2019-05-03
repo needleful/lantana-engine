@@ -12,23 +12,23 @@ import lanlib.math.vector;
 
 struct Camera
 {
-	Projection projection;
+	Mat4 projection;
 	Vec3 pos;
 	Vec2 rot;
 
 	this(Vec3 position, float aspect, float fov) @safe @nogc nothrow
 	{
-		projection = Projection(aspect, fov, 0.0001, 8000);
+		projection = Projection(aspect, fov, 0.0001, 8000).matrix;
 		pos = position;
 		rot = Vec2(0,0);
 	}
 
-	void set_projection(Projection p)
+	void set_projection(Projection p) @safe @nogc nothrow
 	{
-		projection = p;
+		projection = p.matrix;
 	}
 
-	@property Mat4 vp() @safe @nogc nothrow
+	Mat4 calculate_view() @safe @nogc nothrow
 	{
 		Vec3 f = forward();
 		Vec3 r = right();
@@ -36,16 +36,18 @@ struct Camera
 
 		auto eye = pos + f;
 
-		Mat4 res = Mat4([
+		return Mat4([
 			[r.x, r.y, r.z, 0f],
 			[u.x, u.y, u.z, 0f],
 			[f.x, f.y, f.z, 0f],
 			[-eye.dot(r), -eye.dot(u), -eye.dot(f), 1f]
 		]);
+	}
 
-		res *= projection.matrix;
-
-
+	@property Mat4 vp() @safe @nogc nothrow
+	{
+		Mat4 res = calculate_view();
+		res *= projection;
 		return res;
 	}
 
