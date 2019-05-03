@@ -10,6 +10,9 @@ import lanlib.math.matrix;
 import lanlib.math.projection;
 import lanlib.math.vector;
 
+enum DEFAULT_NEAR_PLANE = 0.01;
+enum DEFAULT_FAR_PLANE = 1000;
+
 struct Camera
 {
 	Mat4 projection;
@@ -18,7 +21,7 @@ struct Camera
 
 	this(Vec3 position, float aspect, float fov) @safe @nogc nothrow
 	{
-		projection = Projection(aspect, fov, 0.0001, 8000).matrix;
+		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		pos = position;
 		rot = Vec2(0,0);
 	}
@@ -36,12 +39,6 @@ struct Camera
 
 		auto eye = pos + f;
 
-		//return Mat4([
-		//	[1, 0, 0, -pos.x],
-		//	[0, -1, 0, -pos.y],
-		//	[0, 0, 1, -pos.z],
-		//	[0, 0, 0, 1f]
-		//]);
 		auto view =  Mat4([
 			[ r.x,  r.y,  r.z, 0f],
 			[ u.x,  u.y,  u.z, 0f],

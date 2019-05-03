@@ -6,6 +6,7 @@ import std.math;
 import std.stdio;
 
 import lanlib.math.matrix;
+import lanlib.math.projection;
 import lanlib.math.vector;
 import lanlib.math.transform;
 
@@ -17,9 +18,11 @@ import render.camera;
 import render.material;
 import render.mesh;
 
-enum MAX_MEMORY = 1024*1024*8;
+enum MAX_MEMORY = 1024*1024*20;
 
 enum cam_speed = 8;
+
+bool paused;
 
 int main()
 {
@@ -31,7 +34,7 @@ int main()
 	ii.clear();
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
-	MeshGroup* group = mm.create!MeshGroup();
+	MeshGroup group = MeshGroup();
 	group.load_material("data/shaders/test.vert", "data/shaders/test.frag");
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
@@ -63,15 +66,15 @@ int main()
 	elems[10] = Tri(0, 1, 5);
 	elems[11] = Tri(0, 5, 4);
 
-	Mesh* test_mesh = mm.create!Mesh(verts, elems);
+	Mesh test_mesh = Mesh(verts, elems);
 	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_000);
 
-	meshes[0].mesh = test_mesh;
+	meshes[0].mesh = &test_mesh;
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
 
 	for(uint i = 1; i < meshes.length; i++)
 	{
-		meshes[i].mesh = test_mesh;
+		meshes[i].mesh = &test_mesh;
 		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
 
@@ -86,52 +89,62 @@ int main()
 	Vec2 input = Vec2(0,0);
 
 	Mat4 ident = Mat4_Identity;
-	while(ww.should_run)
+	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
 
-		input.x = 0.0f;
-		input.y = 0.0f;
-
-		if(ii.is_pressed(Input.Action.LEFT))
+		if(ww.state & WindowState.RESIZED)
 		{
-			input.x -= 1;
+			int[2] wsize = ww.get_dimensions();
+			cam.set_projection(
+				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+			);
 		}
-		if(ii.is_pressed(Input.Action.RIGHT))
-		{
-			input.x += 1;
-		}
-		if(ii.is_pressed(Input.Action.UP))
-		{
-			input.y += 1;
-		}
-		if(ii.is_pressed(Input.Action.DOWN))
-		{
-			input.y -= 1;
-		}
-
-		cam.rot += ii.mouse_movement;
-
-		cam.pos += cam.right()*input.x*0.016*cam_speed;
-		cam.pos += cam.forward()*input.y*0.016*cam_speed;
 
 		if(ii.is_just_pressed(Input.Action.PAUSE))
 		{
-			cam.rot = Vec2(0,0);
-			cam.pos = Vec3(0,0,0);
+			paused = !paused;
+			ww.grab_mouse(!paused);
 		}
 
-		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		meshes[0].transform.rotate_degrees(0, 0.5, 0);
-
-		if(ii.is_pressed(Input.Action.JUMP))
+		if(!paused)
 		{
-			//printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
-			cam.pos += cam.up()*0.016*cam_speed;
+			input.x = 0.0f;
+			input.y = 0.0f;
+
+			if(ii.is_pressed(Input.Action.LEFT))
+			{
+				input.x -= 1;
+			}
+			if(ii.is_pressed(Input.Action.RIGHT))
+			{
+				input.x += 1;
+			}
+			if(ii.is_pressed(Input.Action.UP))
+			{
+				input.y += 1;
+			}
+			if(ii.is_pressed(Input.Action.DOWN))
+			{
+				input.y -= 1;
+			}
+
+			cam.rot += ii.mouse_movement;
+
+			cam.pos += cam.right()*input.x*0.016*cam_speed;
+			cam.pos += cam.forward()*input.y*0.016*cam_speed;
+
+			//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
+			meshes[0].transform.rotate_degrees(0, 0.5, 0);
+
+			if(ii.is_pressed(Input.Action.JUMP))
+			{
+				//printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
+				cam.pos += cam.up()*0.016*cam_speed;
+			}
+			
+			group.material.set_param(projId, cam.vp);
 		}
-		
-		group.material.set_param(group.transform, meshes[0].transform.matrix);
-		group.material.set_param(projId, cam.vp);
 
 		ww.begin_frame();
 

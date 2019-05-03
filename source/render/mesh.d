@@ -37,6 +37,12 @@ struct Mesh
 		glcheck;
 	}
 
+	~this()
+	{
+		glDeleteBuffers(1, &vbo);
+		glDeleteBuffers(1, &ebo);
+	}
+
 	@property const ulong vertsize() @safe @nogc nothrow
 	{
 		return vertices.length*Vec3.sizeof;

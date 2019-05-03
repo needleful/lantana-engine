@@ -19,6 +19,10 @@ struct Material
 	{
 		this.matId = matId;
 	}
+	~this()
+	{
+		matId.glDeleteProgram();
+	}
 
 	const void enable() @nogc
 	{

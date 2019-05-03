@@ -47,12 +47,20 @@ static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 	}
 }
 
+enum WindowState : ubyte
+{
+	NONE = 0,
+	CLOSED = 1,
+	RESIZED = 2,
+
+}
+
 struct SDLWindow
 {
 	SDL_Window *window;
 	SDL_GLContext glContext;
 	SDL_Event event;
-	bool should_run;
+	WindowState state;
 	uint time;
 
 	this (int width, int height, string name)
@@ -60,7 +68,7 @@ struct SDLWindow
 		DerelictSDL2.load();
 		DerelictGL3.load();
 
-		should_run = true;
+		state = WindowState.NONE;
 
 		scope(failure)
 		{
@@ -74,20 +82,19 @@ struct SDLWindow
 
 		assert(width > 0 && height > 0 && name.length > 0);
 
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 		window = SDL_CreateWindow(
 			name.ptr, cast(int)SDL_WINDOWPOS_CENTERED, cast(int)SDL_WINDOWPOS_CENTERED, 
-			width, height, SDL_WINDOW_OPENGL);
+			width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 		if(window == null)
 		{
 			throw new Exception(format("Failed to create window: %s", SDL_GetError()));
 		}
-
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 		glContext = SDL_GL_CreateContext(window);
 		if(glContext == null)
@@ -127,6 +134,11 @@ struct SDLWindow
 		SDL_Quit();
 	}
 
+	void grab_mouse(bool grabbed)
+	{
+		SDL_SetRelativeMouseMode(grabbed? SDL_TRUE : SDL_FALSE);
+	}
+
 	void poll_events(ref Input input) @nogc nothrow
 	{
 		input.mouse_movement = Vec2(0,0);
@@ -143,6 +155,7 @@ struct SDLWindow
 		}
 
 		time = SDL_GetTicks();
+		state = WindowState.NONE;
 		while(SDL_PollEvent(&event))
 		{
 			switch(event.type)
@@ -151,7 +164,7 @@ struct SDLWindow
 					switch(event.window.event)
 					{
 						case SDL_WINDOWEVENT_CLOSE:
-							should_run = false;
+							state |= WindowState.CLOSED;
 							break;
 						case SDL_WINDOWEVENT_MAXIMIZED:
 							continue;
@@ -161,6 +174,7 @@ struct SDLWindow
 							int w, h;
 							window.SDL_GetWindowSize(&w, &h);
 							glViewport(0, 0, w, h);
+							state |= WindowState.RESIZED;
 							break;
 						default:
 							break;
@@ -188,6 +202,13 @@ struct SDLWindow
 					break;
 			}
 		}
+	}
+
+	int[2] get_dimensions()
+	{
+		int w, h;
+		window.SDL_GetWindowSize(&w, &h);
+		return [w, h];
 	}
 
 	void begin_frame() @nogc
