@@ -73,7 +73,6 @@ struct Material
 	{
 		scope(exit) 
 		{
-			glUseProgram(0);
 			glcheck();
 		}
 
@@ -126,7 +125,6 @@ struct Material
 		{
 			scope(exit) 
 			{
-				glUseProgram(0);
 				glcheck();
 			}
 			

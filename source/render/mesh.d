@@ -121,7 +121,6 @@ struct MeshGroup
 	void render(MeshInstance[] meshes)
 	{
 		material.enable();
-		//material.set_param(transform, meshes[0].transform.matrix);
 		debug
 		{
 			if(transform < 0)
@@ -129,9 +128,11 @@ struct MeshGroup
 				throw new Exception("Could not find transform uniform for this material.  A transform is required for MeshGroup.");
 			}
 		}
+		uint rendered = 0;
 		foreach(ref MeshInstance instance; meshes)
 		{
 			glcheck();
+			material.set_param(transform, instance.transform.matrix);
 			Mesh* mesh = instance.mesh;
 
 			glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
@@ -142,7 +143,8 @@ struct MeshGroup
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
 
-			glcheck;
+			glDisableVertexAttribArray(0);
+			glcheck();
 		}
 	}
 }

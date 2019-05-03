@@ -202,6 +202,7 @@ struct Vector(T, uint Size)
 				static assert(false, "Operator not supported between vectors: "~op);
 			}
 		}
+		return v;
 	}
 
 	void opOpAssign(string op)(const Vector!(T, Size) rhs) @nogc @safe nothrow

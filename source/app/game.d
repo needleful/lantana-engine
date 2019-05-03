@@ -17,6 +17,10 @@ import render.camera;
 import render.material;
 import render.mesh;
 
+enum MAX_MEMORY = 1024*1024*8;
+
+enum cam_speed = 8;
+
 int main()
 {
 	debug {
@@ -24,7 +28,8 @@ int main()
 	}
 	SDLWindow ww = SDLWindow(720, 512, "Lantana");
 	Input ii = Input();
-	MemoryStack mm = MemoryStack(2048);
+	ii.clear();
+	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
 	MeshGroup* group = mm.create!MeshGroup();
 	group.load_material("data/shaders/test.vert", "data/shaders/test.frag");
@@ -59,10 +64,16 @@ int main()
 	elems[11] = Tri(0, 4, 5);
 
 	Mesh* test_mesh = mm.create!Mesh(verts, elems);
-	MeshInstance[] meshes = mm.reserve_list!MeshInstance(1);
+	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_001);
 
 	meshes[0].mesh = test_mesh;
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
+
+	for(uint i = 1; i < meshes.length; i++)
+	{
+		meshes[i].mesh = test_mesh;
+		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.75, (i % 100)*2));
+	}
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
@@ -72,7 +83,7 @@ int main()
 	group.material.set_param(transformId, meshes[0].transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
 
-	Vec3 input = Vec3(0,0,0);
+	Vec2 input = Vec2(0,0);
 
 	Mat4 ident = Mat4_Identity;
 	while(ww.should_run)
@@ -81,7 +92,6 @@ int main()
 
 		input.x = 0.0f;
 		input.y = 0.0f;
-		input.z = 0.0f;
 
 		if(ii.is_pressed(Input.Action.LEFT))
 		{
@@ -93,16 +103,31 @@ int main()
 		}
 		if(ii.is_pressed(Input.Action.UP))
 		{
-			input.z -= 1;
+			input.y += 1;
 		}
 		if(ii.is_pressed(Input.Action.DOWN))
 		{
-			input.z += 1;
+			input.y -= 1;
 		}
 
-		cam.pos += input*0.016;
+		cam.rot += ii.mouse_movement;
+
+		cam.pos += cam.right()*input.x*0.016*cam_speed;
+		cam.pos += cam.forward()*input.y*0.016*cam_speed;
+
+		if(ii.is_just_pressed(Input.Action.PAUSE))
+		{
+			cam.rot = Vec2(0,0);
+			cam.pos = Vec3(0,0,0);
+		}
+
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		meshes[0].transform.rotate_degrees(0, 0.5, 0.5);
+
+		if(ii.is_pressed(Input.Action.JUMP))
+		{
+			printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
+		}
 		
 		group.material.set_param(group.transform, meshes[0].transform.matrix);
 		group.material.set_param(projId, cam.vp);

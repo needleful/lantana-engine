@@ -23,17 +23,24 @@ struct Camera
 		rot = Vec2(0,0);
 	}
 
+	void set_projection(Projection p)
+	{
+		projection = p;
+	}
+
 	@property Mat4 vp() @safe @nogc nothrow
 	{
 		Vec3 f = forward();
 		Vec3 r = right();
 		Vec3 u = f.cross(r);
 
+		auto eye = pos + f;
+
 		Mat4 res = Mat4([
 			[r.x, r.y, r.z, 0f],
 			[u.x, u.y, u.z, 0f],
 			[f.x, f.y, f.z, 0f],
-			[pos.dot(r), pos.dot(u), pos.dot(f), 1f]
+			[-eye.dot(r), -eye.dot(u), -eye.dot(f), 1f]
 		]);
 
 		res *= projection.matrix;
@@ -57,8 +64,8 @@ struct Camera
 		double rx = radians(rot.x);
 		double ry = radians(rot.y);
 		return Vec3(
-			sin(rx - 3.14f / 2.0f),
+			cos(rx),
 			0,
-			cos(rx - 3.14f / 2.0f));
+			-sin(rx));
 	}
 }

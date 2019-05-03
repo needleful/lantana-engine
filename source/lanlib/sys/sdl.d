@@ -101,6 +101,8 @@ struct SDLWindow
 			}
 		}
 
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+
 		// Our default OpenGL settings
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
@@ -123,6 +125,7 @@ struct SDLWindow
 
 	void poll_events(ref Input input) @nogc nothrow
 	{
+		input.mouse_movement = Vec2(0,0);
 		foreach(ref Input.Status status; input.status)
 		{
 			if(status == Input.Status.JUST_RELEASED)
@@ -165,6 +168,9 @@ struct SDLWindow
 					{
 						input.release(a);
 					}
+					break;
+				case SDL_MOUSEMOTION:
+					input.mouse_movement = Vec2(event.motion.xrel, event.motion.yrel);
 					break;
 				default:
 					//Nothing
