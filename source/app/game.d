@@ -45,26 +45,26 @@ int main()
 	verts[7] = Vec3( 1,  1,  1);
 
 	Tri[] elems = mm.reserve_list!Tri(12);
-	elems[0] = Tri(0, 2, 6);
-	elems[1] = Tri(0, 6, 4);
+	elems[0] = Tri(0, 6, 2);
+	elems[1] = Tri(0, 4, 6);
 
-	elems[2] = Tri(0, 1, 2);
-	elems[3] = Tri(1, 3, 2);
+	elems[2] = Tri(0, 2, 1);
+	elems[3] = Tri(1, 2, 3);
 
-	elems[4] = Tri(4, 7, 5);
-	elems[5] = Tri(4, 6, 7);
+	elems[4] = Tri(4, 5, 7);
+	elems[5] = Tri(4, 7, 6);
 
-	elems[6] = Tri(5, 7, 3);
-	elems[7] = Tri(5, 3, 1);
+	elems[6] = Tri(5, 3, 7);
+	elems[7] = Tri(5, 1, 3);
 
-	elems[8] = Tri(2, 3, 7);
-	elems[9] = Tri(2, 7, 6);
+	elems[8] = Tri(2, 7, 3);
+	elems[9] = Tri(2, 6, 7);
 
-	elems[10] = Tri(0, 5, 1);
-	elems[11] = Tri(0, 4, 5);
+	elems[10] = Tri(0, 1, 5);
+	elems[11] = Tri(0, 5, 4);
 
 	Mesh* test_mesh = mm.create!Mesh(verts, elems);
-	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_001);
+	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_000);
 
 	meshes[0].mesh = test_mesh;
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
@@ -72,7 +72,7 @@ int main()
 	for(uint i = 1; i < meshes.length; i++)
 	{
 		meshes[i].mesh = test_mesh;
-		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.75, (i % 100)*2));
+		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
@@ -122,11 +122,12 @@ int main()
 		}
 
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-		meshes[0].transform.rotate_degrees(0, 0.5, 0.5);
+		meshes[0].transform.rotate_degrees(0, 0.5, 0);
 
 		if(ii.is_pressed(Input.Action.JUMP))
 		{
-			printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
+			//printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
+			cam.pos += cam.up()*0.016*cam_speed;
 		}
 		
 		group.material.set_param(group.transform, meshes[0].transform.matrix);

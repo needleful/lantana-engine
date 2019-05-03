@@ -15,6 +15,7 @@ static immutable Mat4 Mat4_Identity = Mat4([
 		[0, 0, 0, 1f]
 	]);
 
+// Matrices are row-major! Transposed when sent to openGL
 struct Matrix(T, uint Rows, uint Columns)
 {
 	T[Rows][Columns] data;

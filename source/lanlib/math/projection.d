@@ -38,8 +38,8 @@ struct Projection
 		_matrix.set([
 			[1/(ar*t),   0,  0, 0f],
 			[       0, 1/t,  0, 0f],
-			[       0,   0, z1, 1f],
-			[       0,   0, z2, 0f]
+			[       0,   0, z1, z2],
+			[       0,   0, 1f, 0f]
 		]);
 	}
 

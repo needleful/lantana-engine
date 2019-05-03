@@ -95,27 +95,27 @@ void set_uniform(T)(GLint uniform, ref T value) @nogc
 
 	else static if (is(T == Mat4))
 	{
-		uniform.glUniformMatrix4fv(1, GL_FALSE, value.ptr);
+		uniform.glUniformMatrix4fv(1, GL_TRUE, value.ptr);
 	}
 	else static if (is(T == Mat4[]))
 	{
-		uniform.glUniformMatrix4fv(cast(int)value.length, GL_FALSE, value[0].ptr);
+		uniform.glUniformMatrix4fv(cast(int)value.length, GL_TRUE, value[0].ptr);
 	}
 	else static if (is(T == Mat3))
 	{
-		uniform.glUniformMatrix3fv(1, GL_FALSE, value.ptr);
+		uniform.glUniformMatrix3fv(1, GL_TRUE, value.ptr);
 	}
 	else static if (is(T == Mat3[]))
 	{
-		uniform.glUniformMatrix3fv(cast(int)value.length, GL_FALSE, value[0].ptr);
+		uniform.glUniformMatrix3fv(cast(int)value.length, GL_TRUE, value[0].ptr);
 	}
 	else static if (is(T == Mat2))
 	{
-		uniform.glUniformMatrix2fv(1, GL_FALSE, value.ptr);
+		uniform.glUniformMatrix2fv(1, GL_TRUE, value.ptr);
 	}
 	else static if (is(T == Mat2[]))
 	{
-		uniform.glUniformMatrix2fv(cast(int)value.length, GL_FALSE, value[0].ptr);
+		uniform.glUniformMatrix2fv(cast(int)value.length, GL_TRUE, value[0].ptr);
 	}
 
 	else static if (is(T == float))

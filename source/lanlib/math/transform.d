@@ -35,9 +35,9 @@ struct Transform
 			[0.0f,     0.0f,     0.0f,  1.0f]
 		]);
 		_matrix *= rotation_matrix();
-		_matrix[3, 0] = _position.x;
-		_matrix[3, 1] = _position.y;
-		_matrix[3, 2] = _position.z;
+		_matrix[0, 3] = _position.x;
+		_matrix[1, 3] = _position.y;
+		_matrix[2, 3] = _position.z;
 	}
 
 	@property ref Mat4 matrix() @nogc @safe nothrow
@@ -93,20 +93,10 @@ struct Transform
 		sincos(radians(_rotation.z), sz, cz);
 
 		return Mat4([
-			[cy*cz,   sx*sy*cz - cx*sz, sx*sz + cx*sy*cz, 0f],
-			[cy*sz,   cx*cz + sx*sy*sz, cx*sy*sz - sx*cz, 0f],
-			[  -sy,              sx*cy,            cx*cy, 0f],
-			[    0,                  0,                0, 1f]
+			[           cy*cz,            cy*sz,   -sy, 0f],
+			[sx*sy*cz - cx*sz, cx*cz + sx*sy*sz, sx*cy, 0f],
+			[sx*sz + cx*sy*cz, cx*sy*sz - sx*cz, cx*cy, 0f],
+			[0,0,0,1f]
 		]);
 	}
-
-	//@nogc @safe const Vec3 forward()
-	//{
-	//	float sx, sy, cx, cy;
-
-	//	sincos( radians( _rotation.x ), sx, cx );
-	//	sincos( radians( _rotation.y ), sy, cy );
-
-	//	return Vec3( ... );
-	//}
 }

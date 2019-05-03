@@ -32,22 +32,36 @@ struct Camera
 	{
 		Vec3 f = forward();
 		Vec3 r = right();
-		Vec3 u = f.cross(r);
+		Vec3 u = r.cross(f);
 
 		auto eye = pos + f;
 
-		return Mat4([
-			[r.x, r.y, r.z, 0f],
-			[u.x, u.y, u.z, 0f],
-			[f.x, f.y, f.z, 0f],
-			[-eye.dot(r), -eye.dot(u), -eye.dot(f), 1f]
+		//return Mat4([
+		//	[1, 0, 0, -pos.x],
+		//	[0, -1, 0, -pos.y],
+		//	[0, 0, 1, -pos.z],
+		//	[0, 0, 0, 1f]
+		//]);
+		auto view =  Mat4([
+			[ r.x,  r.y,  r.z, 0f],
+			[ u.x,  u.y,  u.z, 0f],
+			[ f.x,  f.y,  f.z, 0f],
+			[0.0f, 0.0f, 0.0f, 1f]
 		]);
+
+		view *= Mat4([
+			[1, 0, 0, -pos.x],
+			[0, 1, 0, -pos.y],
+			[0, 0, 1, -pos.z],
+			[0, 0, 0, 1f]
+		]);
+		return view;
 	}
 
 	@property Mat4 vp() @safe @nogc nothrow
 	{
-		Mat4 res = calculate_view();
-		res *= projection;
+		Mat4 res = projection;
+		res *= calculate_view();
 		return res;
 	}
 
@@ -59,6 +73,11 @@ struct Camera
 			cos(ry)*sin(rx),
 			sin(ry),
 			cos(ry)*cos(rx));
+	}
+
+	@property Vec3 up()
+	{
+		return right().cross(forward());
 	}
 
 	@property Vec3 right() @safe @nogc nothrow
