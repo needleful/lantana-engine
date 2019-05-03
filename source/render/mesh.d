@@ -120,6 +120,7 @@ struct MeshGroup
 
 	void render(MeshInstance[] meshes)
 	{
+		material.enable();
 		//material.set_param(transform, meshes[0].transform.matrix);
 		debug
 		{

@@ -104,7 +104,7 @@ int main()
 		//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
 		meshes[0].transform.rotate_degrees(0, 0.5, 0.5);
 		
-		group.material.set_param(group.transform, Transform(0.5, Vec3(0,0,2)));
+		group.material.set_param(group.transform, meshes[0].transform.matrix);
 		group.material.set_param(projId, cam.vp);
 
 		ww.begin_frame();
