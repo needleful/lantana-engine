@@ -13,7 +13,7 @@ uniform ivec2 cam_resolution;
 
 void main()
 {
-	vert_uv = UV;
+	vert_uv = UV+uv_offset;
 	// Camera-space position
 	vec2 pos = position + translate - cam_position;
 	// camera-space scale

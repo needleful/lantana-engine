@@ -11,6 +11,7 @@ import lanlib.sys.gl;
 
 alias MaterialId = GLuint;
 alias UniformId = GLuint;
+alias AttribId = GLuint;
 
 
 Material load_material(const string vert_file, const string frag_file)
@@ -98,15 +99,25 @@ struct Material
 
 	const UniformId get_param_id(string param) @nogc
 	{
-		scope(exit)
-		{
-			glUseProgram(0);
-			glcheck;
-		}
+		scope(exit) glcheck();
 		matId.glUseProgram();
 
 		return matId.glGetUniformLocation(param.ptr);
 
+	}
+
+	const AttribId get_attrib_id(string attrib) @nogc
+	{
+		scope(exit) glcheck();
+
+		return matId.glGetAttribLocation(attrib.ptr);
+	}
+
+	const void set_attrib_id(string attrib, AttribId id) @nogc
+	{
+		scope(exit) glcheck();
+		
+		return matId.glBindAttribLocation(id, attrib.ptr);
 	}
 
 	// Returns the ID of the param for more efficient setting next time
@@ -163,7 +174,6 @@ struct Material
 		{
 			scope(exit) 
 			{
-				glUseProgram(0);
 				glcheck();
 			}
 			

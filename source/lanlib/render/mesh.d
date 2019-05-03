@@ -4,6 +4,10 @@
 
 module lanlib.render.mesh;
 
+import ecs.core;
+
+import lanlib.render.material;
+
 import lanlib.types.vector;
 import lanlib.types.transform;
 import lanlib.sys.gl;
@@ -48,6 +52,13 @@ struct Mesh2D
 		glcheck;
 	}
 
+	~this()
+	{
+		glDeleteBuffers(1, &vbo_pos);
+		glDeleteBuffers(1, &vbo_uv);
+		glDeleteBuffers(1, &ebo);
+	}
+
 	@property const ulong vertsize() @safe @nogc nothrow
 	{
 		return vertices.length*Vec2.sizeof;
@@ -57,4 +68,19 @@ struct Mesh2D
 	{
 		return triangles.length*Tri.sizeof;
 	}
+}
+
+class Render2D : System!Mesh2D
+{
+	Material material;
+	this(Material mat)
+	{
+		material = mat;
+	}
+
+	override bool process(Mesh2D[] meshes)
+	{
+		return true;
+	}
+
 }

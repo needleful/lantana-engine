@@ -11,7 +11,7 @@ struct Entity
 	EntityID id;
 }
 
-class System(Component)
+abstract class System(Component)
 {
-	Component[EntityID] components;
+	bool process(Component[] components);
 }

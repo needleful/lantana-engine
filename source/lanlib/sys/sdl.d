@@ -78,7 +78,7 @@ struct SDLWindow
 
 		window = SDL_CreateWindow(
 			name.ptr, cast(int)SDL_WINDOWPOS_CENTERED, cast(int)SDL_WINDOWPOS_CENTERED, 
-			width, height, SDL_WINDOW_OPENGL);
+			width, height, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 
 		if(window == null)
 		{
@@ -101,13 +101,9 @@ struct SDLWindow
 		}
 
 		// Our default OpenGL settings
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
 		glFrontFace(GL_CW);
 		// Frame color is irrelevant, since it should never be seen in normal execution
 		glClearColor(0, 0, 0, 1);
-		glClearDepth(1.0f);
 
 		time = SDL_GetTicks();
 		assert(glGetError() == GL_NO_ERROR);
@@ -142,13 +138,19 @@ struct SDLWindow
 				case SDL_WINDOWEVENT:
 					switch(event.window.event)
 					{
-						case SDL_WINDOWEVENT_CLOSE:
-							should_run = false;
-							break;
-						default:
-							//Nothing
-							break;
-
+					case SDL_WINDOWEVENT_CLOSE:
+						should_run = false;
+						break;
+					case SDL_WINDOWEVENT_MAXIMIZED:
+						continue;
+					case SDL_WINDOWEVENT_RESIZED:
+						continue;
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						auto s = get_dimensions();
+						glViewport(0, 0, s[0], s[1]);
+						break;
+					default:
+						break;
 					}
 					break;
 				case SDL_KEYDOWN:
@@ -172,16 +174,24 @@ struct SDLWindow
 		}
 	}
 
+	int[2] get_dimensions() @nogc nothrow
+	{
+		int w;
+		int h;
+		SDL_GetWindowSize(window, &w, &h);
+		return [w, h];
+	}
+
 	void begin_frame() @nogc
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		assert(glGetError() == GL_NO_ERROR);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glcheck();
 	}
 
 	void end_frame() @nogc
 	{
 		SDL_GL_SwapWindow(window);
-		assert(glGetError() == GL_NO_ERROR);
+		glcheck();
 	}
 
 	@property uint delta_ms() @nogc nothrow
