@@ -162,12 +162,10 @@ class MultiMesh : System!Transform
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 		foreach(ref Transform t; transforms)
 		{
-
 			material.set_param(transform, t.matrix);
-
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
 		}
 		glDisableVertexAttribArray(0);
