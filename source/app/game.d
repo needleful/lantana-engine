@@ -34,8 +34,8 @@ int main()
 	ii.clear();
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
-	MeshGroup group = MeshGroup();
-	group.load_material("data/shaders/test.vert", "data/shaders/test.frag");
+	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
+	auto group = new MeshGroup(&test_mat);
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
@@ -67,6 +67,7 @@ int main()
 	elems[11] = Tri(0, 5, 4);
 
 	Mesh test_mesh = Mesh(verts, elems);
+
 	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_000);
 
 	meshes[0].mesh = &test_mesh;
@@ -89,6 +90,10 @@ int main()
 	Vec2 input = Vec2(0,0);
 
 	Mat4 ident = Mat4_Identity;
+	debug
+	{
+		printf("Starting game loop.\n");
+	}
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
@@ -129,7 +134,11 @@ int main()
 				input.y -= 1;
 			}
 
-			cam.rot += ii.mouse_movement;
+			cam.rot.x += ii.mouse_movement.x;
+			float next_rot = cam.rot.y + ii.mouse_movement.y;
+			if(abs(next_rot) < 90){
+				cam.rot.y = next_rot;
+			}
 
 			cam.pos += cam.right()*input.x*0.016*cam_speed;
 			cam.pos += cam.forward()*input.y*0.016*cam_speed;
@@ -148,7 +157,7 @@ int main()
 
 		ww.begin_frame();
 
-		group.render(meshes);
+		group.process(meshes);
 
 		ww.end_frame();
 	}

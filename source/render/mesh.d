@@ -4,15 +4,19 @@
 
 module render.mesh;
 
+import ecs.core;
+
 import lanlib.math.vector;
 import lanlib.math.transform;
 import lanlib.sys.gl;
+import lanlib.sys.memory:GpuResource;
 
 alias VboId = GLuint;
 alias EboId = GLuint;
 
 alias Tri = Vector!(uint, 3);
 
+@GpuResource
 struct Mesh
 {
 	VboId vbo;
@@ -74,57 +78,19 @@ import render.material;
 /**
  *  A System for meshes rendered with the same material.
  */
-struct MeshGroup
+class MeshGroup : System!MeshInstance
 {
-	Material material;
+	Material* material;
 	UniformId transform;
 
-	/**
-	 *	Set the material being used by this mesh, loaded from shader files
-	 */
-	bool load_material(const string vert_file, const string frag_file)
+	this(Material* mat) @nogc
 	{
-		GLuint matId = glCreateProgram();
-
-		GLuint vert_shader = compile_shader(vert_file, GL_VERTEX_SHADER);
-		GLuint frag_shader = compile_shader(frag_file, GL_FRAGMENT_SHADER);
-
-		matId.glAttachShader(vert_shader);
-		matId.glAttachShader(frag_shader);
-
-		matId.glLinkProgram();
-
-		GLint success;
-		matId.glGetProgramiv(GL_LINK_STATUS, &success);
-
-		if(!success)
-		{
-			debug
-			{
-				GLint loglen;
-				matId.glGetProgramiv(GL_INFO_LOG_LENGTH, &loglen);
-
-				char[] error;
-				error.length = loglen;
-
-				matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
-				throw new Exception(format(
-				"Failed to link program: %s || %s || %s", vert_file, frag_file, error));
-			}
-			else
-			{
-				return false;
-			}
-		}
-		material = Material(matId);
-		transform = material.get_param_id("transform");
-		assert(transform != -1);
-
-		assert(glGetError() == GL_NO_ERROR);
-		return true;
+		transform = mat.get_param_id("transform");
+		assert(transform != -1, "material has no transform property");
+		material = mat;
 	}
 
-	void render(MeshInstance[] meshes)
+	override void process(MeshInstance[] meshes) @nogc
 	{
 		material.enable();
 		debug

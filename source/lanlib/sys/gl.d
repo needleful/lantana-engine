@@ -29,14 +29,20 @@ void glcheck() @nogc @safe
 
 GLuint compile_shader(string filename, GLenum type)
 {
-	assert(exists(filename), format("Shader file does not exist: %s", filename));
+	debug
+	{
+		assert(exists(filename), format("Shader file does not exist: %s", filename));
+	}
 
 	File input = File(filename, "r");
 	GLuint shader = glCreateShader(type);
 
 	char[] s;
 	s.length = input.size;
-	assert(s.length > 0, format("Shader file empty: %s", filename));
+	debug 
+	{
+		assert(s.length > 0, format("Shader file empty: %s", filename));
+	}
 
 	input.rawRead(s);
 
@@ -57,7 +63,15 @@ GLuint compile_shader(string filename, GLenum type)
 		error.length = loglen;
 		shader.glGetShaderInfoLog(loglen, null, error.ptr);
 
-		throw new Exception(format("Shader file did not compile: %s || %s", filename, error));
+		debug 
+		{
+			throw new Exception(format("Shader file did not compile: %s || %s", filename, error));
+		}
+		else 
+		{
+			printf("Error: shader did not compile: %s\n%s\n", filename.ptr, error.ptr);
+			return cast(GLuint) 0;
+		}
 	}
 
 	assert(glGetError() == GL_NO_ERROR);

@@ -6,11 +6,19 @@ module lanlib.sys.memory;
 
 import core.stdc.stdlib : malloc, free;
 import std.conv : emplace;
+import std.traits : hasUDA;
 
 debug
 {
 	import std.stdio;
 }
+
+/**
+  Anything with the @GpuResource attribute must have its destructor called
+  once its no longer valid.  As a result, no GpuResource types can be put on 
+  the MemoryStack.  They must be managed through some other method.
+ */
+enum GpuResource;
 
 /** A stack of non-GCd memory
    note: when stack space is freed, it does not call any destructors.
@@ -19,11 +27,12 @@ debug
 */
 struct MemoryStack
 {
+	enum minimum_size = ulong.sizeof*2;
 	ubyte *data;
 
-	this(uint capacity) @nogc
+	this(ulong capacity) @nogc
 	{
-		assert(capacity > ulong.sizeof*2);
+		assert(capacity > minimum_size);
 		data = cast(ubyte*) malloc(capacity);
 
 		assert(data != null, "Out of memory");
@@ -36,7 +45,7 @@ struct MemoryStack
 		}
 	}
 
-	@nogc ~this()
+	~this() @nogc
 	{
 		set_capacity(0);
 		set_space_used(0);
@@ -48,8 +57,11 @@ struct MemoryStack
 		}
 	}
 
-	@nogc T *reserve(T)(uint count = 1)
+	T *reserve(T)(uint count = 1) @nogc 
 	{
+		static assert(!hasUDA!(T, GpuResource), 
+			"Cannot allocate GpuResource type `"~T.stringof ~
+			"` using MemoryStack, as its destructor will never be called");
 		assert(count > 0);
 		assert(T.sizeof*count + space_used <= capacity, "Out of memory");
 		T* result = cast(T*)(&data[space_used]);
@@ -58,12 +70,12 @@ struct MemoryStack
 		return result;
 	}
 
-	@nogc T[] reserve_list(T)(uint count)
+	T[] reserve_list(T)(uint count) @nogc
 	{
 		return reserve!T(count)[0..count];
 	}
 
-	@nogc T *create(T, A...)(auto ref A args)
+	T *create(T, A...)(auto ref A args) @nogc 
 	{
 		T *ptr = reserve!T(1);
 		assert(ptr != null, "Failed to allocate memory");
@@ -71,22 +83,39 @@ struct MemoryStack
 		return ptr;
 	}
 
-	@property @nogc const ulong capacity()
+
+	// Wipe the stack with some memory preserved.
+	// So you can allocate long-lived data here, then get the used space, 
+	// then later call wipe_with_preserved using that value
+	void wipe_with_preserved(ulong preserved_bytes) @nogc
+	{
+		assert(preserved_bytes > minimum_size);
+		assert(preserved_bytes <= space_used);
+		set_space_used(preserved_bytes);
+	}
+
+	// Wipe all data from the stack
+	void wipe() @nogc nothrow
+	{
+		set_space_used(minimum_size);
+	}
+
+	@property ulong capacity() @nogc const nothrow
 	{
 		return (cast(ulong*)data)[0];
 	}
 
-	@property @nogc const ulong space_used()
+	@property ulong space_used() @nogc const nothrow
 	{
 		return (cast(ulong*)data)[1];
 	}
 
-	private @nogc void set_capacity(ulong val)
+	private void set_capacity(ulong val) @nogc nothrow
 	{
 		(cast(ulong*)data)[0] = val;
 	}
 
-	private @nogc void set_space_used(ulong val)
+	private void set_space_used(ulong val) @nogc nothrow
 	{
 		(cast(ulong *) data)[1] = val;
 	}

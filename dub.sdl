@@ -1,6 +1,6 @@
 name "lantana"
 description "The Lantana Game Engine"
-authors "needleful"
+authors "Devin Hastings"
 license "GPL v3.0"
 
 dependency "derelict-sdl2" version="~>3.0.0-beta"

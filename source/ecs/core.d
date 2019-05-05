@@ -11,9 +11,9 @@ struct Entity
 	EntityID id;
 }
 
-struct System(C: Component)
+abstract class System(C)
 {
-	void process(C[] components);
+	abstract void process(C[] components) @nogc;
 }
 
 struct Component

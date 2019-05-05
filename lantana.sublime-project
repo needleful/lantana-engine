@@ -17,6 +17,18 @@
 			"working_dir":"$project_path"
 		},
 		{
+			"name":"Build (Release)",
+			"linux":{
+				"cmd": [
+					"dub",
+					"build",
+					"--build=release",
+					"--config=game"
+				]
+			},
+			"working_dir":"$project_path"
+		},
+		{
 			"name":"Run Game",
 			"linux": {
 				"cmd": [
