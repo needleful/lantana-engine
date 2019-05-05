@@ -21,9 +21,7 @@ import derelict.sdl2.sdl;
 
 int main()
 {
-	debug {
-		writeln("Running Lantana2D in debug mode!");
-	}
+	debug printf("Running Lantana2D in debug mode!\n");
 	auto ww = SDLWindow(720, 512, "Lantana2D");
 	auto ii = Input();
 
@@ -31,28 +29,39 @@ int main()
 
 	if(!IMG_Init(IMG_INIT_PNG))
 	{
-		writeln("Failed to initialize SDL_Image");
+		printf("Failed to initialize SDL_Image.\n");
 		return 8;
 	}
 	scope(exit) IMG_Quit();
 
+	debug printf("Initialized game.\n");
+
 	GLuint texture = 0;
-	SDL_Surface *tex_surface = IMG_Load("data/sprites/test/test1.png");
+	SDL_Surface *tex_surface = IMG_Load("data/sprites/test1.png");
+	assert(tex_surface != null);
+	printf("Loaded image.\n");
+
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
+	assert(glTexImage2D != null, "Missing function.\n");
+
 	glTexImage2D(
-			GL_TEXTURE_2D, 
+			GL_TEXTURE_2D,
 			0, GL_RGB8, 
 			tex_surface.w, tex_surface.h, 
 			0, GL_RGB, 
 			GL_UNSIGNED_BYTE, tex_surface.pixels);
+
+	printf("Blitted image to texture.\n");
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
+
+	printf("Loaded texture\n");
 
 	Vec2[] verts = [
 		Vec2(-.5, -.5),
@@ -62,10 +71,10 @@ int main()
 	];
 
 	Vec2[] UVs = [
-		Vec2(0, 0),
 		Vec2(0, 1),
-		Vec2(1, 0),
+		Vec2(0, 0),
 		Vec2(1, 1),
+		Vec2(1, 0),
 	];
 
 	Tri[] tris = [
@@ -77,12 +86,12 @@ int main()
 
 	int[2] wsize = ww.get_dimensions();
 
-	Vec2 translation = Vec2(0,0);
+	IVec2 translation = IVec2(0,0);
 	Material mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
 	auto pos_uniform = mat.set_param("translate", translation);
 	auto res_uniform = mat.set_param("cam_resolution", Res(wsize[0], wsize[1]));
 	mat.set_param("uv_offset", Vec2(0,0));
-	mat.set_param("scale", Vec2(tex_surface.w, tex_surface.h)*4);
+	mat.set_param("scale", Vec2(tex_surface.w, tex_surface.h));
 	mat.set_param("cam_position", Vec2(0,0));
 	mat.set_param("in_tex", 0);
 	
@@ -93,7 +102,9 @@ int main()
 	mat.set_attrib_id("UV", 1);
 	AttribId uv = mat.get_attrib_id("UV");
 	assert(uv  == 1);
-	
+
+	debug printf("Starting main loop\n");
+	Vec2 fpos = Vec2(0,0);
 	while(ww.should_run)
 	{
 		wsize = ww.get_dimensions();
@@ -101,34 +112,37 @@ int main()
 		mat.set_param(res_uniform, Res(wsize[0], wsize[1]));
 		if(ii.is_pressed(Input.Action.LEFT))
 		{
-			translation.x -= 0.016;
+			fpos.x -= 0.016;
 		}
 		if(ii.is_pressed(Input.Action.RIGHT))
 		{
-			translation.x += 0.016;
+			fpos.x += 0.016;
 		}
 		if(ii.is_pressed(Input.Action.UP))
 		{
-			translation.y += 0.016;
+			fpos.y += 0.016;
 		}
 		if(ii.is_pressed(Input.Action.DOWN))
 		{
-			translation.y -= 0.016;
+			fpos.y -= 0.016;
 		}
+
+		translation.x = cast(int)fpos.x;
+		translation.y = cast(int)fpos.y;
 
 		mat.set_param(pos_uniform, translation);
 
 		ww.begin_frame();
 
 		glcheck();
-
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_pos);
 		glEnableVertexAttribArray(pos);
 		glEnableVertexAttribArray(uv);
 
 		glcheck();
 
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
 		glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
 		glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);

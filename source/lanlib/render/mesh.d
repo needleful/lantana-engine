@@ -19,8 +19,8 @@ alias Tri = Vector!(uint, 3);
 
 struct Mesh2D
 {
-	VboId vbo_pos;
-	VboId vbo_uv;
+	VboId pos;
+	VboId uv;
 	EboId ebo;
 
 	Vec2[] vertices;
@@ -35,27 +35,25 @@ struct Mesh2D
 		this.triangles = elements;
 		this.UVs = UVs;
 
-		glGenBuffers(1, &vbo_pos);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
+		glGenBuffers(1, &pos);
+		glBindBuffer(GL_ARRAY_BUFFER, pos);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &vbo_uv);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_uv);
+		glGenBuffers(1, &uv);
+		glBindBuffer(GL_ARRAY_BUFFER, uv);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
 
 		glGenBuffers(1, &ebo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
 
-
-
-		glcheck;
+		glcheck();
 	}
 
 	~this()
 	{
-		glDeleteBuffers(1, &vbo_pos);
-		glDeleteBuffers(1, &vbo_uv);
+		glDeleteBuffers(1, &pos);
+		glDeleteBuffers(1, &uv);
 		glDeleteBuffers(1, &ebo);
 	}
 

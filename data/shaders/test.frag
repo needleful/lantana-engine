@@ -8,12 +8,12 @@ out vec3 out_color;
 void main()
 {
 	vec3 c = texture(in_tex, vert_uv).rgb;
-	if(c == vec3(1, 1, 0))
+	if(c != vec3(1, 1, 0))
 	{
-		out_color = vec3(vert_uv, 0.1);
+		out_color = c;
 	}
 	else 
 	{
-		out_color = c;
+		discard;
 	}
 }
