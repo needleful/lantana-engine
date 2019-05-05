@@ -82,15 +82,17 @@ class MeshGroup : System!MeshInstance
 {
 	Material* material;
 	UniformId transform;
+	MeshInstance[] meshes;
 
-	this(Material* mat) @nogc
+	this(Material* mat, MeshInstance[] meshes) @nogc
 	{
 		transform = mat.get_param_id("transform");
 		assert(transform != -1, "material has no transform property");
 		material = mat;
+		this.meshes = meshes;
 	}
 
-	override void process(MeshInstance[] meshes) @nogc
+	override void process() @nogc
 	{
 		material.enable();
 		debug
