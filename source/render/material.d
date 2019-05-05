@@ -15,6 +15,7 @@ import lanlib.sys.memory:GpuResource;
 
 alias MaterialId = GLuint;
 alias UniformId = GLuint;
+alias AttribId = GLuint;
 
 Material load_material(const string vert_file, const string frag_file)
 {
@@ -133,13 +134,12 @@ struct Material
 		}
 	}
 
-	const UniformId get_param_id(string param) @nogc
+	UniformId get_param_id(string param) @nogc const
 	{
 		scope(exit)
 		{
 			glcheck();
 		}
-		matId.glUseProgram();
 
 		return matId.glGetUniformLocation(param.ptr);
 
@@ -151,8 +151,6 @@ struct Material
 		{
 			glcheck();
 		}
-
-		matId.glUseProgram();
 
 		GLuint uniform = matId.glGetUniformLocation(param.ptr);
 
@@ -179,8 +177,6 @@ struct Material
 				glcheck();
 			}
 			
-			matId.glUseProgram();
-
 			static if(is(T == double))
 			{
 				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");
@@ -193,5 +189,18 @@ struct Material
 				return true;
 			}
 		}
+	}
+	AttribId get_attrib_id(string attrib) @nogc const
+	{
+		scope(exit) glcheck();
+
+		return matId.glGetAttribLocation(attrib.ptr);
+	}
+
+	void set_attrib_id(string attrib, AttribId id) @nogc
+	{
+		scope(exit) glcheck();
+		
+		return matId.glBindAttribLocation(id, attrib.ptr);
 	}
 }
