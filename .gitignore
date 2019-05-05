@@ -5,3 +5,4 @@ game
 *.a
 *.so
 *.o
+trace.*
