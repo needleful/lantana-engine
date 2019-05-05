@@ -34,7 +34,9 @@ int main()
 	ii.clear();
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
-	Material test_mat = load_material("data/shaders/multi_mesh.vert", "data/shaders/test.frag");
+	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
+
+	assert(test_mat.can_render());
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
@@ -77,6 +79,8 @@ int main()
 	}
 	auto group = new MultiMesh(&test_mesh, &test_mat, transforms);
 
+	Transform tr = transforms[0];
+
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
 	UniformId transformId = group.material.get_param_id("transform");
@@ -95,9 +99,9 @@ int main()
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		auto d = ww.delta_ms;
-		if(frame % 300 == 0)
+		if(frame % 100 == 0)
 		{
-			printf("frame: %dms  ", d);
+			printf("frame: %dms\n", d);
 		}
 		ww.poll_events(ii);
 
@@ -146,8 +150,10 @@ int main()
 			cam.pos += cam.right()*input.x*0.016*cam_speed;
 			cam.pos += cam.forward()*input.y*0.016*cam_speed;
 
-			//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-			transforms[0].rotate_degrees(0, 0.5, 0);
+			tr.scale(0.5+sin(ww.time/2000.0)*0.2);
+			tr.rotate_degrees(0, 0.5, 0);
+
+			group.update_transform(0, tr);
 
 			if(ii.is_pressed(Input.Action.JUMP))
 			{
@@ -166,7 +172,7 @@ int main()
 		ww.end_frame();
 		auto end = ww.delta_ms;
 
-		if(frame % 300 == 0)
+		if(frame % 100 == 0)
 		{
 			printf("render: %dms\n", end-start);
 		}

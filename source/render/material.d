@@ -101,6 +101,13 @@ struct Material
 
 	const void enable() @nogc nothrow
 	{
+		debug 
+		{
+			if(!matId)
+			{
+				assert(false, "Tried to use material with no ID!");
+			}
+		}
 		matId.glUseProgram();
 	}
 
@@ -165,7 +172,6 @@ struct Material
 
 	bool set_param(T)(const UniformId uniform, auto ref T value) @nogc
 	{
-
 		if(uniform == -1)
 		{
 			return false;
@@ -176,6 +182,7 @@ struct Material
 			{
 				glcheck();
 			}
+			enable();
 			
 			static if(is(T == double))
 			{
@@ -190,14 +197,14 @@ struct Material
 			}
 		}
 	}
-	AttribId get_attrib_id(string attrib) @nogc const
+	AttribId get_attrib_id(const string attrib) @nogc const
 	{
 		scope(exit) glcheck();
 
 		return matId.glGetAttribLocation(attrib.ptr);
 	}
 
-	void set_attrib_id(string attrib, AttribId id) @nogc
+	void set_attrib_id(const string attrib, AttribId id) @nogc
 	{
 		scope(exit) glcheck();
 		

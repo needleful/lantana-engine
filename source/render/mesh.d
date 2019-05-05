@@ -6,8 +6,10 @@ module render.mesh;
 
 import ecs.core;
 
+import lanlib.math.matrix;
 import lanlib.math.vector;
 import lanlib.math.transform;
+
 import lanlib.sys.gl;
 import lanlib.sys.memory:GpuResource;
 
@@ -103,26 +105,10 @@ class MeshGroup : System!MeshInstance
 			}
 		}
 		uint rendered = 0;
-		foreach(ref MeshInstance instance; meshes)
-		{
-			glcheck();
-			material.set_param(transform, instance.transform.matrix);
-			Mesh* mesh = instance.mesh;
-
-			glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-			glEnableVertexAttribArray(0);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-			
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
-
-			glDisableVertexAttribArray(0);
-			glcheck();
-		}
 	}
 }
 
+@GpuResource
 class MultiMesh : System!Transform
 {
 	Mesh *mesh;
@@ -130,13 +116,19 @@ class MultiMesh : System!Transform
 	Transform[] transforms;
 	UniformId transform;
 
-	this(Mesh* mesh, Material* mat, Transform[] transforms)
+	this(Mesh* mesh, Material* mat, Transform[] transforms) @nogc
 	{
+		mat.set_attrib_id("position", 0);
 		transform = mat.get_param_id("transform");
 		assert(transform != -1, "material has no transform property");
 		material = mat;
 		this.mesh = mesh;
 		this.transforms = transforms;
+	}
+
+	void update_transform(uint id, ref Transform transform)
+	{
+		transforms[id] = transform;
 	}
 
 	override void process() @nogc
@@ -151,17 +143,19 @@ class MultiMesh : System!Transform
 		}
 		uint rendered = 0;
 
+		glcheck();
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
 		glEnableVertexAttribArray(0);
-
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 		foreach(ref Transform t; transforms)
 		{
+
 			material.set_param(transform, t.matrix);
-			
+
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
 		}
 		glDisableVertexAttribArray(0);
+		glcheck();
 	}
 }
