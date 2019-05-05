@@ -13,7 +13,7 @@ struct Entity
 
 abstract class System(C)
 {
-	abstract void process(C[] components) @nogc;
+	abstract void process() @nogc;
 }
 
 struct Component

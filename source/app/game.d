@@ -34,7 +34,7 @@ int main()
 	ii.clear();
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
-	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
+	Material test_mat = load_material("data/shaders/multi_mesh.vert", "data/shaders/test.frag");
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
@@ -66,7 +66,6 @@ int main()
 	elems[11] = Tri(0, 5, 4);
 
 	Mesh test_mesh = Mesh(verts, elems);
-	auto group = new MultiMesh(&test_mesh, &test_mat);
 
 	Transform[] transforms = mm.reserve_list!Transform(10_000);
 
@@ -76,6 +75,7 @@ int main()
 	{
 		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
+	auto group = new MultiMesh(&test_mesh, &test_mat, transforms);
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 	
@@ -161,7 +161,7 @@ int main()
 		auto start = ww.delta_ms;
 		ww.begin_frame();
 
-		group.process(transforms);
+		group.process();
 
 		ww.end_frame();
 		auto end = ww.delta_ms;

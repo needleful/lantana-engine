@@ -127,17 +127,19 @@ class MultiMesh : System!Transform
 {
 	Mesh *mesh;
 	Material *material;
+	Transform[] transforms;
 	UniformId transform;
 
-	this(Mesh* mesh, Material* mat)
+	this(Mesh* mesh, Material* mat, Transform[] transforms)
 	{
 		transform = mat.get_param_id("transform");
 		assert(transform != -1, "material has no transform property");
 		material = mat;
 		this.mesh = mesh;
+		this.transforms = transforms;
 	}
 
-	override void process(Transform[] transforms) @nogc
+	override void process() @nogc
 	{
 		material.enable();
 		debug
