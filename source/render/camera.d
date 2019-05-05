@@ -11,7 +11,7 @@ import lanlib.math.projection;
 import lanlib.math.vector;
 
 enum DEFAULT_NEAR_PLANE = 0.01;
-enum DEFAULT_FAR_PLANE = 1000;
+enum DEFAULT_FAR_PLANE = 500;
 
 struct Camera
 {

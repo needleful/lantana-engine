@@ -4,8 +4,6 @@
 
 module render.mesh;
 
-import ecs.core;
-
 import lanlib.math.matrix;
 import lanlib.math.vector;
 import lanlib.math.transform;
@@ -65,7 +63,7 @@ struct MeshInstance
 	Mesh* mesh;
 	Transform transform;
 
-	this(Mesh* mesh, Transform transform)
+	this(Mesh* mesh, Transform transform) @nogc @safe nothrow
 	{
 		this.mesh = mesh;
 		this.transform = transform;
@@ -80,7 +78,7 @@ import render.material;
 /**
  *  A System for meshes rendered with the same material.
  */
-class MeshGroup : System!MeshInstance
+struct MeshGroup
 {
 	Material* material;
 	UniformId transform;
@@ -94,37 +92,33 @@ class MeshGroup : System!MeshInstance
 		this.meshes = meshes;
 	}
 
-	override void process() @nogc
+	void render() @nogc
 	{
 		material.enable();
-		debug
-		{
-			if(transform < 0)
-			{
-				throw new Exception("Could not find transform uniform for this material.  A transform is required for MeshGroup.");
-			}
-		}
+		glEnableVertexAttribArray(0);
+		glcheck();
+		
 		foreach(ref MeshInstance instance; meshes)
 		{
-			glcheck();
 			material.set_param(transform, instance.transform.matrix);
 			Mesh* mesh = instance.mesh;
 
 			glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-			glEnableVertexAttribArray(0);
-
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
 			
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
-
-			glDisableVertexAttribArray(0);
+			
 			glcheck();
 		}
+		glDisableVertexAttribArray(0);
 	}
 }
 
-class MultiMesh : System!Transform
+/**
+	A system for multiple instances of the same mesh
+ */
+struct MultiMesh
 {
 	Mesh *mesh;
 	Material *material;
@@ -133,7 +127,6 @@ class MultiMesh : System!Transform
 
 	this(Mesh* mesh, Material* mat, Transform[] transforms) @nogc
 	{
-		mat.set_attrib_id("position", 0);
 		transform = mat.get_param_id("transform");
 		assert(transform != -1, "material has no transform property");
 		material = mat;
@@ -146,7 +139,7 @@ class MultiMesh : System!Transform
 		transforms[id] = transform;
 	}
 
-	override void process() @nogc
+	void render() @nogc
 	{
 		material.enable();
 		debug
@@ -156,17 +149,17 @@ class MultiMesh : System!Transform
 				throw new Exception("Could not find transform uniform for this material.  A transform is required for MeshGroup.");
 			}
 		}
-		uint rendered = 0;
-
 		glcheck();
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+
+		int vert_count = cast(int)mesh.triangles.length*3;
 		foreach(ref Transform t; transforms)
 		{
 			material.set_param(transform, t.matrix);
-			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
+			glDrawElements(GL_TRIANGLES, vert_count, GL_UNSIGNED_INT, cast(const GLvoid*)0);
 		}
 		glDisableVertexAttribArray(0);
 		glcheck();

@@ -12,7 +12,7 @@ import lanlib.math.vector;
 
 struct Transform
 {
-	private Mat4 _matrix;
+	Mat4 matrix;
 	// X Y and Z rotations in degrees
 	private Vec3 _rotation;
 	private Vec3 _position;
@@ -28,22 +28,16 @@ struct Transform
 
 	void compute_matrix() @nogc @safe nothrow
 	{
-		_matrix.set([
+		matrix.set([
 			[_scale.x, 0.0f,     0.0f,     0],
 			[0.0f,     _scale.y, 0.0f,     0],
 			[0.0f,     0.0f,     _scale.z, 0],
 			[0.0f,     0.0f,     0.0f,  1.0f]
 		]);
-		_matrix *= rotation_matrix();
-		_matrix[0, 3] = _position.x;
-		_matrix[1, 3] = _position.y;
-		_matrix[2, 3] = _position.z;
-	}
-
-	@property ref Mat4 matrix() @nogc @safe nothrow
-	{
-		compute_matrix();
-		return _matrix;
+		matrix *= rotation_matrix();
+		matrix[0, 3] = _position.x;
+		matrix[1, 3] = _position.y;
+		matrix[2, 3] = _position.z;
 	}
 
 	void scale(const float s) @nogc @safe nothrow

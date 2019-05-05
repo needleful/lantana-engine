@@ -70,14 +70,13 @@ struct SDLWindow
 
 		state = WindowState.NONE;
 
+		if(SDL_Init(SDL_INIT_VIDEO) < 0){
+			throw new Exception(format("Failed to initialize SDL: %s", SDL_GetError()));
+		}
 		scope(failure)
 		{
 			SDL_Quit();
-			printf("Exited\n");
-		}
-
-		if(SDL_Init(SDL_INIT_VIDEO) < 0){
-			throw new Exception(format("Failed to initialize SDL: %s", SDL_GetError()));
+			printf("Quit SDL\n");
 		}
 
 		assert(width > 0 && height > 0 && name.length > 0);
@@ -98,20 +97,38 @@ struct SDLWindow
 		{
 			throw new Exception(format("Failed to create window: %s", SDL_GetError()));
 		}
+		scope(failure)
+		{
+			SDL_DestroyWindow(window);
+			printf("Destroyed window");
+		}
 
 		glContext = SDL_GL_CreateContext(window);
 		if(glContext == null)
 		{
 			throw new Exception(format("Failed to create OpenGL context: %s", SDL_GetError()));
 		}
+		scope(failure)
+		{
+			SDL_GL_DeleteContext(glContext);
+			printf("Deleting GL context");
+		}
+
 		DerelictGL3.reload();
 
 		if(SDL_GL_SetSwapInterval(-1) < 0)
 		{
-			if(SDL_GL_SetSwapInterval(1) < 0)
+			if(SDL_GL_SetSwapInterval(1) >= 0)
 			{
-				throw new Exception(format("Failed to create OpenGL context: %s", SDL_GetError()));
+				printf("Could not create SDL_GL context with "
+					~"adaptive swap interval, using synced swap interval\n");
 			}
+			else
+			{
+				printf("Warning: Could not enable synced swapping inverval."
+					~" This could case performance issues.\n");
+			}
+
 		}
 
 		SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -130,7 +147,7 @@ struct SDLWindow
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	~this () @nogc nothrow
+	~this() @nogc nothrow
 	{
 		SDL_DestroyWindow(window);
 		SDL_GL_DeleteContext(glContext);

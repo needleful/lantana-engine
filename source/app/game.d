@@ -18,7 +18,7 @@ import render.camera;
 import render.material;
 import render.mesh;
 
-enum MAX_MEMORY = 1024*1024*20;
+enum MAX_MEMORY = 1024*1024;
 
 enum cam_speed = 8;
 
@@ -77,7 +77,7 @@ int main()
 	{
 		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
-	auto group = new MultiMesh(&test_mesh, &test_mat, transforms);
+	auto group = MultiMesh(&test_mesh, &test_mat, transforms);
 
 	Transform tr = transforms[0];
 
@@ -92,16 +92,13 @@ int main()
 	uint frame = 0;
 
 	Mat4 ident = Mat4_Identity;
-	debug
-	{
-		printf("Starting game loop.\n");
-	}
 	while(!(ww.state & WindowState.CLOSED))
 	{
-		auto d = ww.delta_ms;
+		float delta = ww.delta_ms/1000.0;
+	
 		if(frame % 100 == 0)
 		{
-			printf("frame: %dms\n", d);
+			printf("frame: %.2fms\n", delta*1000);
 		}
 		ww.poll_events(ii);
 
@@ -152,6 +149,7 @@ int main()
 
 			tr.scale(0.5+sin(ww.time/2000.0)*0.2);
 			tr.rotate_degrees(0, 0.5, 0);
+			tr.compute_matrix();
 
 			group.update_transform(0, tr);
 
@@ -164,18 +162,19 @@ int main()
 			group.material.set_param(projId, cam.vp);
 		}
 
-		auto start = ww.delta_ms;
 		ww.begin_frame();
 
-		group.process();
+		auto start = ww.delta_ms;
 
-		ww.end_frame();
+		group.render();
+
 		auto end = ww.delta_ms;
-
 		if(frame % 100 == 0)
 		{
 			printf("render: %dms\n", end-start);
 		}
+
+		ww.end_frame();
 		frame ++;
 	}
 
