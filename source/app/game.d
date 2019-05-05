@@ -35,7 +35,6 @@ int main()
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
 
 	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
-	auto group = new MeshGroup(&test_mat);
 
 	Vec3[] verts = mm.reserve_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
@@ -67,16 +66,15 @@ int main()
 	elems[11] = Tri(0, 5, 4);
 
 	Mesh test_mesh = Mesh(verts, elems);
+	auto group = new MultiMesh(&test_mesh, &test_mat);
 
-	MeshInstance[] meshes = mm.reserve_list!MeshInstance(10_000);
+	Transform[] transforms = mm.reserve_list!Transform(10_000);
 
-	meshes[0].mesh = &test_mesh;
-	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
+	transforms[0] = Transform(0.5, Vec3(0,0,2));
 
-	for(uint i = 1; i < meshes.length; i++)
+	for(uint i = 1; i < transforms.length; i++)
 	{
-		meshes[i].mesh = &test_mesh;
-		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
+		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
@@ -84,10 +82,10 @@ int main()
 	UniformId transformId = group.material.get_param_id("transform");
 	UniformId projId = group.material.get_param_id("projection");
 
-	group.material.set_param(transformId, meshes[0].transform.matrix);
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
 
 	Vec2 input = Vec2(0,0);
+	uint frame = 0;
 
 	Mat4 ident = Mat4_Identity;
 	debug
@@ -96,6 +94,11 @@ int main()
 	}
 	while(!(ww.state & WindowState.CLOSED))
 	{
+		auto d = ww.delta_ms;
+		if(frame % 300 == 0)
+		{
+			printf("frame: %dms  ", d);
+		}
 		ww.poll_events(ii);
 
 		if(ww.state & WindowState.RESIZED)
@@ -144,7 +147,7 @@ int main()
 			cam.pos += cam.forward()*input.y*0.016*cam_speed;
 
 			//transform.scale(0.5+sin(ww.time/2000.0)*0.2);
-			meshes[0].transform.rotate_degrees(0, 0.5, 0);
+			transforms[0].rotate_degrees(0, 0.5, 0);
 
 			if(ii.is_pressed(Input.Action.JUMP))
 			{
@@ -155,11 +158,19 @@ int main()
 			group.material.set_param(projId, cam.vp);
 		}
 
+		auto start = ww.delta_ms;
 		ww.begin_frame();
 
-		group.process(meshes);
+		group.process(transforms);
 
 		ww.end_frame();
+		auto end = ww.delta_ms;
+
+		if(frame % 300 == 0)
+		{
+			printf("render: %dms\n", end-start);
+		}
+		frame ++;
 	}
 
 	return 0;

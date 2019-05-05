@@ -23,6 +23,19 @@
 					"dub",
 					"build",
 					"--build=release",
+					"--combined",
+					"--config=game",
+				]
+			},
+			"working_dir":"$project_path"
+		},
+		{
+			"name":"Profile Game",
+			"linux":{
+				"cmd": [
+					"dub",
+					"build",
+					"--build=profile",
 					"--config=game"
 				]
 			},

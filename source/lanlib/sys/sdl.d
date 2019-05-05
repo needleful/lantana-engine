@@ -144,6 +144,9 @@ struct SDLWindow
 
 	void poll_events(ref Input input) @nogc nothrow
 	{
+		time = SDL_GetTicks();
+		state = WindowState.NONE;
+		
 		input.mouse_movement = Vec2(0,0);
 		foreach(ref Input.Status status; input.status)
 		{
@@ -157,8 +160,6 @@ struct SDLWindow
 			}
 		}
 
-		time = SDL_GetTicks();
-		state = WindowState.NONE;
 		while(SDL_PollEvent(&event))
 		{
 			switch(event.type)

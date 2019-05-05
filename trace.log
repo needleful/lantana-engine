@@ -1,0 +1,572 @@
+------------------
+	   12	_D6lanlib3sys2gl8__mixin88__mixin49SetLoader22_staticCtor_L141_C13_1FZv
+_D3std10functional__T10toDelegateTPFZE8derelict6opengl5types9GLVersionZQByFNaNbNiQBvZDFZQBz	12	108	108
+------------------
+	    6	_D8derelict6opengl2gl17DerelictGL3Loader11loadSymbolsMFZv
+	    6	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+_D3std10functional__T13DelegateFakerTPFZE8derelict6opengl5types9GLVersionZQCb4doItMFZQBt	12	5762326	14158
+	    6	_D6lanlib3sys2gl8__mixin88__mixin410loadBaseGLFZE8derelict6opengl5types9GLVersion
+	    6	_D6lanlib3sys2gl8__mixin88__mixin411loadExtraGLFZE8derelict6opengl5types9GLVersion
+------------------
+	   48	_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1S6__ctorMFNaNbNcNiNfKQBqZSQCuQCt__TQCrTQCiTQCmTQCqZQDhFKQCzKQDdZQCn	48	220	220
+------------------
+	   48	_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQCqQCp__TQCnTQCeTQCiTQCmZQDdFKQCvKQCzZ1S	48	232	232
+------------------
+	   48	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv	48	3352	2900
+	   48	_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQCqQCp__TQCnTQCeTQCiTQCmZQDdFKQCvKQCzZ1S
+	   48	_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1S6__ctorMFNaNbNcNiNfKQBqZSQCuQCt__TQCrTQCiTQCmTQCqZQDhFKQCzKQDdZQCn
+------------------
+	 1458	_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFKQoKQrZ1S6__ctorMFNaNbNcNiNfKQBqZSQCuQCt__TQCrTQCiTQCmTQCqZQDhFKQCzKQDdZQCn	1458	21732	21732
+------------------
+	 1458	_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQCqQCp__TQCnTQCeTQCiTQCmZQDdFKQCvKQCzZ1S	1458	14557	14557
+------------------
+	 1458	_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFNaNbNiNfKQwKQzZv	1458	165681	129392
+	 1458	_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQCqQCp__TQCnTQCeTQCiTQCmZQDdFKQCvKQCzZ1S
+	 1458	_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFKQoKQrZ1S6__ctorMFNaNbNcNiNfKQBqZSQCuQCt__TQCrTQCiTQCmTQCqZQDhFKQCzKQDdZQCn
+------------------
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFNbNiNfKQDdKQChKdKiZv
+_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFKQCxKQCbKdKiZ1S6__ctorMFNbNcNiNfKQDdKdKiZSQFlQFk__TQFiTQEzTQFdTQEhTdTiZQGcFKQFuKQEyKdKiZQCx	6	14928	2312
+	    6	_D6render6camera6Camera6__ctorMFNbNcNiNfS6lanlib4math6vector__T6VectorTfVki3ZQoffZSQDdQCzQCv
+------------------
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFNbNiNfKQDdKQChKdKiZv
+_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFKQCxKQCbKdKiZ9__lambda7MFNaNbNiNeZPSQFfQFe__TQFcTQEtTQExTQEbTdTiZQFwFKQFoKQEsKdKiZ1S	6	0	0
+------------------
+	    6	_Dmain
+_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFNbNiNfKQDdKQChKdKiZv	6	16380	1452
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFKQCxKQCbKdKiZ9__lambda7MFNaNbNiNeZPSQFfQFe__TQFcTQEtTQExTQEbTdTiZQFwFKQFoKQEsKdKiZ1S
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFKQCxKQCbKdKiZ1S6__ctorMFNbNcNiNfKQDdKdKiZSQFlQFk__TQFiTQEzTQFdTQEhTdTiZQGcFKQFuKQEyKdKiZQCx
+------------------
+	   12	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T19appenderNewCapacityVmi16ZQBbFNaNbNiNfmmZm	12	456	456
+------------------
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T19appenderNewCapacityVmi8ZQBaFNaNbNiNfmmZm	6	175	175
+------------------
+	   48	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv	48	10137	5415
+	   12	_D3std5array__T19appenderNewCapacityVmi16ZQBbFNaNbNiNfmmZm
+	   12	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda3MFNaNbNeZS4core6memory8BlkInfo_
+	   12	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda5MFNaNbNiNeZQBv
+------------------
+	   12	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda3MFNaNbNeZS4core6memory8BlkInfo_	12	4184	4184
+------------------
+	   12	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda5MFNaNbNiNeZQBv	12	82	82
+------------------
+	   12	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh
+_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd	12	18912	18912
+------------------
+	   48	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh
+_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv	48	19728	5976
+	   48	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+	   48	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda2MFNaNbNiNeZQBu
+	   48	_D3std4conv__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+------------------
+	   48	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda2MFNaNbNiNeZQBu	48	263	263
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+	 1458	_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv	1464	166884	72336
+	    6	_D3std5array__T19appenderNewCapacityVmi8ZQBaFNaNbNiNfmmZm
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFmZ9__lambda3MFNaNbNeZS4core6memory8BlkInfo_
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFmZ9__lambda5MFNaNbNiNeZQBv
+------------------
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFmZ9__lambda3MFNaNbNeZS4core6memory8BlkInfo_	6	94358	94358
+------------------
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFmZ9__lambda5MFNaNbNiNeZQBv	6	15	15
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+_D3std5array__T8AppenderTAPxaZQp8shrinkToMFNaNemZv	6	2289	2034
+	    6	_D3std9exception__T7enforceZ__TQmTbZQrFNaNfbLAxaAyamZb
+------------------
+	 1458	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFNaNbNfQBbZv	1458	396115	185187
+	 1458	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv
+	 1458	_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFQvZ9__lambda2MFNaNbNiNeZQBu
+	 1458	_D3std4conv__T10emplaceRefTPxaTQeTQhZQxFNaNbNiNfKQwKQzZv
+------------------
+	 1458	_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFQvZ9__lambda2MFNaNbNiNeZQBu	1458	24955	24955
+------------------
+	   12	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh	12	67704	12034
+	   12	_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd
+	   48	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result17ensureFrontLengthMFNaNbNiNfZv
+	   48	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+	   48	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result8popFrontMFNaNbNiNfZv
+------------------
+	   12	_D8derelict4util9sharedlib9SharedLib4loadMFAAyaZv
+	 3072	_D8derelict4util9sharedlib9SharedLib10loadSymbolMFAyabZPv
+_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKxAyaZb	3084	193436	193436
+------------------
+	   12	_D6lanlib3sys2gl14compile_shaderFAyakZk
+_D3std5stdio4File__T7rawReadTaZQlMFNfAaZQd	12	15627	15627
+------------------
+	   48	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D3std6string__T10stripRightTAyaZQrFNaNbNiNfQpZQs	48	1684	1684
+------------------
+	   48	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D3std6string__T9stripLeftTAyaZQpFNaNbNiNfQpZQs	48	1901	1901
+------------------
+	   48	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh
+	   48	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result8popFrontMFNaNbNiNfZv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result17ensureFrontLengthMFNaNbNiNfZv	96	14252	4428
+	   48	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+------------------
+	   48	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result8popFrontMFNaNbNiNfZv	48	3038	2778
+	   48	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result17ensureFrontLengthMFNaNbNiNfZv
+------------------
+	   48	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy	48	7008	7008
+------------------
+	   48	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6Result17ensureFrontLengthMFNaNbNiNfZv
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt	48	9824	2816
+	   48	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy
+------------------
+	   60	_D6lanlib3sys2gl14compile_shaderFAyakZk
+_D3std9exception__T7enforceHTCQBcQBb14ErrnoExceptionZ__TQBlTbZQBrFNfbLAxaAyamZb	60	1400	1400
+------------------
+	    6	_D3std5array__T8AppenderTAPxaZQp8shrinkToMFNaNemZv
+	   48	_D6lanlib3sys2gl14compile_shaderFAyakZk
+_D3std9exception__T7enforceZ__TQmTbZQrFNaNfbLAxaAyamZb	54	1533	1533
+------------------
+_D4core8internal6string__T7dstrcmpZQjFNaNbNiNeMxAaMxQeZi	0	3630	3630
+------------------
+	   12	_D6render8material13load_materialFxAyaxQeZSQBpQBl8Material
+_D6lanlib3sys2gl14compile_shaderFAyakZk	12	1094544	1076239
+	   48	_D3std9exception__T7enforceZ__TQmTbZQrFNaNfbLAxaAyamZb
+	   60	_D3std9exception__T7enforceHTCQBcQBb14ErrnoExceptionZ__TQBlTbZQBrFNfbLAxaAyamZb
+	   12	_D3std5stdio4File__T7rawReadTaZQlMFNfAaZQd
+------------------
+	    6	_D3std10functional__T13DelegateFakerTPFZE8derelict6opengl5types9GLVersionZQCb4doItMFZQBt
+_D6lanlib3sys2gl8__mixin88__mixin410loadBaseGLFZE8derelict6opengl5types9GLVersion	6	541044	26188
+	  366	_D8derelict4util6loader15SharedLibLoader10loadSymbolMFAyabZPv
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin411GL_ARB_sync20_staticCtor_L185_C13FZv	0	5084	304
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin411GL_ARB_sync4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	174517	164305
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+	    6	_D3std10functional__T13DelegateFakerTPFZE8derelict6opengl5types9GLVersionZQCb4doItMFZQBt
+_D6lanlib3sys2gl8__mixin88__mixin411loadExtraGLFZE8derelict6opengl5types9GLVersion	6	5207124	4562090
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_copy_buffer20_staticCtor_L153_C13FZv	0	9196	300
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_copy_buffer4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	39792	26336
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_timer_query20_staticCtor_L199_C13FZv	0	4760	260
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_timer_query4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	94707	66448
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin422GL_ARB_sampler_objects20_staticCtor_L171_C13FZv	0	4708	252
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin422GL_ARB_sampler_objects4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	317754	303425
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_map_buffer_range20_staticCtor_L186_C13FZv	0	16684	412
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_map_buffer_range4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	49551	49551
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_provoking_vertex20_staticCtor_L172_C13FZv	0	5104	276
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_provoking_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	34050	26273
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin425GL_ARB_framebuffer_object20_staticCtor_L152_C13FZv	0	129348	1116
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin425GL_ARB_framebuffer_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	484343	484343
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_blend_func_extended20_staticCtor_L155_C13FZv	0	7332	348
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_blend_func_extended4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	43728	40725
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_texture_multisample20_staticCtor_L206_C13FZv	0	4980	252
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_texture_multisample4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	118459	97510
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_vertex_array_object20_staticCtor_L202_C13FZv	0	5760	296
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_vertex_array_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	88090	88090
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin428GL_ARB_uniform_buffer_object20_staticCtor_L166_C13FZv	0	5524	296
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin428GL_ARB_uniform_buffer_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	174831	155938
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin432GL_ARB_draw_elements_base_vertex20_staticCtor_L154_C13FZv	0	7412	280
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin432GL_ARB_draw_elements_base_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	99737	94335
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin433GL_ARB_vertex_type_2_10_10_10_rev20_staticCtor_L216_C13FZv	0	4748	280
+	    6	_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D6lanlib3sys2gl8__mixin88__mixin433GL_ARB_vertex_type_2_10_10_10_rev4loadFKS8derelict6opengl8glloader8GLLoaderbZb	6	854436	827076
+	    6	_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb
+------------------
+_D6lanlib3sys2gl8__mixin88__mixin49SetLoader22_staticCtor_L141_C13_1FZv	0	2556	2448
+	   12	_D3std10functional__T10toDelegateTPFZE8derelict6opengl5types9GLVersionZQByFNaNbNiQBvZDFZQBz
+------------------
+	 1857	_D6lanlib3sys3sdl9SDLWindow11poll_eventsMFNbNiKSQBuQBq5input5InputZv
+_D6lanlib3sys3sdl13from_scancodeFNbNiNfE8derelict4sdl28internal9sdl_types12SDL_ScancodeZEQDjQDf5input5Input6Action	1857	635048	635048
+------------------
+	 3427	_Dmain
+_D6lanlib3sys3sdl9SDLWindow11poll_eventsMFNbNiKSQBuQBq5input5InputZv	3427	264361197	263726149
+	 1857	_D6lanlib3sys3sdl13from_scancodeFNbNiNfE8derelict4sdl28internal9sdl_types12SDL_ScancodeZEQDjQDf5input5Input6Action
+------------------
+	    6	_Dmain
+_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl	6	993985468	970763860
+	   12	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062TQtTQwZQBjFQBdQBgZ6ResultZQDoFNaNbNfQDmZAQCh
+	   48	_D3std6string__T9stripLeftTAyaZQpFNaNbNiNfQpZQs
+	   48	_D3std6string__T10stripRightTAyaZQrFNaNbNiNfQpZQs
+	   12	_D8derelict4util9sharedlib9SharedLib4loadMFAAyaZv
+	    6	_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader11loadSymbolsMFZv
+	    6	_D8derelict6opengl2gl17DerelictGL3Loader11loadSymbolsMFZv
+	    6	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+------------------
+	   12	_D6render6camera6Camera6__ctorMFNbNcNiNfS6lanlib4math6vector__T6VectorTfVki3ZQoffZSQDdQCzQCv
+	    4	_Dmain
+_D6lanlib4math10projection10Projection14compute_matrixMFNbNiNfZv	16	13100	13100
+------------------
+	34330006	_D6lanlib4math9transform9Transform14compute_matrixMFNbNiNfZv
+	 2788	_D6render6camera6Camera14calculate_viewMFNbNiNfZS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs
+	 2788	_Dmain
+_D6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs11opMulAssignMFNaNbNiNfxSQCpQClQCj__TQCfTfVki4Vki4ZQCtZv	34335582	6299563623	6299563623
+------------------
+	    6	_D6render6camera6Camera6__ctorMFNbNcNiNfS6lanlib4math6vector__T6VectorTfVki3ZQoffZSQDdQCzQCv
+_D6lanlib4math6vector__T6VectorTfVki2ZQo6__ctorMFNaNbNcNiNfffZSQCjQCfQCd__TQBzTfVki2ZQCj	6	0	0
+------------------
+	60000	_Dmain
+_D6lanlib4math6vector__T6VectorTfVki3ZQo6__ctorMFNaNbNcNiNffffZSQCkQCgQCe__TQCaTfVki3ZQCk	60000	556267	556267
+------------------
+	60000	_Dmain
+_D6lanlib4math6vector__T6VectorTfVki3ZQo6__ctorMFNaNbNcNiNfxfZSQCjQCfQCd__TQBzTfVki3ZQCj	60000	611231	611231
+------------------
+	 3990	_Dmain
+_D6lanlib4math6vector__T6VectorTfVki3ZQo__T8opBinaryVAyaa1_2aZQtMxFNaNbNiNfxfZSQCzQCvQCt__TQCpTfVki3ZQCz	3990	647152	647152
+------------------
+	60006	_Dmain
+	34270000	_D6render4mesh9MeshGroup7processMFNiASQBkQBg12MeshInstanceZv
+_D6lanlib4math9transform9Transform14compute_matrixMFNbNiNfZv	34330006	30309331793	5730020830
+	34330006	_D6lanlib4math9transform9Transform15rotation_matrixMFNbNiNfZSQChQCd6matrix__T6MatrixTfVki4Vki4ZQs
+	34330006	_D6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs11opMulAssignMFNaNbNiNfxSQCpQClQCj__TQCfTfVki4Vki4ZQCtZv
+------------------
+	34330006	_D6lanlib4math9transform9Transform14compute_matrixMFNbNiNfZv
+_D6lanlib4math9transform9Transform15rotation_matrixMFNbNiNfZSQChQCd6matrix__T6MatrixTfVki4Vki4ZQs	34330006	18281825083	18281825083
+------------------
+	    6	_Dmain
+_D6render4mesh9MeshGroup6__ctorMFNiPSQBj8material8MaterialZCQCgQCcQCa	6	51305	2864
+	    6	_D6render8material8Material12get_param_idMxFNiAyaZk
+------------------
+	 3427	_Dmain
+_D6render4mesh9MeshGroup7processMFNiASQBkQBg12MeshInstanceZv	3427	203070383628	157643096567
+	34270000	_D6lanlib4math9transform9Transform14compute_matrixMFNbNiNfZv
+	34270000	_D6render8material8Material__T9set_paramTS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQsZQCdMFNixkKQCcZb
+------------------
+	 2788	_Dmain
+_D6render6camera6Camera14calculate_viewMFNbNiNfZS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs	2788	7177470	6017985
+	 2788	_D6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs11opMulAssignMFNaNbNiNfxSQCpQClQCj__TQCfTfVki4Vki4ZQCtZv
+------------------
+	 1995	_Dmain
+_D6render6camera6Camera2upMFNdZS6lanlib4math6vector__T6VectorTfVki3ZQo	1995	2718556	2718556
+------------------
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFKQCxKQCbKdKiZ1S6__ctorMFNbNcNiNfKQDdKdKiZSQFlQFk__TQFiTQEzTQFdTQEhTdTiZQGcFKQFuKQEyKdKiZQCx
+_D6render6camera6Camera6__ctorMFNbNcNiNfS6lanlib4math6vector__T6VectorTfVki3ZQoffZSQDdQCzQCv	6	12616	2444
+	   12	_D6lanlib4math10projection10Projection14compute_matrixMFNbNiNfZv
+	    6	_D6lanlib4math6vector__T6VectorTfVki2ZQo6__ctorMFNaNbNcNiNfffZSQCjQCfQCd__TQBzTfVki2ZQCj
+------------------
+	    6	_Dmain
+_D6render8material13load_materialFxAyaxQeZSQBpQBl8Material	6	3361034	2266490
+	   12	_D6lanlib3sys2gl14compile_shaderFAyakZk
+------------------
+	    6	_D6render4mesh9MeshGroup6__ctorMFNiPSQBj8material8MaterialZCQCgQCcQCa
+	   12	_Dmain
+_D6render8material8Material12get_param_idMxFNiAyaZk	18	82501	82501
+------------------
+	    6	_Dmain
+	34270000	_D6render4mesh9MeshGroup7processMFNiASQBkQBg12MeshInstanceZv
+_D6render8material8Material__T9set_paramTS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQsZQCdMFNixkKQCcZb	34270006	15174401840	15174401840
+------------------
+	 2788	_Dmain
+_D6render8material8Material__T9set_paramTS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQsZQCdMFNixkQCbZb	2788	7882424	7882424
+------------------
+	    6	_Dmain
+_D6render8material8Material__T9set_paramTS6lanlib4math6vector__T6VectorTfVki3ZQoZQBzMFNixAyaQBzZk	6	20024	6360
+	    6	_D6render8material8Material__T9set_paramTS6lanlib4math6vector__T6VectorTfVki3ZQoZQBzMFNixkKQByZb
+------------------
+	    6	_D6render8material8Material__T9set_paramTS6lanlib4math6vector__T6VectorTfVki3ZQoZQBzMFNixAyaQBzZk
+_D6render8material8Material__T9set_paramTS6lanlib4math6vector__T6VectorTfVki3ZQoZQBzMFNixkKQByZb	6	13664	13664
+------------------
+	    6	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader11loadSymbolsMFZv	6	2672852	420428
+	 2682	_D8derelict4util6loader15SharedLibLoader10loadSymbolMFAyabZPv
+------------------
+	    6	_D8derelict4sdl28internal11sdl_dynload25_sharedStaticCtor_L672_C1FZv
+_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader6__ctorMFZCQCpQCjQChQCbQBr	6	270	262
+	    6	_D8derelict4util6loader15SharedLibLoader6__ctorMFAyaZCQCaQBuQBsQBo
+------------------
+_D8derelict4sdl28internal11sdl_dynload25_sharedStaticCtor_L672_C1FZv	0	30424	30154
+	    6	_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader6__ctorMFZCQCpQCjQChQCbQBr
+------------------
+	 2682	_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader11loadSymbolsMFZv
+	  366	_D6lanlib3sys2gl8__mixin88__mixin410loadBaseGLFZE8derelict6opengl5types9GLVersion
+	   24	_D8derelict6opengl2gl17DerelictGL3Loader11loadSymbolsMFZv
+_D8derelict4util6loader15SharedLibLoader10loadSymbolMFAyabZPv	3072	2792540	87340
+	 3072	_D8derelict4util9sharedlib9SharedLib10loadSymbolMFAyabZPv
+------------------
+	    6	_D8derelict6opengl2gl17DerelictGL3Loader6__ctorMFZCQBxQBrQBnQBn
+	    6	_D8derelict4sdl28internal11sdl_dynload18DerelictSDL2Loader6__ctorMFZCQCpQCjQChQCbQBr
+_D8derelict4util6loader15SharedLibLoader6__ctorMFAyaZCQCaQBuQBsQBo	12	231	231
+------------------
+	 3072	_D8derelict4util6loader15SharedLibLoader10loadSymbolMFAyabZPv
+_D8derelict4util9sharedlib9SharedLib10loadSymbolMFAyabZPv	3072	2705200	2511880
+	 3072	_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKxAyaZb
+------------------
+	   12	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D8derelict4util9sharedlib9SharedLib4loadMFAAyaZv	12	10526624	10526508
+	   12	_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKxAyaZb
+------------------
+	    6	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D8derelict6opengl2gl17DerelictGL3Loader11loadSymbolsMFZv	6	579800	3668
+	    6	_D3std10functional__T13DelegateFakerTPFZE8derelict6opengl5types9GLVersionZQCb4doItMFZQBt
+	   24	_D8derelict4util6loader15SharedLibLoader10loadSymbolMFAyabZPv
+------------------
+	    6	_D8derelict6opengl2gl24_sharedStaticCtor_L57_C1FZv
+_D8derelict6opengl2gl17DerelictGL3Loader6__ctorMFZCQBxQBrQBnQBn	6	22312	22089
+	    6	_D8derelict4util6loader15SharedLibLoader6__ctorMFAyaZCQCaQBuQBsQBo
+------------------
+_D8derelict6opengl2gl24_sharedStaticCtor_L57_C1FZv	0	2271192	2248880
+	    6	_D8derelict6opengl2gl17DerelictGL3Loader6__ctorMFZCQBxQBrQBnQBn
+------------------
+	    6	_D6lanlib3sys2gl8__mixin88__mixin411loadExtraGLFZE8derelict6opengl5types9GLVersion
+	   60	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv	66	2808517	215993
+	   78	_D8derelict6opengl8glloader8GLLoader17isExtensionLoadedMFAyaZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin425GL_ARB_framebuffer_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_map_buffer_range4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_vertex_array_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_copy_buffer4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin428GL_ARB_uniform_buffer_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin432GL_ARB_draw_elements_base_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_provoking_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin411GL_ARB_sync4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_texture_multisample4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_blend_func_extended4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin422GL_ARB_sampler_objects4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_timer_query4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin433GL_ARB_vertex_type_2_10_10_10_rev4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+------------------
+	    6	_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion
+_D8derelict6opengl8glloader8GLLoader17getContextVersionMFZEQCfQBz5types9GLVersion	6	35708	35708
+------------------
+	   78	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+_D8derelict6opengl8glloader8GLLoader17isExtensionLoadedMFAyaZb	78	18529	18529
+------------------
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_copy_buffer4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin428GL_ARB_uniform_buffer_object4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin432GL_ARB_draw_elements_base_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_provoking_vertex4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin411GL_ARB_sync4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_texture_multisample4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_blend_func_extended4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin422GL_ARB_sampler_objects4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_timer_query4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+	    6	_D6lanlib3sys2gl8__mixin88__mixin433GL_ARB_vertex_type_2_10_10_10_rev4loadFKS8derelict6opengl8glloader8GLLoaderbZb
+_D8derelict6opengl8glloader8GLLoader20isExtensionSupportedMFAyaZb	60	149640	149640
+------------------
+	    6	_D6lanlib3sys2gl8__mixin88__mixin425GL_ARB_framebuffer_object20_staticCtor_L152_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_map_buffer_range20_staticCtor_L186_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_vertex_array_object20_staticCtor_L202_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_copy_buffer20_staticCtor_L153_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin428GL_ARB_uniform_buffer_object20_staticCtor_L166_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin432GL_ARB_draw_elements_base_vertex20_staticCtor_L154_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin423GL_ARB_provoking_vertex20_staticCtor_L172_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin411GL_ARB_sync20_staticCtor_L185_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_texture_multisample20_staticCtor_L206_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin426GL_ARB_blend_func_extended20_staticCtor_L155_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin422GL_ARB_sampler_objects20_staticCtor_L171_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin418GL_ARB_timer_query20_staticCtor_L199_C13FZv
+	    6	_D6lanlib3sys2gl8__mixin88__mixin433GL_ARB_vertex_type_2_10_10_10_rev20_staticCtor_L216_C13FZv
+_D8derelict6opengl8glloader8GLLoader23registerExtensionLoaderFAyaPFKSQCpQCjQCfQBzbZbEQDfQCz5types9GLVersionZv	78	205968	205968
+------------------
+	    6	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+_D8derelict6opengl8glloader8GLLoader9loadExtraMFZEQBwQBq5types9GLVersion	6	9371043	1415402
+	    6	_D8derelict6opengl8glloader8GLLoader17getContextVersionMFZEQCfQBz5types9GLVersion
+	    6	_D3std5array__T8AppenderTAPxaZQp8shrinkToMFNaNemZv
+	    6	_D3std5array__T8AppenderTAPxaZQp13ensureAddableMFNaNbNfmZv
+	 1458	_D3std5array__T8AppenderTAPxaZQp__T3putTQoZQiMFNaNbNfQBbZv
+	    6	_D3std10functional__T13DelegateFakerTPFZE8derelict6opengl5types9GLVersionZQCb4doItMFZQBt
+	   60	_D8derelict6opengl8glloader8GLLoader16loadExtensionSetMFibZv
+------------------
+_Dmain	0	205397873933	988699979
+	    6	_D6lanlib3sys3sdl9SDLWindow6__ctorMFNciiAyaZSQBrQBnQBmQBl
+	    6	_D6render8material13load_materialFxAyaxQeZSQBpQBl8Material
+	    6	_D6render4mesh9MeshGroup6__ctorMFNiPSQBj8material8MaterialZCQCgQCcQCa
+	60000	_D6lanlib4math6vector__T6VectorTfVki3ZQo6__ctorMFNaNbNcNiNfxfZSQCjQCfQCd__TQBzTfVki3ZQCj
+	60000	_D6lanlib4math6vector__T6VectorTfVki3ZQo6__ctorMFNaNbNcNiNffffZSQCkQCgQCe__TQCaTfVki3ZQCk
+	60006	_D6lanlib4math9transform9Transform14compute_matrixMFNbNiNfZv
+	    6	_D3std4conv__T10emplaceRefTS6render6camera6CameraTQxTS6lanlib4math6vector__T6VectorTfVki3ZQoTdTiZQDfFNbNiNfKQDdKQChKdKiZv
+	   12	_D6render8material8Material12get_param_idMxFNiAyaZk
+	    6	_D6render8material8Material__T9set_paramTS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQsZQCdMFNixkKQCcZb
+	    6	_D6render8material8Material__T9set_paramTS6lanlib4math6vector__T6VectorTfVki3ZQoZQBzMFNixAyaQBzZk
+	 3427	_D6lanlib3sys3sdl9SDLWindow11poll_eventsMFNbNiKSQBuQBq5input5InputZv
+	 2788	_D6render6camera6Camera14calculate_viewMFNbNiNfZS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs
+	 2788	_D6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQs11opMulAssignMFNaNbNiNfxSQCpQClQCj__TQCfTfVki4Vki4ZQCtZv
+	 2788	_D6render8material8Material__T9set_paramTS6lanlib4math6matrix__T6MatrixTfVki4Vki4ZQsZQCdMFNixkQCbZb
+	 3427	_D6render4mesh9MeshGroup7processMFNiASQBkQBg12MeshInstanceZv
+	 1995	_D6render6camera6Camera2upMFNdZS6lanlib4math6vector__T6VectorTfVki3ZQo
+	 3990	_D6lanlib4math6vector__T6VectorTfVki3ZQo__T8opBinaryVAyaa1_2aZQtMxFNaNbNiNfxfZSQCzQCvQCt__TQCpTfVki3ZQCz
+	    4	_D6lanlib4math10projection10Projection14compute_matrixMFNbNiNfZv
+
+======== Timer frequency unknown, Times are in Megaticks ========
+
+  Num          Tree        Func        Per
+  Calls        Time        Time        Call
+
+   3427      203070      157643          46     @nogc void render.mesh.MeshGroup.process(render.mesh.MeshInstance[])
+34330006       18281       18281           0     nothrow @nogc @safe lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix lanlib.math.transform.Transform.rotation_matrix()
+34270006       15174       15174           0     @nogc bool render.material.Material.set_param!(lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix).set_param(const(uint), ref lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix)
+34335582        6299        6299           0     pure nothrow @nogc @safe void lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix.opMulAssign(const(lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix))
+34330006       30309        5730           0     nothrow @nogc @safe void lanlib.math.transform.Transform.compute_matrix()
+      1      205397         988         988     _Dmain
+      6         993         970         161     ref lanlib.sys.sdl.SDLWindow lanlib.sys.sdl.SDLWindow.__ctor(int, int, immutable(char)[])
+   3427         264         263           0     nothrow @nogc void lanlib.sys.sdl.SDLWindow.poll_events(ref lanlib.sys.input.Input)
+     12          10          10           0     void derelict.util.sharedlib.SharedLib.load(immutable(char)[][])
+   2788           7           7           0     @nogc bool render.material.Material.set_param!(lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix).set_param(const(uint), lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix)
+   2788           7           6           0     nothrow @nogc @safe lanlib.math.matrix.Matrix!(float, 4u, 4u).Matrix render.camera.Camera.calculate_view()
+      6           5           4           0     derelict.opengl.types.GLVersion lanlib.sys.gl.__mixin8.__mixin4.loadExtraGL()
+   1995           2           2           0     @property lanlib.math.vector.Vector!(float, 3u).Vector render.camera.Camera.up()
+   3072           2           2           0     void* derelict.util.sharedlib.SharedLib.loadSymbol(immutable(char)[], bool)
+      6           3           2           0     render.material.Material render.material.load_material(const(immutable(char)[]), const(immutable(char)[]))
+      1           2           2           2     void derelict.opengl.gl._sharedStaticCtor_L57_C1()
+      6           9           1           0     derelict.opengl.types.GLVersion derelict.opengl.glloader.GLLoader.loadExtra()
+     12           1           1           0     uint lanlib.sys.gl.compile_shader(immutable(char)[], uint)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_vertex_type_2_10_10_10_rev.load(ref derelict.opengl.glloader.GLLoader, bool)
+   3990           0           0           0     const pure nothrow @nogc @safe lanlib.math.vector.Vector!(float, 3u).Vector lanlib.math.vector.Vector!(float, 3u).Vector.opBinary!("*").opBinary(const(float))
+   1857           0           0           0     nothrow @nogc @safe lanlib.sys.input.Input.Action lanlib.sys.sdl.from_scancode(derelict.sdl2.internal.sdl_types.SDL_Scancode)
+  60000           0           0           0     pure nothrow ref @nogc @safe lanlib.math.vector.Vector!(float, 3u).Vector lanlib.math.vector.Vector!(float, 3u).Vector.__ctor(const(float))
+  60000           0           0           0     pure nothrow ref @nogc @safe lanlib.math.vector.Vector!(float, 3u).Vector lanlib.math.vector.Vector!(float, 3u).Vector.__ctor(float, float, float)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_framebuffer_object.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           2           0           0     void derelict.sdl2.internal.sdl_dynload.DerelictSDL2Loader.loadSymbols()
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_sampler_objects.load(ref derelict.opengl.glloader.GLLoader, bool)
+     66           2           0           0     void derelict.opengl.glloader.GLLoader.loadExtensionSet(int, bool)
+     78           0           0           0     void derelict.opengl.glloader.GLLoader.registerExtensionLoader(immutable(char)[], bool function(ref derelict.opengl.glloader.GLLoader, bool)*, derelict.opengl.types.GLVersion)
+   3084           0           0           0     pure nothrow @property @nogc @safe bool std.range.primitives.empty!(immutable(char)[]).empty(scope ref const(immutable(char)[]))
+   1458           0           0           0     pure nothrow @safe void std.array.Appender!(const(char)*[]).Appender.put!(const(char)*).put(const(char)*)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_sync.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_uniform_buffer_object.load(ref derelict.opengl.glloader.GLLoader, bool)
+     60           0           0           0     bool derelict.opengl.glloader.GLLoader.isExtensionSupported(immutable(char)[])
+   1458           0           0           0     pure nothrow @nogc @safe void std.conv.emplaceRef!(const(char)*, const(char)*, const(char)*).emplaceRef(ref const(char)*, ref const(char)*)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_texture_multisample.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     pure nothrow @trusted core.memory.BlkInfo_ std.array.Appender!(const(char)*[]).Appender.ensureAddable(ulong).__lambda3()
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_draw_elements_base_vertex.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_vertex_array_object.load(ref derelict.opengl.glloader.GLLoader, bool)
+   3072           2           0           0     void* derelict.util.loader.SharedLibLoader.loadSymbol(immutable(char)[], bool)
+     18           0           0           0     const @nogc uint render.material.Material.get_param_id(immutable(char)[])
+   1464           0           0           0     pure nothrow @safe void std.array.Appender!(const(char)*[]).Appender.ensureAddable(ulong)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_timer_query.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_map_buffer_range.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_blend_func_extended.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     derelict.opengl.types.GLVersion derelict.opengl.glloader.GLLoader.getContextVersion()
+      1           0           0           0     void derelict.sdl2.internal.sdl_dynload._sharedStaticCtor_L672_C1()
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_copy_buffer.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     bool lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_provoking_vertex.load(ref derelict.opengl.glloader.GLLoader, bool)
+      6           0           0           0     derelict.opengl.types.GLVersion lanlib.sys.gl.__mixin8.__mixin4.loadBaseGL()
+   1458           0           0           0     pure nothrow @nogc @trusted const(char)*[] std.array.Appender!(const(char)*[]).Appender.put!(const(char)*).put(const(char)*).__lambda2()
+      6           0           0           0     derelict.opengl.gl.DerelictGL3Loader derelict.opengl.gl.DerelictGL3Loader.__ctor()
+   1458           0           0           0     pure nothrow ref @nogc @safe std.conv.emplaceRef!(const(char)*, const(char)*, const(char)*).emplaceRef(ref const(char)*, ref const(char)*).S std.conv.emplaceRef!(const(char)*, const(char)*, const(char)*).emplaceRef(ref const(char)*, ref const(char)*).S.__ctor(ref const(char)*)
+     12           0           0           0     pure nothrow ref @trusted std.array.Appender!(immutable(char)[][]).Appender std.array.Appender!(immutable(char)[][]).Appender.__ctor(immutable(char)[][])
+     78           0           0           0     bool derelict.opengl.glloader.GLLoader.isExtensionLoaded(immutable(char)[])
+     12           0           0           0     @safe char[] std.stdio.File.rawRead!(char).rawRead(char[])
+   1458           0           0           0     pure nothrow @nogc @trusted std.conv.emplaceRef!(const(char)*, const(char)*, const(char)*).emplaceRef(ref const(char)*, ref const(char)*).S* std.conv.emplaceRef!(const(char)*, const(char)*, const(char)*).emplaceRef(ref const(char)*, ref const(char)*).__lambda5()
+     12           5           0           0     derelict.opengl.types.GLVersion std.functional.DelegateFaker!(derelict.opengl.types.GLVersion function()*).DelegateFaker.doIt()
+      6           0           0           0     @nogc bool render.material.Material.set_param!(lanlib.math.vector.Vector!(float, 3u).Vector).set_param(const(uint), ref lanlib.math.vector.Vector!(float, 3u).Vector)
+     16           0           0           0     nothrow @nogc @safe void lanlib.math.projection.Projection.compute_matrix()
+     12           0           0           0     pure nothrow @safe immutable(char)[][] std.array.array!(std.algorithm.iteration.splitter!("a == b", immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result).array(std.algorithm.iteration.splitter!("a == b", immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result)
+     48           0           0           0     pure nothrow @nogc @safe ubyte[] std.algorithm.searching.find!("a == b", ubyte[], ubyte[]).find(ubyte[], scope ubyte[])
+      6           0           0           0     @nogc uint render.material.Material.set_param!(lanlib.math.vector.Vector!(float, 3u).Vector).set_param(const(immutable(char)[]), lanlib.math.vector.Vector!(float, 3u).Vector)
+     48           0           0           0     pure nothrow @safe void std.array.Appender!(immutable(char)[][]).Appender.put!(immutable(char)[]).put(immutable(char)[])
+     48           0           0           0     pure nothrow @safe void std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong)
+     96           0           0           0     pure nothrow @nogc @safe void std.algorithm.iteration.splitter!("a == b", immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.ensureFrontLength()
+     12           0           0           0     pure nothrow @trusted core.memory.BlkInfo_ std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong).__lambda3()
+      6           0           0           0     void derelict.opengl.gl.DerelictGL3Loader.loadSymbols()
+      1           0           0           0     pure nothrow @nogc @trusted int core.internal.string.dstrcmp!().dstrcmp(scope const(char[]), scope const(char[]))
+     48           0           0           0     pure nothrow @nogc @safe void std.conv.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[])
+      6           0           0           0     @nogc render.mesh.MeshGroup render.mesh.MeshGroup.__ctor(render.material.Material*)
+     48           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.algorithm.searching.find!("a == b", immutable(char)[], immutable(char)[]).find(immutable(char)[], scope immutable(char)[])
+     48           0           0           0     pure nothrow @nogc @safe void std.algorithm.iteration.splitter!("a == b", immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.popFront()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.SetLoader._staticCtor_L141_C13_1()
+      6           0           0           0     nothrow ref @nogc @safe render.camera.Camera render.camera.Camera.__ctor(lanlib.math.vector.Vector!(float, 3u).Vector, float, float)
+      6           0           0           0     nothrow ref @nogc @safe std.conv.emplaceRef!(render.camera.Camera, render.camera.Camera, lanlib.math.vector.Vector!(float, 3u).Vector, double, int).emplaceRef(ref render.camera.Camera, ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int).S std.conv.emplaceRef!(render.camera.Camera, render.camera.Camera, lanlib.math.vector.Vector!(float, 3u).Vector, double, int).emplaceRef(ref render.camera.Camera, ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int).S.__ctor(ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int)
+      6           0           0           0     pure @trusted void std.array.Appender!(const(char)*[]).Appender.shrinkTo(ulong)
+     48           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.string.stripLeft!(immutable(char)[]).stripLeft(immutable(char)[])
+     48           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.string.stripRight!(immutable(char)[]).stripRight(immutable(char)[])
+     54           0           0           0     pure @safe bool std.exception.enforce!().enforce!(bool).enforce(bool, lazy const(char)[], immutable(char)[], ulong)
+      6           0           0           0     nothrow @nogc @safe void std.conv.emplaceRef!(render.camera.Camera, render.camera.Camera, lanlib.math.vector.Vector!(float, 3u).Vector, double, int).emplaceRef(ref render.camera.Camera, ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int)
+     60           0           0           0     @safe bool std.exception.enforce!(std.exception.ErrnoException).enforce!(bool).enforce(bool, lazy const(char)[], immutable(char)[], ulong)
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_framebuffer_object._staticCtor_L152_C13()
+     12           0           0           0     pure nothrow @nogc @safe ulong std.array.appenderNewCapacity!(16uL).appenderNewCapacity(ulong, ulong)
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_map_buffer_range._staticCtor_L186_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_blend_func_extended._staticCtor_L155_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_sync._staticCtor_L185_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_copy_buffer._staticCtor_L153_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_vertex_array_object._staticCtor_L202_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_uniform_buffer_object._staticCtor_L166_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_draw_elements_base_vertex._staticCtor_L154_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_vertex_type_2_10_10_10_rev._staticCtor_L216_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_provoking_vertex._staticCtor_L172_C13()
+     48           0           0           0     pure nothrow @nogc @trusted immutable(char)[][] std.array.Appender!(immutable(char)[][]).Appender.put!(immutable(char)[]).put(immutable(char)[]).__lambda2()
+      6           0           0           0     derelict.sdl2.internal.sdl_dynload.DerelictSDL2Loader derelict.sdl2.internal.sdl_dynload.DerelictSDL2Loader.__ctor()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_timer_query._staticCtor_L199_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_sampler_objects._staticCtor_L171_C13()
+      1           0           0           0     void lanlib.sys.gl.__mixin8.__mixin4.GL_ARB_texture_multisample._staticCtor_L206_C13()
+     48           0           0           0     pure nothrow @nogc @trusted std.conv.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S* std.conv.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).__lambda5()
+     12           0           0           0     derelict.util.loader.SharedLibLoader derelict.util.loader.SharedLibLoader.__ctor(immutable(char)[])
+     48           0           0           0     pure nothrow ref @nogc @safe std.conv.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S std.conv.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S.__ctor(ref immutable(char)[])
+      6           0           0           0     pure nothrow @nogc @safe ulong std.array.appenderNewCapacity!(8uL).appenderNewCapacity(ulong, ulong)
+     12           0           0           0     pure nothrow @nogc derelict.opengl.types.GLVersion delegate() std.functional.toDelegate!(derelict.opengl.types.GLVersion function()*).toDelegate(derelict.opengl.types.GLVersion function()*)
+     12           0           0           0     pure nothrow @nogc @trusted immutable(char)[][] std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong).__lambda5()
+      6           0           0           0     pure nothrow @nogc @trusted const(char)*[] std.array.Appender!(const(char)*[]).Appender.ensureAddable(ulong).__lambda5()
+      6           0           0           0     pure nothrow @nogc @trusted std.conv.emplaceRef!(render.camera.Camera, render.camera.Camera, lanlib.math.vector.Vector!(float, 3u).Vector, double, int).emplaceRef(ref render.camera.Camera, ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int).S* std.conv.emplaceRef!(render.camera.Camera, render.camera.Camera, lanlib.math.vector.Vector!(float, 3u).Vector, double, int).emplaceRef(ref render.camera.Camera, ref lanlib.math.vector.Vector!(float, 3u).Vector, ref double, ref int).__lambda7()
+      6           0           0           0     pure nothrow ref @nogc @safe lanlib.math.vector.Vector!(float, 2u).Vector lanlib.math.vector.Vector!(float, 2u).Vector.__ctor(float, float)
