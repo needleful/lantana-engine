@@ -104,11 +104,26 @@ class MeshGroup : System!MeshInstance
 				throw new Exception("Could not find transform uniform for this material.  A transform is required for MeshGroup.");
 			}
 		}
-		uint rendered = 0;
+		foreach(ref MeshInstance instance; meshes)
+		{
+			glcheck();
+			material.set_param(transform, instance.transform.matrix);
+			Mesh* mesh = instance.mesh;
+
+			glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+			glEnableVertexAttribArray(0);
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
+			
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
+
+			glDisableVertexAttribArray(0);
+			glcheck();
+		}
 	}
 }
 
-@GpuResource
 class MultiMesh : System!Transform
 {
 	Mesh *mesh;
