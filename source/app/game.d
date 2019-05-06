@@ -96,10 +96,6 @@ int main()
 	{
 		float delta = ww.delta_ms/1000.0;
 	
-		if(frame % 100 == 0)
-		{
-			printf("frame: %.2fms\n", delta*1000);
-		}
 		ww.poll_events(ii);
 
 		if(ww.state & WindowState.RESIZED)
@@ -155,7 +151,6 @@ int main()
 
 			if(ii.is_pressed(Input.Action.JUMP))
 			{
-				//printf("Camera Angle: %f %f\n", cam.rot.x, cam.rot.y);
 				cam.pos += cam.up()*0.016*cam_speed;
 			}
 			
@@ -164,15 +159,7 @@ int main()
 
 		ww.begin_frame();
 
-		auto start = ww.delta_ms;
-
 		group.render();
-
-		auto end = ww.delta_ms;
-		if(frame % 100 == 0)
-		{
-			printf("render: %dms\n", end-start);
-		}
 
 		ww.end_frame();
 		frame ++;
