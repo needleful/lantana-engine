@@ -10,9 +10,16 @@ import lanlib.math.transform;
 
 import lanlib.sys.gl;
 import lanlib.sys.memory:GpuResource;
+import lanlib.types;
 
-alias VboId = GLuint;
-alias EboId = GLuint;
+struct VboId
+{
+	mixin StrictAlias!GLuint;
+}
+struct EboId
+{
+	mixin StrictAlias!GLuint;
+}
 
 alias Tri = Vector!(uint, 3);
 
@@ -30,11 +37,11 @@ struct Mesh
 		this.vertices = verts;
 		this.triangles = elements;
 
-		glGenBuffers(1, &vbo);
+		glGenBuffers(1, vbo.ptr);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &ebo);
+		glGenBuffers(1, ebo.ptr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
 
@@ -43,8 +50,8 @@ struct Mesh
 
 	~this()
 	{
-		glDeleteBuffers(1, &vbo);
-		glDeleteBuffers(1, &ebo);
+		glDeleteBuffers(1, vbo.ptr);
+		glDeleteBuffers(1, ebo.ptr);
 	}
 
 	@property const ulong vertsize() @safe @nogc nothrow

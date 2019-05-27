@@ -12,10 +12,20 @@ debug
 
 import lanlib.sys.gl;
 import lanlib.sys.memory:GpuResource;
+import lanlib.types;
 
-alias MaterialId = GLuint;
-alias UniformId = GLuint;
-alias AttribId = GLuint;
+struct MaterialId
+{
+	mixin StrictAlias!GLuint;
+}
+struct UniformId
+{
+	mixin StrictAlias!GLint;
+}
+struct AttribId
+{
+	mixin StrictAlias!GLint;
+}
 
 Material load_material(const string vert_file, const string frag_file)
 {
@@ -48,12 +58,12 @@ Material load_material(const string vert_file, const string frag_file)
 		}
 		else
 		{
-			return Material(0);
+			return Material(MaterialId(0));
 		}
 	}
 
 	glcheck();
-	return Material(matId);
+	return Material(MaterialId(matId));
 }
 
 @GpuResource
@@ -71,13 +81,13 @@ struct Material
 	this(Material rhs) @safe @nogc nothrow
 	{
 		this.matId = rhs.matId;
-		rhs.matId = 0;
+		rhs.matId = MaterialId(0u);
 	}
 
 	this(ref Material rhs) @safe @nogc nothrow
 	{
 		this.matId = rhs.matId;
-		rhs.matId = 0;
+		rhs.matId = MaterialId(0u);
 	}
 
 	~this() @trusted @nogc nothrow
@@ -96,7 +106,7 @@ struct Material
 	void OpAssign(ref Material rhs) @nogc @safe nothrow
 	{
 		this.matId = rhs.matId;
-		rhs.matId = 0;
+		rhs.matId = MaterialId(0u);
 	}
 
 	const void enable() @nogc nothrow
@@ -148,7 +158,7 @@ struct Material
 			glcheck();
 		}
 
-		return matId.glGetUniformLocation(param.ptr);
+		return UniformId(matId.glGetUniformLocation(param.ptr));
 
 	}
 
@@ -159,7 +169,7 @@ struct Material
 			glcheck();
 		}
 
-		GLuint uniform = matId.glGetUniformLocation(param.ptr);
+		UniformId uniform = UniformId(matId.glGetUniformLocation(param.ptr));
 
 		debug {
 			assert(uniform != -1, format("Missing uniform location: %s", param ));
@@ -201,7 +211,7 @@ struct Material
 	{
 		scope(exit) glcheck();
 
-		return matId.glGetAttribLocation(attrib.ptr);
+		return AttribId(matId.glGetAttribLocation(attrib.ptr));
 	}
 
 	void set_attrib_id(const string attrib, AttribId id) @nogc
