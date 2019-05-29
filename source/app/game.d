@@ -18,6 +18,8 @@ import render.camera;
 import render.material;
 import render.mesh;
 
+import ui.text;
+
 enum MAX_MEMORY = 1024*1024;
 
 enum cam_speed = 8;
@@ -33,6 +35,7 @@ int main()
 	Input ii = Input();
 	ii.clear();
 	MemoryStack mm = MemoryStack(MAX_MEMORY);
+	TextRenderer tt = TextRenderer("data/fonts/averia/Averia-Regular.ttf");
 
 	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
 
