@@ -34,11 +34,12 @@ int main()
 	SDLWindow ww = SDLWindow(720, 512, "Lantana");
 	Input ii = Input();
 	ii.clear();
-	
-	ILanMemoryManager sysmem = new SysMemManager();
-	auto mm = new LanRegion(MAX_MEMORY, &sysmem);
 
-	TextRenderer tt = TextRenderer("data/fonts/averia/Averia-Regular.ttf", 24);
+	ILanAllocator sysmem = new SysMemManager();
+	auto mm = new LanRegion(MAX_MEMORY, sysmem);
+
+	TextManager tt = TextManager("data/fonts/averia/Averia-Regular.ttf", 24);
+	SimpleTextBox tx_framerate = tt.add_text(iVec2(20,20), "Framerate: xxx.x");
 
 	Material mat_basic = load_material(
 		"data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");

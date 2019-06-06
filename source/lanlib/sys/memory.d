@@ -25,26 +25,15 @@ enum GpuResource;
 interface ILanAllocator
 {
 	void* make(ulong bytes) @nogc;
-}
 
-/++
-  An interface for deleting data.
- +/
-interface ILanDeleter
-{
 	bool remove(void* data) @nogc;
 }
 
-/++
-  The interface for managing memory, both allocating and deleting
-+/
-interface ILanMemoryManager : ILanAllocator, ILanDeleter
-{}
 
 /++
  Manager for system memory.  Wraps malloc() and free()
  +/
-class SysMemManager : ILanMemoryManager
+class SysMemManager : ILanAllocator
 {
 
 	import core.stdc.stdlib : malloc, free;
@@ -81,10 +70,10 @@ class LanRegion : ILanAllocator
 {
 	enum minimum_size = ulong.sizeof*2;
 
-	ILanMemoryManager* parent;
+	ILanAllocator parent;
 	ubyte *data;
 
-	this(ulong capacity, ILanMemoryManager* parent) @nogc
+	this(ulong capacity, ILanAllocator parent) @nogc
 	{
 		this.parent = parent;
 		assert(capacity > minimum_size);
@@ -138,6 +127,12 @@ class LanRegion : ILanAllocator
 		assert(ptr != null, "Failed to allocate memory");
 		emplace!(T, A)(ptr, args);
 		return ptr;
+	}
+
+	override bool remove(void* data)
+	{
+		// Regions don't remove things
+		return false;
 	}
 
 	/// Wipe the stack with some memory preserved.
