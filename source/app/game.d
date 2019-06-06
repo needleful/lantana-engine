@@ -34,14 +34,21 @@ int main()
 	SDLWindow ww = SDLWindow(720, 512, "Lantana");
 	Input ii = Input();
 	ii.clear();
-	MemoryStack mm = MemoryStack(MAX_MEMORY);
-	TextRenderer tt = TextRenderer("data/fonts/averia/Averia-Regular.ttf");
+	
+	ILanMemoryManager sysmem = new SysMemManager();
+	auto mm = new LanRegion(MAX_MEMORY, &sysmem);
 
-	Material test_mat = load_material("data/shaders/test.vert", "data/shaders/test.frag");
+	TextRenderer tt = TextRenderer("data/fonts/averia/Averia-Regular.ttf", 24);
 
-	assert(test_mat.can_render());
+	Material mat_basic = load_material(
+		"data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
 
-	Vec3[] verts = mm.reserve_list!Vec3(8);
+	Material mat_text = load_material(
+		"data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
+
+	assert(mat_basic.can_render());
+
+	Vec3[] verts = mm.make_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
 	verts[1] = Vec3(-1, -1,  1);
 	verts[2] = Vec3(-1,  1, -1);
@@ -51,7 +58,7 @@ int main()
 	verts[6] = Vec3( 1,  1, -1);
 	verts[7] = Vec3( 1,  1,  1);
 
-	Tri[] elems = mm.reserve_list!Tri(12);
+	Tri[] elems = mm.make_list!Tri(12);
 	elems[0] = Tri(0, 6, 2);
 	elems[1] = Tri(0, 4, 6);
 
@@ -72,7 +79,7 @@ int main()
 
 	Mesh test_mesh = Mesh(verts, elems);
 
-	Transform[] transforms = mm.reserve_list!Transform(10_000);
+	Transform[] transforms = mm.make_list!Transform(10_000);
 
 	transforms[0] = Transform(0.5, Vec3(0,0,2));
 
@@ -80,7 +87,7 @@ int main()
 	{
 		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
 	}
-	auto group = MultiMesh(&test_mesh, &test_mat, transforms);
+	auto group = MultiMesh(&test_mesh, &mat_basic, transforms);
 
 	Transform tr = transforms[0];
 

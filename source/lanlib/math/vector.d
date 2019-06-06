@@ -12,6 +12,8 @@ alias Vec2 = Vector!(float, 2);
 alias Vec3 = Vector!(float, 3);
 alias Vec4 = Vector!(float, 4);
 
+alias iVec2 = Vector!(int, 2);
+
 struct Vector(T, uint Size)
 {
 	static assert(Size > 0);

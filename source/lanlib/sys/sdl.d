@@ -55,6 +55,10 @@ enum WindowState : ubyte
 
 }
 
+/**
+ * Management for SDL window.  Also manages an OpenGL 
+ * context and loads libraries through Derelict
+ */
 struct SDLWindow
 {
 	SDL_Window *window;
@@ -63,6 +67,9 @@ struct SDLWindow
 	WindowState state;
 	uint time;
 
+	/**
+	 *
+	 */
 	this (int width, int height, string name)
 	{
 		DerelictSDL2.load();

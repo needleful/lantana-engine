@@ -4,7 +4,6 @@
 
 module lanlib.sys.memory;
 
-import core.stdc.stdlib : malloc, free;
 import std.conv : emplace;
 import std.traits : hasUDA;
 
@@ -13,29 +12,85 @@ debug
 	import std.stdio;
 }
 
-/**
+/++
   Anything with the @GpuResource attribute must have its destructor called
   once its no longer valid.  As a result, no GpuResource types can be put on 
   the MemoryStack.  They must be managed through some other method.
- */
+ +/
 enum GpuResource;
 
-/** A stack of non-GCd memory
+/++
+  An interface for allocating data.
++/
+interface ILanAllocator
+{
+	void* make(ulong bytes) @nogc;
+}
+
+/++
+  An interface for deleting data.
+ +/
+interface ILanDeleter
+{
+	bool remove(void* data) @nogc;
+}
+
+/++
+  The interface for managing memory, both allocating and deleting
++/
+interface ILanMemoryManager : ILanAllocator, ILanDeleter
+{}
+
+/++
+ Manager for system memory.  Wraps malloc() and free()
+ +/
+class SysMemManager : ILanMemoryManager
+{
+
+	import core.stdc.stdlib : malloc, free;
+
+	override void* make(ulong bytes) @nogc
+	{
+		return malloc(bytes);
+	}
+
+	T[] make_list(T)(ulong count) @nogc
+	{
+		return (cast(T*)make(T.sizeof * count))[0..count];
+	}
+
+	override bool remove(void* data) @nogc
+	{
+		free(data);
+		return true;
+	}
+
+	bool remove_list(T)(T[] data) @nogc
+	{
+		free(cast(void*) data.ptr);
+		return true;
+	}
+}
+
+/++ A stack of non-GCd memory
    note: when stack space is freed, it does not call any destructors.
    It is the responsibility of the calling code to call destroy()
    on any objects that manage other resources.
-*/
-struct MemoryStack
++/
+class LanRegion : ILanAllocator
 {
 	enum minimum_size = ulong.sizeof*2;
+
+	ILanMemoryManager* parent;
 	ubyte *data;
 
-	this(ulong capacity) @nogc
+	this(ulong capacity, ILanMemoryManager* parent) @nogc
 	{
+		this.parent = parent;
 		assert(capacity > minimum_size);
-		data = cast(ubyte*) malloc(capacity);
+		data = cast(ubyte*)parent.make(capacity);
 
-		assert(data != null, "Out of memory");
+		assert(data != null, "Failed to get memory for region");
 
 		set_capacity(capacity);
 		set_space_used(2*ulong.sizeof);
@@ -49,7 +104,7 @@ struct MemoryStack
 	{
 		set_capacity(0);
 		set_space_used(0);
-		free(data);
+		parent.remove(cast(void*)data);
 		data = null;
 		debug
 		{
@@ -57,36 +112,37 @@ struct MemoryStack
 		}
 	}
 
-	T *reserve(T)(uint count = 1) @nogc 
+	override void* make(ulong bytes) @nogc 
 	{
-		static assert(!hasUDA!(T, GpuResource), 
-			"Cannot allocate GpuResource type `"~T.stringof ~
-			"` using MemoryStack, as its destructor will never be called");
-		assert(count > 0);
-		assert(T.sizeof*count + space_used <= capacity, "Out of memory");
-		T* result = cast(T*)(&data[space_used]);
-		set_space_used(space_used + T.sizeof*count);
+		if(bytes + space_used > capacity)
+		{
+			debug {
+				assert(false, "Out of memory");
+			}
+			else return null;
+		}
+		void* result = cast(void*)(&data[space_used]);
+		set_space_used(space_used + bytes);
 
 		return result;
 	}
 
-	T[] reserve_list(T)(uint count) @nogc
+	T[] make_list(T)(ulong count) @nogc
 	{
-		return reserve!T(count)[0..count];
+		return (cast(T*)make(T.sizeof * count))[0..count];
 	}
 
 	T *create(T, A...)(auto ref A args) @nogc 
 	{
-		T *ptr = reserve!T(1);
+		T *ptr = cast(T*) make(T.sizeof);
 		assert(ptr != null, "Failed to allocate memory");
 		emplace!(T, A)(ptr, args);
 		return ptr;
 	}
 
-
-	// Wipe the stack with some memory preserved.
-	// So you can allocate long-lived data here, then get the used space, 
-	// then later call wipe_with_preserved using that value
+	/// Wipe the stack with some memory preserved.
+	/// So you can allocate long-lived data here, then get the used space, 
+	/// then later call wipe_with_preserved using that value
 	void wipe_with_preserved(ulong preserved_bytes) @nogc
 	{
 		assert(preserved_bytes > minimum_size);
@@ -94,7 +150,7 @@ struct MemoryStack
 		set_space_used(preserved_bytes);
 	}
 
-	// Wipe all data from the stack
+	/// Wipe all data from the stack
 	void wipe() @nogc nothrow
 	{
 		set_space_used(minimum_size);
