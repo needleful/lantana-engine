@@ -40,17 +40,9 @@
 		},
 		{
 			"name":"Run Game",
-			"linux": {
-				"cmd": [
-					"./game"
-				]
-			},
-			"windows":
-			{
-				"cmd": [
-					"./game.exe"
-				]
-			},
+			"cmd": [
+				"./game"
+			],
 			"working_dir":"$project_path"
 		}
 	]

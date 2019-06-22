@@ -6,3 +6,4 @@ game
 *.so
 *.o
 trace.*
+*.exe
