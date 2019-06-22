@@ -7,3 +7,4 @@ game
 *.o
 trace.*
 *.exe
+.vs
