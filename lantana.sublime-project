@@ -7,38 +7,35 @@
 	"build_systems": [
 		{
 			"name":"Build Game",
-			"linux": {
-				"cmd": [
-					"dub",
-					"build",
-					"--config=game"
-				]
-			},
+			"cmd": [
+				"dub",
+				"build",
+				"--config=game",
+				"--arch=x86_64"
+			],
 			"working_dir":"$project_path"
 		},
 		{
 			"name":"Build (Release)",
-			"linux":{
-				"cmd": [
-					"dub",
-					"build",
-					"--build=release",
-					"--combined",
-					"--config=game",
-				]
-			},
+			"cmd": [
+				"dub",
+				"build",
+				"--build=release",
+				"--combined",
+				"--config=game",
+				"--arch=x86_64"
+			],
 			"working_dir":"$project_path"
 		},
 		{
 			"name":"Profile Game",
-			"linux":{
-				"cmd": [
-					"dub",
-					"build",
-					"--build=profile",
-					"--config=game"
-				]
-			},
+			"cmd": [
+				"dub",
+				"build",
+				"--build=profile",
+				"--config=game",
+				"--arch=x86_64"
+			],
 			"working_dir":"$project_path"
 		},
 		{
@@ -46,6 +43,12 @@
 			"linux": {
 				"cmd": [
 					"./game"
+				]
+			},
+			"windows":
+			{
+				"cmd": [
+					"./game.exe"
 				]
 			},
 			"working_dir":"$project_path"
