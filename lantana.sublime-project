@@ -2,45 +2,36 @@
 	"build_systems":
 	[
 		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--config=game"
-				]
-			},
 			"name": "Build Game",
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--config=game"
+			],
 			"working_dir": "$project_path"
 		},
 		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=release",
-					"--combined",
-					"--config=game"
-				]
-			},
 			"name": "Build (Release)",
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--build=release",
+				"--combined",
+				"--config=game"
+			],
 			"working_dir": "$project_path"
 		},
 		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=profile",
-					"--config=game"
-				]
-			},
 			"name": "Profile Game",
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--build=profile",
+				"--config=game"
+			],
 			"working_dir": "$project_path"
 		},
 		{
@@ -51,6 +42,13 @@
 					"./game"
 				]
 			},
+			"windows":
+			{
+				"cmd":
+				[
+					"./game.exe"
+				]
+			},
 			"name": "Run Game",
 			"working_dir": "$project_path"
 		}
@@ -59,26 +57,6 @@
 	[
 		{
 			"path": "."
-		},
-		{
-			"name": "lantana",
-			"path": "/home/devin/OneDrive/Games/experiments/lantana"
-		},
-		{
-			"name": "derelict-ft",
-			"path": "/home/devin/.dub/packages/derelict-ft-2.0.0-beta.5/derelict-ft"
-		},
-		{
-			"name": "derelict-util",
-			"path": "/home/devin/.dub/packages/derelict-util-3.0.0-beta.2/derelict-util"
-		},
-		{
-			"name": "derelict-gl3",
-			"path": "/home/devin/.dub/packages/derelict-gl3-2.0.0-beta.8/derelict-gl3"
-		},
-		{
-			"name": "derelict-sdl2",
-			"path": "/home/devin/.dub/packages/derelict-sdl2-3.0.0-beta.8/derelict-sdl2"
 		}
 	],
 	"settings":
