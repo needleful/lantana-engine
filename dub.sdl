@@ -20,9 +20,3 @@ configuration "game" {
 	targetType "executable"
 	targetName "game"
 }
-
-configuration "editor" {
-	targetType "executable"
-	targetName "editor"
-	excludedSourceFiles "source/app/game.d"
-}
