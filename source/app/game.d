@@ -99,6 +99,7 @@ int main()
 
 	group.material.set_param("color", Vec3(0.2, 0.4, 1));
 
+	Vec2 mouse_sens = Vec2(40, 40);
 	Vec2 input = Vec2(0,0);
 	uint frame = 0;
 
@@ -145,24 +146,24 @@ int main()
 				input.y -= 1;
 			}
 
-			cam.rot.x += ii.mouse_movement.x;
-			float next_rot = cam.rot.y + ii.mouse_movement.y;
+			cam.rot.x += ii.mouse_movement.x*delta*mouse_sens.x;
+			float next_rot = cam.rot.y + ii.mouse_movement.y*delta*mouse_sens.y;
 			if(abs(next_rot) < 90){
 				cam.rot.y = next_rot;
 			}
 
-			cam.pos += cam.right()*input.x*0.016*cam_speed;
-			cam.pos += cam.forward()*input.y*0.016*cam_speed;
+			cam.pos += cam.right()*input.x*cam_speed*delta;
+			cam.pos += cam.forward()*input.y*cam_speed*delta;
 
 			tr.scale(0.5+sin(ww.time/2000.0)*0.2);
-			tr.rotate_degrees(0, 0.5, 0);
+			tr.rotate_degrees(0, 5*delta, 0);
 			tr.compute_matrix();
 
 			group.update_transform(0, tr);
 
 			if(ii.is_pressed(Input.Action.JUMP))
 			{
-				cam.pos += cam.up()*0.016*cam_speed;
+				cam.pos += cam.up()*cam_speed*delta;
 			}
 			
 			group.material.set_param(projId, cam.vp);
