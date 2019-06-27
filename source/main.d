@@ -11,21 +11,17 @@ import std.stdio;
 int main()
 {
 	DerelictSDL2.load();
-	return run();
-}
 
-/// The main method of the game,
-/// everything that can be made nogc should be here
-int run() @nogc nothrow
-{
-	if(SDL_Init(SDL_INIT_VIDEO) != 0)
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 	{
-		SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
+		printf("Failed to initialize SDL: %s\n", SDL_GetError());
 		return 1;
 	}
-	scope(exit) SDL_Quit();
-
-	string text = "Howdy!  I'm Devin Hastings";
+	scope(exit)
+	{
+		SDL_Quit();
+		puts("SDL terminated");
+	}
 
 	SDL_Window* window = SDL_CreateWindow(
 		"Lantana 0.0.0", 
@@ -34,9 +30,23 @@ int run() @nogc nothrow
 
 	if(window == null)
 	{
-		SDL_Log("Failed to open SDL window: %s", SDL_GetError());
+		printf("Failed to open SDL window: %s\n", SDL_GetError());
+		return 2;
 	}
-	scope(exit) SDL_DestroyWindow(window);
+	scope(exit) 
+	{
+		SDL_DestroyWindow(window);
+		puts("Window destroyed");
+	}
+	
+	return run();
+}
+
+/// The main method of the game,
+/// everything that can be made nogc should be here
+int run() @nogc nothrow
+{
+	string text = "Howdy!  I'm Devin Hastings";
 
 	SDL_Delay(1000);
 

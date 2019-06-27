@@ -38,7 +38,8 @@
 		{
 			"name":"Run Game",
 			"cmd": [
-				"./lantana"
+				"dub",
+				"run"
 			],
 			"working_dir":"$project_path"
 		}
