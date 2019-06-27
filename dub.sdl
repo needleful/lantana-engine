@@ -4,7 +4,7 @@ authors "Devin Hastings"
 license "GPL-3.0"
 version "0.0.0-dev"
 
-#dependency "derelict-ft" version="~>2.0.0-beta.5"
+dependency "derelict-ft" version="~>2.0.0-beta.5"
 dependency "derelict-sdl2" version="~>3.0.0-beta"
 dependency "derelict-gl3" version="~>2.0.0-beta"
 versions "DerelictGL3_CustomFreeFuncs"
@@ -16,7 +16,7 @@ buildTypes {
 }
 
 
-libs "sdl2" platform="posix"//"freetype"
+libs "sdl2" "freetype" platform="posix"
 
 targetType "executable"
 targetName "lantana"

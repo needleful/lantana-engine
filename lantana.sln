@@ -1,0 +1,38 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "lantana", ".dub/lantana.visualdproj", "{A5C472E0-F005-4209-A917-D86CAC30B406}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918} = {D13554C4-FE96-485B-AA0A-4EF0B4FB9918}
+		{E67E944B-6D39-4D53-9D28-7E2BDB913D43} = {E67E944B-6D39-4D53-9D28-7E2BDB913D43}
+		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9} = {1B7FCDE0-4DD8-48C4-8086-D815C68455A9}
+		{8FAFD786-A126-4F44-AE97-BD208D5986DA} = {8FAFD786-A126-4F44-AE97-BD208D5986DA}
+	EndProjectSection
+EndProject
+Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-ft", ".dub/derelict-ft.visualdproj", "{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}"
+EndProject
+Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-util", ".dub/derelict-util.visualdproj", "{8FAFD786-A126-4F44-AE97-BD208D5986DA}"
+EndProject
+Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-gl3", ".dub/derelict-gl3.visualdproj", "{E67E944B-6D39-4D53-9D28-7E2BDB913D43}"
+EndProject
+Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-sdl2", ".dub/derelict-sdl2.visualdproj", "{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|x64 = debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8FAFD786-A126-4F44-AE97-BD208D5986DA}.debug|x64.ActiveCfg = debug|x64
+		{8FAFD786-A126-4F44-AE97-BD208D5986DA}.debug|x64.Build.0 = debug|x64
+		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}.debug|x64.ActiveCfg = debug|x64
+		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}.debug|x64.Build.0 = debug|x64
+		{A5C472E0-F005-4209-A917-D86CAC30B406}.debug|x64.ActiveCfg = debug|x64
+		{A5C472E0-F005-4209-A917-D86CAC30B406}.debug|x64.Build.0 = debug|x64
+		{E67E944B-6D39-4D53-9D28-7E2BDB913D43}.debug|x64.ActiveCfg = debug|x64
+		{E67E944B-6D39-4D53-9D28-7E2BDB913D43}.debug|x64.Build.0 = debug|x64
+		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}.debug|x64.ActiveCfg = debug|x64
+		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}.debug|x64.Build.0 = debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
