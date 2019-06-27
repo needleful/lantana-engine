@@ -10,7 +10,6 @@
 			"cmd": [
 				"dub",
 				"build",
-				"--config=game",
 				"--arch=x86_64"
 			],
 			"working_dir":"$project_path"
@@ -22,7 +21,6 @@
 				"build",
 				"--build=release",
 				"--combined",
-				"--config=game",
 				"--arch=x86_64"
 			],
 			"working_dir":"$project_path"
@@ -33,7 +31,6 @@
 				"dub",
 				"build",
 				"--build=profile",
-				"--config=game",
 				"--arch=x86_64"
 			],
 			"working_dir":"$project_path"
@@ -41,7 +38,7 @@
 		{
 			"name":"Run Game",
 			"cmd": [
-				"./lantana-game"
+				"./lantana"
 			],
 			"working_dir":"$project_path"
 		}
