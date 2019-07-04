@@ -1,0 +1,90 @@
+// Lantana
+// gl.d
+// Licensed under GPL v3.0
+
+/// Application metasystem
+module lantana.core.app;
+
+import derelict.sdl2.sdl;
+
+import lantana.core.ecs;
+import lantana.core.enums;
+import lantana.render.gl;
+
+import std.stdio: printf, puts;
+
+@metasystem
+struct MApplication
+{
+	string name;
+	SDL_Window* window;
+	SDL_GLContext gl;
+
+	Result init(string name)
+	{
+		DerelictSDL2.load();
+		DerelictGL3.load();
+
+		this.name = name;
+
+		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+		{
+			printf("Failed to initialize SDL: %s\n", SDL_GetError());
+			return Result.Failure;
+		}
+
+		window = SDL_CreateWindow(
+			name.ptr, 
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			512, 512, SDL_WINDOW_OPENGL);
+
+		if(window == null)
+		{
+			printf("Failed to open SDL window: %s\n", SDL_GetError());
+			return Result.Failure;
+		}
+
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+		debug
+		{
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+		}
+
+		gl = SDL_GL_CreateContext(window);
+
+		SDL_GL_MakeCurrent(window, gl);
+
+		auto loadedVersion = DerelictGL3.reload();
+		if(loadedVersion < GLVersion.gl43)
+		{
+			printf("Failed to load OpenGL 4.3: %s\n", SDL_GetError());
+			return Result.Failure;
+		}
+		debug
+		{
+			GLint flags;
+			glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+			if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) == 0)
+			{
+				puts("Warning: debug context creation failed!");
+			}
+			glDebugMessageCallback(&logMessage, cast (void*) null);
+		}
+		return Result.Success;
+	}
+
+	void cleanup() @nogc nothrow
+	{
+		SDL_GL_DeleteContext(gl);
+		puts("Deleted OpenGL context");
+
+		SDL_DestroyWindow(window);
+		puts("Window destroyed");
+
+		SDL_Quit();
+		puts("SDL terminated");
+	}
+}

@@ -3,13 +3,13 @@
 // Licensed under GPL v3.0
 
 /// Module containing all shaders and shader related code
-module lantana.shaders;
+module lantana.render.shaders;
 
-import lantana.gl;
+import lantana.render.gl;
 
 import std.stdio;
 
-immutable const(char)[] textShaderVert_source = "
+immutable const(char)[] pixelShaderVert_source = "
 #version 400
 uniform ivec2 translation;
 uniform uvec2 screen_size;
@@ -27,11 +27,11 @@ void main()
 	gl_Position = vec4(pos_norm - vec2(1, 1), 0.0, 1.0);
 }";
 
-immutable const(char)[] textShaderFrag_source = "
+immutable const(char)[] pixelShaderFrag_source = "
 #version 400
 
 uniform vec4 color;
-uniform sampler2D alpha;
+uniform sampler2D sprite;
 
 in vec2 frag_uv;
 
@@ -39,8 +39,8 @@ out vec4 out_color;
 
 void main()
 {
-	float a = texture(alpha, frag_uv).r;
-	out_color = color * vec4(frag_uv,a,1);
+	vec4 tex = texture(sprite, frag_uv);
+	out_color = color * tex;
 }";
 
 GLuint MakeShader(GLuint shaderType, const(char)* source) @nogc nothrow

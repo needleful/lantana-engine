@@ -5,133 +5,28 @@
 /// The main module for running the game
 module lantana.main;
 
+// TODO: render animated sprite
+
 import derelict.freetype;
 import derelict.sdl2.sdl;
 
-import lantana.gl;
-import lantana.shaders;
+import lantana.core.app;
+import lantana.core.enums: Result;
+import lantana.render.gl;
+import lantana.render.shaders;
 
-import std.stdio;
 
-struct Application
-{
-	SDL_Window* window;
-	SDL_GLContext gl;
-}
-
-Application app;
-
-struct TextRenderer
-{
-	ubyte[512][512] glyphs;
-}
-
-TextRenderer s_text;
-
-version(Windows)
-{
-	extern(Windows)
-	void logMessage(
-		GLenum source, GLenum type, GLuint id, GLenum severity, 
-		GLsizei length, const(GLchar*) message, 
-		const(void*) userParams ) @nogc pure nothrow
-	{
-		debug
-		{
-			// TODO: implement more messaging
-			const(char)[] s = message[0..length];
-			printf("GL: %s", s.ptr);
-		}
-	}
-}
-else
-{
-	extern(C)
-	void logMessage(
-		GLenum source, GLenum type, GLuint id, GLenum severity, 
-		GLsizei length, const(GLchar*) message, 
-		const(void*) userParams ) @nogc pure nothrow
-	{
-		debug
-		{
-			// TODO: implement more messaging
-			string s = message[0..length];
-			writeln("GL: ", s);
-		}
-	}
-}
-
+MApplication app;
 
 int main()
 {
-	// Initialize Application
-	DerelictSDL2.load();
-	DerelictGL3.load();
-	DerelictFT.load();
+	Result r = app.init("Lantana 0.0.1");
+	scope(exit) app.cleanup();
 
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+	if(r == Result.Failure)
 	{
-		printf("Failed to initialize SDL: %s\n", SDL_GetError());
 		return 1;
 	}
-	scope(exit)
-	{
-		SDL_Quit();
-		puts("SDL terminated");
-	}
-
-	app.window = SDL_CreateWindow(
-		"Lantana 0.0.0", 
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		512, 512, SDL_WINDOW_OPENGL);
-
-	if(app.window == null)
-	{
-		printf("Failed to open SDL window: %s\n", SDL_GetError());
-		return 2;
-	}
-	scope(exit) 
-	{
-		SDL_DestroyWindow(app.window);
-		puts("Window destroyed");
-	}
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	debug
-	{
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-	}
-
-	app.gl = SDL_GL_CreateContext(app.window);
-	scope(exit)
-	{
-		SDL_GL_DeleteContext(app.gl);
-		puts("Deleted OpenGL context");
-	}
-
-	SDL_GL_MakeCurrent(app.window, app.gl);
-
-	auto loadedVersion = DerelictGL3.reload();
-	if(loadedVersion < GLVersion.gl43)
-	{
-		printf("Failed to load OpenGL 4.3: %s\n", SDL_GetError());
-		return 3;
-	}
-	debug
-	{
-		GLint flags;
-		glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-
-		if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) == 0)
-		{
-			puts("Warning: debug context creation failed!");
-		}
-		glDebugMessageCallback(&logMessage, cast (void*) null);
-	}
-	
-	
 	return run();
 }
 
@@ -139,13 +34,15 @@ int main()
 /// everything that can be made nogc should be here
 int run() @nogc
 {
+
+	import std.stdio;
 	// Initialize renderer
-	GLuint textProgram;
+	GLuint pixelProgram;
 	{
 		GLuint[2] shaders = 
 		[
-			MakeShader(GL_VERTEX_SHADER, &textShaderVert_source[0]),
-			MakeShader(GL_FRAGMENT_SHADER, &textShaderFrag_source[0])
+			MakeShader(GL_VERTEX_SHADER, &pixelShaderVert_source[0]),
+			MakeShader(GL_FRAGMENT_SHADER, &pixelShaderFrag_source[0])
 		];
 
 		if(shaders[0] == 0)
@@ -159,41 +56,14 @@ int run() @nogc
 			puts("Failed to load required fragment shader");
 			return -1;
 		}
-		textProgram = LinkShaders(shaders);
-		if(textProgram == 0)
+		pixelProgram = LinkShaders(shaders);
+		if(pixelProgram == 0)
 		{
 			puts("Failed to link text shader program");
 			return -1;
 		}
 	}
-	scope(exit) glDeleteProgram(textProgram);
-
-	
-	//Initialize text system
-
-	import core.stdc.stdlib;
-	GLuint texture_glyphs;
-	{
-		// REMOVE: Generating debug value
-		import std.math;
-		foreach(x; 0..512)
-		{
-			foreach(y; 0..512)
-			{
-				s_text.glyphs[x][y] = 255;
-			}
-		}
-		glGenTextures(1, &texture_glyphs);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_glyphs);
-		glTexImage2D(
-			GL_TEXTURE_2D, 0, 
-			GL_R8, s_text.glyphs.length, s_text.glyphs[0].length, 0,
-			GL_RED, GL_UNSIGNED_BYTE, 
-			s_text.glyphs.ptr);
-	}
-	scope(exit) glDeleteTextures(1, &texture_glyphs);
-
+	scope(exit) glDeleteProgram(pixelProgram);
 
 	int[2][4] quad = 
 	[
@@ -260,10 +130,10 @@ int run() @nogc
 	glClearColor(0.1, 0.0, 0.2, 1.0);
 	string text = "Hello world!";
 
-	auto uTranslate = glGetUniformLocation(textProgram, "translation");
-	auto uScreen = glGetUniformLocation(textProgram, "screen_size");
-	auto uColor = glGetUniformLocation(textProgram, "color");
-	auto uAlphaTex = glGetUniformLocation(textProgram, "alpha");
+	auto uTranslate = glGetUniformLocation(pixelProgram, "translation");
+	auto uScreen = glGetUniformLocation(pixelProgram, "screen_size");
+	auto uColor = glGetUniformLocation(pixelProgram, "color");
+	auto uAlphaTex = glGetUniformLocation(pixelProgram, "alpha");
 
 	debug
 	{
@@ -273,7 +143,7 @@ int run() @nogc
 		assert(uAlphaTex >= 0);
 	}
 
-	glUseProgram(textProgram);
+	glUseProgram(pixelProgram);
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_glyphs);
