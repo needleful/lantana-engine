@@ -40,7 +40,7 @@ out vec4 out_color;
 void main()
 {
 	float a = texture(alpha, frag_uv).r;
-	out_color = color * vec4(frag_uv,0.2,a);
+	out_color = color * vec4(frag_uv,a,1);
 }";
 
 GLuint MakeShader(GLuint shaderType, const(char)* source) @nogc nothrow

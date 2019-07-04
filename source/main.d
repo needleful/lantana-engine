@@ -21,6 +21,47 @@ struct Application
 
 Application app;
 
+struct TextRenderer
+{
+	ubyte[512][512] glyphs;
+}
+
+TextRenderer s_text;
+
+version(Windows)
+{
+	extern(Windows)
+	void logMessage(
+		GLenum source, GLenum type, GLuint id, GLenum severity, 
+		GLsizei length, const(GLchar*) message, 
+		const(void*) userParams ) @nogc pure nothrow
+	{
+		debug
+		{
+			// TODO: implement more messaging
+			const(char)[] s = message[0..length];
+			printf("GL: %s", s.ptr);
+		}
+	}
+}
+else
+{
+	extern(C)
+	void logMessage(
+		GLenum source, GLenum type, GLuint id, GLenum severity, 
+		GLsizei length, const(GLchar*) message, 
+		const(void*) userParams ) @nogc pure nothrow
+	{
+		debug
+		{
+			// TODO: implement more messaging
+			string s = message[0..length];
+			writeln("GL: ", s);
+		}
+	}
+}
+
+
 int main()
 {
 	// Initialize Application
@@ -56,8 +97,12 @@ int main()
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	debug
+	{
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+	}
 
 	app.gl = SDL_GL_CreateContext(app.window);
 	scope(exit)
@@ -69,11 +114,23 @@ int main()
 	SDL_GL_MakeCurrent(app.window, app.gl);
 
 	auto loadedVersion = DerelictGL3.reload();
-	if(loadedVersion < GLVersion.gl40)
+	if(loadedVersion < GLVersion.gl43)
 	{
-		printf("Failed to load OpenGL 4.0: %s\n", SDL_GetError());
+		printf("Failed to load OpenGL 4.3: %s\n", SDL_GetError());
 		return 3;
 	}
+	debug
+	{
+		GLint flags;
+		glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+		if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) == 0)
+		{
+			puts("Warning: debug context creation failed!");
+		}
+		glDebugMessageCallback(&logMessage, cast (void*) null);
+	}
+	
 	
 	return run();
 }
@@ -108,7 +165,6 @@ int run() @nogc
 			puts("Failed to link text shader program");
 			return -1;
 		}
-		glCheck();
 	}
 	scope(exit) glDeleteProgram(textProgram);
 
@@ -117,35 +173,26 @@ int run() @nogc
 
 	import core.stdc.stdlib;
 	GLuint texture_glyphs;
-	ubyte* glyph_atlas;
 	{
-		glyph_atlas = cast(ubyte*) malloc(ubyte.sizeof*512*512);
 		// REMOVE: Generating debug value
 		import std.math;
 		foreach(x; 0..512)
 		{
 			foreach(y; 0..512)
 			{
-				glyph_atlas[x*512+y] = 1;
+				s_text.glyphs[x][y] = 255;
 			}
 		}
-
-		if(glyph_atlas == null)
-		{
-			puts("Failed to allocate test texture");
-			return -4;
-		}
 		glGenTextures(1, &texture_glyphs);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_glyphs);
 		glTexImage2D(
 			GL_TEXTURE_2D, 0, 
-			GL_R8, 512, 512, 0,
+			GL_R8, s_text.glyphs.length, s_text.glyphs[0].length, 0,
 			GL_RED, GL_UNSIGNED_BYTE, 
-			glyph_atlas);
-
-		glCheck();
+			s_text.glyphs.ptr);
 	}
-	scope(exit) free(glyph_atlas);
+	scope(exit) glDeleteTextures(1, &texture_glyphs);
 
 
 	int[2][4] quad = 
@@ -172,42 +219,33 @@ int run() @nogc
 
 	GLuint vao_text, ebo_text, vbo_pos, vbo_uv;
 	{
-		glCheck();
 		glGenVertexArrays(1, &vao_text);
 		glBindVertexArray(vao_text);
 
-		glCheck();
 		glGenBuffers(1, &vbo_pos);
 		glGenBuffers(1, &vbo_uv);
 		glGenBuffers(1, &ebo_text);
 
-		glCheck();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
-		glBufferData(GL_ARRAY_BUFFER, int.sizeof*2*quad.length, &quad[0][0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, int.sizeof*2*quad.length, quad.ptr, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribIPointer(0, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
 
-		glCheck();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_uv);
-		glBufferData(GL_ARRAY_BUFFER, float.sizeof*2*uv.length, &uv[0][0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, float.sizeof*2*uv.length, uv.ptr, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
 
-		glCheck();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_text);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, uint.sizeof*elements.length, &elements[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, uint.sizeof*elements.length, elements.ptr, GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
-
-		glCheck();
 	}
 	scope(exit)
 	{
 		glDeleteBuffers(1, &vbo_pos);
 		glDeleteBuffers(1, &vbo_uv);
 		glDeleteVertexArrays(1, &vao_text);
-
-		glCheck();
 	}
 	
 	// Render text
@@ -226,7 +264,6 @@ int run() @nogc
 	auto uScreen = glGetUniformLocation(textProgram, "screen_size");
 	auto uColor = glGetUniformLocation(textProgram, "color");
 	auto uAlphaTex = glGetUniformLocation(textProgram, "alpha");
-	glCheck();
 
 	debug
 	{
@@ -240,21 +277,15 @@ int run() @nogc
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_glyphs);
-		glCheck();
 
 		glUniform2iv(uTranslate, 1, &translate[0]);
-		glCheck();
 		glUniform2uiv(uScreen, 1, &screen_size[0]);
-		glCheck();
 		glUniform4fv(uColor, 1, &color[0]);
-		glCheck();
 		glUniform1i(uAlphaTex, 0);
-		glCheck();
 
 		glBindVertexArray(vao_text);
 		glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 		glBindVertexArray(0);
-		glCheck();
 	}
 	SDL_GL_SwapWindow(app.window);
 
