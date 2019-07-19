@@ -5,6 +5,7 @@
 /// Application metasystem
 module lantana.core.app;
 
+import derelict.sdl2.image;
 import derelict.sdl2.sdl;
 
 import lantana.core.ecs;
@@ -23,6 +24,7 @@ struct MApplication
 	Result init(string name)
 	{
 		DerelictSDL2.load();
+		DerelictSDL2Image.load();
 		DerelictGL3.load();
 
 		this.name = name;
@@ -30,6 +32,14 @@ struct MApplication
 		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
 		{
 			printf("Failed to initialize SDL: %s\n", SDL_GetError());
+			return Result.Failure;
+		}
+		int img_flags = IMG_INIT_PNG;
+		int img_result = IMG_Init(img_flags);
+
+		if((img_result&img_flags) != img_flags)
+		{
+			printf("Failed to initialize SDL2_Image: %s\n", IMG_GetError());
 			return Result.Failure;
 		}
 
@@ -79,12 +89,9 @@ struct MApplication
 	void cleanup() @nogc nothrow
 	{
 		SDL_GL_DeleteContext(gl);
-		puts("Deleted OpenGL context");
-
 		SDL_DestroyWindow(window);
-		puts("Window destroyed");
-
+		IMG_Quit();
 		SDL_Quit();
-		puts("SDL terminated");
+		puts("Application terminated");
 	}
 }
