@@ -7,7 +7,6 @@ module lantana.main;
 
 // TODO: render animated sprite
 
-import derelict.freetype;
 import derelict.sdl2.sdl;
 
 import lantana.core.app;
@@ -117,41 +116,42 @@ int run() @nogc
 		glDeleteBuffers(1, &vbo_uv);
 		glDeleteVertexArrays(1, &vao_text);
 	}
+
+	GLuint tx_sprite;
+	{
+		glGenTextures(1, &tx_sprite);
+	}
 	
 	// Render text
-
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
 
 	uint[2] screen_size = [512, 512];
 	int[2] translate = [0,0];
 	float[4] color = [1, 1, 1, 1];
 
-	glClearColor(0.1, 0.0, 0.2, 1.0);
-	string text = "Hello world!";
+	glClearColor(0.8, 0.3, 0.0, 1.0);
 
 	auto uTranslate = glGetUniformLocation(pixelProgram, "translation");
 	auto uScreen = glGetUniformLocation(pixelProgram, "screen_size");
 	auto uColor = glGetUniformLocation(pixelProgram, "color");
-	auto uAlphaTex = glGetUniformLocation(pixelProgram, "alpha");
+	auto uSprite = glGetUniformLocation(pixelProgram, "sprite");
 
 	debug
 	{
 		assert(uTranslate >= 0);
 		assert(uScreen >= 0);
 		assert(uColor >= 0);
-		assert(uAlphaTex >= 0);
+		assert(uSprite >= 0);
 	}
 
 	glUseProgram(pixelProgram);
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_glyphs);
+		glBindTexture(GL_TEXTURE_2D, tx_sprite);
 
 		glUniform2iv(uTranslate, 1, &translate[0]);
 		glUniform2uiv(uScreen, 1, &screen_size[0]);
 		glUniform4fv(uColor, 1, &color[0]);
-		glUniform1i(uAlphaTex, 0);
+		glUniform1i(uSprite, 0);
 
 		glBindVertexArray(vao_text);
 		glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);

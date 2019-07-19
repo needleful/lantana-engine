@@ -18,6 +18,7 @@ version(Windows)
 	{
 		debug
 		{
+			import core.stdc.stdio;
 			// TODO: implement more messaging
 			const(char)[] s = message[0..length];
 			printf("GL: %s", s.ptr);
@@ -34,6 +35,7 @@ else
 	{
 		debug
 		{
+			import core.stdc.stdio;
 			// TODO: implement more messaging
 			string s = message[0..length];
 			writeln("GL: ", s);
