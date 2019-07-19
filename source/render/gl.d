@@ -19,9 +19,7 @@ version(Windows)
 		debug
 		{
 			import core.stdc.stdio;
-			// TODO: implement more messaging
-			const(char)[] s = message[0..length];
-			printf("GL: %s", s.ptr);
+			printf("GL: %s\n", message);
 		}
 	}
 }
@@ -36,9 +34,17 @@ else
 		debug
 		{
 			import core.stdc.stdio;
-			// TODO: implement more messaging
-			string s = message[0..length];
-			writeln("GL: ", s);
+			printf("GL: %s\n", message);
 		}
+	}
+}
+
+void glCheck() @nogc
+{
+	auto err=  glGetError();
+	if(err != GL_NO_ERROR)
+	{
+		import core.stdc.stdio;
+		printf("GL Error: %d\n", err);
 	}
 }

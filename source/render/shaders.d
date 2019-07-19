@@ -9,40 +9,6 @@ import lantana.render.gl;
 
 import std.stdio;
 
-immutable const(char)[] pixelShaderVert_source = "
-#version 400
-uniform ivec2 translation;
-uniform uvec2 screen_size;
-
-layout(location = 0) in ivec2 vert_position;
-layout(location = 1) in vec2 vert_uv;
-
-out vec2 frag_uv;
-
-void main()
-{
-	ivec2 pos = vert_position + translation;
-	vec2 pos_norm = pos*2.0/screen_size;
-	frag_uv = vert_uv;
-	gl_Position = vec4(pos_norm - vec2(1, 1), 0.0, 1.0);
-}";
-
-immutable const(char)[] pixelShaderFrag_source = "
-#version 400
-
-uniform vec4 color;
-uniform sampler2D sprite;
-
-in vec2 frag_uv;
-
-out vec4 out_color;
-
-void main()
-{
-	vec4 tex = texture(sprite, frag_uv);
-	out_color = color * tex;
-}";
-
 GLuint MakeShader(GLuint shaderType, const(char)* source) @nogc nothrow
 {
 	GLuint s = glCreateShader(shaderType);
