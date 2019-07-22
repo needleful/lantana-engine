@@ -8,3 +8,4 @@ game
 trace.*
 *.exe
 .vs
+logs

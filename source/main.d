@@ -56,8 +56,6 @@ int run() @nogc
 	bool should_quit = false;
 	glClearColor(0.8, 0.3, 0.0, 1.0);
 
-	auto rendertime = StopWatch(AutoStart.no);
-	auto frametime = StopWatch(AutoStart.no);
 
 	FILE* framelogs = fopen("logs/frames.tsv", "w");
 	if(!framelogs)
@@ -68,13 +66,15 @@ int run() @nogc
 	scope(exit) fclose(framelogs);
 
 	fputs("Frame Time\t Render time\n", framelogs);
-
+	auto frametime = StopWatch(AutoStart.no);
+	auto rendertime = StopWatch(AutoStart.no);
+	
 	while(!should_quit)
 	{
 		frametime.reset();
-		frametime.start();
-
 		rendertime.reset();
+
+		frametime.start();
 		rendertime.start();
 
 		bool should_inc = false;
