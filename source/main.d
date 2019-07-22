@@ -120,7 +120,7 @@ int run() @nogc
 
 		frametime.stop();
 
-		fprintf(framelogs, "%u\t%u\n", frametime.peek(), rendertime.peek());
+		fprintf(framelogs, "%u\t%u\n", frametime.peek().total!"usecs", rendertime.peek().total!"usecs");
 	}
 
 	return 0;

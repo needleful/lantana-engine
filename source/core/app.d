@@ -71,11 +71,10 @@ struct MApplication
 			{
 				puts("WARNING: Could not enable synced swapping");
 			}
+			else{
+				puts("Successfully set synced swap interval");
+			}
 		}
-		else{
-			puts("Successfully set adaptive swap interval");
-		}
-
 		gl = SDL_GL_CreateContext(window);
 
 		SDL_GL_MakeCurrent(window, gl);
