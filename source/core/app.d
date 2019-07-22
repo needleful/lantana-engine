@@ -61,6 +61,20 @@ struct MApplication
 		{
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 		}
+		
+		int success = SDL_GL_SetSwapInterval(-1);
+		if(!success)
+		{
+			puts("Could not enable adaptive swap interval");
+			success = SDL_GL_SetSwapInterval(1);
+			if(!success)
+			{
+				puts("WARNING: Could not enable synced swapping");
+			}
+		}
+		else{
+			puts("Successfully set adaptive swap interval");
+		}
 
 		gl = SDL_GL_CreateContext(window);
 

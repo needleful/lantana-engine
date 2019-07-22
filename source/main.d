@@ -14,7 +14,9 @@ import lantana.core.app;
 import lantana.core.enums: Result;
 import lantana.render.gl;
 import lantana.render.shaders;
+import lantana.render.sprites;
 
+import std.datetime.stopwatch;
 
 MApplication app;
 
@@ -34,200 +36,49 @@ int main()
 /// everything that can be made nogc should be here
 int run() @nogc
 {
-
 	import std.stdio;
-	// Initialize renderer
-	GLuint pixelProgram;
-	{
-		import core.stdc.stdio;
-		import core.stdc.stdlib;
 
-		FILE* vertfile = fopen("data/shaders/sprite.vert", "r");
-		FILE* fragfile = fopen("data/shaders/sprite.frag", "r");
-		scope(exit)
-		{
-			fclose(vertfile);
-			fclose(fragfile);
-		}
+	auto spriteSystem = SAnimatedSprite("data/shaders/sprite_animated.vert", "data/shaders/sprite.frag");
+	int[2] size = [128, 128];
+	CAnimatedSprite sprite = spriteSystem.create_sprite("data/sprites/kitty.ss.png", size);
+	scope(exit) spriteSystem.delete_sprite(sprite);
 
-		fseek(vertfile, 0L, SEEK_END);
-		fseek(fragfile, 0L, SEEK_END);
+	CAnimatedSprite violentSprite = spriteSystem.create_sprite("data/sprites/kitty.ss.png", size);
 
-		auto vertShaderSize = ftell(vertfile);
-		auto fragShaderSize = ftell(fragfile);
-		rewind(vertfile);
-		rewind(fragfile);
+	sprite.translate = [128, 128];
+	violentSprite.translate = [256, 256];
 
-		auto v = vertShaderSize + 1;
-		auto f = fragShaderSize + 1;
-		char[] vertShader_source = (cast(char*)malloc(char.sizeof * v))[0..v];
-		char[] fragShader_source = (cast(char*)malloc(char.sizeof * f))[0..f];
-
-		vertShader_source[$-1] = '\0';
-		fragShader_source[$-1] = '\0';
-
-		fread(vertShader_source.ptr, char.sizeof, vertShaderSize, vertfile);
-		fread(fragShader_source.ptr, char.sizeof, fragShaderSize, fragfile);
-
-		scope(exit) 
-		{
-			free(vertShader_source.ptr);
-			free(fragShader_source.ptr);
-		}
-
-		GLuint[2] shaders = 
-		[
-			MakeShader(GL_VERTEX_SHADER, vertShader_source.ptr),
-			MakeShader(GL_FRAGMENT_SHADER, fragShader_source.ptr)
-		];
-
-		if(shaders[0] == 0)
-		{
-			puts("Failed to load required vertex shader");
-			return -1;
-		}
-
-		if(shaders[1] == 0)
-		{
-			puts("Failed to load required fragment shader");
-			return -1;
-		}
-		pixelProgram = LinkShaders(shaders);
-		if(pixelProgram == 0)
-		{
-			puts("Failed to link text shader program");
-			return -1;
-		}
-	}
-	scope(exit) glDeleteProgram(pixelProgram);
-
-	int[2][4] quad = 
-	[
-		[20, 492],
-		[492, 492],
-		[492, 20],
-		[20, 20]
-	];
-
-	float[2][4] uv = 
-	[
-		[0, 0],
-		[1, 0],
-		[1, 1],
-		[0, 1]
-	];
-
-	uint[6] elements =
-	[
-		0, 1, 2,
-		0, 2, 3
-	];
-
-	GLuint vao_text, ebo_text, vbo_pos, vbo_uv;
-	{
-		glGenVertexArrays(1, &vao_text);
-		glBindVertexArray(vao_text);
-		glCheck();
-
-		glGenBuffers(1, &vbo_pos);
-		glGenBuffers(1, &vbo_uv);
-		glGenBuffers(1, &ebo_text);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
-		glBufferData(GL_ARRAY_BUFFER, int.sizeof*2*quad.length, quad.ptr, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribIPointer(0, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_uv);
-		glBufferData(GL_ARRAY_BUFFER, float.sizeof*2*uv.length, uv.ptr, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_text);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, uint.sizeof*elements.length, elements.ptr, GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-		glCheck();
-	}
-	scope(exit)
-	{
-		glDeleteBuffers(1, &vbo_pos);
-		glDeleteBuffers(1, &vbo_uv);
-		glDeleteVertexArrays(1, &vao_text);
-	}
-
-	GLuint tx_sprite;
-	SDL_Surface* tx_sprite_image;
-	{
-		glGenTextures(1, &tx_sprite);
-		tx_sprite_image = IMG_Load("data/sprites/idle1.png");
-		if(!tx_sprite_image)
-		{
-			printf("Could not load sprite: %s\n", IMG_GetError());
-		}
-
-		if(tx_sprite_image.format.BytesPerPixel != 3)
-		{
-			printf("Only RGB images are supported, no transparency");
-		}
-		else
-		{
-			glBindTexture(GL_TEXTURE_2D, tx_sprite);
-			glTexImage2D(
-				GL_TEXTURE_2D, 0, GL_RGB, 
-				tx_sprite_image.w, tx_sprite_image.h,
-				0, GL_RGB, GL_UNSIGNED_BYTE, tx_sprite_image.pixels);
-
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		glCheck();
-		puts("Loaded sprite");
-	}
-	scope(exit)
-	{
-		glDeleteTextures(1, &tx_sprite);
-		SDL_FreeSurface(tx_sprite_image);
-	}
-	
 	// Render text
 
 	uint[2] screen_size = [512, 512];
-	int[2] translate = [0,0];
-	glClearColor(0.8, 0.3, 0.0, 1.0);
-
-	auto uTranslate = glGetUniformLocation(pixelProgram, "translation");
-	auto uScreen    = glGetUniformLocation(pixelProgram, "screen_size");
-	auto uColor     = glGetUniformLocation(pixelProgram, "color");
-	auto uSprite    = glGetUniformLocation(pixelProgram, "sprite");
-
-	assert(uTranslate >= 0);
-	assert(uScreen    >= 0);
-	assert(uSprite    >= 0);
-
-	glCheck();
-
-	glUseProgram(pixelProgram);
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tx_sprite);
-
-		glUniform2iv(uTranslate, 1, &translate[0]);
-		glUniform2uiv(uScreen, 1, &screen_size[0]);
-		glUniform1i(uSprite, 0);
-
-		glBindVertexArray(vao_text);
-		glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
-		glBindVertexArray(0);
-	}
-
-	SDL_GL_SwapWindow(app.window);
 
 	SDL_Event event;
 	bool should_quit = false;
+	glClearColor(0.8, 0.3, 0.0, 1.0);
+
+	auto rendertime = StopWatch(AutoStart.no);
+	auto frametime = StopWatch(AutoStart.no);
+
+	FILE* framelogs = fopen("logs/frames.tsv", "w");
+	if(!framelogs)
+	{
+		puts("Failed to open frame logs");
+		return -1;
+	}
+	scope(exit) fclose(framelogs);
+
+	fputs("Frame Time\t Render time\n", framelogs);
+
 	while(!should_quit)
 	{
+		frametime.reset();
+		frametime.start();
+
+		rendertime.reset();
+		rendertime.start();
+
+		bool should_inc = false;
+
 		while(SDL_PollEvent(&event))
 		{
 			switch(event.type)
@@ -242,9 +93,34 @@ int run() @nogc
 					break;
 				}
 				break;
+			case SDL_KEYDOWN:
+				if(event.key.keysym.sym == SDLK_SPACE)
+				{
+					should_inc = true;
+				}
+				break;
 			default: break;
 			}
 		}
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		violentSprite.frame = (violentSprite.frame + 1) % violentSprite.frame_count;
+
+		if(should_inc)
+		{
+			sprite.frame = (sprite.frame + 1) % sprite.frame_count;
+		}
+		spriteSystem.render(sprite, screen_size);
+		spriteSystem.render(violentSprite, screen_size);
+
+		rendertime.stop();
+
+		SDL_GL_SwapWindow(app.window);
+
+		frametime.stop();
+
+		fprintf(framelogs, "%u\t%u\n", frametime.peek(), rendertime.peek());
 	}
 
 	return 0;

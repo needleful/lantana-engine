@@ -9,10 +9,11 @@ import lantana.render.gl;
 
 import std.stdio;
 
-GLuint MakeShader(GLuint shaderType, const(char)* source) @nogc nothrow
+GLuint MakeShader(GLuint shaderType, char[] source) @nogc nothrow
 {
 	GLuint s = glCreateShader(shaderType);
-	glShaderSource(s, 1, &source, cast(const(int)*)null);
+	char* ptr = source.ptr;
+	glShaderSource(s, 1, &ptr, cast(const(int)*)null);
 	glCompileShader(s);
 
 	GLint status;
@@ -24,9 +25,44 @@ GLuint MakeShader(GLuint shaderType, const(char)* source) @nogc nothrow
 		glGetShaderInfoLog(s, 512, cast(int*)null, &error[0]);
 		error[511] = '\0';
 		puts(&error[0]);
+
+		describe_string(source);
 	}
 
 	return s;
+}
+
+GLuint CompileShader(GLuint shaderType, const(char*) source) @nogc nothrow
+{
+	import core.stdc.stdlib;
+	debug printf("Compiling shader: %s\n", source);
+
+	FILE* file = fopen(source, "r");
+	scope(exit)
+	{
+		fclose(file);
+	}
+
+	if(!file)
+	{
+		printf("Failed to open shader file: %s\n", source);
+		return 0;
+	}
+
+	fseek(file, 0L, SEEK_END);
+	uint shaderSize = ftell(file);
+	rewind(file);
+
+	char[] shaderString = (cast(char*)malloc(char.sizeof * shaderSize))[0..shaderSize];
+	scope(exit) free(shaderString.ptr);
+
+	size_t realSize = fread(shaderString.ptr, char.sizeof, shaderSize, file);
+
+	shaderString[realSize] = '\0';
+
+	printf("Shader string (%u bytes, %u real bytes):\n", shaderSize, realSize);
+
+	return MakeShader(shaderType, shaderString);
 }
 
 GLuint LinkShaders(GLuint[] shaders) @nogc nothrow
@@ -56,4 +92,39 @@ GLuint LinkShaders(GLuint[] shaders) @nogc nothrow
 		return 0;
 	}
 	return program;
+}
+
+void describe_string(char[] s) @nogc nothrow
+{
+	void describe_char(char c)
+	{
+		switch(c)
+		{
+			case '\n':
+				printf("[ \\n]: ");
+				break;
+			case '\t':
+				printf("[ \\t]: ");
+				break;
+			case '\r':
+				printf("[ \\r]: ");
+				break;
+			default:
+				printf("[%3c]: ", c);
+				break;
+		}
+		printf("%3u", cast(uint)c);
+	}
+
+	foreach(i; 0..s.length)
+	{
+		char c = s[i];
+		printf("%4d ", i);
+		describe_char(c);
+		printf("\t");
+		if(i % 8 == 0)
+		{
+			printf("\n");
+		}
+	}
 }
