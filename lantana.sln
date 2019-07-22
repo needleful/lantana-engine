@@ -1,38 +1,54 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "lantana", ".dub/lantana.visualdproj", "{A5C472E0-F005-4209-A917-D86CAC30B406}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "lantana", ".dub\lantana.visualdproj", "{00F2E6E2-1582-4930-BB7F-118B481967C6}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918} = {D13554C4-FE96-485B-AA0A-4EF0B4FB9918}
-		{E67E944B-6D39-4D53-9D28-7E2BDB913D43} = {E67E944B-6D39-4D53-9D28-7E2BDB913D43}
-		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9} = {1B7FCDE0-4DD8-48C4-8086-D815C68455A9}
-		{8FAFD786-A126-4F44-AE97-BD208D5986DA} = {8FAFD786-A126-4F44-AE97-BD208D5986DA}
+		{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976} = {2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}
+		{B5D1DBBD-3774-4825-9397-E7C6BC322C1E} = {B5D1DBBD-3774-4825-9397-E7C6BC322C1E}
+		{58EAE98E-B151-48DD-AB78-B5CD065E2F3C} = {58EAE98E-B151-48DD-AB78-B5CD065E2F3C}
+		{F30AA961-5C53-401E-8AFB-FEC14DC3418F} = {F30AA961-5C53-401E-8AFB-FEC14DC3418F}
 	EndProjectSection
 EndProject
-Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-ft", ".dub/derelict-ft.visualdproj", "{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}"
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "derelict-ft", ".dub\derelict-ft.visualdproj", "{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}"
 EndProject
-Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-util", ".dub/derelict-util.visualdproj", "{8FAFD786-A126-4F44-AE97-BD208D5986DA}"
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "derelict-util", ".dub\derelict-util.visualdproj", "{F30AA961-5C53-401E-8AFB-FEC14DC3418F}"
 EndProject
-Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-gl3", ".dub/derelict-gl3.visualdproj", "{E67E944B-6D39-4D53-9D28-7E2BDB913D43}"
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "derelict-gl3", ".dub\derelict-gl3.visualdproj", "{B5D1DBBD-3774-4825-9397-E7C6BC322C1E}"
 EndProject
-Project("{69DF207C-E789-4DB7-AC67-CAAF526CE35C}") = "derelict-sdl2", ".dub/derelict-sdl2.visualdproj", "{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}"
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "derelict-sdl2", ".dub\derelict-sdl2.visualdproj", "{58EAE98E-B151-48DD-AB78-B5CD065E2F3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
+		profile|x64 = profile|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8FAFD786-A126-4F44-AE97-BD208D5986DA}.debug|x64.ActiveCfg = debug|x64
-		{8FAFD786-A126-4F44-AE97-BD208D5986DA}.debug|x64.Build.0 = debug|x64
-		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}.debug|x64.ActiveCfg = debug|x64
-		{D13554C4-FE96-485B-AA0A-4EF0B4FB9918}.debug|x64.Build.0 = debug|x64
-		{A5C472E0-F005-4209-A917-D86CAC30B406}.debug|x64.ActiveCfg = debug|x64
-		{A5C472E0-F005-4209-A917-D86CAC30B406}.debug|x64.Build.0 = debug|x64
-		{E67E944B-6D39-4D53-9D28-7E2BDB913D43}.debug|x64.ActiveCfg = debug|x64
-		{E67E944B-6D39-4D53-9D28-7E2BDB913D43}.debug|x64.Build.0 = debug|x64
-		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}.debug|x64.ActiveCfg = debug|x64
-		{1B7FCDE0-4DD8-48C4-8086-D815C68455A9}.debug|x64.Build.0 = debug|x64
+		{00F2E6E2-1582-4930-BB7F-118B481967C6}.debug|x64.ActiveCfg = debug|x64
+		{00F2E6E2-1582-4930-BB7F-118B481967C6}.debug|x64.Build.0 = debug|x64
+		{00F2E6E2-1582-4930-BB7F-118B481967C6}.profile|x64.ActiveCfg = profile|x64
+		{00F2E6E2-1582-4930-BB7F-118B481967C6}.profile|x64.Build.0 = profile|x64
+		{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}.debug|x64.ActiveCfg = debug|x64
+		{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}.debug|x64.Build.0 = debug|x64
+		{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}.profile|x64.ActiveCfg = profile|x64
+		{2D3E99B8-2E8C-4881-A228-F1C3BE9AF976}.profile|x64.Build.0 = profile|x64
+		{F30AA961-5C53-401E-8AFB-FEC14DC3418F}.debug|x64.ActiveCfg = debug|x64
+		{F30AA961-5C53-401E-8AFB-FEC14DC3418F}.debug|x64.Build.0 = debug|x64
+		{F30AA961-5C53-401E-8AFB-FEC14DC3418F}.profile|x64.ActiveCfg = profile|x64
+		{F30AA961-5C53-401E-8AFB-FEC14DC3418F}.profile|x64.Build.0 = profile|x64
+		{B5D1DBBD-3774-4825-9397-E7C6BC322C1E}.debug|x64.ActiveCfg = debug|x64
+		{B5D1DBBD-3774-4825-9397-E7C6BC322C1E}.debug|x64.Build.0 = debug|x64
+		{B5D1DBBD-3774-4825-9397-E7C6BC322C1E}.profile|x64.ActiveCfg = profile|x64
+		{B5D1DBBD-3774-4825-9397-E7C6BC322C1E}.profile|x64.Build.0 = profile|x64
+		{58EAE98E-B151-48DD-AB78-B5CD065E2F3C}.debug|x64.ActiveCfg = debug|x64
+		{58EAE98E-B151-48DD-AB78-B5CD065E2F3C}.debug|x64.Build.0 = debug|x64
+		{58EAE98E-B151-48DD-AB78-B5CD065E2F3C}.profile|x64.ActiveCfg = profile|x64
+		{58EAE98E-B151-48DD-AB78-B5CD065E2F3C}.profile|x64.Build.0 = profile|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E90A1AE3-357A-4B70-A381-6A528DB53488}
 	EndGlobalSection
 EndGlobal

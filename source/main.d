@@ -56,26 +56,31 @@ int run() @nogc
 	bool should_quit = false;
 	glClearColor(0.8, 0.3, 0.0, 1.0);
 
-
-	FILE* framelogs = fopen("logs/frames.tsv", "w");
-	if(!framelogs)
+	debug
 	{
-		puts("Failed to open frame logs");
-		return -1;
-	}
-	scope(exit) fclose(framelogs);
+		FILE* framelogs = fopen("logs/frames.tsv", "w");
+		if(!framelogs)
+		{
+			puts("Failed to open frame logs");
+			return -1;
+		}
+		scope(exit) fclose(framelogs);
 
-	fputs("Frame Time\t Render time\n", framelogs);
-	auto frametime = StopWatch(AutoStart.no);
-	auto rendertime = StopWatch(AutoStart.no);
-	
+		fputs("Frame Time\t Render time\n", framelogs);
+		auto frametime = StopWatch(AutoStart.no);
+		auto rendertime = StopWatch(AutoStart.no);
+	}
+
 	while(!should_quit)
 	{
-		frametime.reset();
-		rendertime.reset();
+		debug
+		{
+			frametime.reset();
+			rendertime.reset();
 
-		frametime.start();
-		rendertime.start();
+			frametime.start();
+			rendertime.start();
+		}
 
 		bool should_inc = false;
 
@@ -114,13 +119,18 @@ int run() @nogc
 		spriteSystem.render(sprite, screen_size);
 		spriteSystem.render(violentSprite, screen_size);
 
-		rendertime.stop();
+		debug
+		{
+			rendertime.stop();
+		}
 
 		SDL_GL_SwapWindow(app.window);
 
-		frametime.stop();
-
-		fprintf(framelogs, "%u\t%u\n", frametime.peek().total!"usecs", rendertime.peek().total!"usecs");
+		debug
+		{
+			frametime.stop();
+			fprintf(framelogs, "%u\t%u\n", frametime.peek().total!"usecs", rendertime.peek().total!"usecs");
+		}
 	}
 
 	return 0;
