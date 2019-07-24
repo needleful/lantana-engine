@@ -8,10 +8,14 @@ import core.stdc.stdio;
 import derelict.sdl2.image;
 import derelict.sdl2.sdl;
 
+import lantana.core.ecs;
 import lantana.render.gl;
 import lantana.render.shaders;
 
+import std.typecons: Tuple;
 
+
+@Component
 struct CAnimatedSprite
 {
 	// The texture data itself, encoded in an SDL_Surface due to laziness
@@ -26,9 +30,9 @@ struct CAnimatedSprite
 	ushort frame, frame_count;
 }
 
-struct SAnimatedSprite
+@System
+struct SSprites
 {
-	// The 
 	static immutable int[2][4] quad = 
 	[
 		[0, 1],
@@ -51,32 +55,22 @@ struct SAnimatedSprite
 		0, 2, 3
 	];
 
-	// Shader and VAO for all sprites
-	GLuint shader, vao;
-	// Shader Uniforms
-	GLuint uSprite, 
-	       uTranslate, 
-	       uScreenSize, 
-	       uFrameSize, 
-	       uFrameScale,
-	       uFrameOffset;
-	// The VBO_pos, VBO_uv, and EBO
+	// The VBO_pos, VBO_uv, and EBO of the sprite quad
 	GLuint[3] vbo;
 
-	ref GLuint vbo_pos() @nogc nothrow
-	{
-		return vbo[0];
-	}
+	// Shader and VAO for all sprites
+	GLuint vao;
+	GLuint shader_anim, shader_static;
 
-	ref GLuint vbo_uv() @nogc nothrow
-	{
-		return vbo[1];
-	}
-
-	ref GLuint ebo() @nogc nothrow
-	{
-		return vbo[2];
-	}
+	// Shader Uniforms
+	Tuple!(
+		GLuint, "sprite", 
+	    GLuint, "translation",
+		GLuint, "screenSize",
+	    GLuint, "frameSize",
+	    GLuint, "frameScale",
+	    GLuint, "frameOffset",
+	) uAnim;
 
 	@disable this();
 
@@ -126,28 +120,43 @@ struct SAnimatedSprite
 			puts("Failed to load required fragment shader");
 		}
 
-		shader = LinkShaders(shaders);
-		if(shader == 0)
+		shader_anim = LinkShaders(shaders);
+		if(shader_anim == 0)
 		{
-			puts("Failed to link text shader program");
+			puts("Failed to link text shader_anim program");
 		}
 
-		uSprite      = glGetUniformLocation(shader, "sprite");
-		uTranslate   = glGetUniformLocation(shader, "translation");
-		uScreenSize  = glGetUniformLocation(shader, "screen_size");
-		uFrameSize   = glGetUniformLocation(shader, "frame_size");
-		uFrameScale  = glGetUniformLocation(shader, "frame_scale");
-		uFrameOffset = glGetUniformLocation(shader, "frame_offset");
+		uAnim.sprite      = glGetUniformLocation(shader_anim, "sprite");
+		uAnim.translation = glGetUniformLocation(shader_anim, "translation");
+		uAnim.screenSize  = glGetUniformLocation(shader_anim, "screen_size");
+		uAnim.frameSize   = glGetUniformLocation(shader_anim, "frame_size");
+		uAnim.frameScale  = glGetUniformLocation(shader_anim, "frame_scale");
+		uAnim.frameOffset = glGetUniformLocation(shader_anim, "frame_offset");
 	}
 
 	~this() @nogc
 	{
-		glDeleteProgram(shader);
+		glDeleteProgram(shader_anim);
 		glDeleteBuffers(3, vbo.ptr);
 		glDeleteVertexArrays(1, &vao);
 
 		glCheck();
 		puts("Sprite System shut down");
+	}
+
+	ref GLuint vbo_pos() @nogc nothrow
+	{
+		return vbo[0];
+	}
+
+	ref GLuint vbo_uv() @nogc nothrow
+	{
+		return vbo[1];
+	}
+
+	ref GLuint ebo() @nogc nothrow
+	{
+		return vbo[2];
 	}
 
 	CAnimatedSprite create_sprite(const(char*) filename, const ref int[2] frame_size) @nogc
@@ -166,19 +175,16 @@ struct SAnimatedSprite
 		{
 			printf("Only RGB surfaces are supported, no transparency");
 		}
-		else
-		{
-			glBindTexture(GL_TEXTURE_2D, sprite.texture);
-			glTexImage2D(
-				GL_TEXTURE_2D, 0, GL_RGB, 
-				sprite.surface.w, sprite.surface.h,
-				0, GL_RGB, GL_UNSIGNED_BYTE, sprite.surface.pixels);
+		glBindTexture(GL_TEXTURE_2D, sprite.texture);
+		glTexImage2D(
+			GL_TEXTURE_2D, 0, GL_RGB, 
+			sprite.surface.w, sprite.surface.h,
+			0, GL_RGB, GL_UNSIGNED_BYTE, sprite.surface.pixels);
 
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		glCheck();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	
 		printf("Loaded sprite: %s\n", filename);
 
 		sprite.size = frame_size;
@@ -190,34 +196,34 @@ struct SAnimatedSprite
 		return sprite;
 	}
 
+	void delete_sprite(ref CAnimatedSprite sprite) @nogc
+	{
+		glDeleteTextures(1, &sprite.texture);
+		SDL_FreeSurface(sprite.surface);
+	}
+
 	void render(const ref CAnimatedSprite sprite, const ref uint[2] screen_size) @nogc
 	{
 		glCheck();
 
-		glUseProgram(shader);
+		glUseProgram(shader_anim);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sprite.texture);
 
-		glUniform1i(uSprite, 0);
-		glUniform2iv(uTranslate, 1, sprite.translate.ptr);
-		glUniform2uiv(uScreenSize, 1, screen_size.ptr);
-		glUniform2iv(uFrameSize, 1, sprite.size.ptr);
+		uAnim.sprite.glUniform1i(0);
+		uAnim.translation.glUniform2iv(1, sprite.translate.ptr);
+		uAnim.screenSize.glUniform2uiv(1, screen_size.ptr);
+		uAnim.frameSize.glUniform2iv(1, sprite.size.ptr);
 		//calculate uFrameOffset from the sprite frame and dimensions of the image
 		// TODO: currently it just assumes the sprites are linearly packed
 
 		float frameScale = (cast(double) sprite.size[0])/(cast(double) sprite.surface.w);
 		float[2] frameOffset = [frameScale*sprite.frame, 0];
-		glUniform2fv(uFrameOffset, 1, frameOffset.ptr);
-		glUniform1f(uFrameScale, frameScale);
+		uAnim.frameOffset.glUniform2fv(1, frameOffset.ptr);
+		uAnim.frameScale.glUniform1f(frameScale);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 		glBindVertexArray(0);
-	}
-
-	void delete_sprite(ref CAnimatedSprite sprite) @nogc
-	{
-		glDeleteTextures(1, &sprite.texture);
-		SDL_FreeSurface(sprite.surface);
 	}
 }

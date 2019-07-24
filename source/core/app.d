@@ -14,7 +14,7 @@ import lantana.render.gl;
 
 import std.stdio: printf, puts;
 
-@metasystem
+@Metasystem
 struct MApplication
 {
 	string name;

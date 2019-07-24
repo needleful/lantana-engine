@@ -6,4 +6,6 @@
 module lantana.core.ecs;
 
 /// Attribute for defining metasystems
-enum metasystem;
+enum Metasystem;
+enum System;
+enum Component;

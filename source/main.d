@@ -5,7 +5,10 @@
 /// The main module for running the game
 module lantana.main;
 
-// TODO: render animated sprite
+// TODO:
+// * Basic input and movement
+// * Static Sprites
+// * Camera logic
 
 import derelict.sdl2.image;
 import derelict.sdl2.sdl;
@@ -38,7 +41,7 @@ int run() @nogc
 {
 	import std.stdio;
 
-	auto spriteSystem = SAnimatedSprite("data/shaders/sprite_animated.vert", "data/shaders/sprite.frag");
+	auto spriteSystem = SSprites("data/shaders/sprite_animated.vert", "data/shaders/sprite.frag");
 	int[2] size = [128, 128];
 	CAnimatedSprite sprite = spriteSystem.create_sprite("data/sprites/kitty.ss.png", size);
 	scope(exit) spriteSystem.delete_sprite(sprite);
