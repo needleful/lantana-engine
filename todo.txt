@@ -1,5 +1,13 @@
 TODO:
 
+- Grid movement
+	- Populating floor
+	- Blocking spaces
+
+- Puzzles
+	- Undo
+	- Restart
+
 - Load a model.
 	- Use ASSIMP for now
 	- Switch to custom format eventually

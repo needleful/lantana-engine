@@ -85,19 +85,21 @@ class LanRegion : ILanAllocator
 		set_space_used(2*ulong.sizeof);
 		debug
 		{
-			printf("Creating MemoryStack with %u bytes\n", capacity);
+			printf("Creating Region with %u bytes\n", capacity);
 		}
 	}
 
 	~this() @nogc
 	{
+		ulong used = space_used();
+		ulong cap = capacity();
 		set_capacity(0);
 		set_space_used(0);
 		parent.remove(cast(void*)data);
 		data = null;
 		debug
 		{
-			printf("Deleted MemoryStack\n");
+			printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 		}
 	}
 

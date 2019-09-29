@@ -96,13 +96,10 @@ int main()
 
 	group.material.set_param("color", Vec3(0, 0.2, 0));
 
-	Vec2 input = Vec2(0,0);
 	uint frame = 0;
 
-	Mat4 ident = Mat4_Identity;
-
-	Grid grid = Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 2, Vec3(5, 7, 5));
-	Player player = Player(&grid, GridPos(0,0,0));
+	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 2, Vec3(5, 7, 5));
+	Player* player = mm.create!Player(grid, GridPos(0,0,0));
 
 	while(!(ww.state & WindowState.CLOSED))
 	{

@@ -12,7 +12,7 @@ import logic.input;
 struct Player
 {
 	// Time to go from one grid point to another
-	const TIME_MOVE = 0.5;
+	const TIME_MOVE = 0.4;
 
 	enum State
 	{
@@ -26,7 +26,7 @@ struct Player
 	State state;
 
 	@disable this();
-	this(Grid* grid, GridPos gridPos, State state = State.IDLE)
+	this(Grid* grid, GridPos gridPos, State state = State.IDLE) @nogc @safe nothrow
 	{
 		this.grid = grid;
 		this.pos = gridPos;
@@ -34,7 +34,7 @@ struct Player
 		this.target = this.pos;
 	}
 
-	void frame(const ref Input input, const float delta)
+	void frame(const ref Input input, const float delta)  @nogc @safe nothrow
 	{
 
 		if(state == State.MOVE)
@@ -83,7 +83,7 @@ struct Player
 
 	}
 
-	Vec3 getPos()
+	Vec3 getPos() @nogc @safe nothrow
 	{
 		return grid.getRealPosition(pos).lerp(
 			grid.getRealPosition(target), 

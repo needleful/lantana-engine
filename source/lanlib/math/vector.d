@@ -240,7 +240,7 @@ struct Vector(T, uint Size)
 		return temp;
 	}
 
-	const Vector!(T, Size) lerp(Vector!(T, Size) rhs, float factor)
+	const Vector!(T, Size) lerp(Vector!(T, Size) rhs, float factor)  @nogc @safe nothrow
 	{
 		return this + ((rhs-this)*factor);
 	}

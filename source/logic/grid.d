@@ -20,7 +20,7 @@ struct Grid
 
 	@disable this();
 
-	this(GridPos lowBounds, GridPos highBounds, float gridStep = 1, Vec3 position = Vec3(0,0,0))
+	this(GridPos lowBounds, GridPos highBounds, float gridStep = 1, Vec3 position = Vec3(0,0,0)) @nogc @safe nothrow
 	{
 		this.lowBounds = lowBounds;
 		this.highBounds = highBounds;
@@ -28,14 +28,14 @@ struct Grid
 		this.position = position;
 	}
 
-	bool inBounds(GridPos gp)
+	bool inBounds(GridPos gp) @nogc @safe nothrow const
 	{
 		return gp.x >= lowBounds.x && gp.x <= highBounds.x
 			&& gp.y >= lowBounds.y && gp.y <= highBounds.y
 			&& gp.z >= lowBounds.z && gp.z <= highBounds.z;
 	}
 
-	Vec3 getRealPosition(GridPos gp)
+	Vec3 getRealPosition(GridPos gp) @nogc @safe nothrow const
 	{
 		assert(inBounds(gp));
 		return Vec3(gp.x, gp.y, gp.z)*gridStep + position;
