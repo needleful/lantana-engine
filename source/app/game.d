@@ -103,7 +103,7 @@ int main()
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
-		float delta = ww.delta_ms/1000.0;
+		float delta = ww.delta_ms()/1000.0;
 	
 		ww.poll_events(ii);
 

@@ -15,7 +15,7 @@ debug
 /++
   Anything with the @GpuResource attribute must have its destructor called
   once its no longer valid.  As a result, no GpuResource types can be put on 
-  the MemoryStack.  They must be managed through some other method.
+  a Region.  They must be managed through some other method.
  +/
 enum GpuResource;
 
