@@ -49,7 +49,9 @@ struct Flags(E)
 	{
 		DT i = cast(DT)key;
 
-		DT flag = (value << key);
+		DT flag = cast(DT)(value << key);
 		DT nflag = ~flag;
+
+		// TODO implement
 	}
 }
