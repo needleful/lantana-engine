@@ -11,6 +11,7 @@ import lanlib.math.vector: iVec2;
 import lanlib.sys.memory;
 
 import derelict.freetype;
+import derelict.util.exception;
 
 /// Text box
 struct SimpleTextBox
@@ -31,7 +32,17 @@ struct TextManager
 
 	this(string default_font, ushort default_font_size)
 	{
-		DerelictFT.load();
+		try
+		{
+			DerelictFT.load();
+		}
+		catch(SymbolLoadException sle)
+		{
+			if(sle.symbolName != "FT_Stream_OpenBzip2")
+			{
+				throw sle;
+			}
+		}
 		if(FT_Init_FreeType(&library))
 		{
 			throw new Exception("Could not initialize freetype library");

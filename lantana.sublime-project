@@ -8,19 +8,21 @@
 				[
 					"dub",
 					"build",
-					"--config=game"
-				]
-			},
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--config=game"
+					"--config=game",
+					"--arch=x86_64"
 				]
 			},
 			"name": "Build Game",
+			"windows":
+			{
+				"cmd":
+				[
+					"dub",
+					"build",
+					"--config=game",
+					"--arch=x86_64"
+				]
+			},
 			"working_dir": "$project_path"
 		},
 		{
@@ -32,21 +34,23 @@
 					"build",
 					"--build=release",
 					"--combined",
-					"--config=game"
-				]
-			},
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=release",
-					"--combined",
-					"--config=game"
+					"--config=game",
+					"--arch=x86_64"
 				]
 			},
 			"name": "Build (Release)",
+			"windows":
+			{
+				"cmd":
+				[
+					"dub",
+					"build",
+					"--build=release",
+					"--combined",
+					"--config=game",
+					"--arch=x86_64"
+				]
+			},
 			"working_dir": "$project_path"
 		},
 		{
@@ -57,37 +61,30 @@
 					"dub",
 					"build",
 					"--build=profile",
-					"--config=game"
-				]
-			},
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=profile",
-					"--config=game"
+					"--config=game",
+					"--arch=x86_64"
 				]
 			},
 			"name": "Profile Game",
-			"working_dir": "$project_path"
-		},
-		{
-			"linux":
-			{
-				"cmd":
-				[
-					"./game"
-				]
-			},
 			"windows":
 			{
 				"cmd":
 				[
-					"./game.exe"
+					"dub",
+					"build",
+					"--build=profile",
+					"--config=game",
+					"--arch=x86_64"
 				]
 			},
+			"working_dir": "$project_path"
+		},
+		{
+			"cmd":
+			[
+				"dub",
+				"run"
+			],
 			"name": "Run Game",
 			"working_dir": "$project_path"
 		}
@@ -96,26 +93,6 @@
 	[
 		{
 			"path": "."
-		},
-		{
-			"name": "lantana",
-			"path": "/home/devin/OneDrive/Games/experiments/lantana"
-		},
-		{
-			"name": "derelict-ft",
-			"path": "/home/devin/.dub/packages/derelict-ft-2.0.0-beta.5/derelict-ft"
-		},
-		{
-			"name": "derelict-util",
-			"path": "/home/devin/.dub/packages/derelict-util-3.0.0-beta.2/derelict-util"
-		},
-		{
-			"name": "derelict-gl3",
-			"path": "/home/devin/.dub/packages/derelict-gl3-2.0.0-beta.8/derelict-gl3"
-		},
-		{
-			"name": "derelict-sdl2",
-			"path": "/home/devin/.dub/packages/derelict-sdl2-3.0.0-beta.8/derelict-sdl2"
 		}
 	],
 	"settings":

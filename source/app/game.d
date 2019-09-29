@@ -84,9 +84,10 @@ int main()
 
 	transforms[0] = Transform(0.5, Vec3(0,0,2));
 
+	// Putting cubes
 	for(uint i = 1; i < transforms.length; i++)
 	{
-		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0, 2+(i % 100)*2));
+		transforms[i] = Transform(0.5, Vec3((i/100)*2, 2+(i % 100)*2, -8));
 	}
 	auto group = MultiMesh(&test_mesh, &mat_basic, transforms);
 
@@ -97,7 +98,7 @@ int main()
 	UniformId transformId = group.material.get_param_id("transform");
 	UniformId projId = group.material.get_param_id("projection");
 
-	group.material.set_param("color", Vec3(0.2, 0.4, 1));
+	group.material.set_param("color", Vec3(0, 0.2, 0));
 
 	Vec2 input = Vec2(0,0);
 	uint frame = 0;

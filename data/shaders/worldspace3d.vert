@@ -9,7 +9,7 @@ uniform mat4 projection;
 
 void main()
 {
-	vec4 world_pos = transform * vec4(position.x, position.y, position.z, 1.0);
+	vec4 world_pos = transform * vec4(position, 1.0);
 	vert_color = clamp(world_pos, 0.0, 1.0);
 	vert_color.a = 1.0;
 
