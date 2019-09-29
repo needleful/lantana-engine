@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.input;
+module logic.input;
 
 debug
 {
@@ -15,10 +15,10 @@ struct Input
 {
 	enum Action
 	{
-		UP,
-		DOWN,
-		LEFT,
+		FORWARD,
+		BACK,
 		RIGHT,
+		LEFT,
 		JUMP,
 		PAUSE,
 		ACTION_COUNT,

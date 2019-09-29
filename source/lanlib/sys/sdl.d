@@ -12,18 +12,18 @@ import derelict.sdl2.sdl;
 
 import lanlib.math.transform;
 import lanlib.math.vector;
-import lanlib.sys.input;
+import logic.input;
 import lanlib.sys.gl;
 
 static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 {
 	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
 	{
-		return Input.Action.UP;
+		return Input.Action.FORWARD;
 	}
 	else if(code == SDL_SCANCODE_DOWN || code == SDL_SCANCODE_S)
 	{
-		return Input.Action.DOWN;
+		return Input.Action.BACK;
 	}
 	else if(code == SDL_SCANCODE_LEFT || code == SDL_SCANCODE_A)
 	{

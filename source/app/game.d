@@ -9,10 +9,12 @@ import lanlib.math.matrix;
 import lanlib.math.projection;
 import lanlib.math.vector;
 import lanlib.math.transform;
-
-import lanlib.sys.input;
 import lanlib.sys.memory;
 import lanlib.sys.sdl;
+
+import logic.grid;
+import logic.input;
+import logic.player;
 
 import render.camera;
 import render.material;
@@ -38,14 +40,8 @@ int main()
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	TextManager tt = TextManager("data/fonts/averia/Averia-Regular.ttf", 24);
-	SimpleTextBox tx_framerate = tt.add_text(iVec2(20,20), "Framerate: xxx.x");
-
 	Material mat_basic = load_material(
 		"data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
-
-	Material mat_text = load_material(
-		"data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
 
 	assert(mat_basic.can_render());
 
@@ -80,7 +76,7 @@ int main()
 
 	Mesh test_mesh = Mesh(verts, elems);
 
-	Transform[] transforms = mm.make_list!Transform(10_000);
+	Transform[] transforms = mm.make_list!Transform(100);
 
 	transforms[0] = Transform(0.5, Vec3(0,0,2));
 
@@ -104,6 +100,10 @@ int main()
 	uint frame = 0;
 
 	Mat4 ident = Mat4_Identity;
+
+	Grid grid = Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 2, Vec3(5, 7, 5));
+	Player player = Player(&grid, GridPos(0,0,0));
+
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		float delta = ww.delta_ms/1000.0;
@@ -126,45 +126,20 @@ int main()
 
 		if(!paused)
 		{
-			input.x = 0.0f;
-			input.y = 0.0f;
-
-			if(ii.is_pressed(Input.Action.LEFT))
-			{
-				input.x -= 1;
-			}
-			if(ii.is_pressed(Input.Action.RIGHT))
-			{
-				input.x += 1;
-			}
-			if(ii.is_pressed(Input.Action.UP))
-			{
-				input.y += 1;
-			}
-			if(ii.is_pressed(Input.Action.DOWN))
-			{
-				input.y -= 1;
-			}
-
-			cam.rot.x += ii.mouse_movement.x;
+			cam.rot.x += ii.mouse_movement.x*delta*60;
 			float next_rot = cam.rot.y + ii.mouse_movement.y;
 			if(abs(next_rot) < 90){
 				cam.rot.y = next_rot;
 			}
 
-			cam.pos += cam.right()*input.x*0.016*cam_speed;
-			cam.pos += cam.forward()*input.y*0.016*cam_speed;
+			player.frame(ii, delta);
 
-			tr.scale(0.5+sin(ww.time/2000.0)*0.2);
-			tr.rotate_degrees(0, 0.5, 0);
+			tr._position = player.getPos();
+
+			tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
 
 			group.update_transform(0, tr);
-
-			if(ii.is_pressed(Input.Action.JUMP))
-			{
-				cam.pos += cam.up()*0.016*cam_speed;
-			}
 			
 			group.material.set_param(projId, cam.vp);
 		}

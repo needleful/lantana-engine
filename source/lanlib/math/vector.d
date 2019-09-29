@@ -13,10 +13,11 @@ alias Vec3 = Vector!(float, 3);
 alias Vec4 = Vector!(float, 4);
 
 alias iVec2 = Vector!(int, 2);
+alias iVec3 = Vector!(int, 3);
 
 struct Vector(T, uint Size)
 {
-	static assert(Size > 0);
+	static assert(Size > 0, "Attempted Vector instantiated with Size <= 0");
 	T[Size] data;
 
 	this(const T[Size] d) @nogc @safe nothrow
@@ -168,18 +169,18 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	Vector!(T, Size) opBinary(string op)(const T val) @nogc @safe const
+	Vector!(T, Size) opBinary(string op)(const double val) @nogc @safe const
 	{
 		auto v = Vector!(T, Size)();
 		static foreach(uint i; 0..Size)
 		{
 			static if(op == "*")
 			{
-				v.data[i] = data[i]*val;
+				v.data[i] = cast(T)(data[i]*val);
 			}
 			else static if(op == "/")
 			{
-				v.data[i] = data[i]/val;
+				v.data[i] = cast(T)(data[i]/val);
 			}
 			else static assert(false, "Operator not supported for vectors and scalars: "~op);
 		}
@@ -193,11 +194,11 @@ struct Vector(T, uint Size)
 		{
 			static if(op == "+")
 			{
-				v.data[i] = data[i] + rhs.data[i];
+				v.data[i] = cast(T)(data[i] + rhs.data[i]);
 			}
 			else static if(op == "-")
 			{
-				v.data[i] = data[i] - rhs.data[i];
+				v.data[i] = cast(T)(data[i] - rhs.data[i]);
 			}
 			else
 			{
@@ -239,6 +240,11 @@ struct Vector(T, uint Size)
 		return temp;
 	}
 
+	const Vector!(T, Size) lerp(Vector!(T, Size) rhs, float factor)
+	{
+		return this + ((rhs-this)*factor);
+	}
+
 	const T dot(Vector!(T, Size) rhs) @nogc @safe nothrow
 	{
 		T res = 0;
@@ -254,9 +260,9 @@ struct Vector(T, uint Size)
 		Vector!(T, Size) cross(Vector!(T, Size) rhs) @nogc @safe nothrow
 		{
 			return(Vector!(T, Size)(
-				y*rhs.z - z*rhs.y,
-				-(x*rhs.z - z*rhs.x),
-				x*rhs.y - y*rhs.x)
+				cast(T) (y*rhs.z - z*rhs.y),
+				cast(T) (-(x*rhs.z - z*rhs.x)),
+				cast(T) (x*rhs.y - y*rhs.x))
 			);
 		}
 	}

@@ -14,9 +14,9 @@ struct Transform
 {
 	Mat4 matrix;
 	// X Y and Z rotations in degrees
-	private Vec3 _rotation;
-	private Vec3 _position;
-	private Vec3 _scale;
+	Vec3 _rotation;
+	Vec3 _position;
+	Vec3 _scale;
 
 	this(const float scale, const Vec3 position) @nogc @safe nothrow
 	{
