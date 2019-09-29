@@ -11,11 +11,31 @@
 					"--config=game"
 				]
 			},
+			"windows":
+			{
+				"cmd":
+				[
+					"dub",
+					"build",
+					"--config=game"
+				]
+			},
 			"name": "Build Game",
 			"working_dir": "$project_path"
 		},
 		{
 			"linux":
+			{
+				"cmd":
+				[
+					"dub",
+					"build",
+					"--build=release",
+					"--combined",
+					"--config=game"
+				]
+			},
+			"windows":
 			{
 				"cmd":
 				[
@@ -40,6 +60,16 @@
 					"--config=game"
 				]
 			},
+			"windows":
+			{
+				"cmd":
+				[
+					"dub",
+					"build",
+					"--build=profile",
+					"--config=game"
+				]
+			},
 			"name": "Profile Game",
 			"working_dir": "$project_path"
 		},
@@ -49,6 +79,13 @@
 				"cmd":
 				[
 					"./game"
+				]
+			},
+			"windows":
+			{
+				"cmd":
+				[
+					"./game.exe"
 				]
 			},
 			"name": "Run Game",

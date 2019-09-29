@@ -84,12 +84,6 @@ struct Material
 		rhs.matId = MaterialId(0u);
 	}
 
-	this(ref Material rhs) @safe @nogc nothrow
-	{
-		this.matId = rhs.matId;
-		rhs.matId = MaterialId(0u);
-	}
-
 	~this() @trusted @nogc nothrow
 	{
 		debug
