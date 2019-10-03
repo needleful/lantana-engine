@@ -6,10 +6,12 @@ import std.stdio;
 
 import derelict.sdl2.image;
 import derelict.sdl2.sdl;
-import lanlib.sys.gl;
 
+import lanlib.sys.gl;
 import lanlib.sys.sdl;
+
 import logic.input;
+import render.mesh;
 
 // Currently used to test random things
 int main()
@@ -43,8 +45,34 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, tx_surface.w, tx_surface.h, 0, GL_RGB, GL_FLOAT, tx_surface.pixels);
+	glTexImage2D (GL_TEXTURE_2D,
+			0, GL_RGB8,
+			tx_surface.w, tx_surface.h,
+			0, GL_RGB8,
+			GL_UNSIGNED_BYTE, tx_surface.pixels);
 	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	Vec2[] verts = [
+		Vec2(-.5, -.5),
+		Vec2(-.5, 0.5),
+		Vec2(0.5, -.5),
+		Vec2(0.5, 0.5),
+	];
+
+	Vec2[] UVs = [
+		Vec2(0, 1),
+		Vec2(0, 0),
+		Vec2(1, 1),
+		Vec2(1, 0),
+	];
+
+	Tri[] tris = [
+		Tri(0, 3, 1),
+		Tri(0, 2, 3)
+	];
+
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);

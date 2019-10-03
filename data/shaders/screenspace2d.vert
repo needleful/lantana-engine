@@ -1,19 +1,21 @@
 #version 130
 
-//Constant for text pass
-uniform ivec2 screen_size;
-uniform ivec2 texture_size;
+in vec2 position;
+in vec2 UV;
 
-//Varies by textbox
-uniform ivec2 translation;
+out vec2 vert_uv;
 
-in ivec2 position;
-in ivec2 tex_pos;
-
-out vec2 tex_uv;
+uniform ivec2 translate;
+uniform vec2 scale;
+uniform vec2 cam_position;
+uniform ivec2 cam_resolution;
 
 void main()
 {
-	gl_Position = vec4((position + translation)/screen_size, 0.0, 1.0);
-	tex_uv = tex_pos/texture_size;
+	vert_uv = UV;
+	// Camera-space position
+	vec2 pos = position + translate - cam_position;
+	// camera-space scale
+	vec2 s = scale/cam_resolution;
+	gl_Position = vec4(pos*s, 0, 1);
 }
