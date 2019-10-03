@@ -2,92 +2,61 @@
 	"build_systems":
 	[
 		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
-			"name": "Build Game",
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
-			"working_dir": "$project_path"
-		},
-		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=release",
-					"--combined",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
-			"name": "Build (Release)",
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=release",
-					"--combined",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
-			"working_dir": "$project_path"
-		},
-		{
-			"linux":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=profile",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
-			"name": "Profile Game",
-			"windows":
-			{
-				"cmd":
-				[
-					"dub",
-					"build",
-					"--build=profile",
-					"--config=game",
-					"--arch=x86_64"
-				]
-			},
+			"cmd":
+			[
+				"dub",
+				"run",
+				"--config=game",
+			],
+			"name": "Run Game",
 			"working_dir": "$project_path"
 		},
 		{
 			"cmd":
 			[
 				"dub",
-				"run"
+				"run",
+				"--config=editor"
 			],
-			"name": "Run Game",
+			"name": "Run Editor",
 			"working_dir": "$project_path"
-		}
+		},
+		{
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--config=game",
+				"--arch=x86_64"
+			],
+			"name": "Build Game",
+			"working_dir": "$project_path"
+		},
+		{
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--build=release",
+				"--combined",
+				"--config=game",
+				"--arch=x86_64"
+			],
+			"name": "Build (Release)",
+			"working_dir": "$project_path"
+		},
+		{
+			"cmd":
+			[
+				"dub",
+				"build",
+				"--build=profile",
+				"--config=game",
+				"--arch=x86_64"
+			],
+			"name": "Profile Game",
+			"working_dir": "$project_path"
+		},
 	],
 	"folders":
 	[
@@ -99,10 +68,6 @@
 	{
 		"include_paths":
 		[
-			"/home/devin/.dub/packages/derelict-ft-2.0.0-beta.5/derelict-ft/source/",
-			"/home/devin/.dub/packages/derelict-util-3.0.0-beta.2/derelict-util/source/",
-			"/home/devin/.dub/packages/derelict-gl3-2.0.0-beta.8/derelict-gl3/source/",
-			"/home/devin/.dub/packages/derelict-sdl2-3.0.0-beta.8/derelict-sdl2/source/",
 			"/home/devin/OneDrive/Games/experiments/lantana/source/"
 		],
 		"package_file": "/home/devin/OneDrive/Games/experiments/lantana/dub.sdl"

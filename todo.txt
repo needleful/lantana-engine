@@ -13,6 +13,11 @@ TODO:
 	- Switch to custom format eventually
 
 - Render text
-	- Lay out text rendering system
-	- Render screenspace texture
-	- Figure out texture packing for glyphs
+	- Render a texture
+	- Blit glyphs to texture
+	- Lay out glyphs of a string
+
+
+LONG-TERM
+
+- Puzzles

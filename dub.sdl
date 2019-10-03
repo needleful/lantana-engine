@@ -19,6 +19,7 @@ libs "sdl2" "freetype" platform="posix"
 configuration "game" {
 	targetType "executable"
 	targetName "game"
+	excludedSourceFiles "source/app/editor.d"
 }
 
 configuration "editor" {

@@ -13,6 +13,11 @@ import lanlib.sys.memory;
 import derelict.freetype;
 import derelict.util.exception;
 
+struct GlyphAtlas
+{
+	ubyte[][] texture;
+}
+
 /// Text box
 struct SimpleTextBox
 {
