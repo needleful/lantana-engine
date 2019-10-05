@@ -172,3 +172,69 @@ struct MultiMesh
 		glcheck();
 	}
 }
+
+struct Mesh2D
+{
+	VboId pos;
+	VboId uv;
+	EboId ebo;
+
+	Vec2[] vertices;
+	Vec2[] UVs;
+	Tri[] triangles;
+
+	this(Vec2[] verts, Vec2[] UVs, Tri[] elements) @nogc
+	{
+
+		assert(verts.length == UVs.length);
+		this.vertices = verts;
+		this.triangles = elements;
+		this.UVs = UVs;
+
+		glGenBuffers(1, &pos);
+		glBindBuffer(GL_ARRAY_BUFFER, pos);
+		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &uv);
+		glBindBuffer(GL_ARRAY_BUFFER, uv);
+		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
+
+		glcheck();
+	}
+
+	~this()
+	{
+		glDeleteBuffers(1, &pos);
+		glDeleteBuffers(1, &uv);
+		glDeleteBuffers(1, &ebo);
+	}
+
+	@property const ulong vertsize() @safe @nogc nothrow
+	{
+		return vertices.length*Vec2.sizeof;
+	}
+
+	@property const ulong trisize() @safe @nogc nothrow
+	{
+		return triangles.length*Tri.sizeof;
+	}
+}
+
+struct Render2D
+{
+	Material material;
+	this(Material mat)
+	{
+		material = mat;
+	}
+
+	bool process(Mesh2D[] meshes)
+	{
+		return true;
+	}
+
+}

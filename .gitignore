@@ -9,3 +9,4 @@ trace.*
 .vs
 logs
 *.exe
+*-devin-pc*

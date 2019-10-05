@@ -7,16 +7,21 @@ import std.stdio;
 import derelict.sdl2.image;
 import derelict.sdl2.sdl;
 
+import lanlib.math.vector;
 import lanlib.sys.gl;
 import lanlib.sys.sdl;
 
 import logic.input;
+import render.material;
 import render.mesh;
 
 // Currently used to test random things
 int main()
 {
-	SDLWindow ww = SDLWindow(720, 512, "Lantana Editor");
+	auto screen_w = 720;
+	auto screen_h = 512;
+
+	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
 	ww.grab_mouse(false);
 
 	Input ii = Input();
@@ -72,6 +77,8 @@ int main()
 		Tri(0, 3, 1),
 		Tri(0, 2, 3)
 	];
+
+	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
