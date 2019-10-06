@@ -107,6 +107,15 @@ void set_uniform(T)(GLint uniform, ref T value) @nogc
 		uniform.glUniform2fv(value.length, value.ptr);
 	}
 
+	else static if (is(T == iVec3))
+	{
+		uniform.glUniform3i(value.x, value.y, value.z);
+	}
+	else static if (is(T == iVec2))
+	{
+		uniform.glUniform2i(value.x, value.y);
+	}
+
 	else static if (is(T == Mat4))
 	{
 		uniform.glUniformMatrix4fv(1, GL_TRUE, value.ptr);

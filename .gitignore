@@ -1,6 +1,7 @@
 .dub
 dub.selections.*
 *.sublime-workspace
+editor
 game
 *.a
 *.so

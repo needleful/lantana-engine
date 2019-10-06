@@ -82,9 +82,19 @@ int main()
 		Tri(0, 2, 3)
 	];
 
+	Mesh2D mesh = Mesh2D(verts, UVs, tris);
 	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
 	
-	Render2D r2d = Render2D(mat2d);
+	auto wsize = ww.get_dimensions();
+	mat2d.set_param("translate", iVec2(0,0));
+	mat2d.set_param("scale", Vec2(tx_surface.w, tx_surface.h));
+	mat2d.set_param("cam_position", Vec2(0,0));
+	mat2d.set_param("cam_resolution", iVec2(wsize[0], wsize[1]));
+	mat2d.set_param("in_tex", 0);
+
+	glcheck();
+
+	//Render2D r2d = Render2D(mat2d);
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
