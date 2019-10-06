@@ -26,12 +26,12 @@ mixin template StrictAlias(T)
 		_handle = data;
 	}
 
-	@property T handle() const nothrow @nogc @safe pure
+	T handle() const nothrow @nogc @safe pure
 	{
 		return _handle;
 	}
 
-	@property T* ptr() nothrow @nogc pure
+	T* ptr() nothrow @nogc pure
 	{
 		return &_handle;
 	}

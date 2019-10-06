@@ -27,12 +27,14 @@ int main()
 	Input ii = Input();
 
 	DerelictSDL2Image.load();
-	IMG_Init(IMG_INIT_PNG);
-	scope(exit) IMG_Quit();
 
 	SDL_Surface* tx_surface;
 
+	IMG_Init(IMG_INIT_PNG);
+	scope(exit) IMG_Quit();
 	tx_surface = IMG_Load("data/test/needleful.png");
+
+	glcheck();
 
 	if(!tx_surface)
 	{
@@ -53,8 +55,10 @@ int main()
 	glTexImage2D (GL_TEXTURE_2D,
 			0, GL_RGB8,
 			tx_surface.w, tx_surface.h,
-			0, GL_RGB8,
+			0, GL_RGB,
 			GL_UNSIGNED_BYTE, tx_surface.pixels);
+
+	glcheck();
 	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -79,14 +83,14 @@ int main()
 	];
 
 	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
+	
+	Render2D r2d = Render2D(mat2d);
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
 
 		ww.begin_frame();
-
-		
 
 		ww.end_frame();
 	}

@@ -191,15 +191,15 @@ struct Mesh2D
 		this.triangles = elements;
 		this.UVs = UVs;
 
-		glGenBuffers(1, &pos);
+		glGenBuffers(1, pos.ptr);
 		glBindBuffer(GL_ARRAY_BUFFER, pos);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &uv);
+		glGenBuffers(1, uv.ptr);
 		glBindBuffer(GL_ARRAY_BUFFER, uv);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &ebo);
+		glGenBuffers(1, ebo.ptr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
 
@@ -208,9 +208,9 @@ struct Mesh2D
 
 	~this()
 	{
-		glDeleteBuffers(1, &pos);
-		glDeleteBuffers(1, &uv);
-		glDeleteBuffers(1, &ebo);
+		glDeleteBuffers(1, pos.ptr);
+		glDeleteBuffers(1, uv.ptr);
+		glDeleteBuffers(1, ebo.ptr);
 	}
 
 	@property const ulong vertsize() @safe @nogc nothrow
