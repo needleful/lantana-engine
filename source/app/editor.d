@@ -2,6 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
+import std.format;
 import std.stdio;
 
 import derelict.sdl2.image;
@@ -92,6 +93,12 @@ int main()
 	mat2d.set_param("cam_resolution", iVec2(wsize[0], wsize[1]));
 	mat2d.set_param("in_tex", 0);
 
+	AttribId pos = mat2d.get_attrib_id("position");
+	assert(pos.handle() >= 0);
+
+	AttribId uv = mat2d.get_attrib_id("UV");
+	assert(uv.handle >= 0);
+
 	glcheck();
 
 	//Render2D r2d = Render2D(mat2d);
@@ -101,6 +108,25 @@ int main()
 		ww.poll_events(ii);
 
 		ww.begin_frame();
+
+		glcheck();
+		glEnableVertexAttribArray(pos);
+		glEnableVertexAttribArray(uv);
+
+		glcheck();
+
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
+		glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
+		glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
+		
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+		glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
+
+		glDisableVertexAttribArray(pos);
+		glDisableVertexAttribArray(uv);
+		glcheck();
+
 
 		ww.end_frame();
 	}
