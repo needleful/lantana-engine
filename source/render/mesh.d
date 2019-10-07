@@ -20,6 +20,10 @@ struct EboId
 {
 	mixin StrictAlias!GLuint;
 }
+struct VaoId
+{
+	mixin StrictAlias!GLuint;
+}
 
 alias Tri = Vector!(uint, 3);
 
@@ -178,6 +182,7 @@ struct Mesh2D
 	VboId pos;
 	VboId uv;
 	EboId ebo;
+	VaoId vao;
 
 	Vec2[] vertices;
 	Vec2[] UVs;

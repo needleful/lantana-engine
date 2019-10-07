@@ -65,10 +65,10 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	Vec2[] verts = [
-		Vec2(-.5, -.5),
-		Vec2(-.5, 0.5),
-		Vec2(0.5, -.5),
-		Vec2(0.5, 0.5),
+		Vec2(-100, -100),
+		Vec2(-100, 100),
+		Vec2(100, -100),
+		Vec2(100, 100),
 	];
 
 	Vec2[] UVs = [
@@ -91,42 +91,57 @@ int main()
 	mat2d.set_param("scale", Vec2(tx_surface.w, tx_surface.h));
 	mat2d.set_param("cam_position", Vec2(0,0));
 	mat2d.set_param("cam_resolution", iVec2(wsize[0], wsize[1]));
-	mat2d.set_param("in_tex", 0);
-
-	AttribId pos = mat2d.get_attrib_id("position");
-	assert(pos.handle() >= 0);
-
-	AttribId uv = mat2d.get_attrib_id("UV");
-	assert(uv.handle >= 0);
+	//mat2d.set_param("in_tex", 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, texture);
 
 	glcheck();
 
+	VaoId vao;
+	{
+		// Create VAO and VBOs
+		glGenVertexArrays(1, vao.ptr);
+		glBindVertexArray(vao);
+		glcheck();
+
+		AttribId pos = mat2d.get_attrib_id("position");
+		assert(pos.handle() >= 0);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
+		glcheck();
+		glEnableVertexAttribArray(pos);
+		glcheck();
+		glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
+		glcheck();
+
+		//AttribId uv = mat2d.get_attrib_id("UV");
+		//assert(uv.handle >= 0);
+		//glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
+		//glEnableVertexAttribArray(uv);
+		//glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+
+		glBindVertexArray(0);
+		glcheck();
+	}
+
 	//Render2D r2d = Render2D(mat2d);
+
+	glDisable(GL_CULL_FACE);
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
 
 		ww.begin_frame();
-
 		glcheck();
-		glEnableVertexAttribArray(pos);
-		glEnableVertexAttribArray(uv);
-
+		{
+			mat2d.enable();
+			glBindVertexArray(vao);
+			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);
+			glBindVertexArray(0);
+		}
 		glcheck();
-
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
-		glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
-		glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-		glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
-
-		glDisableVertexAttribArray(pos);
-		glDisableVertexAttribArray(uv);
-		glcheck();
-
 
 		ww.end_frame();
 	}
