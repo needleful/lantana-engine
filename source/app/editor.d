@@ -64,79 +64,81 @@ int main()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	Vec2[] verts = [
-		Vec2(-100, -100),
-		Vec2(-100, 100),
-		Vec2(100, -100),
-		Vec2(100, 100),
+	iVec2[] verts = [
+		iVec2(100, 100),
+		iVec2(100, 371),
+		iVec2(371, 100),
+		iVec2(371, 371),
 	];
 
 	Vec2[] UVs = [
-		Vec2(0, 1),
 		Vec2(0, 0),
-		Vec2(1, 1),
+		Vec2(0, 1),
 		Vec2(1, 0),
+		Vec2(1, 1),
 	];
 
 	Tri[] tris = [
 		Tri(0, 3, 1),
 		Tri(0, 2, 3)
 	];
+	
+	glcheck();
+	
+	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
+	assert(mat2d.can_render());
 
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
-	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
-	
-	auto wsize = ww.get_dimensions();
-	mat2d.set_param("translate", iVec2(0,0));
-	mat2d.set_param("scale", Vec2(tx_surface.w, tx_surface.h));
-	mat2d.set_param("cam_position", Vec2(0,0));
-	mat2d.set_param("cam_resolution", iVec2(wsize[0], wsize[1]));
-	//mat2d.set_param("in_tex", 0);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, texture);
-
+	VaoId vao;
+	// Create VAO and VBOs
+	glGenVertexArrays(1, vao.ptr);
+	glBindVertexArray(vao);
 	glcheck();
 
-	VaoId vao;
-	{
-		// Create VAO and VBOs
-		glGenVertexArrays(1, vao.ptr);
-		glBindVertexArray(vao);
-		glcheck();
+	AttribId pos = mat2d.get_attrib_id("position");
+	assert(pos.handle() >= 0);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
+	glcheck();
+	glEnableVertexAttribArray(pos);
+	glcheck();
+	glVertexAttribIPointer(pos, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
+	glcheck();
 
-		AttribId pos = mat2d.get_attrib_id("position");
-		assert(pos.handle() >= 0);
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
-		glcheck();
-		glEnableVertexAttribArray(pos);
-		glcheck();
-		glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
-		glcheck();
+	AttribId uv = mat2d.get_attrib_id("UV");
+	assert(uv.handle >= 0);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
+	glEnableVertexAttribArray(uv);
+	glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
 
-		//AttribId uv = mat2d.get_attrib_id("UV");
-		//assert(uv.handle >= 0);
-		//glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
-		//glEnableVertexAttribArray(uv);
-		//glVertexAttribPointer(uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-
-		glBindVertexArray(0);
-		glcheck();
-	}
+	glBindVertexArray(0);
+	glcheck();
 
 	//Render2D r2d = Render2D(mat2d);
 
 	glDisable(GL_CULL_FACE);
+
+	auto wsize = ww.get_dimensions();
+	printf("Screen: %u, %u\n", wsize[0], wsize[1]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	mat2d.enable();	
+	mat2d.set_param("translate", iVec2(0,0));
+	mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+	mat2d.set_param("cam_position", iVec2(0, 0));
+	mat2d.set_param("in_tex", 0);
+	
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
 
 		ww.begin_frame();
+
 		glcheck();
 		{
-			mat2d.enable();
 			glBindVertexArray(vao);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 			glBindVertexArray(0);

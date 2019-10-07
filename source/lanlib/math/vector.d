@@ -15,6 +15,9 @@ alias Vec4 = Vector!(float, 4);
 alias iVec2 = Vector!(int, 2);
 alias iVec3 = Vector!(int, 3);
 
+alias uVec2 = Vector!(uint, 2);
+alias uVec3 = Vector!(uint, 3);
+
 struct Vector(T, uint Size)
 {
 	static assert(Size > 0, "Attempted Vector instantiated with Size <= 0");

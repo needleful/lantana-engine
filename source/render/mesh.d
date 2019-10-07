@@ -184,11 +184,11 @@ struct Mesh2D
 	EboId ebo;
 	VaoId vao;
 
-	Vec2[] vertices;
+	iVec2[] vertices;
 	Vec2[] UVs;
 	Tri[] triangles;
 
-	this(Vec2[] verts, Vec2[] UVs, Tri[] elements) @nogc
+	this(iVec2[] verts, Vec2[] UVs, Tri[] elements) @nogc
 	{
 
 		assert(verts.length == UVs.length);
