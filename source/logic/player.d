@@ -12,7 +12,7 @@ import logic.input;
 struct Player
 {
 	// Time to go from one grid point to another
-	enum TIME_MOVE = 0.4;
+	enum TIME_MOVE = 0.25;
 
 	enum State
 	{

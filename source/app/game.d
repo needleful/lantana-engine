@@ -76,14 +76,14 @@ int main()
 
 	Mesh test_mesh = Mesh(verts, elems);
 
-	Transform[] transforms = mm.make_list!Transform(100);
+	Transform[] transforms = mm.make_list!Transform(1000);
 
 	transforms[0] = Transform(0.5, Vec3(0,0,2));
 
 	// Putting cubes
 	for(uint i = 1; i < transforms.length; i++)
 	{
-		transforms[i] = Transform(0.5, Vec3((i/100)*2, 2+(i % 100)*2, -8));
+		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
 	}
 	auto group = MultiMesh(&test_mesh, &mat_basic, transforms);
 
@@ -98,7 +98,7 @@ int main()
 
 	uint frame = 0;
 
-	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 2, Vec3(5, 7, 5));
+	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, Vec3(5, 7, 5));
 	Player* player = mm.create!Player(grid, GridPos(0,0,0));
 
 	while(!(ww.state & WindowState.CLOSED))
