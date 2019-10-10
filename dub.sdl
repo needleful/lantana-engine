@@ -8,6 +8,8 @@ dependency "derelict-sdl2" version="~>3.0.0-beta"
 dependency "derelict-gl3" version="~>2.0.0-beta"
 versions "DerelictGL3_CustomFreeFuncs"
 
+dependency "freeimage" version="*" path="thirdparty/FreeImage"
+
 buildTypes {
 	profile {
 		buildOptions "optimize" "inline"

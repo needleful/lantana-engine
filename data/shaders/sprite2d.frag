@@ -8,6 +8,6 @@ out vec4 out_color;
 
 void main()
 {
-	out_color = texture(in_tex, vert_uv);
+	out_color = texture(in_tex, vert_uv) * vec4(vert_uv, 0, 1);
 	//out_color = vec4(1, 1, 0.2, 1);
 }

@@ -5,7 +5,7 @@
 import std.format;
 import std.stdio;
 
-import derelict.sdl2.image;
+import deimos.freeimage;
 import derelict.sdl2.sdl;
 
 import lanlib.math.vector;
@@ -16,9 +16,63 @@ import logic.input;
 import render.material;
 import render.mesh;
 
+struct Texture
+{
+	uint width, height;
+	GLuint id;
+	ubyte* pixels;
+
+	@disable this();
+
+	this(string png_filename)
+	{
+		FBITMAP *bitmap = FreeImage_Load(FIF_PNG, png_filename, PNG_DEFAULT);
+
+		glcheck();
+
+		if(!bitmap)
+		{
+			printf("Failed to load image: %d\n", IMG_GetError());
+		}
+		scope(exit) SDL_FreeSurface(tx_surface);
+
+		glGenTextures(1, &id);
+
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		glTexImage2D (GL_TEXTURE_2D,
+				0, GL_RGB,
+				tx_surface.w, tx_surface.h,
+				0, GL_RGB,
+				GL_UNSIGNED_BYTE, tx_surface.pixels);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glcheck();
+	}
+
+	~this()
+	{
+		glDeleteTextures(1, &id);
+	}
+}
+void OnFreeImageError(FREE_IMAGE_FORMAT fif, const char* message) const @nogc nothrow
+{
+	if(fif != FIF_UNKNOWN)
+	{
+		printf("FreeImage Format: %s\n", FreeImage_GetFormatFromFIF(fif));
+	}
+	printf("FreeImage: %s\n", message);
+}
+
 // Currently used to test random things
 int main()
 {
+	FreeImage_Initialise(true);
+	scope(exit) FreeImage_DeInitialise();
 	auto screen_w = 720;
 	auto screen_h = 512;
 
@@ -29,40 +83,13 @@ int main()
 
 	DerelictSDL2Image.load();
 
-	SDL_Surface* tx_surface;
-
 	IMG_Init(IMG_INIT_PNG);
 	scope(exit) IMG_Quit();
-	tx_surface = IMG_Load("data/test/needleful.png");
 
-	glcheck();
-
-	if(!tx_surface)
-	{
-		printf("Failed to load image: %d\n", IMG_GetError());
-		return 1;
-	}
-	scope(exit) SDL_FreeSurface(tx_surface);
-
-	GLuint texture;
-	glGenTextures(1, &texture);
-
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D (GL_TEXTURE_2D,
-			0, GL_RGB8,
-			tx_surface.w, tx_surface.h,
-			0, GL_RGB,
-			GL_UNSIGNED_BYTE, tx_surface.pixels);
-
-	glcheck();
+	Texture tex = Texture("data/test/needleful.png");
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, tex.id);
 
 	iVec2[] verts = [
 		iVec2(100, 100),
@@ -123,7 +150,7 @@ int main()
 	printf("Screen: %u, %u\n", wsize[0], wsize[1]);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, tex.id);
 	mat2d.enable();	
 	mat2d.set_param("translate", iVec2(0,0));
 	mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
