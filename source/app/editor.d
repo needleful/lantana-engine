@@ -41,22 +41,35 @@ struct Texture
 
 		glTexImage2D (GL_TEXTURE_2D,
 				0, GL_RGB,
-				FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap),
+				width(), height(),
 				0, GL_RGB,
-				GL_UNSIGNED_BYTE, FreeImage_GetBits(bitmap));
+				GL_UNSIGNED_BYTE, data());
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glcheck();
 	}
 
-	~this()
+	~this() nothrow
 	{
 		glDeleteTextures(1, &id);
 		FreeImage_Unload(bitmap);
+	}
+
+	uint width() nothrow
+	{
+		return FreeImage_GetWidth(bitmap);
+	}
+
+	uint height() nothrow
+	{
+		return FreeImage_GetHeight(bitmap);
+	}
+
+	ubyte* data() nothrow
+	{
+		return FreeImage_GetBits(bitmap);
 	}
 }
 
@@ -89,9 +102,9 @@ int main()
 
 	iVec2[] verts = [
 		iVec2(100, 100),
-		iVec2(100, 371),
-		iVec2(371, 100),
-		iVec2(371, 371),
+		iVec2(100, 100 + tex.height()),
+		iVec2(100 + tex.width(), 100),
+		iVec2(100 + tex.width(), 100 + tex.height()),
 	];
 
 	Vec2[] UVs = [
@@ -157,6 +170,12 @@ int main()
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
+
+		if(ww.state & WindowState.RESIZED)
+		{
+			wsize = ww.get_dimensions();
+			mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+		}
 
 		ww.begin_frame();
 
