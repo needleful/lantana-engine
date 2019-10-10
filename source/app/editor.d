@@ -18,23 +18,22 @@ import render.mesh;
 
 struct Texture
 {
-	uint width, height;
+	FIBITMAP *bitmap;
 	GLuint id;
-	ubyte* pixels;
 
 	@disable this();
 
-	this(string png_filename)
+	this(string filename)
 	{
-		FBITMAP *bitmap = FreeImage_Load(FIF_PNG, png_filename, PNG_DEFAULT);
+		auto format = FreeImage_GetFileType(filename.ptr);
+		bitmap = FreeImage_Load(format, filename.ptr);
 
 		glcheck();
 
 		if(!bitmap)
 		{
-			printf("Failed to load image: %d\n", IMG_GetError());
+			printf("Failed to load image: %d\n", filename.ptr);
 		}
-		scope(exit) SDL_FreeSurface(tx_surface);
 
 		glGenTextures(1, &id);
 
@@ -42,9 +41,9 @@ struct Texture
 
 		glTexImage2D (GL_TEXTURE_2D,
 				0, GL_RGB,
-				tx_surface.w, tx_surface.h,
+				FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap),
 				0, GL_RGB,
-				GL_UNSIGNED_BYTE, tx_surface.pixels);
+				GL_UNSIGNED_BYTE, FreeImage_GetBits(bitmap));
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -57,9 +56,11 @@ struct Texture
 	~this()
 	{
 		glDeleteTextures(1, &id);
+		FreeImage_Unload(bitmap);
 	}
 }
-void OnFreeImageError(FREE_IMAGE_FORMAT fif, const char* message) const @nogc nothrow
+
+void OnFreeImageError(FREE_IMAGE_FORMAT fif, const char* message) nothrow
 {
 	if(fif != FIF_UNKNOWN)
 	{
@@ -71,8 +72,6 @@ void OnFreeImageError(FREE_IMAGE_FORMAT fif, const char* message) const @nogc no
 // Currently used to test random things
 int main()
 {
-	FreeImage_Initialise(true);
-	scope(exit) FreeImage_DeInitialise();
 	auto screen_w = 720;
 	auto screen_h = 512;
 
@@ -81,11 +80,8 @@ int main()
 
 	Input ii = Input();
 
-	DerelictSDL2Image.load();
-
-	IMG_Init(IMG_INIT_PNG);
-	scope(exit) IMG_Quit();
-
+	FreeImage_Initialise(true);
+	scope(exit) FreeImage_DeInitialise();
 	Texture tex = Texture("data/test/needleful.png");
 	
 	glActiveTexture(GL_TEXTURE0);
