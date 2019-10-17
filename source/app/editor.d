@@ -6,6 +6,7 @@ import std.format;
 import std.stdio;
 
 import deimos.freeimage;
+import derelict.freetype;
 import derelict.sdl2.sdl;
 
 import lanlib.math.vector;
@@ -73,13 +74,50 @@ struct Texture
 	}
 }
 
-void OnFreeImageError(FREE_IMAGE_FORMAT fif, const char* message) nothrow
+struct TextSystem
 {
-	if(fif != FIF_UNKNOWN)
+	FIBITMAP *glyph_atlas;
+	GLuint atlas_id;
+
+	@disable this();
+
+	this(string font_file)
 	{
-		printf("FreeImage Format: %s\n", FreeImage_GetFormatFromFIF(fif));
+		glyph_atlas = FreeImage_AllocateT(FIT_BITMAP, 1024, 1024, 8, 0xFF, 0xFF, 0xFF);
+		glGenTextures(1, &atlas_id);
+
+		glBindTexture(GL_TEXTURE_2D, atlas_id);
+
+		glTexImage2D (GL_TEXTURE_2D,
+				0, GL_ALPHA,
+				FreeImage_GetWidth(glyph_atlas), FreeImage_GetHeight(glyph_atlas),
+				0, GL_ALPHA,
+				GL_UNSIGNED_BYTE, FreeImage_GetBits(glyph_atlas));
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
-	printf("FreeImage: %s\n", message);
+
+	~this() nothrow
+	{
+		glDeleteTextures(1, &atlas_id);
+		FreeImage_Unload(glyph_atlas);
+	}
+
+	uint width() nothrow
+	{
+		return FreeImage_GetWidth(glyph_atlas);
+	}
+
+	uint height() nothrow
+	{
+		return FreeImage_GetHeight(glyph_atlas);
+	}
+
+	ubyte* data() nothrow
+	{
+		return FreeImage_GetBits(glyph_atlas);
+	}
 }
 
 // Currently used to test random things
@@ -95,8 +133,21 @@ int main()
 
 	FreeImage_Initialise(true);
 	scope(exit) FreeImage_DeInitialise();
-	Texture tex = Texture("data/test/needleful.png");
 	
+	try
+	{
+		DerelictFT.load();
+	}
+	catch(derelict.util.exception.SymbolLoadException e)
+	{
+		// known missing symbols
+		if(e.symbolName() != "FT_Stream_OpenBzip2")
+		{
+			throw e;
+		}
+	}
+
+	Texture tex = Texture("data/test/needleful.png");
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex.id);
 
@@ -125,10 +176,10 @@ int main()
 	assert(mat2d.can_render());
 
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
-	VaoId vao;
+	VaoId vao_sprite;
 	// Create VAO and VBOs
-	glGenVertexArrays(1, vao.ptr);
-	glBindVertexArray(vao);
+	glGenVertexArrays(1, vao_sprite.ptr);
+	glBindVertexArray(vao_sprite);
 	glcheck();
 
 	AttribId pos = mat2d.get_attrib_id("position");
@@ -150,8 +201,6 @@ int main()
 
 	glBindVertexArray(0);
 	glcheck();
-
-	//Render2D r2d = Render2D(mat2d);
 
 	glDisable(GL_CULL_FACE);
 
@@ -181,7 +230,7 @@ int main()
 
 		glcheck();
 		{
-			glBindVertexArray(vao);
+			glBindVertexArray(vao_sprite);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 			glBindVertexArray(0);
 		}
