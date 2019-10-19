@@ -6,7 +6,7 @@
 			[
 				"dub",
 				"run",
-				"--config=game",
+				"--config=game"
 			],
 			"name": "Run Game",
 			"working_dir": "$project_path"
@@ -56,12 +56,15 @@
 			],
 			"name": "Profile Game",
 			"working_dir": "$project_path"
-		},
+		}
 	],
 	"folders":
 	[
 		{
 			"path": "."
+		},
+		{
+			"path": "C:\\Users\\d-has\\AppData\\Local\\dub\\packages\\derelict-ft-2.0.0-beta.5\\derelict-ft"
 		}
 	],
 	"settings":
