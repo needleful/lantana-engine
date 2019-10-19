@@ -127,7 +127,7 @@ struct TextSystem
 		{
 			for(uint col = 0; col < bm.width; col++)
 			{
-				data[row*width + col] = bm.buffer[row*pitch + col];
+				data[(row)*width + col] = bm.buffer[row*pitch + col];
 			}
 		}
 
@@ -173,9 +173,9 @@ int testfont()
 		}
 	}
 
-	TextSystem text = TextSystem("data/fonts/averia/Averia-Light.ttf");
+	TextSystem text = TextSystem("data/fonts/averia/Averia-Italic.ttf");
 	text.blitstuff();
-	text.blitchar('H');
+	text.blitchar('R');
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text.atlas_id);
@@ -188,10 +188,10 @@ int testfont()
 	];
 
 	Vec2[] UVs = [
-		Vec2(0, 0),
 		Vec2(0, 1),
-		Vec2(1, 0),
+		Vec2(0, 0),
 		Vec2(1, 1),
+		Vec2(1, 0),
 	];
 
 	Tri[] tris = [
@@ -245,7 +245,7 @@ int testfont()
 	mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
 	mat2d.set_param("cam_position", iVec2(0, 0));
 	mat2d.set_param("in_tex", 0);
-	mat2d.set_param("color", Vec3(1));
+	mat2d.set_param("color", Vec3(0.9, 0.5, 0.7));
 	
 	while(!(ww.state & WindowState.CLOSED))
 	{
