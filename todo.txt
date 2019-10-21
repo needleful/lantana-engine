@@ -1,7 +1,6 @@
 TODO:
 
 - Render text
-	- Blit glyphs to texture
 	- Lay out glyphs of a string
 	- Define anchors for text
 

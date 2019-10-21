@@ -41,7 +41,7 @@ struct TextSystem
 		glBindTexture(GL_TEXTURE_2D, atlas_id);
 
 		glTexImage2D (GL_TEXTURE_2D,
-				0, GL_R8,  // Note that OpenGL does not care what a channel is called, if it's a single channel, it's red.
+				0, GL_R8,  // Note that OpenGL does not care what a channel means, if it's a single channel image, it's red.
 				width, height,
 				0, GL_RED,
 				GL_UNSIGNED_BYTE, data);
@@ -70,7 +70,8 @@ struct TextSystem
 			throw new Exception(format("Could not load font: %s.  Error code: %d", font_file, error));
 		}
 
-		error = FT_Set_Char_Size(face, 28*16, 28*16, 300, 300);
+		error = FT_Set_Pixel_Sizes(face, 0, 32);  // 32 pixels is decently readable on my monitor.  Should test.
+
 		if (error)
 		{
 			throw new Exception(format("Could not resize font: %s.  Error code: %d", font_file, error));
@@ -78,20 +79,41 @@ struct TextSystem
 	}
 
 	/// Just to test populating the image texture
-	void blitstuff()
+	void blittest()
 	{
-		uint w = width;
-		uint h = height;
 
 		ubyte *bits = data;
 
-		for(uint row = 0; row < h; row ++)
+		for(uint row = 1; row < height-1; row ++)
 		{
-			for(uint col = 0; col < w; col++)
+			for(uint col = 1; col < width-1; col++)
 			{
-				bits[row*w + col] = col & 0xFF;
+				// blacked out
+				bits[row*width + col] = 0;
 			}
 		}
+		for(uint row = 0; row < height; row++)
+		{
+			bits[row*width] = 0xFF;
+			bits[row*width + width-1] = 0xFF;
+
+			for(uint col = 32; col < width; col += 32)
+			{
+				bits[row*width + col] = (0x11 + col) & 0xFF;
+			}
+		}
+
+		for(uint col = 0; col < width; col++)
+		{
+			bits[col] = 0xFF;
+			bits[(width-1)*width + col] = 0xFF;
+
+			for(uint row = 32; row < height; row += 32)
+			{
+				bits[row*height + col] = (0x11 + row) & 0xFF;
+			}
+		}
+			
 		
 		glBindTexture(GL_TEXTURE_2D, atlas_id);
 		glTexImage2D (GL_TEXTURE_2D,
@@ -99,45 +121,61 @@ struct TextSystem
 				width, height,
 				0, GL_RED,
 				GL_UNSIGNED_BYTE, data);
-
 	}
 
-
-	// Blit a single character for testing.
-	void blitchar(char c)
+	void blitstring(string str, iVec2 pen)
 	{
-		FT_UInt charindex = FT_Get_Char_Index(face, c);
-		FT_Error err = FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
-		if(err)
+		foreach(c; str)
 		{
-			throw new Exception(format("FreeType could not load char %c.  Error code: %d", c, err));
-		}
-
-		err = FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
-		if(err)
-		{
-			throw new Exception(format("FreeType could not render char %c.  Error code: %d", c, err));
-		}
-
-		FT_Bitmap bm = face.glyph.bitmap;
-		uint pitch = bm.pitch;
-		assert(pitch == bm.width);
-
-		for(uint row = 0; row < bm.rows; row++)
-		{
-			for(uint col = 0; col < bm.width; col++)
+			FT_UInt charindex = FT_Get_Char_Index(face, c);
+			FT_Error err = FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
+			if(err)
 			{
-				data[(row)*width + col] = bm.buffer[row*pitch + col];
+				throw new Exception(format("FreeType could not load char %c.  Error code: %d", c, err));
 			}
-		}
 
+			err = FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
+			if(err)
+			{
+				throw new Exception(format("FreeType could not render char %c.  Error code: %d", c, err));
+			}
+
+			iVec2 corner = iVec2(face.glyph.bitmap_left, face.glyph.bitmap_top);
+			printf("\t%c Bitmap coords: (%d, %d)\n", c, corner.x, corner.y);
+			blit(face.glyph.bitmap, pen + corner);
+
+			pen.x += face.glyph.advance.x >> 6;
+			pen.y += face.glyph.advance.y >> 6;
+		}
 		glBindTexture(GL_TEXTURE_2D, atlas_id);
 		glTexImage2D (GL_TEXTURE_2D,
 				0, GL_R8,
 				width, height,
 				0, GL_RED,
 				GL_UNSIGNED_BYTE, data);
+	}
 
+	// Note: this does NOT reload the texture in OpenGL
+	// you need to do that yourself!
+	void blit(FT_Bitmap bm, iVec2 pen)
+	{
+		uint pitch = bm.pitch;
+		// Only 8-bit images
+		assert(pitch == bm.width);
+
+		for(uint row = 0; row < bm.rows; row++)
+		{
+			for(uint col = 0; col < bm.width; col++)
+			{
+				int source = row*bm.pitch + col;
+				int target = (pen.y - row)*width + (col + pen.x);
+
+				assert(target > 0 && target <= width*height, 
+					format("Invalid index %d [valid: 0 to %u]", target, width*height));
+
+				data[target] = bm.buffer[source];
+			}
+		}
 	}
 
 	~this() nothrow
@@ -173,9 +211,11 @@ int testfont()
 		}
 	}
 
+	// Handling text
 	TextSystem text = TextSystem("data/fonts/averia/Averia-Italic.ttf");
-	text.blitstuff();
-	text.blitchar('R');
+
+	text.blittest();
+	text.blitstring("good day, world!", iVec2(12, 128));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text.atlas_id);
@@ -188,10 +228,10 @@ int testfont()
 	];
 
 	Vec2[] UVs = [
-		Vec2(0, 1),
 		Vec2(0, 0),
-		Vec2(1, 1),
+		Vec2(0, 1),
 		Vec2(1, 0),
+		Vec2(1, 1),
 	];
 
 	Tri[] tris = [
