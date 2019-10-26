@@ -2,26 +2,27 @@
 	"build_systems":
 	[
 		{
+			"name": "Run Game",
 			"cmd":
 			[
 				"dub",
 				"run",
 				"--config=game"
 			],
-			"name": "Run Game",
 			"working_dir": "$project_path"
 		},
 		{
+			"name": "Run Editor",
 			"cmd":
 			[
 				"dub",
 				"run",
 				"--config=editor"
 			],
-			"name": "Run Editor",
 			"working_dir": "$project_path"
 		},
 		{
+			"name": "Build Game",
 			"cmd":
 			[
 				"dub",
@@ -29,10 +30,10 @@
 				"--config=game",
 				"--arch=x86_64"
 			],
-			"name": "Build Game",
 			"working_dir": "$project_path"
 		},
 		{
+			"name": "Build (Release)",
 			"cmd":
 			[
 				"dub",
@@ -42,10 +43,10 @@
 				"--config=game",
 				"--arch=x86_64"
 			],
-			"name": "Build (Release)",
 			"working_dir": "$project_path"
 		},
 		{
+			"name": "Profile Game",
 			"cmd":
 			[
 				"dub",
@@ -54,7 +55,6 @@
 				"--config=game",
 				"--arch=x86_64"
 			],
-			"name": "Profile Game",
 			"working_dir": "$project_path"
 		}
 	],
@@ -63,9 +63,6 @@
 		{
 			"path": "."
 		},
-		{
-			"path": "C:\\Users\\d-has\\AppData\\Local\\dub\\packages\\derelict-ft-2.0.0-beta.5\\derelict-ft"
-		}
 	],
 	"settings":
 	{
