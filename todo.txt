@@ -1,7 +1,7 @@
 TODO:
 
 - Render text
-	- Lay out glyphs of a string
+	- Create a mesh for a string
 	- Define anchors for text
 
 - Load a model.

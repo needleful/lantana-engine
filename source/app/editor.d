@@ -52,6 +52,7 @@ int main()
 
 	atlas.blitgrid();
 	atlas.insertChars("There is much to be said about our current predicament; however, I find that to be of little interest now.");
+	atlas.insertChars(r"[]{|\][11425239p8()*3590198-25");
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);

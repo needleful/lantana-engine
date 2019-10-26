@@ -59,8 +59,6 @@ struct GlyphNode
 
 struct TextAtlas(uint width, uint height)
 {
-	debug uint search_count;
-
 	enum Size = width*height;
 	// The ID of the atlas texture
 	GLuint atlas_id;
@@ -175,8 +173,6 @@ struct TextAtlas(uint width, uint height)
 	{
 		GlyphNode* _insert(GlyphNode *g, dchar c)
 		{
-			debug search_count++;
-
 			// Occupied
 			if(!g.empty())
 			{
@@ -188,17 +184,17 @@ struct TextAtlas(uint width, uint height)
 
 				iVec2 space = g.rec.size - size;
 
-				// Too small
-				if(space.x < 0 || space.y < 0)
-				{
-					return null;
-				}
-				
 				// Perfect size
 				if(space.x == 0 && space.y == 0)
 				{
 					g.code = c;
 					return g;
+				}
+
+				// Too small
+				if(space.x < 0 || space.y < 0)
+				{
+					return null;
 				}
 
 				// Prefer splitting vertically
@@ -246,12 +242,8 @@ struct TextAtlas(uint width, uint height)
 
 		}
 
-		debug search_count = 0;
-
-		debug printf("-+ Searching for %c\n", c);
 		if(c in charmap)
 		{
-			puts("\t In map.");
 			return;
 		}
 
@@ -275,7 +267,6 @@ struct TextAtlas(uint width, uint height)
 		{
 			charmap[c] = glyph;
 			blit(face.glyph.bitmap, glyph.rec.pos);
-			debug printf("\tFound after %u calls to _insert\n", search_count);
 		}
 	}
 
