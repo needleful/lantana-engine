@@ -48,7 +48,7 @@ int main()
 		}
 	}
 
-	auto atlas = new TextAtlas!(256, 256)("data/fonts/averia/Averia-Regular.ttf");
+	auto atlas = new TextAtlas("data/fonts/averia/Averia-Regular.ttf", 256, 256);
 
 	atlas.blitgrid();
 	atlas.insertChars("There is much to be said about our current predicament; however, I find that to be of little interest now.");
@@ -75,27 +75,23 @@ int main()
 		Tri(0, 3, 1),
 		Tri(0, 2, 3)
 	];
-	
 	glcheck();
-	
-	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
-	assert(mat2d.can_render());
-
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
 	VaoId vao_text;
 	// Create VAO
 	{
 		glcheck();
+
 		glGenVertexArrays(1, vao_text.ptr);
 		glBindVertexArray(vao_text);
 
-		AttribId pos = mat2d.get_attrib_id("position");
+		AttribId pos = atlas.text_mat.get_attrib_id("position");
 		assert(pos.handle() >= 0);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.pos);
 		glEnableVertexAttribArray(pos);
 		glVertexAttribIPointer(pos, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
 
-		AttribId uv = mat2d.get_attrib_id("UV");
+		AttribId uv = atlas.text_mat.get_attrib_id("UV");
 		assert(uv.handle >= 0);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.uv);
 		glEnableVertexAttribArray(uv);
@@ -117,12 +113,12 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
 
 		printf("Screen: %u, %u\n", wsize[0], wsize[1]);
-		mat2d.enable();	
-		mat2d.set_param("translate", iVec2(0,0));
-		mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
-		mat2d.set_param("cam_position", iVec2(0, 0));
-		mat2d.set_param("in_tex", 0);
-		mat2d.set_param("color", Vec3(0.9, 0.5, 0.7));
+		atlas.text_mat.enable();	
+		atlas.text_mat.set_param("translate", iVec2(0,0));
+		atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+		atlas.text_mat.set_param("cam_position", iVec2(0, 0));
+		atlas.text_mat.set_param("in_tex", 0);
+		atlas.text_mat.set_param("color", Vec3(0.9, 0.5, 0.7));
 
 		glcheck();
 	}
@@ -134,7 +130,7 @@ int main()
 		if(ww.state & WindowState.RESIZED)
 		{
 			wsize = ww.get_dimensions();
-			mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
 		}
 
 		ww.begin_frame();

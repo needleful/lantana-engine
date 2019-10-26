@@ -196,13 +196,19 @@ struct Mesh2D
 		this.triangles = elements;
 		this.UVs = UVs;
 
+		glcheck();
+
 		glGenBuffers(1, pos.ptr);
 		glBindBuffer(GL_ARRAY_BUFFER, pos);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
 
+		glcheck();
+
 		glGenBuffers(1, uv.ptr);
 		glBindBuffer(GL_ARRAY_BUFFER, uv);
 		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
+
+		glcheck();
 
 		glGenBuffers(1, ebo.ptr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
