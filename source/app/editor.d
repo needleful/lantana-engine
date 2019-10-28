@@ -21,12 +21,10 @@ import render.mesh;
 
 import test.sprite;
 import test.font;
-import test.layout;
+import ui.text;
 
 int main()
 {
-	//return testfont();
-	///*
 	auto screen_w = 720;
 	auto screen_h = 512;
 
@@ -48,11 +46,11 @@ int main()
 		}
 	}
 
-	auto atlas = new TextAtlas("data/fonts/averia/Averia-Regular.ttf", 256, 256);
+	auto atlas = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 32, 256, 256);
 
 	atlas.blitgrid();
-	auto message = atlas.add_text("You've been working quite hard; I find that to be of great interest now.", iVec2(0, 128));
-	//auto message2 = atlas.add_text(r"[]{|\][11425239p8()*3590198-25");
+	auto message = atlas.add_text("You've been working hard;\nI find that to be of great interest now.", iVec2(0, 128));
+	auto message2 = atlas.add_text(r"[]{|\][11425239p8()*3590198-25", iVec2(0,54), Vec3(0, 0.5, 0.5));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);

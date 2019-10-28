@@ -1,12 +1,11 @@
 TODO:
 
-- Render text
-	- Create a mesh for a string
-	- Define anchors for text
-
 - Load a model.
 	- Use ASSIMP for now
 	- Switch to custom format eventually
+
+- Render text
+	- Define anchors for text
 
 - Grid movement
 	- Populating floor
