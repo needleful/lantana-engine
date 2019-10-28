@@ -51,17 +51,17 @@ int main()
 	auto atlas = new TextAtlas("data/fonts/averia/Averia-Regular.ttf", 256, 256);
 
 	atlas.blitgrid();
-	atlas.insertChars("There is much to be said about our current predicament; however, I find that to be of little interest now.");
-	atlas.insertChars(r"[]{|\][11425239p8()*3590198-25");
+	auto message = atlas.add_text("You've been working quite hard; I find that to be of great interest now.", iVec2(0, 128));
+	//auto message2 = atlas.add_text(r"[]{|\][11425239p8()*3590198-25");
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
 
 	iVec2[] verts = [
-		iVec2(100, 100),
-		iVec2(100, 356),
-		iVec2(356, 100),
-		iVec2(356, 356),
+		iVec2(0, 256),
+		iVec2(0, 512),
+		iVec2(256, 256),
+		iVec2(256, 512),
 	];
 
 	Vec2[] UVs = [
@@ -103,26 +103,11 @@ int main()
 		glcheck();
 	}
 
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	auto wsize = ww.get_dimensions();
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
+	printf("Screen: %u, %u\n", wsize[0], wsize[1]);
 
-		printf("Screen: %u, %u\n", wsize[0], wsize[1]);
-		atlas.text_mat.enable();	
-		atlas.text_mat.set_param("translate", iVec2(0,0));
-		atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
-		atlas.text_mat.set_param("cam_position", iVec2(0, 0));
-		atlas.text_mat.set_param("in_tex", 0);
-		atlas.text_mat.set_param("color", Vec3(0.9, 0.5, 0.7));
-
-		glcheck();
-	}
-	
+	uint frame = 0;
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		ww.poll_events(ii);
@@ -137,11 +122,27 @@ int main()
 
 		glcheck();
 		{
+			glDisable(GL_CULL_FACE);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			atlas.text_mat.enable();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
+
+			atlas.text_mat.set_param("translate", iVec2(0,0));
+			atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_param("cam_position", iVec2(0, 0));
+			atlas.text_mat.set_param("in_tex", 0);
+			atlas.text_mat.set_param("color", Vec3(0.9, 0.5, 0.7));
+
 			glBindVertexArray(vao_text);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 			glBindVertexArray(0);
 		}
 		glcheck();
+
+		atlas.render(wsize);
 
 		ww.end_frame();
 	}

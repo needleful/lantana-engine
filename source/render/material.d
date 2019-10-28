@@ -152,7 +152,10 @@ struct Material
 			glcheck();
 		}
 
-		return UniformId(matId.glGetUniformLocation(param.ptr));
+		GLint res = matId.glGetUniformLocation(param.ptr);
+		assert(res != -1, "Missing parameter ID");
+
+		return UniformId(res);
 
 	}
 

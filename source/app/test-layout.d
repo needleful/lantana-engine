@@ -33,31 +33,71 @@ struct Rectangle
 struct ScreenSpaceText
 {
 	string text;
+	iVec2 position;
+	Vec3 color;
+
 	uint[] elements;
 	iVec2[] vertices;
 	Vec2[] uvs;
-	// buffers[0] is vao
-	// buffers[1] is elements
-	// buffers[2] is vertices
-	// buffers[3] is uvs
-	GLuint[4] buffers;
 
-	@disable this();
+	GLuint vao;
+	// [0] is elements
+	// [1] is vertices
+	// [2] is uvs
+	GLuint[3] vbo;
 
-	this(string new_text, TextAtlas* atlas)
+	bool visible;
+
+	AttribId atr_pos, atr_uv;
+
+	this(string new_text, TextAtlas atlas)
 	{
 		this.text = new_text;
 
-		elements.length = text.length * 6;
-		vertices.length = text.length * 4;
-		uvs.length = text.length * 4;
+		elements.reserve(text.length * 6);
+		vertices.reserve(text.length * 4);
+		uvs.reserve(text.length * 4);
 
-		glGenBuffers(buffers.length, buffers.ptr);
+		glGenBuffers(vbo.length, vbo.ptr);
+		
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+
+		atr_pos = atlas.text_mat.get_attrib_id("position");
+		assert(atr_pos.handle() >= 0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glEnableVertexAttribArray(atr_pos);
+		glVertexAttribIPointer(atr_pos, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
+
+		atr_uv = atlas.text_mat.get_attrib_id("UV");
+		assert(atr_uv .handle >= 0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glEnableVertexAttribArray(atr_uv );
+		glVertexAttribPointer(atr_uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
+
+		glBindVertexArray(0);
+		visible = true;
+	}
+
+	void reloadBuffers()
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*uint.sizeof, elements.ptr, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glBufferData(GL_ARRAY_BUFFER, vertices.length*iVec2.sizeof, vertices.ptr, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glBufferData(GL_ARRAY_BUFFER, uvs.length*Vec2.sizeof, uvs.ptr, GL_STATIC_DRAW);
 	}
 
 	~this()
 	{
-		glDeleteBuffers(buffers.length, buffers.ptr);
+		glDeleteBuffers(vbo.length, vbo.ptr);
+		glDeleteVertexArrays(1, &vao);
+		debug printf("Deleting ScreenSpaceText: '%s'\n", text.ptr);
 	}
 }
 
@@ -90,7 +130,7 @@ struct GlyphNode
 	}
 }
 
-struct TextAtlas
+class TextAtlas
 {
 	ushort width, height;
 	// The ID of the atlas texture
@@ -107,6 +147,19 @@ struct TextAtlas
 	ubyte[] texture_data;
 	// Text material
 	Material text_mat;
+	// The strings handled by this atlas
+	ScreenSpaceText[] textboxes;
+
+	struct Uniforms
+	{
+		UniformId translate,
+		cam_resolution,
+		cam_position,
+		in_tex, 
+		color;
+	}
+
+	private Uniforms un;
 
 	@disable this();
 
@@ -115,10 +168,16 @@ struct TextAtlas
 		this.width = width;
 		this.height = height;
 		texture_data.length = width*height;
+
 		glyphs = new GlyphNode(Rectangle(iVec2(0,0), iVec2(width, height)));
 		text_mat = load_material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
-
 		assert(text_mat.can_render());
+
+		un.translate = text_mat.get_param_id("translate");
+		un.cam_resolution = text_mat.get_param_id("cam_resolution");
+		un.cam_position = text_mat.get_param_id("cam_position");
+		un.in_tex = text_mat.get_param_id("in_tex");
+		un.color = text_mat.get_param_id("color");
 
 		glGenTextures(1, &atlas_id);
 
@@ -166,6 +225,135 @@ struct TextAtlas
 		glDeleteTextures(1, &atlas_id);
 		FT_Done_Face(face);
 		FT_Done_FreeType(library);
+	}
+
+	ScreenSpaceText* add_text(string text, iVec2 position = iVec2(0), Vec3 color = Vec3(1))
+	{
+		import std.uni;
+
+		textboxes.length += 1;
+		textboxes[$-1] = ScreenSpaceText(text, this);
+
+		auto res = &textboxes[$-1];
+		res.position = position;
+		res.color = color;
+
+		iVec2 pen = iVec2(0);
+		uint idx_vbo = 0;
+		uint idx_ebo = 0;
+
+		foreach(c; text)
+		{
+			debug printf("\t %c ++ vbo[%u], ebo[%u]\n", c, idx_vbo, idx_ebo);
+			GlyphNode* glyph = insertChar(c);
+
+			FT_UInt charindex = FT_Get_Char_Index(face, c);
+			FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
+
+			auto g = face.glyph;
+
+			if(!c.isWhite())
+			{
+				iVec2 left = iVec2(g.bitmap_left, 0);
+				iVec2 right = iVec2(g.bitmap_left + g.bitmap.width, 0);
+				iVec2 bottom = iVec2(0, g.bitmap_top - g.bitmap.rows);
+				iVec2 top = iVec2(0, g.bitmap_top);
+
+				res.vertices.length += 4;
+				res.vertices[idx_vbo..idx_vbo+4] = [
+					pen + left + bottom,
+					pen + left + top,
+					pen + right + bottom,
+					pen + right + top
+				];
+
+				debug printf("\t   ++ [%d, %d] to [%d, %d]\n", 
+					res.vertices[idx_vbo].x, res.vertices[idx_vbo].y,
+					res.vertices[idx_vbo+3].x, res.vertices[idx_vbo+3].y);
+
+				Vec2 uv_pos = Vec2(glyph.rec.pos.x, glyph.rec.pos.y);
+				uv_pos.x /= width;
+				uv_pos.y /= height;
+
+				Vec2 uv_size = Vec2(glyph.rec.size.x, glyph.rec.size.y);
+				uv_size.x /= width;
+				uv_size.y /= height;
+
+				res.uvs.length += 4;
+				res.uvs[idx_vbo..idx_vbo+4] = [
+					uv_pos + Vec2(0, uv_size.y),
+					uv_pos,
+					uv_pos + uv_size,
+					uv_pos + Vec2(uv_size.x, 0)
+				];
+
+				res.elements.length += 6;
+				res.elements[idx_ebo..idx_ebo+6] = [
+					idx_vbo + 0, idx_vbo + 1, idx_vbo + 2,
+					idx_vbo + 1, idx_vbo + 3, idx_vbo + 2
+				];
+
+				debug printf("\t   ++ face: {%u, -> %u}\n", res.elements[idx_ebo], res.elements[idx_ebo]);
+
+				idx_vbo = cast(uint) res.vertices.length;
+				idx_ebo = cast(uint) res.elements.length;
+			}
+			else
+			{
+				debug puts("\t <whitespace>");
+			}
+
+			pen.x += g.advance.x >> 6;
+			pen.y += g.advance.y >> 6;
+		}
+		printf("%u vertices, %u UVs, %u elements\n", res.vertices.length, res.uvs.length, res.elements.length);
+
+		glBindTexture(GL_TEXTURE_2D, atlas_id);
+		glTexImage2D (GL_TEXTURE_2D,
+				0, GL_R8,
+				width, height,
+				0, GL_RED,
+				GL_UNSIGNED_BYTE, texture_data.ptr);
+
+
+		res.reloadBuffers();
+
+		glcheck();
+
+		return res;
+	}
+
+	void render(int[2] wsize)
+	{
+
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glcheck();
+
+		text_mat.enable();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, atlas_id);
+
+		glcheck(); 
+
+		text_mat.set_param(un.in_tex, 0);
+		text_mat.set_param(un.cam_resolution, uVec2(wsize[0], wsize[1]));
+		text_mat.set_param(un.cam_position, iVec2(0, 0));
+
+		glcheck();
+
+		foreach(ref text; textboxes)
+		{
+			text_mat.set_param(un.translate, text.position);
+			text_mat.set_param(un.color, text.color);
+
+			glBindVertexArray(text.vao);
+			glDrawElements(GL_TRIANGLES, cast(int)text.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
+		}
+		glBindVertexArray(0);
+		glcheck();
 	}
 
 	void blitgrid()
