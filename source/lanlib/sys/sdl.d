@@ -8,6 +8,7 @@ import std.exception;
 import std.format;
 import std.stdio;
 
+import derelict.freetype;
 import derelict.sdl2.sdl;
 
 import lanlib.math.transform;
@@ -72,6 +73,18 @@ struct SDLWindow
 	 */
 	this (int width, int height, string name)
 	{
+		try
+		{
+			DerelictFT.load();
+		}
+		catch(derelict.util.exception.SymbolLoadException e)
+		{
+			// FT_Stream_OpenBzip2 is a known missing symbol
+			if(e.symbolName() != "FT_Stream_OpenBzip2")
+			{
+				throw e;
+			}
+		}
 		DerelictSDL2.load();
 		DerelictGL3.load();
 

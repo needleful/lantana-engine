@@ -79,6 +79,19 @@ struct ScreenSpaceText
 
 		glBindVertexArray(0);
 		visible = true;
+
+		disableAttributes();
+	}
+
+	void enableAttributes()
+	{
+		glEnableVertexAttribArray(atr_pos);
+		glEnableVertexAttribArray(atr_pos);
+	}
+	void disableAttributes()
+	{
+		glDisableVertexAttribArray(atr_pos);
+		glDisableVertexAttribArray(atr_uv);
 	}
 
 	void reloadBuffers()
@@ -244,7 +257,7 @@ class TextAtlas
 
 		foreach(c; text)
 		{
-			debug printf("\t %c ++ vbo[%u], ebo[%u]\n", c, idx_vbo, idx_ebo);
+			//debug printf("\t %c ++ vbo[%u], ebo[%u]\n", c, idx_vbo, idx_ebo);
 
 			FT_UInt charindex = FT_Get_Char_Index(face, c);
 			FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
@@ -268,9 +281,9 @@ class TextAtlas
 					pen + right + top
 				];
 
-				debug printf("\t   ++ [%d, %d] to [%d, %d]\n", 
-					res.vertices[idx_vbo].x, res.vertices[idx_vbo].y,
-					res.vertices[idx_vbo+3].x, res.vertices[idx_vbo+3].y);
+				//debug printf("\t   ++ [%d, %d] to [%d, %d]\n", 
+				//	res.vertices[idx_vbo].x, res.vertices[idx_vbo].y,
+				//	res.vertices[idx_vbo+3].x, res.vertices[idx_vbo+3].y);
 
 				Vec2 uv_pos = Vec2(glyph.rec.pos.x, glyph.rec.pos.y);
 				uv_pos.x /= width;
@@ -294,7 +307,7 @@ class TextAtlas
 					idx_vbo + 1, idx_vbo + 3, idx_vbo + 2
 				];
 
-				debug printf("\t   ++ face: {%u, -> %u}\n", res.elements[idx_ebo], res.elements[idx_ebo]);
+				//debug printf("\t   ++ face: {%u, -> %u}\n", res.elements[idx_ebo], res.elements[idx_ebo]);
 
 				idx_vbo = cast(uint) res.vertices.length;
 				idx_ebo = cast(uint) res.elements.length;
@@ -304,19 +317,19 @@ class TextAtlas
 			}
 			else if(c == '\n')
 			{
-				debug puts("\t <newline>");
+				//debug puts("\t <newline>");
 				pen.x = 0;
 				pen.y -= face.height >> 6;
 			}
 			else
 			{
-				debug puts("\t <whitespace>");
+				//debug puts("\t <whitespace>");
 				pen.x += g.advance.x >> 6;
 				pen.y += g.advance.y >> 6;
 			}
 
 		}
-		printf("%u vertices, %u UVs, %u elements\n", res.vertices.length, res.uvs.length, res.elements.length);
+		//printf("%u vertices, %u UVs, %u elements\n", res.vertices.length, res.uvs.length, res.elements.length);
 
 		glBindTexture(GL_TEXTURE_2D, atlas_id);
 		glTexImage2D (GL_TEXTURE_2D,
