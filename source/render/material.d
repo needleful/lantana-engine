@@ -145,7 +145,7 @@ struct Material
 		}
 	}
 
-	UniformId get_param_id(string param) @nogc const
+	UniformId get_uniform_id(string param) @nogc const
 	{
 		scope(exit)
 		{
@@ -159,7 +159,7 @@ struct Material
 
 	}
 
-	UniformId set_param(T)(const string param, auto ref T value) @nogc
+	UniformId set_uniform(T)(const string param, auto ref T value) @nogc
 	{
 		scope(exit) 
 		{
@@ -172,12 +172,12 @@ struct Material
 			assert(uniform != -1, format("Missing uniform location: %s", param ));
 		}
 
-		set_param!T(uniform, value);
+		set_uniform!T(uniform, value);
 
 		return uniform;
 	}
 
-	bool set_param(T)(const UniformId uniform, auto ref T value) @nogc
+	bool set_uniform(T)(const UniformId uniform, auto ref T value) @nogc
 	{
 		if(uniform == -1)
 		{

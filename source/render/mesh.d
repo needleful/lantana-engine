@@ -12,240 +12,143 @@ import lanlib.sys.gl;
 import lanlib.sys.memory:GpuResource;
 import lanlib.types;
 
-struct VboId
-{
-	mixin StrictAlias!GLuint;
-}
-struct EboId
-{
-	mixin StrictAlias!GLuint;
-}
-struct VaoId
-{
-	mixin StrictAlias!GLuint;
-}
+import render.material;
 
-alias Tri = Vector!(uint, 3);
-
-@GpuResource
-struct Mesh
+struct VBO
 {
-	VboId vbo;
-	EboId ebo;
-
-	Vec3[] vertices;
-	Tri[] triangles;
-
-	this(Vec3[] verts, Tri[] elements) @nogc
+	GLuint[2] data;
+	const GLuint elements()
 	{
-		this.vertices = verts;
-		this.triangles = elements;
-
-		glGenBuffers(1, vbo.ptr);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
-
-		glGenBuffers(1, ebo.ptr);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
-
-		glcheck;
+		return data[0];
 	}
 
-	~this()
+	const GLuint vertices()
 	{
-		glDeleteBuffers(1, vbo.ptr);
-		glDeleteBuffers(1, ebo.ptr);
+		return data[1];
 	}
 
-	@property const ulong vertsize() @safe @nogc nothrow
+	const GLuint* ptr()
 	{
-		return vertices.length*Vec3.sizeof;
+		return data.ptr;
 	}
 
-	@property const ulong trisize() @safe @nogc nothrow
+	const uint count()
 	{
-		return triangles.length*Tri.sizeof;
+		return cast(uint) data.length;
+	}
+}
+
+// 3D meshes
+class MeshSystem
+{
+	struct Uniforms
+	{
+		// Vertex uniforms
+		UniformId transform, projection;
+		// Fragment uniforms
+		UniformId color;
+	}
+	struct Attributes
+	{
+		AttribId position;
+	}
+
+	Material mat;
+	Uniforms un;
+	Attributes atr;
+	Mesh[] meshes;
+
+	this(uint reserved_meshes = 8)
+	{
+		mat = load_material("worldspace3d.vert", "flat_color.frag");
+
+		atr.position = mat.get_attrib_id("position");
+
+		un.transform = mat.get_uniform_id("transform");
+		un.projection = mat.get_uniform_id("projection");
+		un.color = mat.get_uniform_id("color");
+
+		meshes.reserve(reserved_meshes);
+
+		glcheck();
+	}
+
+	Mesh* build_mesh(Vec3[] vertices, uint[] elements)
+	{
+		meshes.length += 1;
+		meshes[$-1] = Mesh(this, vertices, elements);
+		return &meshes[$-1];
+	}
+
+	void render(ref Mat4 projection, MeshInstance[] instances)
+	{
+		glcheck();
+
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		mat.enable();
+		mat.set_uniform(un.projection, projection);
+
+		glEnableVertexAttribArray(atr.position);
+
+		foreach(ref inst; instances)
+		{
+			inst.transform.compute_matrix();
+			mat.set_uniform(un.transform, inst.transform.matrix);
+			mat.set_uniform(un.color, inst.color);
+
+			glBindVertexArray(inst.mesh.vao);
+			glDrawElements(GL_TRIANGLES, cast(int)inst.mesh.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
+		}
+
+		glDisableVertexAttribArray(atr.position);
 	}
 }
 
 struct MeshInstance
 {
-	Mesh* mesh;
 	Transform transform;
-
-	this(Mesh* mesh, Transform transform) @nogc @safe nothrow
-	{
-		this.mesh = mesh;
-		this.transform = transform;
-	}
+	Mesh* mesh;
+	Vec3 color;
 }
 
-import std.format;
-import std.stdio;
-
-import render.material;
-
-/**
- *  A System for meshes rendered with the same material.
- */
-struct MeshGroup
+struct Mesh
 {
-	Material* material;
-	UniformId transform;
-	MeshInstance[] meshes;
+	Vec3[] vertices;
+	uint[] elements;
+	VBO vbo;
+	GLuint vao;
+	
+	@disable this();
 
-	this(Material* mat, MeshInstance[] meshes) @nogc
+	this(MeshSystem parent, Vec3[] vertices, uint[] elements)
 	{
-		transform = mat.get_param_id("transform");
-		assert(transform != -1, "material has no transform property");
-		material = mat;
-		this.meshes = meshes;
-	}
+		this.vertices = vertices;
+		this.elements = elements;
 
-	void render() @nogc
-	{
-		material.enable();
-		glEnableVertexAttribArray(0);
-		glcheck();
-		
-		foreach(ref MeshInstance instance; meshes)
-		{
-			material.set_param(transform, instance.transform.matrix);
-			Mesh* mesh = instance.mesh;
+		glGenBuffers(vbo.count(), vbo.ptr());
+		glGenVertexArrays(1, &vao);
 
-			glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-			
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(const GLvoid*)0);
-			
-			glcheck();
-		}
-		glDisableVertexAttribArray(0);
-	}
-}
+		glBindVertexArray(vao);
 
-/**
-	A system for multiple instances of the same mesh
- */
-struct MultiMesh
-{
-	Mesh *mesh;
-	Material *material;
-	Transform[] transforms;
-	UniformId transform;
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.elements());
+		glBufferData(GL_ARRAY_BUFFER, vertices.length*Vec3.sizeof, vertices.ptr, GL_STATIC_DRAW);
 
-	this(Mesh* mesh, Material* mat, Transform[] transforms) @nogc
-	{
-		transform = mat.get_param_id("transform");
-		assert(transform != -1, "material has no transform property");
-		material = mat;
-		this.mesh = mesh;
-		this.transforms = transforms;
-	}
+		glEnableVertexAttribArray(parent.atr.position);
+		glVertexAttribPointer(parent.atr.position, 3, GL_FLOAT, GL_FALSE, 0, cast(void*) 0);
 
-	void update_transform(uint id, ref Transform transform)
-	{
-		transforms[id] = transform;
-	}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.elements());
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*uint.sizeof, elements.ptr, GL_STATIC_DRAW);
 
-	void render() @nogc
-	{
-		material.enable();
-		debug
-		{
-			if(transform < 0)
-			{
-				throw new Exception("Could not find transform uniform for this material.  A transform is required for MeshGroup.");
-			}
-		}
-		glcheck();
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, cast(const GLvoid*) 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-
-		int vert_count = cast(int)mesh.triangles.length*3;
-		foreach(ref Transform t; transforms)
-		{
-			material.set_param(transform, t.matrix);
-			glDrawElements(GL_TRIANGLES, vert_count, GL_UNSIGNED_INT, cast(const GLvoid*)0);
-		}
-		glDisableVertexAttribArray(0);
-		glcheck();
-	}
-}
-
-struct Mesh2D
-{
-	VboId pos;
-	VboId uv;
-	EboId ebo;
-	VaoId vao;
-
-	iVec2[] vertices;
-	Vec2[] UVs;
-	Tri[] triangles;
-
-	this(iVec2[] verts, Vec2[] UVs, Tri[] elements) @nogc
-	{
-
-		assert(verts.length == UVs.length);
-		this.vertices = verts;
-		this.triangles = elements;
-		this.UVs = UVs;
-
-		glcheck();
-
-		glGenBuffers(1, pos.ptr);
-		glBindBuffer(GL_ARRAY_BUFFER, pos);
-		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
-
-		glcheck();
-
-		glGenBuffers(1, uv.ptr);
-		glBindBuffer(GL_ARRAY_BUFFER, uv);
-		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
-
-		glcheck();
-
-		glGenBuffers(1, ebo.ptr);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
+		glBindVertexArray(0);
 
 		glcheck();
 	}
 
 	~this()
 	{
-		glDeleteBuffers(1, pos.ptr);
-		glDeleteBuffers(1, uv.ptr);
-		glDeleteBuffers(1, ebo.ptr);
+		glDeleteBuffers(vbo.count(), vbo.ptr());
+		glDeleteVertexArrays(1, &vao);
+		glcheck();
 	}
-
-	@property const ulong vertsize() @safe @nogc nothrow
-	{
-		return vertices.length*Vec2.sizeof;
-	}
-
-	@property const ulong trisize() @safe @nogc nothrow
-	{
-		return triangles.length*Tri.sizeof;
-	}
-}
-
-struct Render2D
-{
-	Material material;
-	this(Material mat)
-	{
-		material = mat;
-	}
-
-	bool process(Mesh2D[] meshes)
-	{
-		return true;
-	}
-
 }

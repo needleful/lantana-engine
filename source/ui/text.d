@@ -186,11 +186,11 @@ class TextAtlas
 		text_mat = load_material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
 		assert(text_mat.can_render());
 
-		un.translate = text_mat.get_param_id("translate");
-		un.cam_resolution = text_mat.get_param_id("cam_resolution");
-		un.cam_position = text_mat.get_param_id("cam_position");
-		un.in_tex = text_mat.get_param_id("in_tex");
-		un.color = text_mat.get_param_id("color");
+		un.translate = text_mat.get_uniform_id("translate");
+		un.cam_resolution = text_mat.get_uniform_id("cam_resolution");
+		un.cam_position = text_mat.get_uniform_id("cam_position");
+		un.in_tex = text_mat.get_uniform_id("in_tex");
+		un.color = text_mat.get_uniform_id("color");
 
 		glGenTextures(1, &atlas_id);
 
@@ -348,7 +348,6 @@ class TextAtlas
 
 	void render(int[2] wsize)
 	{
-
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -361,16 +360,16 @@ class TextAtlas
 
 		glcheck(); 
 
-		text_mat.set_param(un.in_tex, 0);
-		text_mat.set_param(un.cam_resolution, uVec2(wsize[0], wsize[1]));
-		text_mat.set_param(un.cam_position, iVec2(0, 0));
+		text_mat.get_uniform(un.in_tex, 0);
+		text_mat.get_uniform(un.cam_resolution, uVec2(wsize[0], wsize[1]));
+		text_mat.get_uniform(un.cam_position, iVec2(0, 0));
 
 		glcheck();
 
 		foreach(ref text; textboxes)
 		{
-			text_mat.set_param(un.translate, text.position);
-			text_mat.set_param(un.color, text.color);
+			text_mat.get_uniform(un.translate, text.position);
+			text_mat.get_uniform(un.color, text.color);
 
 			glBindVertexArray(text.vao);
 			glDrawElements(GL_TRIANGLES, cast(int)text.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);

@@ -69,9 +69,9 @@ int main()
 		Vec2(1, 0),
 	];
 
-	Tri[] tris = [
-		Tri(0, 3, 1),
-		Tri(0, 2, 3)
+	uint[] tris = [
+		0, 3, 1,
+		0, 2, 3
 	];
 	glcheck();
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
@@ -113,7 +113,7 @@ int main()
 		if(ww.state & WindowState.RESIZED)
 		{
 			wsize = ww.get_dimensions();
-			atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
 		}
 
 		ww.begin_frame();
@@ -128,11 +128,11 @@ int main()
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
 
-			atlas.text_mat.set_param("translate", iVec2(0,0));
-			atlas.text_mat.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
-			atlas.text_mat.set_param("cam_position", iVec2(0, 0));
-			atlas.text_mat.set_param("in_tex", 0);
-			atlas.text_mat.set_param("color", Vec3(0.9, 0.5, 0.7));
+			atlas.text_mat.set_uniform("translate", iVec2(0,0));
+			atlas.text_mat.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_uniform("cam_position", iVec2(0, 0));
+			atlas.text_mat.set_uniform("in_tex", 0);
+			atlas.text_mat.set_uniform("color", Vec3(0.9, 0.5, 0.7));
 
 			glBindVertexArray(vao_text);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);

@@ -40,8 +40,11 @@ int main()
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	Material mat_basic = load_material(
-		"data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
+	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
+
+	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
+
+	MeshSystem render = new MeshSystem(1);
 
 	assert(mat_basic.can_render());
 
@@ -55,51 +58,53 @@ int main()
 	verts[6] = Vec3( 1,  1, -1);
 	verts[7] = Vec3( 1,  1,  1);
 
-	Tri[] elems = mm.make_list!Tri(12);
-	elems[0] = Tri(0, 6, 2);
-	elems[1] = Tri(0, 4, 6);
+	uint[] elems = mm.make_list!uint(36);
+	elems[1..$] = [
+		0,6,2,
+		0,4,6,
 
-	elems[2] = Tri(0, 2, 1);
-	elems[3] = Tri(1, 2, 3);
+		0,2,1,
+		1,2,3,
 
-	elems[4] = Tri(4, 5, 7);
-	elems[5] = Tri(4, 7, 6);
+		4,5,7,
+		4,7,6,
 
-	elems[6] = Tri(5, 3, 7);
-	elems[7] = Tri(5, 1, 3);
+		5,3,7,
+		5,1,3,
 
-	elems[8] = Tri(2, 7, 3);
-	elems[9] = Tri(2, 6, 7);
+		2,7,3,
+		2,6,7,
 
-	elems[10] = Tri(0, 1, 5);
-	elems[11] = Tri(0, 5, 4);
+		0,1,5,
+		0,5,4
+	];
 
-	Mesh test_mesh = Mesh(verts, elems);
+	Mesh* test_mesh = Mesh(verts, elems);
 
-	Transform[] transforms = mm.make_list!Transform(1000);
+	MeshInstance[] meshes = mm.make_list!MeshInstance(1000);
 
-	transforms[0] = Transform(0.5, Vec3(0,0,2));
+	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
+	meshes[0].color = Vec3(1,1,1);
+	meshes[0].mesh = test_mesh;
+
+	Transform* tr = meshes[0].transform;
 
 	// Putting cubes
-	for(uint i = 1; i < transforms.length; i++)
+	for(uint i = 1; i < meshes.length; i++)
 	{
-		transforms[i] = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
+		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
+		meshes[i].color = Vec3(1,0,0);
+		meshes[i].mesh = test_mesh;
 	}
-	auto group = MultiMesh(&test_mesh, &mat_basic, transforms);
-
-	Transform tr = transforms[0];
 
 	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
-	
-	UniformId transformId = group.material.get_param_id("transform");
-	UniformId projId = group.material.get_param_id("projection");
-
-	group.material.set_param("color", Vec3(0, 0.2, 0));
 
 	uint frame = 0;
 
 	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, Vec3(5, 7, 5));
 	Player* player = mm.create!Player(grid, GridPos(0,0,0));
+
+	int[2] wsize = ww.get_dimensions();
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
@@ -109,7 +114,7 @@ int main()
 
 		if(ww.state & WindowState.RESIZED)
 		{
-			int[2] wsize = ww.get_dimensions();
+			ww.get_dimensions();
 			cam.set_projection(
 				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 			);
@@ -135,15 +140,13 @@ int main()
 
 			tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
-
-			group.update_transform(0, tr);
-			
-			group.material.set_param(projId, cam.vp);
 		}
 
 		ww.begin_frame();
+		
+		render.render(cam.projection);
 
-		group.render();
+		text.render(wsize);
 
 		ww.end_frame();
 		frame ++;
