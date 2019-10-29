@@ -123,6 +123,8 @@ struct Mesh
 
 	this(MeshSystem parent, Vec3[] vertices, uint[] elements)
 	{
+		glcheck();
+
 		this.vertices = vertices;
 		this.elements = elements;
 
@@ -130,17 +132,17 @@ struct Mesh
 		glGenVertexArrays(1, &vao);
 
 		glBindVertexArray(vao);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.elements());
-		glBufferData(GL_ARRAY_BUFFER, vertices.length*Vec3.sizeof, vertices.ptr, GL_STATIC_DRAW);
-
 		glEnableVertexAttribArray(parent.atr.position);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo.vertices());
+		glBufferData(GL_ARRAY_BUFFER, vertices.length*Vec3.sizeof, vertices.ptr, GL_STATIC_DRAW);
 		glVertexAttribPointer(parent.atr.position, 3, GL_FLOAT, GL_FALSE, 0, cast(void*) 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.elements());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*uint.sizeof, elements.ptr, GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
+		glDisableVertexAttribArray(parent.atr.position);
 
 		glcheck();
 	}

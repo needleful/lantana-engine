@@ -42,7 +42,6 @@ class SysMemManager : ILanAllocator
 	override void* make(ulong bytes) @nogc
 	{
 		void* res = malloc(bytes);
-		GC.addRange(res, bytes);
 		return res;
 	}
 

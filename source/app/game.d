@@ -117,7 +117,7 @@ int main()
 
 		if(ww.state & WindowState.RESIZED)
 		{
-			ww.get_dimensions();
+			wsize = ww.get_dimensions();
 			cam.set_projection(
 				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 			);
@@ -140,7 +140,6 @@ int main()
 			player.frame(ii, delta);
 
 			tr._position = player.getPos();
-
 			tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
 		}

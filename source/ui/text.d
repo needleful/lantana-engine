@@ -345,8 +345,8 @@ class TextAtlas
 		glcheck();
 
 		text_mat.enable();
-		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, atlas_id);
+		glActiveTexture(GL_TEXTURE0);
 
 		glcheck(); 
 
