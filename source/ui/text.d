@@ -48,10 +48,9 @@ struct ScreenSpaceText
 
 	bool visible;
 
-	AttribId atr_pos, atr_uv;
-
-	this(string new_text, TextAtlas atlas)
+	this(TextAtlas parent, string new_text)
 	{
+		visible = true;
 		this.text = new_text;
 
 		elements.reserve(text.length * 6);
@@ -63,35 +62,21 @@ struct ScreenSpaceText
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
 
+		glEnableVertexAttribArray(parent.atr_pos);
+		glEnableVertexAttribArray(parent.atr_uv);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
 
-		atr_pos = atlas.text_mat.get_attrib_id("position");
-		assert(atr_pos.handle() >= 0);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glEnableVertexAttribArray(atr_pos);
-		glVertexAttribIPointer(atr_pos, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
+		glVertexAttribIPointer(parent.atr_pos, 2, GL_INT, 0, cast(const(GLvoid*)) 0);
 
-		atr_uv = atlas.text_mat.get_attrib_id("UV");
-		assert(atr_uv .handle >= 0);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glEnableVertexAttribArray(atr_uv );
-		glVertexAttribPointer(atr_uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
+		glVertexAttribPointer(parent.atr_uv, 2, GL_FLOAT, GL_FALSE, 0, cast(const(GLvoid*)) 0);
 
 		glBindVertexArray(0);
-		visible = true;
 
-		disableAttributes();
-	}
-
-	void enableAttributes()
-	{
-		glEnableVertexAttribArray(atr_pos);
-		glEnableVertexAttribArray(atr_pos);
-	}
-	void disableAttributes()
-	{
-		glDisableVertexAttribArray(atr_pos);
-		glDisableVertexAttribArray(atr_uv);
+		glDisableVertexAttribArray(parent.atr_pos);
+		glDisableVertexAttribArray(parent.atr_uv);
 	}
 
 	void reloadBuffers()
@@ -172,6 +157,8 @@ class TextAtlas
 		color;
 	}
 
+	AttribId atr_pos, atr_uv;
+
 	private Uniforms un;
 
 	@disable this();
@@ -191,6 +178,9 @@ class TextAtlas
 		un.cam_position = text_mat.get_uniform_id("cam_position");
 		un.in_tex = text_mat.get_uniform_id("in_tex");
 		un.color = text_mat.get_uniform_id("color");
+
+		atr_pos = text_mat.get_attrib_id("position");
+		atr_uv = text_mat.get_attrib_id("UV");
 
 		glGenTextures(1, &atlas_id);
 
@@ -245,7 +235,7 @@ class TextAtlas
 		import std.uni;
 
 		textboxes.length += 1;
-		textboxes[$-1] = ScreenSpaceText(text, this);
+		textboxes[$-1] = ScreenSpaceText(this, text);
 
 		auto res = &textboxes[$-1];
 		res.position = position;
@@ -360,21 +350,32 @@ class TextAtlas
 
 		glcheck(); 
 
-		text_mat.get_uniform(un.in_tex, 0);
-		text_mat.get_uniform(un.cam_resolution, uVec2(wsize[0], wsize[1]));
-		text_mat.get_uniform(un.cam_position, iVec2(0, 0));
+		text_mat.set_uniform(un.in_tex, 0);
+		text_mat.set_uniform(un.cam_resolution, uVec2(wsize[0], wsize[1]));
+		text_mat.set_uniform(un.cam_position, iVec2(0, 0));
 
 		glcheck();
 
+		glEnableVertexAttribArray(atr_pos);
+		glEnableVertexAttribArray(atr_uv);
+
 		foreach(ref text; textboxes)
 		{
-			text_mat.get_uniform(un.translate, text.position);
-			text_mat.get_uniform(un.color, text.color);
+			if(!text.visible)
+			{
+				continue;
+			}
+			text_mat.set_uniform(un.translate, text.position);
+			text_mat.set_uniform(un.color, text.color);
 
 			glBindVertexArray(text.vao);
 			glDrawElements(GL_TRIANGLES, cast(int)text.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 		}
 		glBindVertexArray(0);
+
+		glDisableVertexAttribArray(atr_pos);
+		glDisableVertexAttribArray(atr_uv);
+
 		glcheck();
 	}
 

@@ -194,12 +194,12 @@ struct Material
 			static if(is(T == double))
 			{
 				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");
-				set_uniform!float(uniform, cast(float)value);
+				gl_set_uniform!float(uniform, cast(float)value);
 				return true;
 			}
 			else
 			{
-				set_uniform!T(uniform, value);
+				gl_set_uniform!T(uniform, value);
 				return true;
 			}
 		}

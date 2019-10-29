@@ -41,12 +41,13 @@ int main()
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
 	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
+	text.blitgrid();
 
 	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
 
 	MeshSystem render = new MeshSystem(1);
 
-	assert(mat_basic.can_render());
+	assert(render.mat.can_render());
 
 	Vec3[] verts = mm.make_list!Vec3(8);
 	verts[0] = Vec3(-1, -1, -1);
@@ -59,7 +60,7 @@ int main()
 	verts[7] = Vec3( 1,  1,  1);
 
 	uint[] elems = mm.make_list!uint(36);
-	elems[1..$] = [
+	elems[] = [
 		0,6,2,
 		0,4,6,
 
@@ -79,7 +80,7 @@ int main()
 		0,5,4
 	];
 
-	Mesh* test_mesh = Mesh(verts, elems);
+	Mesh* test_mesh = render.build_mesh(verts, elems);
 
 	MeshInstance[] meshes = mm.make_list!MeshInstance(1000);
 
@@ -87,7 +88,7 @@ int main()
 	meshes[0].color = Vec3(1,1,1);
 	meshes[0].mesh = test_mesh;
 
-	Transform* tr = meshes[0].transform;
+	Transform* tr = &meshes[0].transform;
 
 	// Putting cubes
 	for(uint i = 1; i < meshes.length; i++)
@@ -105,6 +106,8 @@ int main()
 	Player* player = mm.create!Player(grid, GridPos(0,0,0));
 
 	int[2] wsize = ww.get_dimensions();
+
+	writeln("Beginning game loop");
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
@@ -141,10 +144,9 @@ int main()
 			tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
 		}
-
 		ww.begin_frame();
 		
-		render.render(cam.projection);
+		render.render(cam.vp(), meshes);
 
 		text.render(wsize);
 

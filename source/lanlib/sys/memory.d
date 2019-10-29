@@ -6,6 +6,7 @@ module lanlib.sys.memory;
 
 import std.conv : emplace;
 import std.traits : hasUDA;
+import core.memory;
 
 debug
 {
@@ -40,7 +41,9 @@ class SysMemManager : ILanAllocator
 
 	override void* make(ulong bytes) @nogc
 	{
-		return malloc(bytes);
+		void* res = malloc(bytes);
+		GC.addRange(res, bytes);
+		return res;
 	}
 
 	T[] make_list(T)(ulong count) @nogc

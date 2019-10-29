@@ -18,6 +18,65 @@ import logic.input;
 import render.material;
 import render.mesh;
 
+
+struct Mesh2D
+{
+	GLuint pos;
+	GLuint uv;
+	GLuint ebo;
+	GLuint vao;
+
+	iVec2[] vertices;
+	Vec2[] UVs;
+	uint[] triangles;
+
+	this(iVec2[] verts, Vec2[] UVs, uint[] elements) @nogc
+	{
+
+		assert(verts.length == UVs.length);
+		this.vertices = verts;
+		this.triangles = elements;
+		this.UVs = UVs;
+
+		glcheck();
+
+		glGenBuffers(1, &pos);
+		glBindBuffer(GL_ARRAY_BUFFER, pos);
+		glBufferData(GL_ARRAY_BUFFER, vertsize, vertices.ptr, GL_STATIC_DRAW);
+
+		glcheck();
+
+		glGenBuffers(1, &uv);
+		glBindBuffer(GL_ARRAY_BUFFER, uv);
+		glBufferData(GL_ARRAY_BUFFER, vertsize, UVs.ptr, GL_STATIC_DRAW);
+
+		glcheck();
+
+		glGenBuffers(1, &ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisize, triangles.ptr, GL_STATIC_DRAW);
+
+		glcheck();
+	}
+
+	~this()
+	{
+		glDeleteBuffers(1, &pos);
+		glDeleteBuffers(1, &uv);
+		glDeleteBuffers(1, &ebo);
+	}
+
+	@property const ulong vertsize() @safe @nogc nothrow
+	{
+		return vertices.length*Vec2.sizeof;
+	}
+
+	@property const ulong trisize() @safe @nogc nothrow
+	{
+		return triangles.length*uint.sizeof;
+	}
+}
+
 struct Texture
 {
 	FIBITMAP *bitmap;
@@ -107,9 +166,9 @@ int testsprite()
 		Vec2(1, 1),
 	];
 
-	Tri[] tris = [
-		Tri(0, 3, 1),
-		Tri(0, 2, 3)
+	uint[] tris = [
+		0, 3, 1,
+		0, 2, 3
 	];
 	
 	glcheck();
@@ -118,9 +177,9 @@ int testsprite()
 	assert(mat2d.can_render());
 
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
-	VaoId vao_sprite;
+	GLuint vao_sprite;
 	// Create VAO and VBOs
-	glGenVertexArrays(1, vao_sprite.ptr);
+	glGenVertexArrays(1, &vao_sprite);
 	glBindVertexArray(vao_sprite);
 	glcheck();
 
@@ -152,10 +211,10 @@ int testsprite()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex.id);
 	mat2d.enable();	
-	mat2d.set_param("translate", iVec2(0,0));
-	mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
-	mat2d.set_param("cam_position", iVec2(0, 0));
-	mat2d.set_param("in_tex", 0);
+	mat2d.set_uniform("translate", iVec2(0,0));
+	mat2d.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
+	mat2d.set_uniform("cam_position", iVec2(0, 0));
+	mat2d.set_uniform("in_tex", 0);
 	
 
 	while(!(ww.state & WindowState.CLOSED))
@@ -165,7 +224,7 @@ int testsprite()
 		if(ww.state & WindowState.RESIZED)
 		{
 			wsize = ww.get_dimensions();
-			mat2d.set_param("cam_resolution", uVec2(wsize[0], wsize[1]));
+			mat2d.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
 		}
 
 		ww.begin_frame();

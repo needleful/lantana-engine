@@ -20,7 +20,6 @@ import render.material;
 import render.mesh;
 
 import test.sprite;
-import test.font;
 import ui.text;
 
 int main()
@@ -75,12 +74,12 @@ int main()
 	];
 	glcheck();
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
-	VaoId vao_text;
+	GLuint vao_text;
 	// Create VAO
 	{
 		glcheck();
 
-		glGenVertexArrays(1, vao_text.ptr);
+		glGenVertexArrays(1, &vao_text);
 		glBindVertexArray(vao_text);
 
 		AttribId pos = atlas.text_mat.get_attrib_id("position");

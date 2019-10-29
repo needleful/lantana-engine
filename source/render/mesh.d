@@ -27,7 +27,7 @@ struct VBO
 		return data[1];
 	}
 
-	const GLuint* ptr()
+	GLuint* ptr()
 	{
 		return data.ptr;
 	}
@@ -60,7 +60,7 @@ class MeshSystem
 
 	this(uint reserved_meshes = 8)
 	{
-		mat = load_material("worldspace3d.vert", "flat_color.frag");
+		mat = load_material("data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
 
 		atr.position = mat.get_attrib_id("position");
 
@@ -80,7 +80,7 @@ class MeshSystem
 		return &meshes[$-1];
 	}
 
-	void render(ref Mat4 projection, MeshInstance[] instances)
+	void render(Mat4 projection, MeshInstance[] instances)
 	{
 		glcheck();
 
@@ -101,6 +101,8 @@ class MeshSystem
 			glDrawElements(GL_TRIANGLES, cast(int)inst.mesh.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
 		}
 
+		glBindVertexArray(0);
+
 		glDisableVertexAttribArray(atr.position);
 	}
 }
@@ -118,8 +120,6 @@ struct Mesh
 	uint[] elements;
 	VBO vbo;
 	GLuint vao;
-	
-	@disable this();
 
 	this(MeshSystem parent, Vec3[] vertices, uint[] elements)
 	{
