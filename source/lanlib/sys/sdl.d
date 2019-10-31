@@ -158,7 +158,7 @@ struct SDLWindow
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glFrontFace(GL_CW);
+		glFrontFace(GL_CCW);
 		// Frame color is irrelevant, since it should never be seen in normal execution
 		glClearColor(0, 0, 0, 1);
 		glClearDepth(1.0f);

@@ -5,6 +5,8 @@
 import std.math;
 import std.stdio;
 
+import filetype.mesh;
+
 import lanlib.math.matrix;
 import lanlib.math.projection;
 import lanlib.math.vector;
@@ -37,50 +39,22 @@ int main()
 	Input ii = Input();
 	ii.clear();
 
-	ILanAllocator sysmem = new SysMemManager();
-	auto mm = new LanRegion(MAX_MEMORY, sysmem);
-
 	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
 	text.blitgrid();
 
 	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
 
 	MeshSystem render = new MeshSystem(1);
-
 	assert(render.mat.can_render());
 
-	Vec3[] verts = mm.make_list!Vec3(8);
-	verts[0] = Vec3(-1, -1, -1);
-	verts[1] = Vec3(-1, -1,  1);
-	verts[2] = Vec3(-1,  1, -1);
-	verts[3] = Vec3(-1,  1,  1);
-	verts[4] = Vec3( 1, -1, -1);
-	verts[5] = Vec3( 1, -1,  1);
-	verts[6] = Vec3( 1,  1, -1);
-	verts[7] = Vec3( 1,  1,  1);
+	ILanAllocator sysmem = new SysMemManager();
+	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	uint[] elems = mm.make_list!uint(36);
-	elems[] = [
-		0,6,2,
-		0,4,6,
+	MeshDescriptor[] new_meshes = glb_load("data/test/meshes/funny-cube.glb", mm);
 
-		0,2,1,
-		1,2,3,
+	assert(new_meshes.length == 1);
 
-		4,5,7,
-		4,7,6,
-
-		5,3,7,
-		5,1,3,
-
-		2,7,3,
-		2,6,7,
-
-		0,1,5,
-		0,5,4
-	];
-
-	Mesh* test_mesh = render.build_mesh(verts, elems);
+	Mesh* test_mesh = render.build_mesh(new_meshes[0].vertices, new_meshes[0].elements);
 
 	MeshInstance[] meshes = mm.make_list!MeshInstance(1000);
 
@@ -108,6 +82,8 @@ int main()
 	int[2] wsize = ww.get_dimensions();
 
 	writeln("Beginning game loop");
+
+	stdout.flush();
 
 	while(!(ww.state & WindowState.CLOSED))
 	{
@@ -153,5 +129,6 @@ int main()
 		frame ++;
 	}
 
+	writeln("Exiting game");
 	return 0;
 }

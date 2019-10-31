@@ -77,6 +77,8 @@ struct ScreenSpaceText
 
 		glDisableVertexAttribArray(parent.atr_pos);
 		glDisableVertexAttribArray(parent.atr_uv);
+
+		debug printf("Created ScreenSpaceText: '%s' (vao %u)\n", text.ptr, vao);
 	}
 
 	void reloadBuffers()
@@ -95,7 +97,7 @@ struct ScreenSpaceText
 	{
 		glDeleteBuffers(vbo.length, vbo.ptr);
 		glDeleteVertexArrays(1, &vao);
-		debug printf("Deleting ScreenSpaceText: '%s'\n", text.ptr);
+		debug printf("Deleting ScreenSpaceText: '%s (vao %u)'\n", text.ptr, vao);
 	}
 }
 
@@ -105,7 +107,6 @@ struct GlyphNode
 	Rectangle rec;
 	dchar code;
 
-	@disable this();
 	this(Rectangle rec)
 	{
 		this.rec = rec;
@@ -225,6 +226,7 @@ class TextAtlas
 
 	~this() nothrow
 	{
+		debug puts("Deleting TextAtlas");
 		glDeleteTextures(1, &atlas_id);
 		FT_Done_Face(face);
 		FT_Done_FreeType(library);

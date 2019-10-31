@@ -1,8 +1,24 @@
 TODO:
 
 - Load a model.
-	- Use ASSIMP for now
-	- Switch to custom format eventually
+	What format should I use?  Collada's kind of bloated and overly generic, but it's XML so it should be easy to parse
+
+	Requirements:
+		Vertex positions, UVs, and normals
+		Skeletal animations
+		Texture files
+
+	Explicitely ignored:
+		Lights
+		Cameras
+		Node hierarchy (?)
+		Custom materials
+
+	ideas for mesh formats relevant to Axe manor:
+	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
+	* Static Mesh - meshes that have the same materal as Palette meshes, but they don't align to a grid and can be loaded/unloaded freely
+	* Animated Mesh - like static meshes, but with skeletal animations.
+	* Player Mesh - the only file with two meshes: the player and the axe, since they'll need some parenting/unparenting shenanigans and synced animations.
 
 - Render text
 	- Define anchors for text
@@ -14,6 +30,9 @@ TODO:
 - Puzzles
 	- Undo
 	- Restart
+
+- Improvements
+	- Switch from Derelict to BindBC (?)
 
 LONG-TERM
 

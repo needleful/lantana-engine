@@ -4,6 +4,8 @@
 
 module render.mesh;
 
+debug import std.stdio;
+
 import lanlib.math.matrix;
 import lanlib.math.vector;
 import lanlib.math.transform;
@@ -73,7 +75,7 @@ class MeshSystem
 		glcheck();
 	}
 
-	Mesh* build_mesh(Vec3[] vertices, uint[] elements)
+	Mesh* build_mesh(Vec3[] vertices, ushort[] elements)
 	{
 		meshes.length += 1;
 		meshes[$-1] = Mesh(this, vertices, elements);
@@ -98,7 +100,7 @@ class MeshSystem
 			mat.set_uniform(un.color, inst.color);
 
 			glBindVertexArray(inst.mesh.vao);
-			glDrawElements(GL_TRIANGLES, cast(int)inst.mesh.elements.length, GL_UNSIGNED_INT, cast(GLvoid*) 0);
+			glDrawElements(GL_TRIANGLES, cast(int)inst.mesh.elements.length, GL_UNSIGNED_SHORT, cast(GLvoid*) 0);
 		}
 
 		glBindVertexArray(0);
@@ -117,11 +119,11 @@ struct MeshInstance
 struct Mesh
 {
 	Vec3[] vertices;
-	uint[] elements;
+	ushort[] elements;
 	VBO vbo;
 	GLuint vao;
 
-	this(MeshSystem parent, Vec3[] vertices, uint[] elements)
+	this(MeshSystem parent, Vec3[] vertices, ushort[] elements)
 	{
 		glcheck();
 
@@ -139,7 +141,7 @@ struct Mesh
 		glVertexAttribPointer(parent.atr.position, 3, GL_FLOAT, GL_FALSE, 0, cast(void*) 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo.elements());
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*uint.sizeof, elements.ptr, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*ushort.sizeof, elements.ptr, GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 		glDisableVertexAttribArray(parent.atr.position);
@@ -152,5 +154,6 @@ struct Mesh
 		glDeleteBuffers(vbo.count(), vbo.ptr());
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
+		debug printf("Deleting mesh (vao %u)\n", vao);
 	}
 }
