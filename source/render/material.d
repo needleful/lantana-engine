@@ -58,7 +58,7 @@ Material load_material(const string vert_file, const string frag_file)
 		}
 		else
 		{
-			return Material(MaterialId(0));
+			return Material(MaterialId(cast(uint)0));
 		}
 	}
 

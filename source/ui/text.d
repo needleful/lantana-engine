@@ -117,7 +117,7 @@ struct GlyphNode
 
 	~this()
 	{
-		printf("Deleting glyphnode %c\n", code);
+		debug printf("Deleting glyphnode %c\n", code);
 	}
 	bool isleaf()
 	{

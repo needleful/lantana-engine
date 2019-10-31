@@ -5,8 +5,7 @@
 import std.math;
 import std.stdio;
 
-import filetype.gltf2;
-
+import lanlib.formats.gltf2;
 import lanlib.math.matrix;
 import lanlib.math.projection;
 import lanlib.math.vector;
@@ -56,7 +55,7 @@ int main()
 
 	StaticMesh* test_mesh = smesh.build_mesh(loaded.accessors[0], loaded.data);
 
-	Instance!StaticMesh[] meshes = mm.make_list!(Instance!StaticMesh)(1000);
+	auto meshes = mm.make_list!(Instance!StaticMesh)(1000);
 
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
 	meshes[0].color = Vec3(1,1,1);
@@ -68,7 +67,7 @@ int main()
 	for(uint i = 1; i < meshes.length; i++)
 	{
 		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
-		meshes[i].transform.rotate_degrees(0,45,45);
+		meshes[i].transform.rotate_degrees(90,0,0);
 		meshes[i].color = Vec3(1,0,0);
 		meshes[i].mesh = test_mesh;
 	}
