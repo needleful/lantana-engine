@@ -68,6 +68,7 @@ int main()
 	for(uint i = 1; i < meshes.length; i++)
 	{
 		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
+		meshes[i].transform.rotate_degrees(0,45,45);
 		meshes[i].color = Vec3(1,0,0);
 		meshes[i].mesh = test_mesh;
 	}

@@ -1,18 +1,8 @@
 TODO:
 
 - Load a model.
-	What format should I use?  Collada's kind of bloated and overly generic, but it's XML so it should be easy to parse
-
-	Requirements:
-		Vertex positions, UVs, and normals
-		Skeletal animations
-		Texture files
-
-	Explicitely ignored:
-		Lights
-		Cameras
-		Node hierarchy (?)
-		Custom materials
+	Now using glTF2, or at least vertex positions for a single mesh.
+	Can load simple meshes, but because of how meshes are encoded, I'm limited to 16,000 or so vertices until I modify the mesh format again.
 
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
