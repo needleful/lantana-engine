@@ -4,6 +4,12 @@ TODO:
 	Now using glTF2, or at least vertex positions for a single mesh.
 	Can load simple meshes, but because of how meshes are encoded, I'm limited to 16,000 or so vertices until I modify the mesh format again.
 
+	Following need to be added:
+	* Texture support
+	* normals (and test shaders)
+	* animations (BIG task)
+	* simplified buffer management (refactor task.  one buffer, several meshes/attributes?)
+
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
 	* Static Mesh - meshes that have the same materal as Palette meshes, but they don't align to a grid and can be loaded/unloaded freely
