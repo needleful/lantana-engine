@@ -5,7 +5,7 @@
 import std.math;
 import std.stdio;
 
-import filetype.gltf2;
+import filetype.mesh;
 
 import lanlib.math.matrix;
 import lanlib.math.projection;
@@ -44,19 +44,19 @@ int main()
 
 	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
 
+	MeshSystem render = new MeshSystem(1);
+	assert(render.mat.can_render());
+
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	StaticMeshSystem smesh = StaticMeshSystem(1);
-	assert(smesh.mat.can_render());
+	MeshDescriptor[] new_meshes = glb_load("data/test/meshes/funny-cube.glb", mm);
 
-	GLBLoadResults loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
+	assert(new_meshes.length == 1);
 
-	assert(loaded.accessors.length == 1);
+	Mesh* test_mesh = render.build_mesh(new_meshes[0].vertices, new_meshes[0].elements);
 
-	StaticMesh* test_mesh = smesh.build_mesh(loaded.accessors[0], loaded.data);
-
-	Instance!StaticMesh[] meshes = mm.make_list!(Instance!StaticMesh)(1000);
+	MeshInstance[] meshes = mm.make_list!MeshInstance(1000);
 
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
 	meshes[0].color = Vec3(1,1,1);
@@ -122,7 +122,7 @@ int main()
 		}
 		ww.begin_frame();
 		
-		smesh.render(cam.vp(), meshes);
+		render.render(cam.vp(), meshes);
 
 		text.render(wsize);
 
