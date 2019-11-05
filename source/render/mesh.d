@@ -31,7 +31,7 @@ struct StaticMeshSystem
 		// Vertex uniforms
 		UniformId transform, projection;
 		// Fragment uniforms
-		UniformId light_color;
+		UniformId light_color, light_direction, light_ambient;
 	}
 	struct Attributes
 	{
@@ -45,7 +45,7 @@ struct StaticMeshSystem
 
 	this(uint reserved_meshes)
 	{
-		mat = load_material("data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
+		mat = load_material("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
@@ -53,6 +53,8 @@ struct StaticMeshSystem
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
 		un.light_color = mat.get_uniform_id("light_color");
+		un.light_direction = mat.get_uniform_id("light_direction");
+		un.light_ambient = mat.get_uniform_id("light_ambient");
 
 		meshes.reserve(reserved_meshes);
 
@@ -74,7 +76,9 @@ struct StaticMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, Vec3(0.1));
+		mat.set_uniform(un.light_color, Vec3(1,0.5,0.3));
+		mat.set_uniform(un.light_direction, Vec3(-0.3, -1, 0.2));
+		mat.set_uniform(un.light_ambient, Vec3(0, 0, 0.05));
 
 		GLuint current_vao = 0;
 		foreach(ref inst; instances)
