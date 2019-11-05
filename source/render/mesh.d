@@ -149,7 +149,7 @@ struct StaticMesh
 
 	~this()
 	{
-		debug printf("Deleting StaticMesh (%s)\n", accessor.name);
+		debug printf("Deleting StaticMesh (vao %d)\n", vao);
 		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
