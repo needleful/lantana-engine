@@ -8,7 +8,6 @@ TODO:
 	* Texture support
 	* normals (and test shaders)
 	* animations (BIG task)
-	* simplified buffer management (refactor task.  one buffer, several meshes/attributes?)
 
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.

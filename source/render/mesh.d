@@ -22,7 +22,6 @@ struct Instance(MeshType)
 {
 	Transform transform;
 	MeshType* mesh;
-	Vec3 color;
 }
 
 struct StaticMeshSystem
@@ -32,11 +31,11 @@ struct StaticMeshSystem
 		// Vertex uniforms
 		UniformId transform, projection;
 		// Fragment uniforms
-		UniformId color;
+		UniformId light_color;
 	}
 	struct Attributes
 	{
-		AttribId position;
+		AttribId position, normal;
 	}
 
 	Attributes atr;
@@ -49,10 +48,11 @@ struct StaticMeshSystem
 		mat = load_material("data/shaders/worldspace3d.vert", "data/shaders/flat_color.frag");
 
 		atr.position = mat.get_attrib_id("position");
+		atr.normal = mat.get_attrib_id("normal");
 
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
-		un.color = mat.get_uniform_id("color");
+		un.light_color = mat.get_uniform_id("light_color");
 
 		meshes.reserve(reserved_meshes);
 
@@ -74,22 +74,20 @@ struct StaticMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-
-		glEnableVertexAttribArray(atr.position);
+		mat.set_uniform(un.light_color, Vec3(0.1));
 
 		GLuint current_vao = 0;
 		foreach(ref inst; instances)
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
-			mat.set_uniform(un.color, inst.color);
 
 			if(current_vao != inst.mesh.vao)
 			{
 				current_vao = inst.mesh.vao;
 				glBindVertexArray(current_vao);
 			}
-			
+
 			glDrawElements(
 				GL_TRIANGLES, 
 				cast(int)inst.mesh.accessor.indices.byteLength,
@@ -98,8 +96,6 @@ struct StaticMeshSystem
 		}
 
 		glBindVertexArray(0);
-
-		glDisableVertexAttribArray(atr.position);
 	}
 }
 
@@ -121,8 +117,18 @@ struct StaticMesh
 		glBindVertexArray(vao);
 
 		glEnableVertexAttribArray(parent.atr.position);
+		glEnableVertexAttribArray(parent.atr.normal);
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
+		
+		glVertexAttribPointer(
+			parent.atr.normal,
+			accessor.normals.dataType.componentCount,
+			accessor.normals.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) accessor.normals.byteOffset);
 
 		glVertexAttribPointer(
 			parent.atr.position,
@@ -136,13 +142,14 @@ struct StaticMesh
 
 		glBindVertexArray(0);
 		glDisableVertexAttribArray(parent.atr.position);
+		glDisableVertexAttribArray(parent.atr.normal);
 
 		glcheck();
 	}
 
 	~this()
 	{
-		debug printf("Deleting StaticMesh (vao %d)\n", vao);
+		debug printf("Deleting StaticMesh (%s)\n", accessor.name);
 		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();

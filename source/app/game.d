@@ -58,7 +58,6 @@ int main()
 	auto meshes = mm.make_list!(Instance!StaticMesh)(1000);
 
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
-	meshes[0].color = Vec3(1,1,1);
 	meshes[0].mesh = test_mesh;
 
 	Transform* tr = &meshes[0].transform;
@@ -68,7 +67,6 @@ int main()
 	{
 		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
 		meshes[i].transform.rotate_degrees(90,0,0);
-		meshes[i].color = Vec3(1,0,0);
 		meshes[i].mesh = test_mesh;
 	}
 
