@@ -78,7 +78,7 @@ GLuint compile_shader(string filename, GLenum type)
 	return shader;
 }
 
-void gl_set_uniform(T)(GLint uniform, ref T value) @nogc
+void gl_set_uniform(T)(GLint uniform, auto ref T value) @nogc
 {
 	scope(exit) glcheck;
 

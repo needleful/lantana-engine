@@ -77,7 +77,6 @@ GLBDataType fromString(string typename)
 			debug throw new Exception("Invalid GLBDataType name: "~typename);
 			else return GLBDataType.UNKNOWN;
 	}
-	
 }
 
 uint componentCount(GLBDataType type)
@@ -115,6 +114,21 @@ struct GLBMeshAccessor
 	GLBBufferView uv;
 	GLBBufferView normals;
 	GLBBufferView indices;
+}
+
+enum GLBAnimationType
+{
+	TRANSLATION,
+	ROTATION,
+	SCALE,
+	UNKNOWN
+}
+
+struct GLBAnimationAccessor
+{
+	GLBBufferView buffer;
+	uint target_node;
+	GLBAnimationType type;
 }
 
 //Check a binary gltf2 file

@@ -31,7 +31,7 @@ struct StaticMeshSystem
 		// Vertex uniforms
 		UniformId transform, projection;
 		// Fragment uniforms
-		UniformId light_color, light_direction, light_ambient;
+		UniformId light_color, light_direction, light_ambient, light_bias;
 	}
 	struct Attributes
 	{
@@ -55,6 +55,7 @@ struct StaticMeshSystem
 		un.light_color = mat.get_uniform_id("light_color");
 		un.light_direction = mat.get_uniform_id("light_direction");
 		un.light_ambient = mat.get_uniform_id("light_ambient");
+		un.light_bias = mat.get_uniform_id("light_bias");
 
 		meshes.reserve(reserved_meshes);
 
@@ -79,6 +80,7 @@ struct StaticMeshSystem
 		mat.set_uniform(un.light_color, Vec3(1,0.5,0.3));
 		mat.set_uniform(un.light_direction, Vec3(-0.3, -1, 0.2));
 		mat.set_uniform(un.light_ambient, Vec3(0, 0, 0.05));
+		mat.set_uniform(un.light_bias, 0.3);
 
 		GLuint current_vao = 0;
 		foreach(ref inst; instances)
@@ -158,4 +160,28 @@ struct StaticMesh
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
 	}
+}
+
+struct Bone
+{
+	// indeces to parent and child in the Armature struct
+	Armature.BoneIndex parent, child;
+}
+
+struct Armature
+{
+	struct BoneIndex { mixin StrictAlias!ubyte; }
+}
+
+
+struct Animation
+{
+
+}
+
+struct AnimatedMesh
+{
+	ubyte[] data;
+	GLBMeshAccessor accessor;
+	GLuint vbo, vao;
 }
