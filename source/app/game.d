@@ -46,16 +46,16 @@ int main()
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	StaticMeshSystem smesh = StaticMeshSystem(1);
-	assert(smesh.mat.can_render());
+	AnimatedMeshSystem anim_mesh = AnimatedMeshSystem(1);
+	assert(anim_mesh.mat.can_render());
 
-	GLBLoadResults loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
+	auto loaded = glb_load!true("data/test/meshes/funny-cube.glb", mm);
 
 	assert(loaded.accessors.length == 1);
 
-	StaticMesh* test_mesh = smesh.build_mesh(loaded.accessors[0], loaded.data);
+	auto test_mesh = anim_mesh.build_mesh(loaded.accessors[0], loaded.data);
 
-	auto meshes = mm.make_list!(Instance!StaticMesh)(1000);
+	auto meshes = mm.make_list!(Instance!AnimatedMesh)(1000);
 
 	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
 	meshes[0].mesh = test_mesh;
@@ -119,7 +119,7 @@ int main()
 		}
 		ww.begin_frame();
 		
-		smesh.render(cam.vp(), meshes);
+		anim_mesh.render(cam.vp(), meshes);
 
 		text.render(wsize);
 

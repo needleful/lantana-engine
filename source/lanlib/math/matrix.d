@@ -8,6 +8,8 @@ alias Mat2 = Matrix!(float, 2, 2);
 alias Mat3 = Matrix!(float, 3, 3);
 alias Mat4 = Matrix!(float, 4, 4);
 
+alias Mat4x3 = Matrix!(float, 4, 3);
+
 static immutable Mat4 Mat4_Identity = Mat4([
 		[1, 0, 0, 0f],
 		[0, 1, 0, 0f],

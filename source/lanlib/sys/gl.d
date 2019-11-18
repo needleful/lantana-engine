@@ -133,6 +133,14 @@ void gl_set_uniform(T)(GLint uniform, auto ref T value) @nogc
 	{
 		uniform.glUniformMatrix4fv(cast(int)value.length, GL_TRUE, value[0].ptr);
 	}
+	else static if (is(T == Mat4x3))
+	{
+		uniform.glUniformMatrix4x3fv(1, GL_TRUE, value.ptr);
+	}
+	else static if (is(T == Mat4x3[]))
+	{
+		uniform.glUniformMatrix4x3fv(cast(int)value.length, GL_TRUE, value[0].ptr);
+	}
 	else static if (is(T == Mat3))
 	{
 		uniform.glUniformMatrix3fv(1, GL_TRUE, value.ptr);
