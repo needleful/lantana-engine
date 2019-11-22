@@ -32,50 +32,27 @@ bool paused;
 int main()
 {
 	debug {
-		writeln("Running Lantana in debug mode!");
+		writeln("Running Axe Manor in debug mode!");
 	}
-	SDLWindow ww = SDLWindow(720, 512, "Lantana");
-	Input ii = Input();
-	ii.clear();
+	SDLWindow ww = SDLWindow(720, 512, "Axe Manor");
+	auto mm = new LanRegion(MAX_MEMORY, new SysMemManager());
 
+	Input input = Input();
 	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
-	text.blitgrid();
+	StaticMeshSystem smesh = StaticMeshSystem(8);
 
-	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
+	GLBLoadResults level_loaded = glb_load("data/test/meshes/level.glb", mm);
+	GLBLoadResults player_loaded = glb_load("data/meshes/player.glb", mm);
 
-	ILanAllocator sysmem = new SysMemManager();
-	auto mm = new LanRegion(MAX_MEMORY, sysmem);
+	auto level_mesh = smesh.build_mesh(level_loaded.accessors[0], level_loaded.data);
+	auto player_meshes = smesh.build_meshes(player_loaded);
 
-	StaticMeshSystem smesh = StaticMeshSystem(1);
-	assert(smesh.mat.can_render());
-
-	GLBLoadResults loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
-
-	assert(loaded.accessors.length == 1);
-
-	StaticMesh* test_mesh = smesh.build_mesh(loaded.accessors[0], loaded.data);
-
-	auto meshes = mm.make_list!(Instance!StaticMesh)(1000);
-
-	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
-	meshes[0].mesh = test_mesh;
-
-	Transform* tr = &meshes[0].transform;
-
-	// Putting cubes
-	for(uint i = 1; i < meshes.length; i++)
-	{
-		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
-		meshes[i].transform.rotate_degrees(90,0,0);
-		meshes[i].mesh = test_mesh;
-	}
-
-	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
+	auto cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
 
 	uint frame = 0;
 
-	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, Vec3(5, 7, 5));
-	Player* player = mm.create!Player(grid, GridPos(0,0,0));
+	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, Vec3(5, 7, 5));
+	auto player = Player(grid, GridPos(0,0,0));
 
 	int[2] wsize = ww.get_dimensions();
 
@@ -87,7 +64,7 @@ int main()
 	{
 		float delta = ww.delta_ms()/1000.0;
 	
-		ww.poll_events(ii);
+		ww.poll_events(input);
 
 		if(ww.state & WindowState.RESIZED)
 		{
@@ -97,7 +74,7 @@ int main()
 			);
 		}
 
-		if(ii.is_just_pressed(Input.Action.PAUSE))
+		if(input.is_just_pressed(Input.Action.PAUSE))
 		{
 			paused = !paused;
 			ww.grab_mouse(!paused);
@@ -105,13 +82,13 @@ int main()
 
 		if(!paused)
 		{
-			cam.rot.x += ii.mouse_movement.x*delta*60;
-			float next_rot = cam.rot.y + ii.mouse_movement.y;
+			cam.rot.x += input.mouse_movement.x*delta*60;
+			float next_rot = cam.rot.y + input.mouse_movement.y;
 			if(abs(next_rot) < 90){
 				cam.rot.y = next_rot;
 			}
 
-			player.frame(ii, delta);
+			player.frame(input, delta);
 
 			tr._position = player.getPos();
 			tr.rotate_degrees(0, 40*delta, 0);

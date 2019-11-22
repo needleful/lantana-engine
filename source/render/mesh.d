@@ -59,6 +59,7 @@ struct StaticMeshSystem
 		meshes.reserve(reserved_meshes);
 
 		glcheck();
+		assert(mat.can_render());
 	}
 
 	StaticMesh* build_mesh(GLBMeshAccessor accessor, ubyte[] data)
@@ -66,6 +67,13 @@ struct StaticMeshSystem
 		meshes.length += 1;
 		meshes[$-1] = StaticMesh(this, accessor, data);
 		return &meshes[$-1];
+	}
+
+	StaticMesh[] build_meshes(GLBLoadResults loaded)
+	{
+		uint start = meshes.length-1;
+		meshes.length += loaded.accessors.length;
+		uint end = meshes.length;
 	}
 
 	void render(Mat4 projection, Instance!StaticMesh[] instances)

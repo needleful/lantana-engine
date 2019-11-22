@@ -9,15 +9,24 @@ import lanlib.math.vector;
 import logic.grid;
 import logic.input;
 
+
+enum Direction
+{
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+}
+
+
+
 struct Player
 {
 	// Time to go from one grid point to another
 	enum TIME_MOVE = 0.25;
-
 	enum State
 	{
 		IDLE,
-		// + Y
 		MOVE,
 	}
 	Grid* grid;
