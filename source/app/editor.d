@@ -25,6 +25,11 @@ import ui.text;
 
 int main()
 {
+	return testsprite();
+}
+
+int basicRun()
+{
 	auto screen_w = 720;
 	auto screen_h = 512;
 

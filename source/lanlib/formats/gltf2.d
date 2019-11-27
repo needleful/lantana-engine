@@ -127,7 +127,7 @@ struct GLBAnimatedAccessor
 }
 
 //Check a binary gltf2 file
-auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator)
+auto glb_load(string file, ILanAllocator meshAllocator)
 {
 	assert(file.exists(), "File does not exist: " ~ file);
 
@@ -137,14 +137,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	// We won't bother checking the version (header[1]) or length (header[2])
 	assert(header[0] == 0x46546C67, "Invalid magic number: " ~ header[0].stringof);
 
-	static if(is_animated)
-	{
-		GLBLoadResults!GLBAnimatedAccessor results;
-	}
-	else
-	{
-		GLBLoadResults!GLBMeshAccessor results;
-	}
+	GLBLoadResults!GLBMeshAccessor results;
 
 	uint[2] jsonHeader;
 	input.rawRead(jsonHeader);
@@ -164,7 +157,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	return results;
 }
 
-auto glb_json_parse(bool is_animated = false)(char[] ascii_json)
+auto glb_json_parse(char[] ascii_json)
 {
 	debug writeln(ascii_json);
 	
@@ -189,14 +182,7 @@ auto glb_json_parse(bool is_animated = false)(char[] ascii_json)
 		bufferViews = json_buffer.array();
 	}
 
-	static if(is_animated)
-	{
-		GLBMeshAccessor[] accessors;
-	}
-	else
-	{
-		GLBAnimatedAccessor[] accessors;
-	}
+	GLBMeshAccessor[] accessors;
 	accessors.reserve(jMeshes.length);
 	
 	GLBBufferView fromJSON(JSONValue accessor, JSONValue[] bufferViews)
