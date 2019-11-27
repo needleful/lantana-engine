@@ -6,19 +6,19 @@ import std.math;
 import std.stdio;
 
 import lanlib.formats.gltf2;
-import lanlib.math.matrix;
 import lanlib.math.projection;
-import lanlib.math.vector;
 import lanlib.math.transform;
 import lanlib.sys.memory;
 import lanlib.sys.sdl;
+
+import gl3n.linalg;
 
 import logic.grid;
 import logic.input;
 import logic.player;
 
 import render.camera;
-import render.material;
+import render.Material;
 import render.mesh;
 
 import ui.text;
@@ -41,7 +41,7 @@ int main()
 	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
 	text.blitgrid();
 
-	auto debug_msg = text.add_text("Hello, world!", iVec2(20, 20), Vec3(1, 0.2, 0.2));
+	auto debug_msg = text.add_text("Hello, world!", ivec2(20, 20), vec3(1, 0.2, 0.2));
 
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
@@ -57,7 +57,7 @@ int main()
 
 	auto meshes = mm.make_list!(Instance!AnimatedMesh)(1000);
 
-	meshes[0].transform = Transform(0.5, Vec3(0,0,2));
+	meshes[0].transform = Transform(0.5, vec3(0,0,2));
 	meshes[0].mesh = test_mesh;
 
 	Transform* tr = &meshes[0].transform;
@@ -65,16 +65,16 @@ int main()
 	// Putting cubes
 	for(uint i = 1; i < meshes.length; i++)
 	{
-		meshes[i].transform = Transform(0.5, Vec3((i/100)*2, 0.2, 2+(i % 100)*2));
+		meshes[i].transform = Transform(0.5, vec3((i/100)*2, 0.2, 2+(i % 100)*2));
 		meshes[i].transform.rotate_degrees(90,0,0);
 		meshes[i].mesh = test_mesh;
 	}
 
-	Camera* cam = mm.create!Camera(Vec3(0,0,0), 720.0/512, 60);
+	Camera* cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
 
 	uint frame = 0;
 
-	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, Vec3(5, 7, 5));
+	Grid* grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, vec3(5, 7, 5));
 	Player* player = mm.create!Player(grid, GridPos(0,0,0));
 
 	int[2] wsize = ww.get_dimensions();

@@ -7,16 +7,15 @@ module render.mesh;
 debug import std.stdio;
 debug import std.format;
 
-import lanlib.math.matrix;
-import lanlib.math.vector;
-import lanlib.math.transform;
+import gl3n.linalg;
 
+import lanlib.math.transform;
 import lanlib.formats.gltf2;
 import lanlib.sys.gl;
 import lanlib.sys.memory:GpuResource;
 import lanlib.types;
 
-import render.material;
+import render.Material;
 
 struct Instance(MeshType)
 {
@@ -45,7 +44,7 @@ struct StaticMeshSystem
 
 	this(uint reserved_meshes)
 	{
-		mat = load_material("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
+		mat = load_Material("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
@@ -69,7 +68,7 @@ struct StaticMeshSystem
 		return &meshes[$-1];
 	}
 
-	void render(Mat4 projection, Instance!StaticMesh[] instances)
+	void render(mat4 projection, Instance!StaticMesh[] instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
@@ -77,9 +76,9 @@ struct StaticMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, Vec3(1,0.5,0.3));
-		mat.set_uniform(un.light_direction, Vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, Vec3(0, 0, 0.1));
+		mat.set_uniform(un.light_color, vec3(1,0.5,0.3));
+		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
+		mat.set_uniform(un.light_ambient, vec3(0, 0, 0.1));
 		mat.set_uniform(un.light_bias, 0.2);
 
 		GLuint current_vao = 0;
@@ -165,7 +164,7 @@ struct StaticMesh
 struct BoneIndex { mixin StrictAlias!ubyte; }
 struct Bone
 {
-	Mat4 transform; 
+	mat4 transform; 
 	/// indeces to parent in an armature
 	BoneIndex parent;
 }
@@ -203,7 +202,7 @@ struct AnimatedMeshSystem
 
 	this(uint reserved_meshes)
 	{
-		mat = load_material("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
+		mat = load_Material("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
@@ -230,20 +229,20 @@ struct AnimatedMeshSystem
 		return &meshes[$-1];
 	}
 
-	void render(Mat4 projection, Instance!AnimatedMesh[] instances)
+	void render(mat4 projection, Instance!AnimatedMesh[] instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
 
-		Mat4x3[] mats;
+		mat4x3[] mats;
 		mats.length = 24;
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, Vec3(1,0.5,0.3));
-		mat.set_uniform(un.light_direction, Vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, Vec3(0, 0, 0.1));
+		mat.set_uniform(un.light_color, vec3(1,0.5,0.3));
+		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
+		mat.set_uniform(un.light_ambient, vec3(0, 0, 0.1));
 		mat.set_uniform(un.light_bias, 0.2);
 		mat.set_uniform(un.bones, mats);
 		glcheck();

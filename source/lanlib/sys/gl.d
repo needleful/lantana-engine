@@ -9,13 +9,19 @@ mixin glFreeFuncs!(GLVersion.gl33);
 import std.file;
 import std.stdio;
 
+import gl3n.linalg;
+
+
+alias ivec2 = Vector!(int, 2);
+alias ivec3 = Vector!(int, 3);
+alias uvec2 = Vector!(uint, 2);
+alias uvec3 = Vector!(uint, 3);
+alias mat4x3 = Matrix!(float, 4, 3);
+
 debug
 {
 	import std.format;
 }
-
-import lanlib.math.vector;
-import lanlib.math.matrix;
 
 void glcheck() @nogc @safe
 {
@@ -82,80 +88,80 @@ void gl_set_uniform(T)(GLint uniform, auto ref T value) @nogc
 {
 	scope(exit) glcheck;
 
-	static if (is(T == Vec4))
+	static if (is(T == vec4))
 	{
 		uniform.glUniform4f(value.x, value.y, value.z, value.w);
 	}
-	else static if (is(T == Vec4[]))
+	else static if (is(T == vec4[]))
 	{
 		uniform.glUniform4fv(value.length, value.ptr);
 	}
-	else static if (is(T == Vec3))
+	else static if (is(T == vec3))
 	{
 		uniform.glUniform3f(value.x, value.y, value.z);
 	}
-	else static if (is(T == Vec3[]))
+	else static if (is(T == vec3[]))
 	{
 		uniform.glUniform3fv(value.length, value.ptr);
 	}
-	else static if (is(T == Vec2))
+	else static if (is(T == vec2))
 	{
 		uniform.glUniform2f(value.x, value.y);
 	}
-	else static if (is(T == Vec2[]))
+	else static if (is(T == vec2[]))
 	{
 		uniform.glUniform2fv(value.length, value.ptr);
 	}
 
-	else static if (is(T == iVec3))
+	else static if (is(T == ivec3))
 	{
 		uniform.glUniform3i(value.x, value.y, value.z);
 	}
-	else static if (is(T == iVec2))
+	else static if (is(T == ivec2))
 	{
 		uniform.glUniform2i(value.x, value.y);
 	}
 
-	else static if (is(T == uVec3))
+	else static if (is(T == uvec3))
 	{
 		uniform.glUniform3ui(value.x, value.y, value.z);
 	}
-	else static if (is(T == uVec2))
+	else static if (is(T == uvec2))
 	{
 		uniform.glUniform2ui(value.x, value.y);
 	}
 
-	else static if (is(T == Mat4))
+	else static if (is(T == mat4))
 	{
-		uniform.glUniformMatrix4fv(1, GL_TRUE, value.ptr);
+		uniform.glUniformMatrix4fv(1, GL_TRUE, &value[0][0]);
 	}
-	else static if (is(T == Mat4[]))
+	else static if (is(T == mat4[]))
 	{
-		uniform.glUniformMatrix4fv(cast(int)value.length, GL_TRUE, value[0].ptr);
+		uniform.glUniformMatrix4fv(cast(int)value.length, GL_TRUE, &value[0][0][0]);
 	}
-	else static if (is(T == Mat4x3))
+	else static if (is(T == mat4x3))
 	{
-		uniform.glUniformMatrix4x3fv(1, GL_TRUE, value.ptr);
+		uniform.glUniformMatrix4x3fv(1, GL_TRUE, &value[0][0]);
 	}
-	else static if (is(T == Mat4x3[]))
+	else static if (is(T == mat4x3[]))
 	{
-		uniform.glUniformMatrix4x3fv(cast(int)value.length, GL_TRUE, value[0].ptr);
+		uniform.glUniformMatrix4x3fv(cast(int)value.length, GL_TRUE, &value[0][0][0]);
 	}
-	else static if (is(T == Mat3))
+	else static if (is(T == mat3))
 	{
-		uniform.glUniformMatrix3fv(1, GL_TRUE, value.ptr);
+		uniform.glUniformMatrix3fv(1, GL_TRUE, &value[0][0]);
 	}
-	else static if (is(T == Mat3[]))
+	else static if (is(T == mat3[]))
 	{
-		uniform.glUniformMatrix3fv(cast(int)value.length, GL_TRUE, value[0].ptr);
+		uniform.glUniformMatrix3fv(cast(int)value.length, GL_TRUE, &value[0][0][0]);
 	}
-	else static if (is(T == Mat2))
+	else static if (is(T == mat2))
 	{
-		uniform.glUniformMatrix2fv(1, GL_TRUE, value.ptr);
+		uniform.glUniformMatrix2fv(1, GL_TRUE, &value[0][0]);
 	}
-	else static if (is(T == Mat2[]))
+	else static if (is(T == mat2[]))
 	{
-		uniform.glUniformMatrix2fv(cast(int)value.length, GL_TRUE, value[0].ptr);
+		uniform.glUniformMatrix2fv(cast(int)value.length, GL_TRUE, &value[0][0][0]);
 	}
 
 	else static if (is(T == float))

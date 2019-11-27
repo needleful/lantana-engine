@@ -4,10 +4,12 @@
 
 module logic.player;
 
-import lanlib.math.vector;
+import gl3n.interpolate;
+import gl3n.linalg;
 
 import logic.grid;
 import logic.input;
+
 
 struct Player
 {
@@ -83,12 +85,12 @@ struct Player
 
 	}
 
-	Vec3 getPos() @nogc @safe nothrow
+	vec3 getPos() @nogc @safe nothrow
 	{
-		return grid.getRealPosition(pos).lerp(
+		return lerp(
+			grid.getRealPosition(pos),
 			grid.getRealPosition(target), 
-			timer_move/TIME_MOVE
-			);
+			timer_move/TIME_MOVE);
 	}
 
 }

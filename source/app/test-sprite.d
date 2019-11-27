@@ -10,14 +10,16 @@ import std.stdio;
 import deimos.freeimage;
 import derelict.sdl2.sdl;
 
-import lanlib.math.vector;
+import gl3n.linalg;
+
 import lanlib.sys.gl;
 import lanlib.sys.sdl;
 
 import logic.input;
-import render.material;
+import render.Material;
 import render.mesh;
 
+alias ivec2 = Vector!(int, 2);
 
 struct Mesh2D
 {
@@ -26,11 +28,11 @@ struct Mesh2D
 	GLuint ebo;
 	GLuint vao;
 
-	iVec2[] vertices;
-	Vec2[] UVs;
+	ivec2[] vertices;
+	vec2[] UVs;
 	uint[] triangles;
 
-	this(iVec2[] verts, Vec2[] UVs, uint[] elements) @nogc
+	this(ivec2[] verts, vec2[] UVs, uint[] elements) @nogc
 	{
 
 		assert(verts.length == UVs.length);
@@ -68,7 +70,7 @@ struct Mesh2D
 
 	@property const ulong vertsize() @safe @nogc nothrow
 	{
-		return vertices.length*Vec2.sizeof;
+		return vertices.length*vec2.sizeof;
 	}
 
 	@property const ulong trisize() @safe @nogc nothrow
@@ -152,18 +154,18 @@ int testsprite()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex.id);
 
-	iVec2[] verts = [
-		iVec2(100, 100),
-		iVec2(100, 100 + tex.height()),
-		iVec2(100 + tex.width(), 100),
-		iVec2(100 + tex.width(), 100 + tex.height()),
+	ivec2[] verts = [
+		ivec2(100, 100),
+		ivec2(100, 100 + tex.height()),
+		ivec2(100 + tex.width(), 100),
+		ivec2(100 + tex.width(), 100 + tex.height()),
 	];
 
-	Vec2[] UVs = [
-		Vec2(0, 0),
-		Vec2(0, 1),
-		Vec2(1, 0),
-		Vec2(1, 1),
+	vec2[] UVs = [
+		vec2(0, 0),
+		vec2(0, 1),
+		vec2(1, 0),
+		vec2(1, 1),
 	];
 
 	uint[] tris = [
@@ -173,7 +175,7 @@ int testsprite()
 	
 	glcheck();
 	
-	Material mat2d = load_material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
+	Material mat2d = load_Material("data/shaders/screenspace2d.vert", "data/shaders/sprite2d.frag");
 	assert(mat2d.can_render());
 
 	Mesh2D mesh = Mesh2D(verts, UVs, tris);
@@ -211,9 +213,9 @@ int testsprite()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex.id);
 	mat2d.enable();	
-	mat2d.set_uniform("translate", iVec2(0,0));
-	mat2d.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
-	mat2d.set_uniform("cam_position", iVec2(0, 0));
+	mat2d.set_uniform("translate", ivec2(0,0));
+	mat2d.set_uniform("cam_resolution", uvec2(wsize[0], wsize[1]));
+	mat2d.set_uniform("cam_position", ivec2(0, 0));
 	mat2d.set_uniform("in_tex", 0);
 	
 
@@ -224,7 +226,7 @@ int testsprite()
 		if(ww.state & WindowState.RESIZED)
 		{
 			wsize = ww.get_dimensions();
-			mat2d.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
+			mat2d.set_uniform("cam_resolution", uvec2(wsize[0], wsize[1]));
 		}
 
 		ww.begin_frame();

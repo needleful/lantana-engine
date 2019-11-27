@@ -10,13 +10,14 @@ import deimos.freeimage;
 import derelict.freetype;
 import derelict.sdl2.sdl;
 
-import lanlib.math.vector;
+import gl3n.linalg;
+
 import lanlib.sys.gl;
 import lanlib.sys.sdl;
 
 import logic.input;
 
-import render.material;
+import render.Material;
 import render.mesh;
 
 import test.sprite;
@@ -48,24 +49,24 @@ int main()
 	auto atlas = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 32, 256, 256);
 
 	atlas.blitgrid();
-	auto message = atlas.add_text("You've been working hard;\nI find that to be of great interest now.", iVec2(0, 128));
-	auto message2 = atlas.add_text(r"[]{|\][11425239p8()*3590198-25", iVec2(0,54), Vec3(0, 0.5, 0.5));
+	auto message = atlas.add_text("You've been working hard;\nI find that to be of great interest now.", ivec2(0, 128));
+	auto message2 = atlas.add_text(r"[]{|\][11425239p8()*3590198-25", ivec2(0,54), vec3(0, 0.5, 0.5));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
 
-	iVec2[] verts = [
-		iVec2(0, 256),
-		iVec2(0, 512),
-		iVec2(256, 256),
-		iVec2(256, 512),
+	ivec2[] verts = [
+		ivec2(0, 256),
+		ivec2(0, 512),
+		ivec2(256, 256),
+		ivec2(256, 512),
 	];
 
-	Vec2[] UVs = [
-		Vec2(0, 1),
-		Vec2(0, 0),
-		Vec2(1, 1),
-		Vec2(1, 0),
+	vec2[] UVs = [
+		vec2(0, 1),
+		vec2(0, 0),
+		vec2(1, 1),
+		vec2(1, 0),
 	];
 
 	uint[] tris = [
@@ -112,7 +113,7 @@ int main()
 		if(ww.state & WindowState.RESIZED)
 		{
 			wsize = ww.get_dimensions();
-			atlas.text_mat.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_uniform("cam_resolution", uvec2(wsize[0], wsize[1]));
 		}
 
 		ww.begin_frame();
@@ -127,11 +128,11 @@ int main()
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, atlas.atlas_id);
 
-			atlas.text_mat.set_uniform("translate", iVec2(0,0));
-			atlas.text_mat.set_uniform("cam_resolution", uVec2(wsize[0], wsize[1]));
-			atlas.text_mat.set_uniform("cam_position", iVec2(0, 0));
+			atlas.text_mat.set_uniform("translate", ivec2(0,0));
+			atlas.text_mat.set_uniform("cam_resolution", uvec2(wsize[0], wsize[1]));
+			atlas.text_mat.set_uniform("cam_position", ivec2(0, 0));
 			atlas.text_mat.set_uniform("in_tex", 0);
-			atlas.text_mat.set_uniform("color", Vec3(0.9, 0.5, 0.7));
+			atlas.text_mat.set_uniform("color", vec3(0.9, 0.5, 0.7));
 
 			glBindVertexArray(vao_text);
 			glDrawElements(GL_TRIANGLES, cast(int)mesh.triangles.length*3, GL_UNSIGNED_INT, cast(GLvoid*) 0);

@@ -6,12 +6,13 @@ module lanlib.math.projection;
 
 import std.math: tan, PI;
 
+import gl3n.linalg;
+
 import lanlib.math.func;
-import lanlib.math.matrix;
 
 struct Projection
 {
-	private Mat4 _matrix;
+	private mat4 _matrix;
 	float aspect_ratio;
 	float fov;
 	float near_plane;
@@ -35,15 +36,15 @@ struct Projection
 		float z1 = (-near_plane - far_plane)/(near_plane - far_plane);
 		float z2 = (2*near_plane*far_plane)/(near_plane - far_plane); 
 
-		_matrix.set([
-			[1/(ar*t),   0,  0, 0f],
-			[       0, 1/t,  0, 0f],
-			[       0,   0, z1, z2],
-			[       0,   0, 1f, 0f]
-		]);
+		_matrix = mat4(
+			vec4(1/(ar*t),   0,  0, 0f),
+			vec4(       0, 1/t,  0, 0f),
+			vec4(       0,   0, z1, z2),
+			vec4(       0,   0, 1f, 0f)
+		);
 	}
 
-	@property ref Mat4 matrix() @nogc @safe nothrow
+	@property ref mat4 matrix() @nogc @safe nothrow
 	{
 		compute_matrix();
 		return _matrix;

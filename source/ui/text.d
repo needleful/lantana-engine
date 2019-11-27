@@ -9,22 +9,24 @@ import std.stdio;
 
 import derelict.freetype;
 
-import lanlib.math.vector;
-import lanlib.sys.gl;
+import gl3n.linalg;
 
-import render.material;
+import lanlib.sys.gl;
+import render.Material;
+
+alias ivec2 = Vector!(int, 2);
 
 struct Rectangle
 {
-	iVec2 pos;
-	iVec2 size;
-	this(iVec2 pos, iVec2 size)
+	ivec2 pos;
+	ivec2 size;
+	this(ivec2 pos, ivec2 size)
 	{
 		this.pos = pos;
 		this.size = size;
 	}
 
-	bool holds(iVec2 bounds)
+	bool holds(ivec2 bounds)
 	{
 		return bounds.x <= size.x && bounds.y <= size.y;
 	}
@@ -33,12 +35,12 @@ struct Rectangle
 struct ScreenSpaceText
 {
 	string text;
-	iVec2 position;
-	Vec3 color;
+	ivec2 position;
+	vec3 color;
 
 	uint[] elements;
-	iVec2[] vertices;
-	Vec2[] uvs;
+	ivec2[] vertices;
+	vec2[] uvs;
 
 	GLuint vao;
 	// [0] is elements
@@ -87,10 +89,10 @@ struct ScreenSpaceText
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.length*uint.sizeof, elements.ptr, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glBufferData(GL_ARRAY_BUFFER, vertices.length*iVec2.sizeof, vertices.ptr, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertices.length*ivec2.sizeof, vertices.ptr, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glBufferData(GL_ARRAY_BUFFER, uvs.length*Vec2.sizeof, uvs.ptr, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, uvs.length*vec2.sizeof, uvs.ptr, GL_STATIC_DRAW);
 	}
 
 	~this()
@@ -144,7 +146,7 @@ class TextAtlas
 	GlyphNode *glyphs;
 	// The actual bytes of the texture
 	ubyte[] texture_data;
-	// Text material
+	// Text Material
 	Material text_mat;
 	// The strings handled by this atlas
 	ScreenSpaceText[] textboxes;
@@ -170,8 +172,8 @@ class TextAtlas
 		this.height = height;
 		texture_data.length = width*height;
 
-		glyphs = new GlyphNode(Rectangle(iVec2(0,0), iVec2(width, height)));
-		text_mat = load_material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
+		glyphs = new GlyphNode(Rectangle(ivec2(0,0), ivec2(width, height)));
+		text_mat = load_Material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
 		assert(text_mat.can_render());
 
 		un.translate = text_mat.get_uniform_id("translate");
@@ -232,7 +234,7 @@ class TextAtlas
 		FT_Done_FreeType(library);
 	}
 
-	ScreenSpaceText* add_text(string text, iVec2 position = iVec2(0), Vec3 color = Vec3(1))
+	ScreenSpaceText* add_text(string text, ivec2 position = ivec2(0), vec3 color = vec3(1))
 	{
 		import std.uni;
 
@@ -243,7 +245,7 @@ class TextAtlas
 		res.position = position;
 		res.color = color;
 
-		iVec2 pen = iVec2(0, face.height >> 6);
+		ivec2 pen = ivec2(0, face.height >> 6);
 		uint idx_vbo = 0;
 		uint idx_ebo = 0;
 
@@ -260,10 +262,10 @@ class TextAtlas
 			{
 				GlyphNode* glyph = insertChar(c);
 				
-				iVec2 left = iVec2(g.bitmap_left, 0);
-				iVec2 right = iVec2(g.bitmap_left + g.bitmap.width, 0);
-				iVec2 bottom = iVec2(0, g.bitmap_top - g.bitmap.rows);
-				iVec2 top = iVec2(0, g.bitmap_top);
+				ivec2 left = ivec2(g.bitmap_left, 0);
+				ivec2 right = ivec2(g.bitmap_left + g.bitmap.width, 0);
+				ivec2 bottom = ivec2(0, g.bitmap_top - g.bitmap.rows);
+				ivec2 top = ivec2(0, g.bitmap_top);
 
 				res.vertices.length += 4;
 				res.vertices[idx_vbo..idx_vbo+4] = [
@@ -277,20 +279,20 @@ class TextAtlas
 				//	res.vertices[idx_vbo].x, res.vertices[idx_vbo].y,
 				//	res.vertices[idx_vbo+3].x, res.vertices[idx_vbo+3].y);
 
-				Vec2 uv_pos = Vec2(glyph.rec.pos.x, glyph.rec.pos.y);
+				vec2 uv_pos = vec2(glyph.rec.pos.x, glyph.rec.pos.y);
 				uv_pos.x /= width;
 				uv_pos.y /= height;
 
-				Vec2 uv_size = Vec2(glyph.rec.size.x, glyph.rec.size.y);
+				vec2 uv_size = vec2(glyph.rec.size.x, glyph.rec.size.y);
 				uv_size.x /= width;
 				uv_size.y /= height;
 
 				res.uvs.length += 4;
 				res.uvs[idx_vbo..idx_vbo+4] = [
-					uv_pos + Vec2(0, uv_size.y),
+					uv_pos + vec2(0, uv_size.y),
 					uv_pos,
 					uv_pos + uv_size,
-					uv_pos + Vec2(uv_size.x, 0)
+					uv_pos + vec2(uv_size.x, 0)
 				];
 
 				res.elements.length += 6;
@@ -353,8 +355,8 @@ class TextAtlas
 		glcheck(); 
 
 		text_mat.set_uniform(un.in_tex, 0);
-		text_mat.set_uniform(un.cam_resolution, uVec2(wsize[0], wsize[1]));
-		text_mat.set_uniform(un.cam_position, iVec2(0, 0));
+		text_mat.set_uniform(un.cam_resolution, uvec2(wsize[0], wsize[1]));
+		text_mat.set_uniform(un.cam_position, ivec2(0, 0));
 
 		glcheck();
 
@@ -434,9 +436,9 @@ class TextAtlas
 			}
 			if(g.isleaf())
 			{
-				iVec2 size = iVec2(face.glyph.bitmap.pitch, face.glyph.bitmap.rows);
+				ivec2 size = ivec2(face.glyph.bitmap.pitch, face.glyph.bitmap.rows);
 
-				iVec2 space = g.rec.size - size;
+				ivec2 space = g.rec.size - size;
 
 				// Perfect size
 				if(space.x == 0 && space.y == 0)
@@ -457,11 +459,11 @@ class TextAtlas
 					// left is on the bottom (same position up to the vertical size)
 					g.left = new GlyphNode(Rectangle(
 						g.rec.pos, 
-						iVec2(g.rec.size.x, size.y)));
+						ivec2(g.rec.size.x, size.y)));
 
 					g.right = new GlyphNode(Rectangle(
-						iVec2(g.rec.pos.x, g.rec.pos.y + size.y),
-						iVec2(g.rec.size.x, space.y)));
+						ivec2(g.rec.pos.x, g.rec.pos.y + size.y),
+						ivec2(g.rec.size.x, space.y)));
 
 					return _insert(g.left, c);
 				}
@@ -470,11 +472,11 @@ class TextAtlas
 					// left is on the left (same pos up to horizontal size)
 					g.left = new GlyphNode(Rectangle(
 						g.rec.pos, 
-						iVec2(size.x, g.rec.size.y)));
+						ivec2(size.x, g.rec.size.y)));
 
 					g.right = new GlyphNode(Rectangle(
-						iVec2(g.rec.pos.x + size.x, g.rec.pos.y),
-						iVec2(space.x, g.rec.size.y)));
+						ivec2(g.rec.pos.x + size.x, g.rec.pos.y),
+						ivec2(space.x, g.rec.size.y)));
 
 					return _insert(g.left, c);
 				}
@@ -539,7 +541,7 @@ class TextAtlas
 				GL_UNSIGNED_BYTE, texture_data.ptr);
 	}
 
-	void blit(FT_Bitmap bm, iVec2 pen)
+	void blit(FT_Bitmap bm, ivec2 pen)
 	{
 		uint pitch = bm.pitch;
 		// Only 8-bit images

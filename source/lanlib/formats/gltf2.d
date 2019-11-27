@@ -9,7 +9,6 @@ import std.format;
 import std.json;
 import std.stdio;
 
-import lanlib.math.vector;
 import lanlib.sys.memory;
 
 struct GLBLoadResults(Accessor)

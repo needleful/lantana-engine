@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module render.material;
+module render.Material;
 
 debug
 {
@@ -27,7 +27,7 @@ struct AttribId
 	mixin StrictAlias!GLint;
 }
 
-Material load_material(const string vert_file, const string frag_file)
+Material load_Material(const string vert_file, const string frag_file)
 {
 	GLuint matId = glCreateProgram();
 
@@ -88,7 +88,7 @@ struct Material
 	{
 		debug
 		{
-			printf("Destroying material: %u\n", matId);
+			printf("Destroying Material: %u\n", matId);
 		}
 		if(matId)
 		{
@@ -109,7 +109,7 @@ struct Material
 		{
 			if(!matId)
 			{
-				assert(false, "Tried to use material with no ID!");
+				assert(false, "Tried to use Material with no ID!");
 			}
 		}
 		matId.glUseProgram();
@@ -133,7 +133,7 @@ struct Material
 				error.length = loglen;
 
 				matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
-				throw new Exception(format("Cannot render material: %s", error));
+				throw new Exception(format("Cannot render Material: %s", error));
 			}
 			else
 			{

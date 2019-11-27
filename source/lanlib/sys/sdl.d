@@ -11,8 +11,9 @@ import std.stdio;
 import derelict.freetype;
 import derelict.sdl2.sdl;
 
+import gl3n.linalg;
+
 import lanlib.math.transform;
-import lanlib.math.vector;
 import logic.input;
 import lanlib.sys.gl;
 
@@ -184,7 +185,7 @@ struct SDLWindow
 		time = SDL_GetTicks();
 		state = WindowState.NONE;
 		
-		input.mouse_movement = Vec2(0,0);
+		input.mouse_movement = vec2(0,0);
 		foreach(ref Input.Status status; input.status)
 		{
 			if(status == Input.Status.JUST_RELEASED)
@@ -236,7 +237,7 @@ struct SDLWindow
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					input.mouse_movement = Vec2(event.motion.xrel, event.motion.yrel);
+					input.mouse_movement = vec2(event.motion.xrel, event.motion.yrel);
 					break;
 				default:
 					//Nothing
