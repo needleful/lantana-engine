@@ -127,7 +127,7 @@ struct GLBAnimatedAccessor
 }
 
 //Check a binary gltf2 file
-auto glb_load(string file, ILanAllocator meshAllocator)
+auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator)
 {
 	assert(file.exists(), "File does not exist: " ~ file);
 
@@ -137,7 +137,14 @@ auto glb_load(string file, ILanAllocator meshAllocator)
 	// We won't bother checking the version (header[1]) or length (header[2])
 	assert(header[0] == 0x46546C67, "Invalid magic number: " ~ header[0].stringof);
 
-	GLBLoadResults!GLBMeshAccessor results;
+	static if(is_animated)
+	{
+		GLBLoadResults!GLBAnimatedAccessor results;
+	}
+	else
+	{
+		GLBLoadResults!GLBMeshAccessor results;
+	}
 
 	uint[2] jsonHeader;
 	input.rawRead(jsonHeader);
@@ -146,7 +153,7 @@ auto glb_load(string file, ILanAllocator meshAllocator)
 	char[] json;
 	json.length = jsonHeader[0];
 	input.rawRead(json);
-	results.accessors = glb_json_parse(json);
+	results.accessors = glb_json_parse!is_animated(json);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
@@ -157,7 +164,7 @@ auto glb_load(string file, ILanAllocator meshAllocator)
 	return results;
 }
 
-auto glb_json_parse(char[] ascii_json)
+auto glb_json_parse(bool is_animated)(char[] ascii_json)
 {
 	debug writeln(ascii_json);
 	
@@ -182,7 +189,14 @@ auto glb_json_parse(char[] ascii_json)
 		bufferViews = json_buffer.array();
 	}
 
-	GLBMeshAccessor[] accessors;
+	static if(is_animated)
+	{
+		GLBAnimatedAccessor[] accessors;
+	}
+	else
+	{
+		GLBMeshAccessor[] accessors;
+	}
 	accessors.reserve(jMeshes.length);
 	
 	GLBBufferView fromJSON(JSONValue accessor, JSONValue[] bufferViews)
@@ -224,6 +238,14 @@ auto glb_json_parse(char[] ascii_json)
 		accessor.positions = fromJSON(access[ac_position], bufferViews);
 		accessor.normals = fromJSON(access[ac_normal], bufferViews);
 		accessor.uv = fromJSON(access[ac_uv], bufferViews);
+
+		static if(is_animated)
+		{
+			uint ac_weights = cast(uint) atr["WEIGHTS_0"].integer();
+			uint ac_joints = cast(uint) atr["JOINTS_0"].integer();
+			accessor.bone_weight = fromJSON(access[ac_weights], bufferViews);
+			accessor.bone_idx = fromJSON(access[ac_joints], bufferViews);
+		}
 	}
 
 	return accessors;
