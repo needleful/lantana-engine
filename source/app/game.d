@@ -55,12 +55,11 @@ int main()
 
 	auto test_mesh = anmesh.build_mesh(loaded.accessors[0], loaded);
 
-	auto meshes = mm.make_list!AnimatedMeshInstance(500);
+	auto meshes = mm.make_list!AnimatedMeshInstance(1000);
 
 	meshes[0].transform = Transform(0.5, vec3(0,0,2));
 	meshes[0].mesh = test_mesh;
 	meshes[0].bones = mm.make_list!mat4(test_mesh.bones.length);
-
 	Transform* tr = &meshes[0].transform;
 
 	// Putting cubes
@@ -113,7 +112,23 @@ int main()
 				cam.rot.y = next_rot;
 			}
 
-			player.frame(ii, delta);
+			//player.frame(ii, delta);
+			if(ii.is_pressed(Input.Action.FORWARD))
+			{
+				cam.pos += cam.forward()*delta;
+			}
+			if(ii.is_pressed(Input.Action.BACK))
+			{
+				cam.pos -= cam.forward()*delta;
+			}
+			if(ii.is_pressed(Input.Action.RIGHT))
+			{
+				cam.pos += cam.right()*delta;
+			}
+			if(ii.is_pressed(Input.Action.LEFT))
+			{
+				cam.pos -= cam.right()*delta;
+			}
 
 			tr._position = player.getPos();
 			tr.rotate_degrees(0, 40*delta, 0);

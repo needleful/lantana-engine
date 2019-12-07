@@ -211,11 +211,23 @@ struct AnimatedMeshSystem
 
 	void update(float delta, AnimatedMeshInstance[] instances)
 	{
+		mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
+		{
+			if(node.parent >= 0)
+			{
+				return applyParentTransform(nodes[node.parent], nodes) * node.transform;
+			}
+			else
+			{
+				return node.transform;
+			}
+		}
 		foreach(ref inst; instances)
 		{
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
-				inst.bones[i] = inst.mesh.bones[i].transform;
+				inst.bones[i] = inst.mesh.bones[i].transform; 
+				//applyParentTransform(inst.mesh.bones[i], inst.mesh.bones);
 			}
 		}
 	}
@@ -228,10 +240,10 @@ struct AnimatedMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, vec3(1,0.5,0.3));
+		mat.set_uniform(un.light_color, vec3(1));
 		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, vec3(0, 0, 0.1));
-		mat.set_uniform(un.light_bias, 0.2);
+		mat.set_uniform(un.light_ambient, vec3(0));
+		mat.set_uniform(un.light_bias, 1.0);
 		glcheck();
 
 		GLuint current_vao = 0;
@@ -239,7 +251,7 @@ struct AnimatedMeshSystem
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
-			mat.set_uniform(un.bones, inst.bones[0..inst.bones.length]);
+			mat.set_uniform(un.bones, inst.bones);
 			if(current_vao != inst.mesh.vao)
 			{
 				current_vao = inst.mesh.vao;
@@ -314,7 +326,7 @@ struct AnimatedMesh
 			parent.atr.bone_weight,
 			accessor.bone_weight.dataType.componentCount,
 			accessor.bone_weight.componentType,
-			GL_FALSE,
+			GL_TRUE,
 			0,
 			cast(void*) accessor.bone_weight.byteOffset);
 

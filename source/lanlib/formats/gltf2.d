@@ -299,6 +299,13 @@ struct GLBAnimation
 	}
 }
 
+struct GLBSkin
+{
+	string name;
+	GLBNode[] joints;
+	ubyte inverseBindMatrices;
+}
+
 struct GLBAnimatedAccessor
 {
 	string name;
@@ -328,7 +335,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	char[] json;
 	json.length = jsonHeader[0];
 	input.rawRead(json);
-	auto results = glb_json_parse!is_animated(json);
+	auto results = glb_json_parse!is_animated(json, meshAllocator);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
@@ -339,7 +346,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	return results;
 }
 
-auto glb_json_parse(bool is_animated)(char[] ascii_json)
+auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 {
 	//debug writeln(ascii_json);
 	
@@ -376,38 +383,60 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json)
 		auto jrootnodes = scene["nodes"];
 		auto root_nodes = jrootnodes.array();
 
-		auto jnodes = scn["nodes"];
-		auto nodes = jnodes.array();
+		auto jjoints = scn["skins"].array()[0]["joints"];
+		auto joints = jjoints.array();
 
 		auto janim = scn["animations"];
 		auto anims = janim.array();
 
 		GLBAnimatedLoadResults result;
 
-		result.bones.reserve(nodes.length);
-		result.animations.reserve(anims.length);
+		result.bones = 
+			(cast(GLBNode*)alloc.make(joints.length*GLBNode.sizeof))
+			[0..joints.length];
+		result.animations =
+			(cast(GLBAnimation*)alloc.make(anims.length*GLBAnimation.sizeof))
+			[0..anims.length];
 
+		uint idx = 0;
 		foreach(animation; anims)
 		{
-			result.animations ~= GLBAnimation.fromJSON(animation, bufferViews, access);
+			result.animations[idx++] = GLBAnimation.fromJSON(animation, bufferViews, access);
 		}
-		foreach(node; nodes)
+
+
+		idx = 0;
+		foreach(joint; joints)
 		{
-			result.bones ~= GLBNode.fromJSON(node);
-		}
-		// Populate 'parent' field of bones
-		foreach(ulong idx_bone; 0..nodes.length-1)
-		{
-			auto node = nodes[idx_bone];
-			if("children" in node)
+			long node_idx = joint.integer();
+			auto node = scn["nodes"].array()[node_idx];
+
+			result.bones[idx++] = GLBNode.fromJSON(node);
+			debug 
 			{
-				auto children = node["children"].array();
-				foreach(child; children)
+				write("Bone: ");
+				writeln(node["name"].str());
+				auto m = result.bones[idx-1].transform;
+				foreach(uint i; 0..4)
 				{
-					result.bones[child.integer()].parent = cast(byte)idx_bone;
+					write("\t");
+					writeln(m[i]);
 				}
 			}
 		}
+		// Populate 'parent' field of bones
+		//foreach(ulong idx_bone; 0..joints.length-1)
+		//{
+		//	auto node = joints[idx_bone];
+		//	if("children" in node)
+		//	{
+		//		auto children = node["children"].array();
+		//		foreach(child; children)
+		//		{
+		//			result.bones[child.integer()].parent = cast(byte)idx_bone;
+		//		}
+		//	}
+		//}
 	}
 	else
 	{
@@ -434,10 +463,10 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json)
 		}
 
 		accessor.name = m["name"].str();
-		uint ac_indeces = cast(uint) primitives["indices"].integer();
-		uint ac_position = cast(uint) atr["POSITION"].integer();
-		uint ac_normal = cast(uint) atr["NORMAL"].integer();
-		uint ac_uv = cast(uint) atr["TEXCOORD_0"].integer();
+		auto ac_indeces = primitives["indices"].integer();
+		auto ac_position = atr["POSITION"].integer();
+		auto ac_normal = atr["NORMAL"].integer();
+		auto ac_uv = atr["TEXCOORD_0"].integer();
 
 		accessor.indices = GLBBufferView.fromJSON(access[ac_indeces], bufferViews);
 		accessor.positions = GLBBufferView.fromJSON(access[ac_position], bufferViews);
@@ -446,8 +475,8 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json)
 
 		static if(is_animated)
 		{
-			uint ac_weights = cast(uint) atr["WEIGHTS_0"].integer();
-			uint ac_joints = cast(uint) atr["JOINTS_0"].integer();
+			auto ac_weights = atr["WEIGHTS_0"].integer();
+			auto ac_joints = atr["JOINTS_0"].integer();
 			accessor.bone_weight = GLBBufferView.fromJSON(access[ac_weights], bufferViews);
 			accessor.bone_idx = GLBBufferView.fromJSON(access[ac_joints], bufferViews);
 		}

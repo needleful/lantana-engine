@@ -109,10 +109,10 @@ class LanRegion : ILanAllocator
 	{
 		if(bytes + space_used > capacity)
 		{
-			debug {
+			debug
 				assert(false, "Out of memory");
-			}
-			else return null;
+			else
+				return null;
 		}
 		void* result = cast(void*)(&data[space_used]);
 		set_space_used(space_used + bytes);
