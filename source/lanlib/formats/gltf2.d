@@ -9,11 +9,20 @@ import std.format;
 import std.json;
 import std.stdio;
 
+import gl3n.linalg;
 import lanlib.sys.memory;
 
-struct GLBLoadResults(Accessor)
+struct GLBStaticLoadResults
 {
-	Accessor[] accessors;
+	GLBMeshAccessor[] accessors;
+	ubyte[] data;
+}
+
+struct GLBAnimatedLoadResults
+{
+	GLBAnimatedAccessor[] accessors;
+	GLBAnimation[] animations;
+	GLBNode[] bones;
 	ubyte[] data;
 }
 
@@ -37,12 +46,12 @@ uint size(GLBComponentType type)
 {
 	switch(type)
 	{
-		case GLBComponentType.BYTE: return 1;
-		case GLBComponentType.UNSIGNED_BYTE: return 1;
+		case GLBComponentType.BYTE:  return 1;
 		case GLBComponentType.SHORT: return 2;
-		case GLBComponentType.UNSIGNED_SHORT: return 2;
-		case GLBComponentType.UNSIGNED_INT: return 4;
 		case GLBComponentType.FLOAT: return 4;
+		case GLBComponentType.UNSIGNED_INT:   return 4;
+		case GLBComponentType.UNSIGNED_BYTE:  return 1;
+		case GLBComponentType.UNSIGNED_SHORT: return 2;
 		default: 
 			debug throw new Exception(format("Invalid GLBComponentType: %u", type));
 			else return -1;
@@ -61,7 +70,7 @@ enum GLBDataType
 	UNKNOWN
 }
 
-GLBDataType fromString(string typename)
+GLBDataType typeFromString(string typename)
 {
 	switch(typename)
 	{
@@ -104,6 +113,19 @@ struct GLBBufferView
 
 	GLBDataType dataType;
 	GLBComponentType componentType;
+
+	static GLBBufferView fromJSON(JSONValue accessor, JSONValue[] bufferViews)
+	{
+		uint idx_buffer = cast(uint)accessor["bufferView"].integer();
+		auto b = bufferViews[idx_buffer];
+
+		GLBBufferView view;
+		view.componentType = cast(GLBComponentType) accessor["componentType"].integer();
+		view.dataType = typeFromString(accessor["type"].str());
+		view.byteOffset = cast(uint) b["byteOffset"].integer();
+		view.byteLength = cast(uint) b["byteLength"].integer();
+		return view;
+	}
 }
 
 struct GLBMeshAccessor
@@ -113,6 +135,168 @@ struct GLBMeshAccessor
 	GLBBufferView uv;
 	GLBBufferView normals;
 	GLBBufferView indices;
+}
+
+enum GLBAnimationPath
+{
+	TRANSLATION,
+	ROTATION,
+	SCALE,
+	WEIGHTS,
+	UNKNOWN
+}
+
+GLBAnimationPath pathFromString(string pathname)
+{
+	switch(pathname)
+	{
+		case "translation": return GLBAnimationPath.TRANSLATION;
+		case "rotation": return GLBAnimationPath.ROTATION;
+		case "weights": return GLBAnimationPath.WEIGHTS;
+		case "scale": return GLBAnimationPath.SCALE;
+		default: return GLBAnimationPath.UNKNOWN;
+	}
+}
+
+enum GLBInterpolationMode
+{
+	CUBICSPLINE,
+	LINEAR,
+	STEP,
+	UNKNOWN
+}
+
+GLBInterpolationMode interpolationFromString(string interp)
+{
+	switch(interp)
+	{
+		case "CUBICSPLINE": return GLBInterpolationMode.CUBICSPLINE;
+		case "LINEAR": return GLBInterpolationMode.LINEAR;
+		case "STEP": return GLBInterpolationMode.STEP;
+		default: return GLBInterpolationMode.UNKNOWN;
+	}
+}
+
+struct GLBAnimationChannel
+{
+	GLBAnimationPath path;
+	ubyte targetBone;
+	ubyte sourceSampler;
+}
+
+struct GLBAnimationSampler
+{
+	GLBBufferView sourceBuffer;
+	GLBBufferView targetBuffer;
+	GLBInterpolationMode interpolation;
+}
+
+struct GLBNode
+{
+	mat4 transform;
+	// -1 means it has no parent
+	byte parent;
+
+	static GLBNode fromJSON(JSONValue node)
+	{
+		GLBNode bone;
+		vec3 translation = vec3(0);
+		vec3 scale = vec3(1);
+		quat rotation = quat.identity();
+		
+		if("translation" in node)
+		{
+			auto tr = node["translation"].array();
+			translation = vec3(
+				tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
+				tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
+				tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
+		}
+
+		if("rotation" in node)
+		{
+			auto rot = node["rotation"].array();
+
+			rotation = quat(
+				rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
+				rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
+				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer(),
+				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer());
+		}
+
+		if("scale" in node)
+		{
+			auto scl = node["scale"].array();
+
+			scale = vec3(
+				scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
+				scl[1].type == JSONType.float_ ? scl[1].floating(): scl[1].integer(),
+				scl[2].type == JSONType.float_ ? scl[2].floating(): scl[2].integer());
+		}
+
+		bone.transform = mat4(
+			vec4(scale.x, 0.0f,     0.0f,     0),
+			vec4(0.0f,     scale.y, 0.0f,     0),
+			vec4(0.0f,     0.0f,     scale.z, 0),
+			vec4(0.0f,     0.0f,     0.0f,  1.0f)
+		);
+		bone.transform *= rotation.to_matrix!(4,4)();
+		bone.transform[0][3] = translation.x;
+		bone.transform[1][3] = translation.y;
+		bone.transform[2][3] = translation.z;
+
+		bone.parent = -1;
+
+		return bone;
+	}
+}
+
+struct GLBAnimation
+{
+	string name;
+	GLBAnimationChannel[] channels;
+	GLBAnimationSampler[] samplers;
+
+	static GLBAnimation fromJSON(JSONValue animation, JSONValue[] bufferViews, JSONValue[] access)
+	{
+		GLBAnimation a;
+		a.name = animation["name"].str();
+
+		auto channels = animation["channels"].array();
+		a.channels.reserve(channels.length);
+
+		auto samplers = animation["samplers"].array();
+		a.samplers.reserve(samplers.length);
+
+		foreach(channel; channels)
+		{
+			a.channels.length += 1;
+			auto chan = &a.channels[$-1];
+
+			chan.sourceSampler = cast(ubyte) channel["sampler"].integer();
+
+			auto target = channel["target"];
+			chan.targetBone = cast(ubyte) target["node"].integer();
+			chan.path = pathFromString(target["path"].str());
+		}
+		foreach(sampler; samplers)
+		{
+			a.samplers.length += 1;
+			auto samp = &a.samplers[$-1];
+
+			samp.interpolation = interpolationFromString(sampler["interpolation"].str());
+
+			auto input = cast(ubyte) sampler["input"].integer();
+			auto output = cast(ubyte) sampler["output"].integer();
+
+			auto in_access = access[input];
+			auto out_access = access[output];
+
+			samp.sourceBuffer = GLBBufferView.fromJSON(in_access, bufferViews);
+			samp.targetBuffer = GLBBufferView.fromJSON(out_access, bufferViews);
+		}
+		return a;
+	}
 }
 
 struct GLBAnimatedAccessor
@@ -137,15 +321,6 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	// We won't bother checking the version (header[1]) or length (header[2])
 	assert(header[0] == 0x46546C67, "Invalid magic number: " ~ header[0].stringof);
 
-	static if(is_animated)
-	{
-		GLBLoadResults!GLBAnimatedAccessor results;
-	}
-	else
-	{
-		GLBLoadResults!GLBMeshAccessor results;
-	}
-
 	uint[2] jsonHeader;
 	input.rawRead(jsonHeader);
 
@@ -153,7 +328,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	char[] json;
 	json.length = jsonHeader[0];
 	input.rawRead(json);
-	results.accessors = glb_json_parse!is_animated(json);
+	auto results = glb_json_parse!is_animated(json);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
@@ -166,55 +341,85 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 
 auto glb_json_parse(bool is_animated)(char[] ascii_json)
 {
-	debug writeln(ascii_json);
+	//debug writeln(ascii_json);
 	
 	JSONValue[] jMeshes, access, bufferViews;
-	{
-		JSONValue scn = parseJSON(ascii_json);
-		assert(scn.type == JSONType.object);
 
-		auto json_mesh = scn["meshes"];
-		assert(json_mesh.type == JSONType.array);
-		jMeshes = json_mesh.array();
+	JSONValue scn = parseJSON(ascii_json);
+	assert(scn.type == JSONType.object);
 
-		auto json_access = scn["accessors"];
-		assert(json_access.type == JSONType.array);
+	auto json_mesh = scn["meshes"];
+	assert(json_mesh.type == JSONType.array);
+	jMeshes = json_mesh.array();
 
-		access = json_access.array();
+	auto json_access = scn["accessors"];
+	assert(json_access.type == JSONType.array);
+
+	access = json_access.array();
 
 
-		auto json_buffer = scn["bufferViews"];
-		assert(json_buffer.type == JSONType.array);
+	auto json_buffer = scn["bufferViews"];
+	assert(json_buffer.type == JSONType.array);
 
-		bufferViews = json_buffer.array();
-	}
+	bufferViews = json_buffer.array();
 
 	static if(is_animated)
 	{
-		GLBAnimatedAccessor[] accessors;
+		auto scn_index = scn["scene"].integer();
+		auto jscenes = scn["scenes"];
+		
+		assert(jscenes.type == JSONType.array);
+		auto scenes = jscenes.array();
+
+		auto scene = scenes[scn_index];
+
+		auto jrootnodes = scene["nodes"];
+		auto root_nodes = jrootnodes.array();
+
+		auto jnodes = scn["nodes"];
+		auto nodes = jnodes.array();
+
+		auto janim = scn["animations"];
+		auto anims = janim.array();
+
+		GLBAnimatedLoadResults result;
+
+		result.bones.reserve(nodes.length);
+		result.animations.reserve(anims.length);
+
+		foreach(animation; anims)
+		{
+			result.animations ~= GLBAnimation.fromJSON(animation, bufferViews, access);
+		}
+		foreach(node; nodes)
+		{
+			result.bones ~= GLBNode.fromJSON(node);
+		}
+		// Populate 'parent' field of bones
+		foreach(ulong idx_bone; 0..nodes.length-1)
+		{
+			auto node = nodes[idx_bone];
+			if("children" in node)
+			{
+				auto children = node["children"].array();
+				foreach(child; children)
+				{
+					result.bones[child.integer()].parent = cast(byte)idx_bone;
+				}
+			}
+		}
 	}
 	else
 	{
-		GLBMeshAccessor[] accessors;
+		GLBStaticLoadResults result;
 	}
-	accessors.reserve(jMeshes.length);
-	
-	GLBBufferView fromJSON(JSONValue accessor, JSONValue[] bufferViews)
-	{
-		uint idx_buffer = cast(uint)accessor["bufferView"].integer();
-		auto b = bufferViews[idx_buffer];
 
-		GLBBufferView view;
-		view.componentType = cast(GLBComponentType) accessor["componentType"].integer();
-		view.dataType = fromString(accessor["type"].str());
-		view.byteOffset = cast(uint) b["byteOffset"].integer();
-		view.byteLength = cast(uint) b["byteLength"].integer();
-		return view;
-	}
+	result.accessors.reserve(jMeshes.length);
+	
 	foreach(ref m; jMeshes)
 	{
-		accessors.length += 1;
-		auto accessor = &accessors[$-1];
+		result.accessors.length += 1;
+		auto accessor = &result.accessors[$-1];
 
 		JSONValue primitives, atr;
 		{
@@ -234,19 +439,61 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json)
 		uint ac_normal = cast(uint) atr["NORMAL"].integer();
 		uint ac_uv = cast(uint) atr["TEXCOORD_0"].integer();
 
-		accessor.indices = fromJSON(access[ac_indeces], bufferViews);
-		accessor.positions = fromJSON(access[ac_position], bufferViews);
-		accessor.normals = fromJSON(access[ac_normal], bufferViews);
-		accessor.uv = fromJSON(access[ac_uv], bufferViews);
+		accessor.indices = GLBBufferView.fromJSON(access[ac_indeces], bufferViews);
+		accessor.positions = GLBBufferView.fromJSON(access[ac_position], bufferViews);
+		accessor.normals = GLBBufferView.fromJSON(access[ac_normal], bufferViews);
+		accessor.uv = GLBBufferView.fromJSON(access[ac_uv], bufferViews);
 
 		static if(is_animated)
 		{
 			uint ac_weights = cast(uint) atr["WEIGHTS_0"].integer();
 			uint ac_joints = cast(uint) atr["JOINTS_0"].integer();
-			accessor.bone_weight = fromJSON(access[ac_weights], bufferViews);
-			accessor.bone_idx = fromJSON(access[ac_joints], bufferViews);
+			accessor.bone_weight = GLBBufferView.fromJSON(access[ac_weights], bufferViews);
+			accessor.bone_idx = GLBBufferView.fromJSON(access[ac_joints], bufferViews);
 		}
 	}
 
-	return accessors;
+	return result;
+}
+
+OutType glb_convert(OutType, InType)(InType inval)
+{
+	import std.math;
+	static if(is(InType == byte) || is(OutType == byte))
+	{
+		float tmax = 127.0;
+		float min = -1;
+	}
+	else static if(is(InType == ubyte) || is(OutType == ubyte))
+	{
+		float tmax = 255.0;
+		float min = 0;
+	}
+	else static if(is(InType == short) || is(OutType == short))
+	{
+		float tmax = 32767.0;
+		float min = -1;
+	}
+	else static if(is(InType == ushort) || is(OutType == ushort))
+	{
+		float tmax = 65535.0;
+		float min = 0;
+	}
+	else
+	{
+		static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+	}
+
+	static if(is(OutType == float))
+	{
+		return max(inval/tmax, min);
+	}
+	else static if(is(InType == float))
+	{
+		return cast(OutType)round(inval * tmax);
+	}
+	else
+	{
+		static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+	}
 }

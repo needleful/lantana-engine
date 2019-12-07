@@ -23,7 +23,7 @@ import render.mesh;
 
 import ui.text;
 
-enum MAX_MEMORY = 1024*1024;
+enum MAX_MEMORY = 1024*1024*5;
 
 enum cam_speed = 8;
 
@@ -46,19 +46,20 @@ int main()
 	ILanAllocator sysmem = new SysMemManager();
 	auto mm = new LanRegion(MAX_MEMORY, sysmem);
 
-	StaticMeshSystem smesh = StaticMeshSystem(1);
-	assert(smesh.mat.can_render());
+	AnimatedMeshSystem anmesh = AnimatedMeshSystem(1);
+	assert(anmesh.mat.can_render());
 
-	auto loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
+	auto loaded = glb_load!true("data/test/meshes/funny-cube.glb", mm);
 
 	assert(loaded.accessors.length == 1);
 
-	auto test_mesh = smesh.build_mesh(loaded.accessors[0], loaded.data);
+	auto test_mesh = anmesh.build_mesh(loaded.accessors[0], loaded);
 
-	auto meshes = mm.make_list!(Instance!StaticMesh)(1000);
+	auto meshes = mm.make_list!AnimatedMeshInstance(500);
 
 	meshes[0].transform = Transform(0.5, vec3(0,0,2));
 	meshes[0].mesh = test_mesh;
+	meshes[0].bones = mm.make_list!mat4(test_mesh.bones.length);
 
 	Transform* tr = &meshes[0].transform;
 
@@ -68,6 +69,7 @@ int main()
 		meshes[i].transform = Transform(0.5, vec3((i/100)*2, 0.2, 2+(i % 100)*2));
 		meshes[i].transform.rotate_degrees(90,0,0);
 		meshes[i].mesh = test_mesh;
+		meshes[i].bones = mm.make_list!mat4(test_mesh.bones.length);
 	}
 
 	Camera* cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
@@ -117,9 +119,10 @@ int main()
 			tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
 		}
+		anmesh.update(delta, meshes);
+
 		ww.begin_frame();
-		
-		smesh.render(cam.vp(), meshes);
+		anmesh.render(cam.vp(), meshes);
 
 		text.render(wsize);
 

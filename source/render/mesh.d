@@ -17,10 +17,10 @@ import lanlib.types;
 
 import render.Material;
 
-struct Instance(MeshType)
+struct StaticMeshInstance
 {
 	Transform transform;
-	MeshType* mesh;
+	StaticMesh* mesh;
 }
 
 struct StaticMeshSystem
@@ -68,7 +68,7 @@ struct StaticMeshSystem
 		return &meshes[$-1];
 	}
 
-	void render(mat4 projection, Instance!StaticMesh[] instances)
+	void render(mat4 projection, StaticMeshInstance[] instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
@@ -161,26 +161,6 @@ struct StaticMesh
 	}
 }
 
-struct BoneIndex { mixin StrictAlias!ubyte; }
-struct Bone
-{
-	mat4 transform; 
-	/// indeces to parent in an armature
-	BoneIndex parent;
-}
-
-struct Armature
-{
-	/// Cannot be more than 24 bones by shader limitation
-	Bone[] skeleton;
-}
-
-
-struct Animation
-{
-
-}
-
 struct AnimatedMeshSystem
 {
 	struct Uniforms
@@ -222,21 +202,29 @@ struct AnimatedMeshSystem
 		glcheck();
 	}
 
-	AnimatedMesh* build_mesh(GLBAnimatedAccessor accessor, ubyte[] data)
+	AnimatedMesh* build_mesh(GLBAnimatedAccessor accessor, GLBAnimatedLoadResults loaded)
 	{
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, accessor, data);
+		meshes[$-1] = AnimatedMesh(this, accessor, loaded.bones, loaded.data);
 		return &meshes[$-1];
 	}
 
-	void render(mat4 projection, Instance!AnimatedMesh[] instances)
+	void update(float delta, AnimatedMeshInstance[] instances)
+	{
+		foreach(ref inst; instances)
+		{
+			foreach(ulong i; 0..inst.mesh.bones.length)
+			{
+				inst.bones[i] = inst.mesh.bones[i].transform;
+			}
+		}
+	}
+
+	void render(mat4 projection, AnimatedMeshInstance[] instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
-
-		mat4x3[] mats;
-		mats.length = 24;
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
@@ -244,7 +232,6 @@ struct AnimatedMeshSystem
 		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
 		mat.set_uniform(un.light_ambient, vec3(0, 0, 0.1));
 		mat.set_uniform(un.light_bias, 0.2);
-		mat.set_uniform(un.bones, mats);
 		glcheck();
 
 		GLuint current_vao = 0;
@@ -252,7 +239,7 @@ struct AnimatedMeshSystem
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
-
+			mat.set_uniform(un.bones, inst.bones[0..inst.bones.length]);
 			if(current_vao != inst.mesh.vao)
 			{
 				current_vao = inst.mesh.vao;
@@ -271,20 +258,30 @@ struct AnimatedMeshSystem
 	}
 }
 
-
 struct AnimatedMesh
 {
+	GLBNode[] bones;
 	ubyte[] data;
+	GLBAnimation[] animations;
 	GLBAnimatedAccessor accessor;
-	GLuint vbo, vao;
+	GLuint vao;
+	// Multiple VBOs are used here, unlike in static meshes.
+	// This is because animation keyframes are also in the buffer.
+	// 0: position
+	// 1: normals
+	// 2: bone_weight
+	// 3: bone_idx
+	// 4: indices
+	GLuint[5] vbo;
 
-	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, ubyte[] data)
+	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBNode[] bones, ubyte[] data)
 	{
 		this.data = data;
+		this.bones = bones;
 		this.accessor = accessor;
 
 		glcheck();
-		glGenBuffers(1, &vbo);
+		glGenBuffers(vbo.length, vbo.ptr);
 		glGenVertexArrays(1, &vao);
 
 		glBindVertexArray(vao);
@@ -294,16 +291,13 @@ struct AnimatedMesh
 		glEnableVertexAttribArray(parent.atr.bone_weight);
 		glEnableVertexAttribArray(parent.atr.bone_idx);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
-		
-		glVertexAttribPointer(
-			parent.atr.normal,
-			accessor.normals.dataType.componentCount,
-			accessor.normals.componentType,
-			GL_FALSE,
-			0,
-			cast(void*) accessor.normals.byteOffset);
+		// Buffer 0: position
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			accessor.positions.byteLength,
+			&data[accessor.positions.byteOffset],
+			GL_STATIC_DRAW);
 
 		glVertexAttribPointer(
 			parent.atr.position,
@@ -311,15 +305,31 @@ struct AnimatedMesh
 			accessor.positions.componentType,
 			GL_FALSE,
 			0,
-			cast(void*) accessor.positions.byteOffset);
+			cast(void*) 0);
+
+		// Buffer 1: normals
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			accessor.normals.byteLength,
+			&data[accessor.normals.byteOffset],
+			GL_STATIC_DRAW);
 
 		glVertexAttribPointer(
-			parent.atr.bone_idx,
-			accessor.bone_idx.dataType.componentCount,
-			accessor.bone_idx.componentType,
+			parent.atr.normal,
+			accessor.normals.dataType.componentCount,
+			accessor.normals.componentType,
 			GL_FALSE,
 			0,
-			cast(void*) accessor.bone_idx.byteOffset);
+			cast(void*) 0);
+
+		// Buffer 2: bone_weight
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			accessor.bone_weight.byteLength,
+			&data[accessor.bone_weight.byteOffset],
+			GL_STATIC_DRAW);
 
 		glVertexAttribPointer(
 			parent.atr.bone_weight,
@@ -327,9 +337,31 @@ struct AnimatedMesh
 			accessor.bone_weight.componentType,
 			GL_FALSE,
 			0,
-			cast(void*) accessor.bone_weight.byteOffset);
+			cast(void*) 0);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
+		// Buffer 3: bone_idx
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			accessor.bone_idx.byteLength,
+			&data[accessor.bone_idx.byteOffset],
+			GL_STATIC_DRAW);
+
+		glVertexAttribPointer(
+			parent.atr.bone_idx,
+			accessor.bone_idx.dataType.componentCount,
+			accessor.bone_idx.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		// Buffer 4: EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[4]);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			accessor.indices.byteLength,
+			&data[accessor.indices.byteOffset],
+			GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 		glDisableVertexAttribArray(parent.atr.position);
@@ -343,8 +375,22 @@ struct AnimatedMesh
 	~this()
 	{
 		debug printf("Deleting AnimatedMesh (vao %d)\n", vao);
-		glDeleteBuffers(1, &vbo);
+		glDeleteBuffers(vbo.length, vbo.ptr);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
 	}
+}
+
+struct Bone
+{
+	mat4 transform;
+}
+
+struct AnimatedMeshInstance
+{
+	Transform transform;
+	mat4[] bones;
+	AnimatedMesh* mesh;
+	float time;
+	ushort animation_index;
 }
