@@ -264,15 +264,7 @@ struct AnimatedMesh
 	ubyte[] data;
 	GLBAnimation[] animations;
 	GLBAnimatedAccessor accessor;
-	GLuint vao;
-	// Multiple VBOs are used here, unlike in static meshes.
-	// This is because animation keyframes are also in the buffer.
-	// 0: position
-	// 1: normals
-	// 2: bone_weight
-	// 3: bone_idx
-	// 4: indices
-	GLuint[5] vbo;
+	GLuint vbo, vao;
 
 	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBNode[] bones, ubyte[] data)
 	{
@@ -281,7 +273,7 @@ struct AnimatedMesh
 		this.accessor = accessor;
 
 		glcheck();
-		glGenBuffers(vbo.length, vbo.ptr);
+		glGenBuffers(1, &vbo);
 		glGenVertexArrays(1, &vao);
 
 		glBindVertexArray(vao);
@@ -291,13 +283,16 @@ struct AnimatedMesh
 		glEnableVertexAttribArray(parent.atr.bone_weight);
 		glEnableVertexAttribArray(parent.atr.bone_idx);
 
-		// Buffer 0: position
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			accessor.positions.byteLength,
-			&data[accessor.positions.byteOffset],
-			GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
+		
+		glVertexAttribPointer(
+			parent.atr.normal,
+			accessor.normals.dataType.componentCount,
+			accessor.normals.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) accessor.normals.byteOffset);
 
 		glVertexAttribPointer(
 			parent.atr.position,
@@ -305,47 +300,7 @@ struct AnimatedMesh
 			accessor.positions.componentType,
 			GL_FALSE,
 			0,
-			cast(void*) 0);
-
-		// Buffer 1: normals
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			accessor.normals.byteLength,
-			&data[accessor.normals.byteOffset],
-			GL_STATIC_DRAW);
-
-		glVertexAttribPointer(
-			parent.atr.normal,
-			accessor.normals.dataType.componentCount,
-			accessor.normals.componentType,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		// Buffer 2: bone_weight
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			accessor.bone_weight.byteLength,
-			&data[accessor.bone_weight.byteOffset],
-			GL_STATIC_DRAW);
-
-		glVertexAttribPointer(
-			parent.atr.bone_weight,
-			accessor.bone_weight.dataType.componentCount,
-			accessor.bone_weight.componentType,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		// Buffer 3: bone_idx
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			accessor.bone_idx.byteLength,
-			&data[accessor.bone_idx.byteOffset],
-			GL_STATIC_DRAW);
+			cast(void*) accessor.positions.byteOffset);
 
 		glVertexAttribPointer(
 			parent.atr.bone_idx,
@@ -353,15 +308,17 @@ struct AnimatedMesh
 			accessor.bone_idx.componentType,
 			GL_FALSE,
 			0,
-			cast(void*) 0);
+			cast(void*) accessor.bone_idx.byteOffset);
 
-		// Buffer 4: EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[4]);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			accessor.indices.byteLength,
-			&data[accessor.indices.byteOffset],
-			GL_STATIC_DRAW);
+		glVertexAttribPointer(
+			parent.atr.bone_weight,
+			accessor.bone_weight.dataType.componentCount,
+			accessor.bone_weight.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) accessor.bone_weight.byteOffset);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
 
 		glBindVertexArray(0);
 		glDisableVertexAttribArray(parent.atr.position);
@@ -375,7 +332,7 @@ struct AnimatedMesh
 	~this()
 	{
 		debug printf("Deleting AnimatedMesh (vao %d)\n", vao);
-		glDeleteBuffers(vbo.length, vbo.ptr);
+		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
 	}
