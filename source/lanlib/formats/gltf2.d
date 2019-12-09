@@ -194,21 +194,39 @@ struct GLBAnimationSampler
 
 struct GLBNode
 {
-	mat4 transform;
+	vec3 translation;
+	vec3 scale;
+	quat rotation;
 	// -1 means it has no parent
 	byte parent;
+
+	mat4 compute_matrix()
+	{
+		mat4 result = mat4(
+			vec4(scale.x, 0.0f,     0.0f,     0),
+			vec4(0.0f,     scale.y, 0.0f,     0),
+			vec4(0.0f,     0.0f,     scale.z, 0),
+			vec4(0.0f,     0.0f,     0.0f,  1.0f)
+		);
+		result *= rotation.to_matrix!(4,4)();
+		result[0][3] = translation.x;
+		result[1][3] = translation.y;
+		result[2][3] = translation.z;
+
+		return result;
+	}
 
 	static GLBNode fromJSON(JSONValue node)
 	{
 		GLBNode bone;
-		vec3 translation = vec3(0);
-		vec3 scale = vec3(1);
-		quat rotation = quat.identity();
+		bone.translation = vec3(0);
+		bone.scale = vec3(1);
+		bone.rotation = quat.identity();
 		
 		if("translation" in node)
 		{
 			auto tr = node["translation"].array();
-			translation = vec3(
+			bone.translation = vec3(
 				tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
 				tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
 				tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
@@ -218,7 +236,7 @@ struct GLBNode
 		{
 			auto rot = node["rotation"].array();
 
-			rotation = quat(
+			bone.rotation = quat(
 				rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
 				rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
 				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer(),
@@ -229,25 +247,12 @@ struct GLBNode
 		{
 			auto scl = node["scale"].array();
 
-			scale = vec3(
+			bone.scale = vec3(
 				scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
 				scl[1].type == JSONType.float_ ? scl[1].floating(): scl[1].integer(),
 				scl[2].type == JSONType.float_ ? scl[2].floating(): scl[2].integer());
 		}
-
-		bone.transform = mat4(
-			vec4(scale.x, 0.0f,     0.0f,     0),
-			vec4(0.0f,     scale.y, 0.0f,     0),
-			vec4(0.0f,     0.0f,     scale.z, 0),
-			vec4(0.0f,     0.0f,     0.0f,  1.0f)
-		);
-		bone.transform *= rotation.to_matrix!(4,4)();
-		bone.transform[0][3] = translation.x;
-		bone.transform[1][3] = translation.y;
-		bone.transform[2][3] = translation.z;
-
 		bone.parent = -1;
-
 		return bone;
 	}
 }

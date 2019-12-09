@@ -215,19 +215,24 @@ struct AnimatedMeshSystem
 		{
 			if(node.parent >= 0)
 			{
-				return applyParentTransform(nodes[node.parent], nodes) * node.transform;
+				return applyParentTransform(nodes[node.parent], nodes) * node.compute_matrix();
 			}
 			else
 			{
-				return node.transform;
+				return node.compute_matrix();
 			}
 		}
 		foreach(ref inst; instances)
 		{
+			if(inst.is_updated)
+			{
+				continue;
+			}
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
-				inst.bones[i] = applyParentTransform(inst.mesh.bones[i], inst.mesh.bones) * inst.mesh.inverseBindMatrices[i].transposed();
+				inst.boneMatrices[i] = applyParentTransform(inst.bones[i], inst.bones) * inst.mesh.inverseBindMatrices[i].transposed();
 			}
+			inst.is_updated = true;
 		}
 	}
 
@@ -250,7 +255,7 @@ struct AnimatedMeshSystem
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
-			mat.set_uniform(un.bones, inst.bones);
+			mat.set_uniform(un.bones, inst.boneMatrices);
 			if(current_mesh != inst.mesh)
 			{
 				current_mesh = inst.mesh;
@@ -358,9 +363,11 @@ struct Bone
 
 struct AnimatedMeshInstance
 {
-	Transform transform;
-	mat4[] bones;
+	GLBNode[] bones;
+	mat4[] boneMatrices;
 	AnimatedMesh* mesh;
+	Transform transform;
 	float time;
 	ushort animation_index;
+	bool is_updated;
 }

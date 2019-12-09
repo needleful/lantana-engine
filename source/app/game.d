@@ -59,7 +59,9 @@ int main()
 
 	meshes[0].transform = Transform(0.5, vec3(0,0,2));
 	meshes[0].mesh = test_mesh;
-	meshes[0].bones = mm.make_list!mat4(test_mesh.bones.length);
+	meshes[0].boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
+	meshes[0].bones = mm.make_list!GLBNode(test_mesh.bones.length);
+	meshes[0].bones[0..$] = test_mesh.bones[0..$];
 	Transform* tr = &meshes[0].transform;
 
 	// Putting cubes
@@ -68,7 +70,10 @@ int main()
 		meshes[i].transform = Transform(0.5, vec3((i/100)*2, 0.2, 2+(i % 100)*2));
 		meshes[i].transform.rotate_degrees(90,0,0);
 		meshes[i].mesh = test_mesh;
-		meshes[i].bones = mm.make_list!mat4(test_mesh.bones.length);
+		
+		meshes[i].boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
+		meshes[i].bones = mm.make_list!GLBNode(test_mesh.bones.length);
+		meshes[i].bones[0..$] = test_mesh.bones[0..$];
 	}
 
 	Camera* cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
