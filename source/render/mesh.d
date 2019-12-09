@@ -227,7 +227,7 @@ struct AnimatedMeshSystem
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
 				inst.bones[i] = inst.mesh.bones[i].transform;
-				//applyParentTransform(inst.mesh.bones[i], inst.mesh.bones);
+				applyParentTransform(inst.mesh.bones[i], inst.mesh.bones);
 			}
 		}
 	}

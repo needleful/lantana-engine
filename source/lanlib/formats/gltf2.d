@@ -356,7 +356,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 
 auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 {
-	//debug writeln(ascii_json);
+	debug writeln(ascii_json);
 	
 	JSONValue[] jMeshes, access, bufferViews;
 
@@ -379,28 +379,12 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 
 	static if(is_animated)
 	{
-		auto scn_index = scn["scene"].integer();
-		auto jscenes = scn["scenes"];
-		
-		assert(jscenes.type == JSONType.array);
-		auto scenes = jscenes.array();
-
-		auto scene = scenes[scn_index];
-
-		auto jrootnodes = scene["nodes"];
-		auto root_nodes = jrootnodes.array();
-
-		auto jjoints = scn["skins"].array()[0]["joints"];
-		auto joints = jjoints.array();
-
-		auto janim = scn["animations"];
-		auto anims = janim.array();
-
 		GLBAnimatedLoadResults result;
 
-		result.bones = 
-			(cast(GLBNode*)alloc.make(joints.length*GLBNode.sizeof))
-			[0..joints.length];
+		auto scn_index = scn["scene"].integer();
+		auto scene = scn["scenes"].array()[scn_index];
+		auto anims = scn["animations"].array();
+
 		result.animations =
 			(cast(GLBAnimation*)alloc.make(anims.length*GLBAnimation.sizeof))
 			[0..anims.length];
@@ -411,27 +395,53 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 			result.animations[idx++] = GLBAnimation.fromJSON(animation, bufferViews, access);
 		}
 
+		auto nodes = scn["nodes"].array();
+		auto joints = scn["skins"].array()[0]["joints"].array();
+		result.bones = 
+			(cast(GLBNode*)alloc.make(joints.length*GLBNode.sizeof))
+			[0..joints.length];
+
 		idx = 0;
 		foreach(joint; joints)
 		{
 			long node_idx = joint.integer();
-			auto node = scn["nodes"].array()[node_idx];
+			auto node = nodes[node_idx];
 
 			result.bones[idx++] = GLBNode.fromJSON(node);
+
+			auto result_bone = &result.bones[idx-1];
+			// slow, naive parent retrieval but I don't give a shit
+			foreach(n; 0..nodes.length)
+			{
+				auto test_node = nodes[n];
+				if(n == node_idx || "children" !in test_node)
+				{
+					continue;
+				}
+
+				foreach(child; test_node["children"].array())
+				{
+					// Current node has a parent
+					if(child.integer() == node_idx)
+					{
+						// is the parent part of the joints?
+						int parent_joint_index = -1;
+						foreach(j; 0..joints.length)
+						{
+							if(joints[j].integer() == n)
+							{
+								parent_joint_index = cast(int)j;
+							}
+						}
+						if(parent_joint_index >= 0)
+						{
+							result_bone.parent = cast(byte)parent_joint_index;
+						}
+						writeln(format("Joint %d has parent: %d", idx-1, parent_joint_index));
+					}
+				}
+			}
 		}
-		// Populate 'parent' field of bones
-		//foreach(ulong idx_bone; 0..joints.length-1)
-		//{
-		//	auto node = joints[idx_bone];
-		//	if("children" in node)
-		//	{
-		//		auto children = node["children"].array();
-		//		foreach(child; children)
-		//		{
-		//			result.bones[child.integer()].parent = cast(byte)idx_bone;
-		//		}
-		//	}
-		//}
 	}
 	else
 	{

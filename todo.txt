@@ -2,7 +2,7 @@ TODO:
 
 - Load a model.
 	- Animations
-		- Get a GLB model and test it.  It seems like my joint weights are fucked, and I don't know who's causing it
+		- Inverse bind matrices?
 
 	- Textures
 
