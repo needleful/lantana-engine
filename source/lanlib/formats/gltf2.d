@@ -23,6 +23,7 @@ struct GLBAnimatedLoadResults
 	GLBAnimatedAccessor[] accessors;
 	GLBAnimation[] animations;
 	GLBNode[] bones;
+	GLBBufferView inverseBindMatrices;
 	ubyte[] data;
 }
 
@@ -356,26 +357,14 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 
 auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 {
-	debug writeln(ascii_json);
-	
-	JSONValue[] jMeshes, access, bufferViews;
+	//debug writeln(ascii_json);
 
 	JSONValue scn = parseJSON(ascii_json);
 	assert(scn.type == JSONType.object);
 
-	auto json_mesh = scn["meshes"];
-	assert(json_mesh.type == JSONType.array);
-	jMeshes = json_mesh.array();
-
-	auto json_access = scn["accessors"];
-	assert(json_access.type == JSONType.array);
-
-	access = json_access.array();
-
-	auto json_buffer = scn["bufferViews"];
-	assert(json_buffer.type == JSONType.array);
-
-	bufferViews = json_buffer.array();
+	auto jMeshes = scn["meshes"].array();
+	auto access = scn["accessors"].array();
+	auto bufferViews = scn["bufferViews"].array();
 
 	static if(is_animated)
 	{
@@ -396,7 +385,11 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 		}
 
 		auto nodes = scn["nodes"].array();
-		auto joints = scn["skins"].array()[0]["joints"].array();
+		auto skin = scn["skins"].array()[0];
+
+		auto ibm_index = skin["inverseBindMatrices"].integer();
+		result.inverseBindMatrices = GLBBufferView.fromJSON(access[ibm_index], bufferViews);
+		auto joints = skin["joints"].array();
 		result.bones = 
 			(cast(GLBNode*)alloc.make(joints.length*GLBNode.sizeof))
 			[0..joints.length];

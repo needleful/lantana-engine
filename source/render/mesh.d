@@ -242,8 +242,8 @@ struct AnimatedMeshSystem
 		mat.set_uniform(un.projection, projection);
 		mat.set_uniform(un.light_color, vec3(1));
 		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, vec3(0));
-		mat.set_uniform(un.light_bias, 1.0);
+		mat.set_uniform(un.light_ambient, vec3(0.1, 0.05, 0.2));
+		mat.set_uniform(un.light_bias, 0.2);
 		glcheck();
 
 		GLuint current_vao = 0;
