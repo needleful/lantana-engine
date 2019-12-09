@@ -205,7 +205,7 @@ struct AnimatedMeshSystem
 	AnimatedMesh* build_mesh(GLBAnimatedAccessor accessor, GLBAnimatedLoadResults loaded)
 	{
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, accessor, loaded.bones, loaded.data);
+		meshes[$-1] = AnimatedMesh(this, accessor, loaded.inverseBindMatrices, loaded.bones, loaded.data);
 		return &meshes[$-1];
 	}
 
@@ -226,8 +226,7 @@ struct AnimatedMeshSystem
 		{
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
-				inst.bones[i] = inst.mesh.bones[i].transform;
-				applyParentTransform(inst.mesh.bones[i], inst.mesh.bones);
+				inst.bones[i] = applyParentTransform(inst.mesh.bones[i], inst.mesh.bones) * inst.mesh.inverseBindMatrices[i].transposed();
 			}
 		}
 	}
@@ -246,16 +245,16 @@ struct AnimatedMeshSystem
 		mat.set_uniform(un.light_bias, 0.2);
 		glcheck();
 
-		GLuint current_vao = 0;
+		AnimatedMesh* current_mesh = null;
 		foreach(ref inst; instances)
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
 			mat.set_uniform(un.bones, inst.bones);
-			if(current_vao != inst.mesh.vao)
+			if(current_mesh != inst.mesh)
 			{
-				current_vao = inst.mesh.vao;
-				glBindVertexArray(current_vao);
+				current_mesh = inst.mesh;
+				glBindVertexArray(current_mesh.vao);
 			}
 
 			glDrawElements(
@@ -273,16 +272,19 @@ struct AnimatedMeshSystem
 struct AnimatedMesh
 {
 	GLBNode[] bones;
+	mat4[] inverseBindMatrices;
 	ubyte[] data;
 	GLBAnimation[] animations;
 	GLBAnimatedAccessor accessor;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBNode[] bones, ubyte[] data)
+	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBBufferView ibmview, GLBNode[] bones, ubyte[] data)
 	{
 		this.data = data;
 		this.bones = bones;
 		this.accessor = accessor;
+
+		inverseBindMatrices = (cast(mat4*)&data[ibmview.byteOffset])[0..ibmview.byteLength/mat4.sizeof];
 
 		glcheck();
 		glGenBuffers(1, &vbo);
