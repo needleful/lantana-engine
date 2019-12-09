@@ -260,8 +260,10 @@ struct GLBAnimation
 	static GLBAnimation fromJSON(JSONValue animation, JSONValue[] bufferViews, JSONValue[] access)
 	{
 		GLBAnimation a;
-		a.name = animation["name"].str();
-
+		if("name" in animation)
+		{
+			a.name = animation["name"].str();
+		}
 		auto channels = animation["channels"].array();
 		a.channels.reserve(channels.length);
 
@@ -340,8 +342,14 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
 	assert(binaryHeader[1] == GLBChunkType.BIN, "Second chunk of a GLB must be BIN");
+	
 	results.data = (cast(ubyte*)meshAllocator.make(binaryHeader[0]))[0..binaryHeader[0]];
 	input.rawRead(results.data);
+
+	//static if(is_animated)
+	//{
+	//	glb_print(results);
+	//}
 
 	return results;
 }
@@ -363,7 +371,6 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 	assert(json_access.type == JSONType.array);
 
 	access = json_access.array();
-
 
 	auto json_buffer = scn["bufferViews"];
 	assert(json_buffer.type == JSONType.array);
@@ -404,7 +411,6 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 			result.animations[idx++] = GLBAnimation.fromJSON(animation, bufferViews, access);
 		}
 
-
 		idx = 0;
 		foreach(joint; joints)
 		{
@@ -412,17 +418,6 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 			auto node = scn["nodes"].array()[node_idx];
 
 			result.bones[idx++] = GLBNode.fromJSON(node);
-			debug 
-			{
-				write("Bone: ");
-				writeln(node["name"].str());
-				auto m = result.bones[idx-1].transform;
-				foreach(uint i; 0..4)
-				{
-					write("\t");
-					writeln(m[i]);
-				}
-			}
 		}
 		// Populate 'parent' field of bones
 		//foreach(ulong idx_bone; 0..joints.length-1)
@@ -462,7 +457,10 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 			assert(atr.type == JSONType.object);
 		}
 
-		accessor.name = m["name"].str();
+		if("name" in m)
+		{
+			accessor.name = m["name"].str();
+		}
 		auto ac_indeces = primitives["indices"].integer();
 		auto ac_position = atr["POSITION"].integer();
 		auto ac_normal = atr["NORMAL"].integer();
@@ -524,5 +522,90 @@ OutType glb_convert(OutType, InType)(InType inval)
 	else
 	{
 		static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+	}
+}
+
+void glb_print(ref GLBAnimatedLoadResults results)
+{
+	foreach(access; results.accessors)
+	{
+		writeln(access.name);
+		writeln("Bone indeces");
+		glb_printBuffer(access.bone_idx, results.data);
+		writeln("Bone weights");
+		glb_printBuffer(access.bone_weight, results.data);
+	}
+}
+
+void glb_printBuffer(ref GLBBufferView view, ubyte[] bytes)
+{
+	assert(view.byteOffset < bytes.length, 
+		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", bytes.length, view.byteOffset));
+	switch(view.componentType)
+	{
+		case GLBComponentType.BYTE:
+			printThis!byte(view, bytes);
+			break;
+		case GLBComponentType.UNSIGNED_BYTE:
+			printThis!ubyte(view, bytes);
+			break;
+		case GLBComponentType.SHORT:
+			printThis!short(view, bytes);
+			break;
+		case GLBComponentType.UNSIGNED_SHORT:
+			printThis!ushort(view, bytes);
+			break;
+		case GLBComponentType.UNSIGNED_INT:
+			printThis!uint(view, bytes);
+			break;
+		case GLBComponentType.FLOAT:
+			printThis!float(view, bytes);
+			break;
+		default:
+			write("Can't print componentType: ");
+			writeln(view.componentType);
+			break;
+	}
+}
+void printThis(Type)(GLBBufferView view, ubyte[] bytes)
+{
+	switch(view.dataType)
+	{
+		case GLBDataType.SCALAR:
+			printThisStuff!Type(view, bytes);
+			break;
+		case GLBDataType.VEC2:
+			printThisStuff!(Type[2])(view, bytes);
+			break;
+		case GLBDataType.VEC3:
+			printThisStuff!(Type[3])(view, bytes);
+			break;
+		case GLBDataType.VEC4:
+			printThisStuff!(Type[4])(view, bytes);
+			break;
+		//case GLBDataType.MAT2:
+		//	printThisStuff!(Matrix!(Type, 2, 2))(view, bytes);
+		//	break;
+		//case GLBDataType.MAT3:
+		//	printThisStuff!(Matrix!(Type, 3, 3))(view, bytes);
+		//	break;
+		//case GLBDataType.MAT4:
+		//	printThisStuff!(Matrix!(Type, 4, 4))(view, bytes);
+		//	break;
+		default:
+			write("Unsupported data type: ");
+			writeln(view.dataType);
+			break;
+	}
+}
+
+void printThisStuff(Type)(GLBBufferView view, ubyte[] data)
+{
+	uint length = view.byteLength/Type.sizeof;
+	Type[] values = (cast(Type*)(&data[view.byteOffset]))[0..length];
+	foreach(value; values)
+	{
+		write("\t->");
+		writeln(value);
 	}
 }

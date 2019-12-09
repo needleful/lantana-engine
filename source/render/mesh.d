@@ -226,7 +226,7 @@ struct AnimatedMeshSystem
 		{
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
-				inst.bones[i] = inst.mesh.bones[i].transform; 
+				inst.bones[i] = inst.mesh.bones[i].transform;
 				//applyParentTransform(inst.mesh.bones[i], inst.mesh.bones);
 			}
 		}
@@ -314,11 +314,10 @@ struct AnimatedMesh
 			0,
 			cast(void*) accessor.positions.byteOffset);
 
-		glVertexAttribPointer(
+		glVertexAttribIPointer(
 			parent.atr.bone_idx,
 			accessor.bone_idx.dataType.componentCount,
 			accessor.bone_idx.componentType,
-			GL_FALSE,
 			0,
 			cast(void*) accessor.bone_idx.byteOffset);
 

@@ -55,7 +55,7 @@ int main()
 
 	auto test_mesh = anmesh.build_mesh(loaded.accessors[0], loaded);
 
-	auto meshes = mm.make_list!AnimatedMeshInstance(1000);
+	auto meshes = mm.make_list!AnimatedMeshInstance(10);
 
 	meshes[0].transform = Transform(0.5, vec3(0,0,2));
 	meshes[0].mesh = test_mesh;

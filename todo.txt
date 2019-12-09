@@ -1,13 +1,10 @@
 TODO:
 
 - Load a model.
-	Now using glTF2, or at least vertex positions for a single mesh.
-	Can load simple meshes, but because of how meshes are encoded, I'm limited to 16,000 or so vertices until I modify the mesh format again.
+	- Animations
+		- Get a GLB model and test it.  It seems like my joint weights are fucked, and I don't know who's causing it
 
-	Following need to be added:
-	* Texture support
-	* normals (and test shaders)
-	* animations (BIG task)
+	- Textures
 
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
@@ -25,6 +22,8 @@ TODO:
 - Puzzles
 	- Undo
 	- Restart
+
+- Controller support
 
 - Improvements
 	- Switch from Derelict to BindBC (?)

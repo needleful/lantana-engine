@@ -24,12 +24,6 @@ void main()
 		+ bone_weight.z * (bones[bone_idx.z]*pos)
 		+ bone_weight.w * (bones[bone_idx.w]*pos);
 
-	//debug_color = vec3(bones[bone_idx.x][0][0], bones[bone_idx.y][0][0], bones[bone_idx.z][0][0])*bone_weight.xyz;
-	debug_color = vec3(
-		bone_weight.x + bone_weight.y + bone_weight.z + bone_weight.w,
-		bone_idx.x < 23u && bone_idx.y < 23u && bone_idx.z < 23u && bone_idx.w <23u,
-		(bones[bone_idx.x][0][0] + bones[bone_idx.y][0][0] + bones[bone_idx.z][0][0] + bones[bone_idx.w][0][0])/4);
-
 	vec4 world_pos = transform * vec4(skpos.xyz, 1);
 	gl_Position = projection * world_pos;
 
