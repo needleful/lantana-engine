@@ -286,10 +286,10 @@ struct GLBNode
 			auto rot = node["rotation"].array();
 
 			bone.rotation = quat(
+				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer(),
 				rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
 				rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
-				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer(),
-				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer());
+				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer());
 		}
 
 		if("scale" in node)

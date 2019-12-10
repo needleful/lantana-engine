@@ -152,7 +152,7 @@ struct SDLWindow
 		}
 
 		SDL_SetRelativeMouseMode(SDL_TRUE);
-		glEnable(GL_MULTISAMPLE);
+		//glEnable(GL_MULTISAMPLE);
 
 		// Our default OpenGL settings
 		glEnable(GL_CULL_FACE);

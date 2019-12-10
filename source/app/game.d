@@ -65,7 +65,7 @@ int main()
 	meshes[0].is_playing = false;
 	Transform* tr = &meshes[0].transform;
 
-	meshes[0].play_animation("AnimTest", true);
+	meshes[0].play_animation("TestAnim", true);
 
 	// Putting cubes
 	for(uint i = 1; i < meshes.length; i++)
@@ -78,6 +78,7 @@ int main()
 		meshes[i].bones = mm.make_list!GLBNode(test_mesh.bones.length);
 		meshes[i].bones[0..$] = test_mesh.bones[0..$];
 		meshes[i].is_playing = false;
+		meshes[i].is_updated = false;
 	}
 
 	Camera* cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
@@ -93,9 +94,14 @@ int main()
 
 	stdout.flush();
 
+	float delta_time = 0;
+	import std.datetime.stopwatch: StopWatch, AutoStart;
+	auto sw = StopWatch(AutoStart.yes);
+
 	while(!(ww.state & WindowState.CLOSED))
 	{
 		float delta = ww.delta_ms()/1000.0;
+		delta_time += delta;
 	
 		ww.poll_events(ii);
 
@@ -153,7 +159,8 @@ int main()
 		ww.end_frame();
 		frame ++;
 	}
-
+	sw.stop();
+	writeln("Delta time: ", delta_time, ", Actual Time: ", sw.peek.total!"msecs"()/1000.0);
 	writeln("Exiting game");
 	return 0;
 }

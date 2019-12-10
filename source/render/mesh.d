@@ -209,6 +209,88 @@ struct AnimatedMeshSystem
 		return &meshes[$-1];
 	}
 
+	private void animation_update(float delta, ref AnimatedMeshInstance inst)
+	{
+		inst.time += delta;
+		const(GLBAnimation*) anim = &inst.currentAnimation;
+		foreach(channel; anim.channels)
+		{
+			float[] keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
+			ulong frame = 0;
+			foreach(i; 0..keyTimes.length)
+			{
+				if(inst.time <= keyTimes[i])
+				{
+					break;
+				}
+				frame = i;
+			}
+
+			// Got to last frame
+			if(frame == keyTimes.length-1)
+			{
+				if(inst.looping)
+				{
+					// Restart next frame (TODO: maybe restart this frame?)
+					inst.restart();
+				}
+				else
+				{
+					inst.is_playing = false;
+				}
+			}
+
+			auto valueBuffer = anim.bufferViews[channel.valueBuffer];
+			switch(channel.path)
+			{
+				case GLBAnimationPath.TRANSLATION:
+					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+					inst.bones[channel.targetBone].translation = valueFrames[frame];
+					break;
+				case GLBAnimationPath.ROTATION:
+					void get_rot(T)()
+					{
+						auto value = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data)[frame];
+						inst.bones[channel.targetBone].rotation = quat(
+							glb_convert!(float, T)(value.w),
+							glb_convert!(float, T)(value.x),
+							glb_convert!(float, T)(value.y),
+							glb_convert!(float, T)(value.z)
+						);
+					}
+					switch(valueBuffer.componentType)
+					{
+						case GLBComponentType.BYTE:
+							get_rot!byte();
+							break;
+						case GLBComponentType.UNSIGNED_BYTE:
+							get_rot!ubyte();
+							break;
+						case GLBComponentType.SHORT:
+							get_rot!short();
+							break;
+						case GLBComponentType.UNSIGNED_SHORT:
+							get_rot!ushort();
+							break;
+						case GLBComponentType.FLOAT:
+							get_rot!float();
+							break;
+						default:
+							break;
+					}
+					break;
+				case GLBAnimationPath.SCALE:
+					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+					inst.bones[channel.targetBone].scale = valueFrames[frame];
+					break;
+				case GLBAnimationPath.WEIGHTS:
+				// TODO: support for morph targets?
+				default:
+					debug writeln("Unsupported animation path: ", channel.path);
+					break;
+			}
+		}
+	} 
 	void update(float delta, AnimatedMeshInstance[] instances)
 	{
 		debug uint inst_id = 0;
@@ -218,84 +300,9 @@ struct AnimatedMeshSystem
 			{
 				continue;
 			}
-			inst.time += delta;
-			const(GLBAnimation*) anim = &inst.currentAnimation;
-			foreach(channel; anim.channels)
+			if(inst.is_playing)
 			{
-				float[] keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
-				ulong frame = 0;
-				foreach(i; 0..keyTimes.length)
-				{
-					if(inst.time <= keyTimes[i])
-					{
-						break;
-					}
-					frame = i;
-				}
-
-				// Got to last frame
-				if(frame == keyTimes.length-1)
-				{
-					if(inst.looping)
-					{
-						// Restart next frame (TODO: maybe restart this frame?)
-						inst.restart();
-					}
-					else
-					{
-						inst.is_playing = false;
-					}
-				}
-
-				auto valueBuffer = anim.bufferViews[channel.valueBuffer];
-				switch(channel.path)
-				{
-					case GLBAnimationPath.TRANSLATION:
-						vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-						inst.bones[channel.targetBone].translation = valueFrames[frame];
-						break;
-					case GLBAnimationPath.ROTATION:
-						void get_rot(T)()
-						{
-							auto value = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data)[frame];
-							inst.bones[channel.targetBone].rotation = quat(
-								glb_convert!(float, T)(value.x),
-								glb_convert!(float, T)(value.y),
-								glb_convert!(float, T)(value.z),
-								glb_convert!(float, T)(value.w)
-							);
-						}
-						switch(valueBuffer.componentType)
-						{
-							case GLBComponentType.BYTE:
-								get_rot!byte();
-								break;
-							case GLBComponentType.UNSIGNED_BYTE:
-								get_rot!ubyte();
-								break;
-							case GLBComponentType.SHORT:
-								get_rot!short();
-								break;
-							case GLBComponentType.UNSIGNED_SHORT:
-								get_rot!ushort();
-								break;
-							case GLBComponentType.FLOAT:
-								get_rot!float();
-								break;
-							default:
-								break;
-						}
-						break;
-					case GLBAnimationPath.SCALE:
-						vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-						inst.bones[channel.targetBone].scale = valueFrames[frame];
-						break;
-					case GLBAnimationPath.WEIGHTS:
-					// TODO: support for morph targets?
-					default:
-						debug writeln("Unsupported animation path: ", channel.path);
-						break;
-				}
+				animation_update(delta, inst);
 			}
 			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
 			{
@@ -458,6 +465,7 @@ struct AnimatedMeshInstance
 		is_updated = false;
 		foreach(anim; mesh.animations)
 		{
+			debug writeln("->\t", anim.name);
 			if(anim.name == name)
 			{
 				currentAnimation = anim;

@@ -2,9 +2,10 @@ TODO:
 
 - Load a model.
 	- Animations
-		- Add animation playing
+		- Add linear interpolation
 
 	- Textures
+		- Load UVs and images from GLB
 
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
