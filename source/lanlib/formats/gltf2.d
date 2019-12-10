@@ -10,7 +10,9 @@ import std.json;
 import std.stdio;
 
 import gl3n.linalg;
-import lanlib.sys.memory;
+import lanlib.types;
+import lanlib.util.memory;
+import lanlib.util.array;
 
 struct GLBStaticLoadResults
 {
@@ -23,8 +25,8 @@ struct GLBAnimatedLoadResults
 	GLBAnimatedAccessor[] accessors;
 	GLBAnimation[] animations;
 	GLBNode[] bones;
-	GLBBufferView inverseBindMatrices;
 	ubyte[] data;
+	GLBBufferView inverseBindMatrices;
 }
 
 enum GLBChunkType : uint
@@ -41,6 +43,43 @@ enum GLBComponentType
 	UNSIGNED_SHORT = 5123,
 	UNSIGNED_INT = 5125,
 	FLOAT = 5126,
+}
+
+bool isCompatible(T)(GLBComponentType type)
+{
+	static if(isTemplateType!(Vector, T))
+	{
+		alias ValueType = T.vt;
+	}
+	else static if(isTemplateType!(Matrix, T))
+	{
+		alias ValueType = T.mt;
+	}
+	else static if(isTemplateType!(Quaternion, T))
+	{
+		alias ValueType = Q.qt;
+	}
+	else
+	{
+		alias ValueType = T;
+	}
+	switch(type)
+	{
+		case GLBComponentType.BYTE:
+			return is(ValueType == byte);
+		case GLBComponentType.UNSIGNED_BYTE:
+			return is(ValueType == ubyte);
+		case GLBComponentType.SHORT:
+			return is(ValueType == short);
+		case GLBComponentType.UNSIGNED_SHORT:
+			return is(ValueType == ushort);
+		case GLBComponentType.UNSIGNED_INT:
+			return is(ValueType == uint);
+		case GLBComponentType.FLOAT:
+			return is(ValueType == float);
+		default:
+			return false;
+	}
 }
 
 uint size(GLBComponentType type)
@@ -127,6 +166,15 @@ struct GLBBufferView
 		view.byteLength = cast(uint) b["byteLength"].integer();
 		return view;
 	}
+
+	const T[] asArray(T)(ubyte[] buffer)
+	{
+		assert(componentType.isCompatible!T());
+
+		auto len = byteLength/
+			(dataType.componentCount()*componentType.size());
+		return (cast(T*)(&buffer[byteOffset]))[0..len];
+	}
 }
 
 struct GLBMeshAccessor
@@ -178,18 +226,19 @@ GLBInterpolationMode interpolationFromString(string interp)
 	}
 }
 
+/// Represents a set of keyframes for a node attribute
 struct GLBAnimationChannel
 {
-	GLBAnimationPath path;
-	ubyte targetBone;
-	ubyte sourceSampler;
-}
-
-struct GLBAnimationSampler
-{
-	GLBBufferView sourceBuffer;
-	GLBBufferView targetBuffer;
+	/// The interpolation mode of each keyframe
 	GLBInterpolationMode interpolation;
+	/// The property to animate
+	GLBAnimationPath path;
+	/// Index of BufferView for keyframe times
+	ubyte timeBuffer;
+	/// Index of the BufferView for keyframe values
+	ubyte valueBuffer;
+	/// Index of the bone being animated
+	ubyte targetBone;
 }
 
 struct GLBNode
@@ -261,49 +310,70 @@ struct GLBAnimation
 {
 	string name;
 	GLBAnimationChannel[] channels;
-	GLBAnimationSampler[] samplers;
+	GLBBufferView[] bufferViews;
 
 	static GLBAnimation fromJSON(JSONValue animation, JSONValue[] bufferViews, JSONValue[] access)
 	{
 		GLBAnimation a;
-		if("name" in animation)
-		{
-			a.name = animation["name"].str();
-		}
+		a.name = animation["name"].str();
+		debug writeln("Loading animation: ", a.name);
 		auto channels = animation["channels"].array();
 		a.channels.reserve(channels.length);
 
 		auto samplers = animation["samplers"].array();
-		a.samplers.reserve(samplers.length);
+		// heuristic guess for bufferViews length
+		a.bufferViews.reserve(samplers.length + 3);
+
+		// Have to keep track of previously allocated buffers
+		ubyte[] inputBuffers;
+		ubyte[] outputBuffers;
+		inputBuffers.reserve(samplers.length);
+		outputBuffers.reserve(samplers.length);
 
 		foreach(channel; channels)
 		{
 			a.channels.length += 1;
 			auto chan = &a.channels[$-1];
 
-			chan.sourceSampler = cast(ubyte) channel["sampler"].integer();
-
 			auto target = channel["target"];
 			chan.targetBone = cast(ubyte) target["node"].integer();
 			chan.path = pathFromString(target["path"].str());
-		}
-		foreach(sampler; samplers)
-		{
-			a.samplers.length += 1;
-			auto samp = &a.samplers[$-1];
 
-			samp.interpolation = interpolationFromString(sampler["interpolation"].str());
+			auto sourceSampler = channel["sampler"].integer();
+			auto sampler = samplers[sourceSampler];
+
+			chan.interpolation = interpolationFromString(sampler["interpolation"].str());
 
 			auto input = cast(ubyte) sampler["input"].integer();
 			auto output = cast(ubyte) sampler["output"].integer();
 
-			auto in_access = access[input];
-			auto out_access = access[output];
+			auto input_index = inputBuffers.indexOf(input);
+			if(input_index < 0)
+			{
+				inputBuffers ~= input;
+				auto in_access = access[input];
+				a.bufferViews ~= GLBBufferView.fromJSON(in_access, bufferViews);
+				ubyte index = cast(ubyte) (a.bufferViews.length - 1);
+				chan.timeBuffer = index;
+			}
 
-			samp.sourceBuffer = GLBBufferView.fromJSON(in_access, bufferViews);
-			samp.targetBuffer = GLBBufferView.fromJSON(out_access, bufferViews);
+			auto output_index = outputBuffers.indexOf(output);
+			if(output_index < 0)
+			{
+				outputBuffers ~= output;
+				auto in_access = access[output];
+				a.bufferViews ~= GLBBufferView.fromJSON(in_access, bufferViews);
+				ubyte index = cast(ubyte) (a.bufferViews.length - 1);
+				chan.valueBuffer = index;
+			}
 		}
 		return a;
+	}
+
+	const string toString()
+	{
+		return format("%s [%u channels, %u buffers]", 
+			name, channels.length, bufferViews.length);
 	}
 }
 
@@ -440,6 +510,23 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 				}
 			}
 		}
+		// Convert animations bone indeces to skin indeces
+		foreach(anim; result.animations)
+		{
+			foreach(ref chan; anim.channels)
+			{
+				auto targetBone = chan.targetBone;
+				ubyte joint_index = 0;
+				foreach(j; joints)
+				{
+					if(j.integer() == targetBone)
+					{
+						chan.targetBone = joint_index;
+					}
+					joint_index++;
+				}
+			}
+		}
 	}
 	else
 	{
@@ -494,43 +581,51 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 OutType glb_convert(OutType, InType)(InType inval)
 {
 	import std.math;
-	static if(is(InType == byte) || is(OutType == byte))
+	static if(is(OutType == InType))
 	{
-		float tmax = 127.0;
-		float min = -1;
-	}
-	else static if(is(InType == ubyte) || is(OutType == ubyte))
-	{
-		float tmax = 255.0;
-		float min = 0;
-	}
-	else static if(is(InType == short) || is(OutType == short))
-	{
-		float tmax = 32767.0;
-		float min = -1;
-	}
-	else static if(is(InType == ushort) || is(OutType == ushort))
-	{
-		float tmax = 65535.0;
-		float min = 0;
+		return inval;
 	}
 	else
 	{
-		static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+		static if(is(InType == byte) || is(OutType == byte))
+		{
+			float tmax = 127.0;
+			float min = -1;
+		}
+		else static if(is(InType == ubyte) || is(OutType == ubyte))
+		{
+			float tmax = 255.0;
+			float min = 0;
+		}
+		else static if(is(InType == short) || is(OutType == short))
+		{
+			float tmax = 32767.0;
+			float min = -1;
+		}
+		else static if(is(InType == ushort) || is(OutType == ushort))
+		{
+			float tmax = 65535.0;
+			float min = 0;
+		}
+		else
+		{
+			static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+		}
+
+		static if(is(OutType == float))
+		{
+			return fmax(inval/tmax, min);
+		}
+		else static if(is(InType == float))
+		{
+			return cast(OutType)round(inval * tmax);
+		}
+		else
+		{
+			static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+		}
 	}
 
-	static if(is(OutType == float))
-	{
-		return max(inval/tmax, min);
-	}
-	else static if(is(InType == float))
-	{
-		return cast(OutType)round(inval * tmax);
-	}
-	else
-	{
-		static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
-	}
 }
 
 void glb_print(ref GLBAnimatedLoadResults results)

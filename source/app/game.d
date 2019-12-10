@@ -8,8 +8,8 @@ import std.stdio;
 import lanlib.formats.gltf2;
 import lanlib.math.projection;
 import lanlib.math.transform;
-import lanlib.sys.memory;
-import lanlib.sys.sdl;
+import lanlib.util.memory;
+import lanlib.util.sdl;
 
 import gl3n.linalg;
 
@@ -49,7 +49,7 @@ int main()
 	AnimatedMeshSystem anmesh = AnimatedMeshSystem(1);
 	assert(anmesh.mat.can_render());
 
-	auto loaded = glb_load!true("data/test/meshes/funny-cube.glb", mm);
+	auto loaded = glb_load!true("data/test/meshes/anim_test.glb", mm);
 
 	assert(loaded.accessors.length == 1);
 
@@ -62,18 +62,22 @@ int main()
 	meshes[0].boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
 	meshes[0].bones = mm.make_list!GLBNode(test_mesh.bones.length);
 	meshes[0].bones[0..$] = test_mesh.bones[0..$];
+	meshes[0].is_playing = false;
 	Transform* tr = &meshes[0].transform;
+
+	meshes[0].play_animation("AnimTest", true);
 
 	// Putting cubes
 	for(uint i = 1; i < meshes.length; i++)
 	{
 		meshes[i].transform = Transform(0.5, vec3((i/100)*2, 0.2, 2+(i % 100)*2));
-		meshes[i].transform.rotate_degrees(90,0,0);
+		meshes[i].transform.rotate_degrees(0,0,0);
 		meshes[i].mesh = test_mesh;
 		
 		meshes[i].boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
 		meshes[i].bones = mm.make_list!GLBNode(test_mesh.bones.length);
 		meshes[i].bones[0..$] = test_mesh.bones[0..$];
+		meshes[i].is_playing = false;
 	}
 
 	Camera* cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
@@ -136,10 +140,10 @@ int main()
 			}
 
 			tr._position = player.getPos();
-			tr.rotate_degrees(0, 40*delta, 0);
+			//tr.rotate_degrees(0, 40*delta, 0);
 			tr.compute_matrix();
+			anmesh.update(delta, meshes);
 		}
-		anmesh.update(delta, meshes);
 
 		ww.begin_frame();
 		anmesh.render(cam.vp(), meshes);

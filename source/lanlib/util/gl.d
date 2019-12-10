@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.gl;
+module lanlib.util.gl;
 public import derelict.opengl;
 mixin glFreeFuncs!(GLVersion.gl33);
 

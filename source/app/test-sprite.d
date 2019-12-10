@@ -12,8 +12,8 @@ import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
-import lanlib.sys.gl;
-import lanlib.sys.sdl;
+import lanlib.util.gl;
+import lanlib.util.sdl;
 
 import logic.input;
 import render.Material;

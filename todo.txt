@@ -2,7 +2,7 @@ TODO:
 
 - Load a model.
 	- Animations
-		- Inverse bind matrices?
+		- Add animation playing
 
 	- Textures
 

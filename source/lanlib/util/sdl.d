@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.sdl;
+module lanlib.util.sdl;
 
 import std.exception;
 import std.format;
@@ -15,7 +15,7 @@ import gl3n.linalg;
 
 import lanlib.math.transform;
 import logic.input;
-import lanlib.sys.gl;
+import lanlib.util.gl;
 
 static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 {
@@ -54,7 +54,6 @@ enum WindowState : ubyte
 	NONE = 0,
 	CLOSED = 1,
 	RESIZED = 2,
-
 }
 
 /**

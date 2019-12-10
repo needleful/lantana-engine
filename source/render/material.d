@@ -10,8 +10,8 @@ debug
 	import std.stdio;
 }
 
-import lanlib.sys.gl;
-import lanlib.sys.memory:GpuResource;
+import lanlib.util.gl;
+import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
 struct MaterialId

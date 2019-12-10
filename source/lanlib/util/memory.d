@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.memory;
+module lanlib.util.memory;
 
 import std.conv : emplace;
 import std.traits : hasUDA;

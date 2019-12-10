@@ -11,8 +11,8 @@ import gl3n.linalg;
 
 import lanlib.math.transform;
 import lanlib.formats.gltf2;
-import lanlib.sys.gl;
-import lanlib.sys.memory:GpuResource;
+import lanlib.util.gl;
+import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
 import render.Material;
@@ -205,34 +205,115 @@ struct AnimatedMeshSystem
 	AnimatedMesh* build_mesh(GLBAnimatedAccessor accessor, GLBAnimatedLoadResults loaded)
 	{
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, accessor, loaded.inverseBindMatrices, loaded.bones, loaded.data);
+		meshes[$-1] = AnimatedMesh(this, accessor, loaded.inverseBindMatrices, loaded.animations, loaded.bones, loaded.data);
 		return &meshes[$-1];
 	}
 
 	void update(float delta, AnimatedMeshInstance[] instances)
 	{
-		mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
-		{
-			if(node.parent >= 0)
-			{
-				return applyParentTransform(nodes[node.parent], nodes) * node.compute_matrix();
-			}
-			else
-			{
-				return node.compute_matrix();
-			}
-		}
+		debug uint inst_id = 0;
 		foreach(ref inst; instances)
 		{
-			if(inst.is_updated)
+			if(inst.is_updated && !inst.is_playing)
 			{
 				continue;
 			}
+			inst.time += delta;
+			const(GLBAnimation*) anim = &inst.currentAnimation;
+			foreach(channel; anim.channels)
+			{
+				float[] keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
+				ulong frame = 0;
+				foreach(i; 0..keyTimes.length)
+				{
+					if(inst.time <= keyTimes[i])
+					{
+						break;
+					}
+					frame = i;
+				}
+
+				// Got to last frame
+				if(frame == keyTimes.length-1)
+				{
+					if(inst.looping)
+					{
+						// Restart next frame (TODO: maybe restart this frame?)
+						inst.restart();
+					}
+					else
+					{
+						inst.is_playing = false;
+					}
+				}
+
+				auto valueBuffer = anim.bufferViews[channel.valueBuffer];
+				switch(channel.path)
+				{
+					case GLBAnimationPath.TRANSLATION:
+						vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+						inst.bones[channel.targetBone].translation = valueFrames[frame];
+						break;
+					case GLBAnimationPath.ROTATION:
+						void get_rot(T)()
+						{
+							auto value = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data)[frame];
+							inst.bones[channel.targetBone].rotation = quat(
+								glb_convert!(float, T)(value.x),
+								glb_convert!(float, T)(value.y),
+								glb_convert!(float, T)(value.z),
+								glb_convert!(float, T)(value.w)
+							);
+						}
+						switch(valueBuffer.componentType)
+						{
+							case GLBComponentType.BYTE:
+								get_rot!byte();
+								break;
+							case GLBComponentType.UNSIGNED_BYTE:
+								get_rot!ubyte();
+								break;
+							case GLBComponentType.SHORT:
+								get_rot!short();
+								break;
+							case GLBComponentType.UNSIGNED_SHORT:
+								get_rot!ushort();
+								break;
+							case GLBComponentType.FLOAT:
+								get_rot!float();
+								break;
+							default:
+								break;
+						}
+						break;
+					case GLBAnimationPath.SCALE:
+						vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+						inst.bones[channel.targetBone].scale = valueFrames[frame];
+						break;
+					case GLBAnimationPath.WEIGHTS:
+					// TODO: support for morph targets?
+					default:
+						debug writeln("Unsupported animation path: ", channel.path);
+						break;
+				}
+			}
+			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
+			{
+				if(node.parent >= 0)
+				{
+					return applyParentTransform(nodes[node.parent], nodes) * node.compute_matrix();
+				}
+				else
+				{
+					return node.compute_matrix();
+				}
+			}
 			foreach(ulong i; 0..inst.mesh.bones.length)
 			{
-				inst.boneMatrices[i] = applyParentTransform(inst.bones[i], inst.bones) * inst.mesh.inverseBindMatrices[i].transposed();
+				inst.boneMatrices[i] = 
+					applyParentTransform(inst.bones[i], inst.bones) 
+					* inst.mesh.inverseBindMatrices[i].transposed();
 			}
-			inst.is_updated = true;
 		}
 	}
 
@@ -283,11 +364,12 @@ struct AnimatedMesh
 	GLBAnimatedAccessor accessor;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBBufferView ibmview, GLBNode[] bones, ubyte[] data)
+	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBBufferView ibmview, GLBAnimation[] animations, GLBNode[] bones, ubyte[] data)
 	{
 		this.data = data;
 		this.bones = bones;
 		this.accessor = accessor;
+		this.animations = animations;
 
 		inverseBindMatrices = (cast(mat4*)&data[ibmview.byteOffset])[0..ibmview.byteLength/mat4.sizeof];
 
@@ -356,18 +438,53 @@ struct AnimatedMesh
 	}
 }
 
-struct Bone
-{
-	mat4 transform;
-}
-
 struct AnimatedMeshInstance
 {
 	GLBNode[] bones;
 	mat4[] boneMatrices;
 	AnimatedMesh* mesh;
+	GLBAnimation currentAnimation;
 	Transform transform;
 	float time;
-	ushort animation_index;
 	bool is_updated;
+	bool looping;
+	bool is_playing;
+
+	/// Play an animation
+	/// Returns true if the animation could be started
+	bool play_animation(string name, bool looping = false)
+	{
+		debug writeln("Playing animation: ", name);
+		is_updated = false;
+		foreach(anim; mesh.animations)
+		{
+			if(anim.name == name)
+			{
+				currentAnimation = anim;
+				time = 0;
+				is_playing = true;
+				this.looping = looping;
+				return true;
+			}
+		}
+		debug writeln("Failed to play animation: ", name);
+		is_playing = false;
+		return false;
+	}
+
+	void pause()
+	{
+		is_playing = false;
+	}
+
+	void play_current()
+	{
+		is_playing = true;
+	}
+
+	void restart()
+	{
+		time = 0;
+		bones[0..$] = mesh.bones[0..$];
+	}
 }

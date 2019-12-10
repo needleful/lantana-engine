@@ -11,7 +11,7 @@ import derelict.freetype;
 
 import gl3n.linalg;
 
-import lanlib.sys.gl;
+import lanlib.util.gl;
 import render.Material;
 
 alias ivec2 = Vector!(int, 2);
