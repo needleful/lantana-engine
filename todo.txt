@@ -1,5 +1,9 @@
 TODO:
 
+- Fix rotation
+	- Everything's upside-down!
+	- What is rotation 0,0,0?
+	- I should just use quaternions
 - Load a model.
 	- Animations
 		- Add linear interpolation
