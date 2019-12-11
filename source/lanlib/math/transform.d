@@ -22,7 +22,7 @@ struct Transform
 	{
 		_scale = vec3(scale);
 		_position = position;
-		_rotation = vec3(0,0,0);
+		_rotation = vec3(180,0,0);
 		compute_matrix();
 	}
 
