@@ -1,9 +1,13 @@
 TODO:
 
-- Fix rotation
-	- Everything's upside-down!
-	- What is rotation 0,0,0?
-	- I should just use quaternions
+- Render text
+	- Define anchors for text
+
+- Grid movement
+	- Populating floor
+	- Blocking spaces
+	- Basic player movement (rotation)
+
 - Load a model.
 	- Animations
 		- Add linear interpolation
@@ -16,13 +20,6 @@ TODO:
 	* Static Mesh - meshes that have the same materal as Palette meshes, but they don't align to a grid and can be loaded/unloaded freely
 	* Animated Mesh - like static meshes, but with skeletal animations.
 	* Player Mesh - the only file with two meshes: the player and the axe, since they'll need some parenting/unparenting shenanigans and synced animations.
-
-- Render text
-	- Define anchors for text
-
-- Grid movement
-	- Populating floor
-	- Blocking spaces
 
 - Puzzles
 	- Undo
