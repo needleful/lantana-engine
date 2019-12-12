@@ -6,15 +6,14 @@ module lanlib.math.angles;
 
 import std.math;
 
-import lanlib.math.matrix;
-import lanlib.math.vector;
+import gl3n.linalg;
 
 struct Angles
 {
-	Vec3 axis;
+	vec3 axis;
 	float angle;
 
-	this(Vec3 axis, float angle) @nogc @safe nothrow
+	this(vec3 axis, float angle) @nogc @safe nothrow
 	{
 		this.axis = axis;
 		this.axis.normalize();
@@ -41,7 +40,7 @@ struct Angles
 		normalize_angle();
 	}
 
-	const Mat4 to_matrix() @nogc @safe nothrow
+	const mat4 to_matrix() @nogc @safe nothrow
 	{
 		float c = cos(angle);
 		float s = sin(angle);
@@ -49,11 +48,11 @@ struct Angles
 		float y = axis.y;
 		float z = axis.z;
 
-		return Mat4([
-			[  c + (1-c)*x*x, (1-c)*x*y - s*z, (1-c)*x*z + s*y, 0.0f],
-			[(1-c)*x*y + s*z,   c + (1-c)*y*y, (1-c)*y*z - s*x, 0.0f],
-			[(1-c)*x*z - s*y, (1-c)*y*z + s*x,   c + (1-c)*z*z, 0.0f],
-			[           0.0f,            0.0f,            0.0f, 1.0f]
-		]);
+		return mat4(
+			vec4(  c + (1-c)*x*x, (1-c)*x*y - s*z, (1-c)*x*z + s*y, 0.0f),
+			vec4((1-c)*x*y + s*z,   c + (1-c)*y*y, (1-c)*y*z - s*x, 0.0f),
+			vec4((1-c)*x*z - s*y, (1-c)*y*z + s*x,   c + (1-c)*z*z, 0.0f),
+			vec4(           0.0f,            0.0f,            0.0f, 1.0f)
+		);
 	}
 }

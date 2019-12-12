@@ -4,20 +4,11 @@
 
 module logic.player;
 
-import lanlib.math.vector;
+import gl3n.interpolate;
+import gl3n.linalg;
 
 import logic.grid;
 import logic.input;
-
-
-enum Direction
-{
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-}
-
 
 
 struct Player
@@ -30,8 +21,9 @@ struct Player
 		MOVE,
 	}
 	Grid* grid;
-	float timer_move = 0;
 	GridPos pos, target;
+	float timer_move = 0;
+	GridDirection dir;
 	State state;
 
 	@disable this();
@@ -63,21 +55,25 @@ struct Player
 			// Can only move one grid space at a time
 			if(input.is_pressed(Input.Action.FORWARD))
 			{
+				dir = GridDirection.UP;
 				next_state = State.MOVE;
 				target.z += 1;
 			}
 			else if(input.is_pressed(Input.Action.BACK))
 			{
+				dir = GridDirection.DOWN;
 				next_state = State.MOVE;
 				target.z -= 1;
 			}
 			else if(input.is_pressed(Input.Action.RIGHT))
 			{
+				dir = GridDirection.RIGHT;
 				next_state = State.MOVE;
 				target.x += 1;
 			}
 			else if(input.is_pressed(Input.Action.LEFT))
 			{
+				dir = GridDirection.LEFT;
 				next_state = State.MOVE;
 				target.x -= 1;
 			}
@@ -92,12 +88,12 @@ struct Player
 
 	}
 
-	Vec3 getPos() @nogc @safe nothrow
+	vec3 getPos() @nogc @safe nothrow
 	{
-		return grid.getRealPosition(pos).lerp(
+		return lerp(
+			grid.getRealPosition(pos),
 			grid.getRealPosition(target), 
-			timer_move/TIME_MOVE
-			);
+			timer_move/TIME_MOVE);
 	}
 
 }

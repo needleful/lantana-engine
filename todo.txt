@@ -1,13 +1,19 @@
 TODO:
 
-- Load a model.
-	Now using glTF2, or at least vertex positions for a single mesh.
-	Can load simple meshes, but because of how meshes are encoded, I'm limited to 16,000 or so vertices until I modify the mesh format again.
+- Render text
+	- Define anchors for text
 
-	Following need to be added:
-	* Texture support
-	* normals (and test shaders)
-	* animations (BIG task)
+- Grid movement
+	- Populating floor
+	- Blocking spaces
+	- Basic player movement (rotation)
+
+- Load a model.
+	- Animations
+		- Add linear interpolation
+
+	- Textures
+		- Load UVs and images from GLB
 
 	ideas for mesh formats relevant to Axe manor:
 	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these palette meshes in a grid.  Only one palette can be active at a time.
@@ -15,16 +21,11 @@ TODO:
 	* Animated Mesh - like static meshes, but with skeletal animations.
 	* Player Mesh - the only file with two meshes: the player and the axe, since they'll need some parenting/unparenting shenanigans and synced animations.
 
-- Render text
-	- Define anchors for text
-
-- Grid movement
-	- Populating floor
-	- Blocking spaces
-
 - Puzzles
 	- Undo
 	- Restart
+
+- Controller support
 
 - Improvements
 	- Switch from Derelict to BindBC (?)

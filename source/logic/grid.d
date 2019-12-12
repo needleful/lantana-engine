@@ -5,22 +5,68 @@
 
 module logic.grid;
 
-import lanlib.math.vector;
+import gl3n.linalg;
 
-alias GridPos = Vector!(short, 3);
+enum GridDirection
+{
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+}
+
+struct GridPos
+{
+	alias vt = Vector!(short, 3);
+	vt pos;
+	this(short x, short y, short z) @nogc nothrow @safe
+	{
+		pos = vt(x, y, z);
+	}
+
+	ref @property short x() @nogc nothrow @safe
+	{
+		return pos.x;
+	}
+
+	ref @property short y() @nogc nothrow @safe
+	{
+		return pos.y;
+	}
+
+	ref @property short z() @nogc nothrow @safe
+	{
+		return pos.z;
+	}
+
+	const @property short x() @nogc nothrow @safe
+	{
+		return pos.x;
+	}
+
+	const @property short y() @nogc nothrow @safe
+	{
+		return pos.y;
+	}
+
+	const @property short z() @nogc nothrow @safe
+	{
+		return pos.z;
+	}
+}
 
 struct Grid
 {
 	//Bounds of grid, inclusive (assumed a 3-dimensional rectangle for now)
 	GridPos lowBounds, highBounds;
 	// Position of lower bounds corner (-x, -y, -z)
-	Vec3 position;
+	vec3 position;
 	// Abolute distances between grid points (assumed a grid of cubes)
 	float gridStep;
 
 	@disable this();
 
-	this(GridPos lowBounds, GridPos highBounds, float gridStep = 1, Vec3 position = Vec3(0,0,0)) @nogc @safe nothrow
+	this(GridPos lowBounds, GridPos highBounds, float gridStep = 1, vec3 position = vec3(0,0,0)) @nogc @safe nothrow
 	{
 		this.lowBounds = lowBounds;
 		this.highBounds = highBounds;
@@ -35,9 +81,9 @@ struct Grid
 			&& gp.z >= lowBounds.z && gp.z <= highBounds.z;
 	}
 
-	Vec3 getRealPosition(GridPos gp) @nogc @safe nothrow const
+	vec3 getRealPosition(GridPos gp) @nogc @safe nothrow const
 	{
 		assert(inBounds(gp));
-		return Vec3(gp.x, gp.y, gp.z)*gridStep + position;
+		return vec3(gp.x, gp.y, gp.z)*gridStep + position;
 	}
 }

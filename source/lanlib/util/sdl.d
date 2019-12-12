@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.sys.sdl;
+module lanlib.util.sdl;
 
 import std.exception;
 import std.format;
@@ -11,10 +11,11 @@ import std.stdio;
 import derelict.freetype;
 import derelict.sdl2.sdl;
 
+import gl3n.linalg;
+
 import lanlib.math.transform;
-import lanlib.math.vector;
 import logic.input;
-import lanlib.sys.gl;
+import lanlib.util.gl;
 
 static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 {
@@ -53,7 +54,6 @@ enum WindowState : ubyte
 	NONE = 0,
 	CLOSED = 1,
 	RESIZED = 2,
-
 }
 
 /**
@@ -152,7 +152,7 @@ struct SDLWindow
 		}
 
 		SDL_SetRelativeMouseMode(SDL_TRUE);
-		glEnable(GL_MULTISAMPLE);
+		//glEnable(GL_MULTISAMPLE);
 
 		// Our default OpenGL settings
 		glEnable(GL_CULL_FACE);
@@ -184,7 +184,7 @@ struct SDLWindow
 		time = SDL_GetTicks();
 		state = WindowState.NONE;
 		
-		input.mouse_movement = Vec2(0,0);
+		input.mouse_movement = vec2(0,0);
 		foreach(ref Input.Status status; input.status)
 		{
 			if(status == Input.Status.JUST_RELEASED)
@@ -236,7 +236,7 @@ struct SDLWindow
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					input.mouse_movement = Vec2(event.motion.xrel, event.motion.yrel);
+					input.mouse_movement = vec2(event.motion.xrel, event.motion.yrel);
 					break;
 				default:
 					//Nothing

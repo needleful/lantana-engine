@@ -9,7 +9,7 @@ debug
 	import std.stdio;
 }
 
-import lanlib.math.vector;
+import gl3n.linalg;
 
 struct Input
 {
@@ -32,9 +32,9 @@ struct Input
 		JUST_RELEASED,
 	}
 	// Currently held position of sticks
-	Vec2 analog_left, analog_right;
+	vec2 analog_left, analog_right;
 	// Relative mouse movement since last frame
-	Vec2 mouse_movement;
+	vec2 mouse_movement;
 	// Status of all buttons
 	Status[Action.ACTION_COUNT] status;
 
@@ -67,9 +67,9 @@ struct Input
 	// Reset input, for example when re-entering the window
 	void clear() @nogc @safe nothrow
 	{
-		analog_left = Vec2(0,0);
-		analog_right = Vec2(0,0);
-		mouse_movement = Vec2(0,0);
+		analog_left = vec2(0,0);
+		analog_right = vec2(0,0);
+		mouse_movement = vec2(0,0);
 		foreach(ref Status s; status)
 		{
 			s = Status.UP;
