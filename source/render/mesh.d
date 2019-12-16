@@ -15,7 +15,7 @@ import lanlib.util.gl;
 import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
-import render.Material;
+import render.material;
 
 struct StaticMeshInstance
 {
@@ -44,7 +44,7 @@ struct StaticMeshSystem
 
 	this(uint reserved_meshes)
 	{
-		mat = load_Material("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
+		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
@@ -191,7 +191,7 @@ struct AnimatedMeshSystem
 
 	this(uint reserved_meshes)
 	{
-		mat = load_Material("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
+		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");

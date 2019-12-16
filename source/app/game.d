@@ -18,9 +18,10 @@ import logic.input;
 import logic.player;
 
 import render.camera;
-import render.Material;
+import render.material;
 import render.mesh;
 
+import ui.layout;
 import ui.text;
 
 enum MAX_MEMORY = 1024*1024*5;

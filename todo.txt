@@ -1,7 +1,12 @@
 TODO:
 
-- Render text
-	- Define anchors for text
+- Game is crashing currently
+	- Fix that
+
+- Text and UI
+	- Ability to change text
+	- Define anchors for UI
+	- UI layout system
 
 - Grid movement
 	- Populating floor

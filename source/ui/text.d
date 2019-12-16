@@ -12,7 +12,7 @@ import derelict.freetype;
 import gl3n.linalg;
 
 import lanlib.util.gl;
-import render.Material;
+import render.material;
 
 alias ivec2 = Vector!(int, 2);
 
@@ -173,7 +173,7 @@ class TextAtlas
 		texture_data.length = width*height;
 
 		glyphs = new GlyphNode(Rectangle(ivec2(0,0), ivec2(width, height)));
-		text_mat = load_Material("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
+		text_mat = loadMaterial("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
 		assert(text_mat.can_render());
 
 		un.translate = text_mat.get_uniform_id("translate");

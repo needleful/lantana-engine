@@ -17,15 +17,24 @@ import lanlib.util.sdl;
 
 import logic.input;
 
-import render.Material;
+import render.material;
 import render.mesh;
 
-import test.sprite;
-import ui.text;
+import ui;
 
 int main()
 {
-	return testsprite();
+	auto screen_w = 720;
+	auto screen_h = 512;
+
+	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
+	Input ii = Input();
+
+	UIRenderer ui = new UIRenderer();
+
+	ww.grab_mouse(false);
+	
+	return 0;
 }
 
 int basicRun()

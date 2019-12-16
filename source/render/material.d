@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module render.Material;
+module render.material;
 
 debug
 {
@@ -27,7 +27,7 @@ struct AttribId
 	mixin StrictAlias!GLint;
 }
 
-Material load_Material(const string vert_file, const string frag_file)
+Material loadMaterial(const string vert_file, const string frag_file)
 {
 	GLuint matId = glCreateProgram();
 
@@ -37,33 +37,14 @@ Material load_Material(const string vert_file, const string frag_file)
 	matId.glAttachShader(vert_shader);
 	matId.glAttachShader(frag_shader);
 
-	matId.glLinkProgram();
-
-	GLint success;
-	matId.glGetProgramiv(GL_LINK_STATUS, &success);
+	bool success = link_shader(matId);
+	
+	glcheck();
 
 	if(!success)
-	{
-		debug
-		{
-			GLint loglen;
-			matId.glGetProgramiv(GL_INFO_LOG_LENGTH, &loglen);
-
-			char[] error;
-			error.length = loglen;
-
-			matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
-			throw new Exception(format(
-			"Failed to link program: %s || %s || %s", vert_file, frag_file, error));
-		}
-		else
-		{
-			return Material(MaterialId(cast(uint)0));
-		}
-	}
-
-	glcheck();
-	return Material(MaterialId(matId));
+		return Material(MaterialId(cast(uint)0));
+	else
+		return Material(MaterialId(matId));
 }
 
 @GpuResource
@@ -86,10 +67,7 @@ struct Material
 
 	~this() @trusted @nogc nothrow
 	{
-		debug
-		{
-			printf("Destroying Material: %u\n", matId);
-		}
+		debug printf("Destroying Material: %u\n", matId);
 		if(matId)
 		{
 			matId.glDeleteProgram();	

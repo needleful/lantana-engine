@@ -46,3 +46,49 @@ enum isTemplateType(alias Template, Type) = __traits(
 		f(Type.init);
 	}
 );
+
+/// Create a bitfield from an enum
+struct Bitfield(Enum)
+	if(is(Enum == enum))
+{
+	static if(Enum.max < 8)
+	{
+		alias dt = ubyte;
+	}
+	else static if(Enum.max < 16)
+	{
+		alias dt = ushort;
+	}
+	else static if(Enum.max < 32)
+	{
+		alias dt = uint;
+	}
+	else static if(Enum.max < 64)
+	{
+		alias dt = ulong;
+	}
+	else
+	{
+		static assert(false, "currently no support for enums with values larger than 64");
+	}
+
+	private dt data;
+
+	public bool opIndex(Enum p_index)
+	{
+		dt mask = cast(dt)(1 << p_index);
+		return (data & mask) != 0;
+	}
+
+	public void opIndexAssign(bool p_value, Enum p_index)
+	{
+		// set the flag to zero
+		dt inverseMask = ~(cast(dt)(1 << p_index));
+		data &= inverseMask;
+
+		// set the bit to 0 or 1
+		// bools are 1-bit ints, so this is either 0 or 1<<p_index
+		dt mask = cast(dt)(p_value << p_index);
+		data |= mask;
+	}
+}

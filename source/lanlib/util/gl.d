@@ -33,6 +33,35 @@ void glcheck() @nogc @safe
 	}
 }
 
+bool link_shader(GLuint p_program)
+{
+	p_program.glLinkProgram();
+
+	GLint success;
+	p_program.glGetProgramiv(GL_LINK_STATUS, &success);
+
+	if(!success)
+	{
+		debug
+		{
+			GLint loglen;
+			p_program.glGetProgramiv(GL_INFO_LOG_LENGTH, &loglen);
+
+			char[] error;
+			error.length = loglen;
+
+			p_program.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
+			throw new Exception(format("Failed to link program: %s", error));
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 GLuint compile_shader(string filename, GLenum type)
 {
 	debug
