@@ -186,7 +186,9 @@ struct Material
 	{
 		scope(exit) glcheck();
 
-		return AttribId(matId.glGetAttribLocation(attrib.ptr));
+		auto val = AttribId(matId.glGetAttribLocation(attrib.ptr));
+		debug assert(val > -1, "Invalid attribute: " ~ attrib);
+		return val;
 	}
 
 	void set_attrib_id(const string attrib, AttribId id) @nogc

@@ -4,6 +4,29 @@
 
 module lanlib.types;
 
+import gl3n.linalg: Vector;
+alias svec2 = Vector!(short, 2);
+alias ivec2 = Vector!(int, 2);
+alias uvec2 = Vector!(uint, 2);
+
+alias Color = Vector!(ubyte, 3);
+alias AlphaColor = Vector!(ubyte, 4);
+
+/// Cannot automatically coerce int literals to shorts in constructor, 
+/// so this is a function that does exactly that.
+/// Otherwise, svec2 requires casting when constructing, like
+/// `svec2(cast(short)0, cast(short)1);`
+public svec2 svec(int x, int y)
+{
+	return svec2(cast(short)x, cast(short) y);
+}
+
+/// Same problem as svec
+public AlphaColor color(uint r, uint g, uint b, uint a)
+{
+	return AlphaColor(cast(ubyte)r, cast(ubyte)g, cast(ubyte)b, cast(ubyte)a);
+}
+
 /**
  A strict alias for a given type.
  To use, initialize a struct like this:
@@ -48,24 +71,29 @@ enum isTemplateType(alias Template, Type) = __traits(
 );
 
 /// Create a bitfield from an enum
+/// IMPORTANT: it assumes the enum is tightly packed
 struct Bitfield(Enum)
 	if(is(Enum == enum))
 {
 	static if(Enum.max < 8)
 	{
 		alias dt = ubyte;
+		enum bits = 8;
 	}
 	else static if(Enum.max < 16)
 	{
 		alias dt = ushort;
+		enum bits = 16;
 	}
 	else static if(Enum.max < 32)
 	{
 		alias dt = uint;
+		enum bits = 32;
 	}
 	else static if(Enum.max < 64)
 	{
 		alias dt = ulong;
+		enum bits = 64;
 	}
 	else
 	{
@@ -83,12 +111,24 @@ struct Bitfield(Enum)
 	public void opIndexAssign(bool p_value, Enum p_index)
 	{
 		// set the flag to zero
-		dt inverseMask = ~(cast(dt)(1 << p_index));
+		dt inverseMask = cast(dt)(~(1 << p_index));
 		data &= inverseMask;
 
 		// set the bit to 0 or 1
 		// bools are 1-bit ints, so this is either 0 or 1<<p_index
 		dt mask = cast(dt)(p_value << p_index);
 		data |= mask;
+	}
+
+	public void setAll()
+	{
+		data = 0;
+		dt newval = dt.max;
+		data = cast(dt) (newval >>> (bits - Enum.max));
+	}
+
+	public void clear()
+	{
+		data = 0;
 	}
 }

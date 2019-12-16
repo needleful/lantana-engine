@@ -153,8 +153,7 @@ class TextAtlas
 
 	struct Uniforms
 	{
-		UniformId translate,
-		cam_resolution,
+		UniformId cam_resolution,
 		cam_position,
 		in_tex, 
 		color;
@@ -176,14 +175,13 @@ class TextAtlas
 		text_mat = loadMaterial("data/shaders/screenspace2d.vert", "data/shaders/text2d.frag");
 		assert(text_mat.can_render());
 
-		un.translate = text_mat.get_uniform_id("translate");
 		un.cam_resolution = text_mat.get_uniform_id("cam_resolution");
 		un.cam_position = text_mat.get_uniform_id("cam_position");
 		un.in_tex = text_mat.get_uniform_id("in_tex");
 		un.color = text_mat.get_uniform_id("color");
 
 		atr_pos = text_mat.get_attrib_id("position");
-		atr_uv = text_mat.get_attrib_id("UV");
+		atr_uv = text_mat.get_attrib_id("uv");
 
 		glGenTextures(1, &atlas_id);
 
@@ -369,7 +367,6 @@ class TextAtlas
 			{
 				continue;
 			}
-			text_mat.set_uniform(un.translate, text.position);
 			text_mat.set_uniform(un.color, text.color);
 
 			glBindVertexArray(text.vao);

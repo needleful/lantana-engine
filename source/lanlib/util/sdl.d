@@ -16,6 +16,7 @@ import gl3n.linalg;
 import lanlib.math.transform;
 import logic.input;
 import lanlib.util.gl;
+import ui.layout: RealSize;
 
 static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 {
@@ -243,6 +244,13 @@ struct SDLWindow
 					break;
 			}
 		}
+	}
+
+	public RealSize getSize()
+	{
+		int w, h;
+		window.SDL_GetWindowSize(&w, &h);
+		return RealSize(w, h);
 	}
 
 	int[2] get_dimensions()

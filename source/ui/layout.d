@@ -4,14 +4,11 @@
 
 module ui.layout;
 
-
 import std.math;
 
 import gl3n.linalg: vec2, vec3, Vector;
-
+import lanlib.types;
 import ui.render;
-
-alias ivec2 = Vector!(int, 2);
 
 // The basic system is inspired by Flutter
 // Flutter data layout:

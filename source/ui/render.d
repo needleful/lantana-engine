@@ -4,65 +4,107 @@
 
 module ui.render;
 
+debug import std.stdio;
+
 import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.gl;
 import render.material;
 import ui.layout;
 
-
-alias svec2 = Vector!(short, 2);
-alias Color = Vector!(ubyte, 3);
-alias AlphaColor = Vector!(ubyte, 4);
-
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
 /// There should be exactly one UIRenderer
 public class UIRenderer
 {
+	/++++++++++++++++++++++++++++++++++++++
+		UI Objects and State
+	+++++++++++++++++++++++++++++++++++++++/
+
+	/// What UI data was invalidated by a recent change
+	/// Invalidation means that data has to be refreshed (expensive)
 	enum UIData
 	{
 		Layout,
-		Vertices,
-		SpriteEBO,
-		TextEBO,
+		TextMesh,
+		SpriteMesh,
+		TextAtlas,
 		SpriteAtlas,
-		TextAtlas
 	}
-	/// The base widget that this system updates and renders
+	private Bitfield!UIData invalidated;
+
+	/// The base widget of the UI
 	public Widget root;
 	/// The size of the UI window
 	public RealSize size;
 
-	/// If this UI data was invalidated
-	private Bitfield!UIData invalidated;
+	/++++++++++++++++++++++++++++++++++++++
+		OpenGL data
+	+++++++++++++++++++++++++++++++++++++++/
 
-	/// 0: sprite elements
-	/// 1: text elements
-	/// 2: vertpos (all)
-	/// 3: uv elements (all)
+	struct VertAttributes
+	{
+		AttribId uv;
+		AttribId position;
+	}
+	
+	struct TextUniforms
+	{
+		/// uvec2
+		UniformId cam_resolution;
+		/// ivec2
+		UniformId cam_position;
+		/// uint
+		UniformId in_tex;
+		/// vec3
+		UniformId color;
+	}
+
+	struct SpriteUniforms
+	{
+		/// uvec2
+		UniformId cam_resolution;
+		/// ivec2
+		UniformId cam_position;
+		/// uint
+		UniformId in_tex;
+	}
+
+	/// 0: text elements
+	/// 1: sprite elements
+	/// 2: vertex positions, in pixels (all)
+	/// 3: UV coordinates (all)
 	private GLuint[4] vbo;
 
 	/// 0: text VAO
 	/// 1: sprite VAO
 	private GLuint[2] vao;
 
-	private ushort[] spriteElems;
-	private ushort[] textElems;
+	private ushort[] elemText;
+	private ushort[] elemSprite;
 	private svec2[] vertpos;
-	private svec2[] uvs;
+	private vec2[] uvs;
 
-	private Material textMaterial;
-	private Material spriteMaterial;
+	private Material matText, matSprite;
+	private VertAttributes atrText, atrSprite;
+	private TextUniforms uniText;
+	private SpriteUniforms uniSprite;
 
-	private TextureAtlas!(ushort, Color) spriteAtlas;
-	private TextureAtlas!(dchar, ubyte) textAtlas;
+	private TextureAtlas!(dchar, ubyte) atlasText;
+	private TextureAtlas!(ushort, AlphaColor) atlasSprite;
 
-	public this()
+	/++++++++++++++++++++++++++++++++++++++
+		public methods
+	+++++++++++++++++++++++++++++++++++++++/
+
+	public this(RealSize p_windowSize)
 	{
+		size = p_windowSize;
+
 		initMaterials();
 		initAtlases();
 		initBuffers();
+		invalidated.setAll();
 	}
 
 	public void update(float delta) @nogc nothrow
@@ -73,16 +115,143 @@ public class UIRenderer
 			root.layout(this, intrinsics);
 			root.prepareRender(this, root.position);
 		}
+
+		invalidated.clear();
 	}
 
 	public void render() @nogc nothrow
 	{
+		// Render sprites
+		matSprite.enable();
+
+		// Render text
+		matText.enable();
 
 	}
 
-	/// Called by constructor
+	public ~this()
+	{
+		glDeleteVertexArrays(vao.length, vao.ptr);
+		glDeleteBuffers(vbo.length, vbo.ptr);
+	}
+
+	/// Should not be called every frame
+	debug public void debugRender()
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glcheck();
+		// We'll just render the atlases as quads
+		uvs.length = 4;
+		vertpos.length = 4;
+
+		uvs[0..4] = [
+			vec2(0,0),
+			vec2(0,1),
+			vec2(1,0),
+			vec2(1,1)
+		];
+
+		vertpos[0..4] = [
+			svec(0, 0),
+			svec(0, 256),
+			svec(256, 0),
+			svec(256, 256)
+		];
+
+		elemText.length = 6;
+		elemSprite.length = 6;
+
+		elemText[0..6] = [
+			0, 2, 1,
+			1, 2, 3
+		];
+
+		elemSprite[0..6] = [
+			0, 2, 1,
+			1, 2, 3
+		];
+
+		updateVertices();
+		updateTextEBO();
+		updateSpriteEBO();
+
+		glcheck();
+
+
+		/+++++++++
+			Render the Sprite atlas at (0, 0)
+		+++++++++/
+
+		matSprite.enable();
+
+		glBindTexture(GL_TEXTURE_2D, atlasSprite.textureId);
+		glActiveTexture(GL_TEXTURE0);
+
+		matSprite.set_uniform(uniSprite.in_tex, 0);
+		matSprite.set_uniform(uniSprite.cam_position, ivec2(0,0));
+		matSprite.set_uniform(uniSprite.cam_resolution, uvec2(size.width, size.height));
+
+		glEnableVertexAttribArray(atrSprite.uv);
+		glEnableVertexAttribArray(atrSprite.position);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glVertexAttribIPointer(
+			atrSprite.position,
+			2, GL_SHORT,
+			0, 
+			cast(void*) 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glVertexAttribPointer(
+			atrSprite.uv,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+		glDrawElements(
+			GL_TRIANGLES,
+			cast(int) elemSprite.length,
+			GL_UNSIGNED_SHORT,
+			cast(void*) 0);
+
+		glDisableVertexAttribArray(atrSprite.uv);
+		glDisableVertexAttribArray(atrSprite.position);
+
+		glcheck();
+
+		/+++++++++
+			Render the text atlas with the camera at (-256, -256)
+		+++++++++/
+
+		glcheck();
+	}
+
+	/++++++++++++++++++++++++++++++++++++++
+		private methods
+	+++++++++++++++++++++++++++++++++++++++/
+
 	private void initMaterials()
 	{
+		VertAttributes _build(Material* p_mat, GLuint p_vert, GLuint p_frag)
+		{
+			MaterialId prog = MaterialId(glCreateProgram());
+			prog.glAttachShader(p_vert);
+			prog.glAttachShader(p_frag);
+			prog.link_shader();
+
+			*p_mat = Material(prog);
+			assert(p_mat.can_render());
+
+			VertAttributes atr;
+			atr.uv = p_mat.get_attrib_id("uv");
+			atr.position = p_mat.get_attrib_id("position");
+
+			return atr;
+		} 
+
 		GLuint vert2d = 
 			compile_shader("data/shaders/screenspace2d.vert", GL_VERTEX_SHADER);
 		GLuint fragText = 
@@ -90,30 +259,26 @@ public class UIRenderer
 		GLuint fragSprite = 
 			compile_shader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
 
-		MaterialId spriteMat = MaterialId(glCreateProgram());
-		MaterialId textMat = MaterialId(glCreateProgram());
+		atrText   = _build(&matText, vert2d, fragText);
 
-		spriteMat.glAttachShader(vert2d);
-		spriteMat.glAttachShader(fragSprite);
+		uniText.cam_resolution = matText.get_uniform_id("cam_resolution");
+		uniText.cam_position = matText.get_uniform_id("cam_position");
+		uniText.in_tex = matText.get_uniform_id("in_tex");
+		uniText.color = matText.get_uniform_id("color");
 
-		textMat.glAttachShader(vert2d);
-		textMat.glAttachShader(fragText);
+		atrSprite = _build(&matSprite, vert2d, fragSprite);
+		uniSprite.cam_resolution = matSprite.get_uniform_id("cam_resolution");
+		uniSprite.cam_position = matSprite.get_uniform_id("cam_position");
+		uniSprite.in_tex = matSprite.get_uniform_id("in_tex");
 
-		spriteMat.link_shader();
-		textMat.link_shader();
-
-		textMaterial = Material(textMat);
-		spriteMaterial = Material(spriteMat);
-
-		assert(textMaterial.can_render());
-		assert(spriteMaterial.can_render());
+		glDisable(GL_BLEND);
 		glcheck();
 	}
 
 	private void initAtlases()
 	{
-		spriteAtlas = TextureAtlas!(ushort, Color)(1024, 1024);
-		textAtlas = TextureAtlas!(dchar, ubyte)(256, 256);
+		atlasSprite = TextureAtlas!(ushort, AlphaColor)(16, 16, color(1, 1, 0, 1));
+		atlasText   = TextureAtlas!(dchar, ubyte)(16, 16);
 	}
 
 	private void initBuffers()
@@ -126,31 +291,52 @@ public class UIRenderer
 	/// Updates both the vertpos and UV
 	private void updateVertices()
 	{
+		// Vertex positions
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glBufferData(GL_ARRAY_BUFFER,
+			vertpos.length*svec2.sizeof, vertpos.ptr,
+			GL_STATIC_DRAW);
 
+		// Vertex UVs
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glBufferData(GL_ARRAY_BUFFER,
+			uvs.length*vec3.sizeof, uvs.ptr,
+			GL_STATIC_DRAW);
 	}
+
 	private void updateSpriteEBO()
+	{
+		// Sprite EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			elemText.length*ushort.sizeof, elemText.ptr,
+			GL_STATIC_DRAW);
+	}
+
+	private void updateTextEBO()
+	{
+		// Text EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+			elemText.length*ushort.sizeof, elemText.ptr, 
+			GL_STATIC_DRAW);
+	}
+
+	private void updateSpriteAtlas()
 	{
 
 	}
-	private void updateTextEBO()
+
+	private void updateTextAtlas()
 	{
 
 	}
 }
 
-/// A reference to a mesh for 
+/// A reference to vertices in a UIRenderer buffer
 public struct UIMesh
 {
-	/// Index of first vertex in UIRenderer's buffer
-	ushort start;
-	/// Number of triangles for this mesh
-	ushort tricount;
-
-	public this(ushort p_start, ushort p_tricount)
-	{
-		start = p_start;
-		tricount = p_tricount;
-	}
+	ushort[] elements;
 }
 
 struct Texture(TextureDataType)
@@ -221,7 +407,7 @@ struct TextureAtlas(IdType, TextureDataType)
 	/// The dimensions of the texture data
 	ushort width, height;
 
-	public this(ushort p_width, ushort p_height)
+	public this(ushort p_width, ushort p_height, tex p_clearColor = tex.init)
 	{
 		width = p_width;
 		height = p_height;
@@ -232,9 +418,11 @@ struct TextureAtlas(IdType, TextureDataType)
 		glGenTextures(1, &textureId);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
-		// These have no default values and the texture will just be black if they aren't set
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		clearColor(p_clearColor);
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	}
 
 	public ~this()
@@ -243,7 +431,8 @@ struct TextureAtlas(IdType, TextureDataType)
 	}
 
 	///TODO implement
-	public Node* getAtlasSpot(IdType p_id, RealSize p_size)
+	/// new_value indicates the atlas texture was changed
+	public Node* getAtlasSpot(IdType p_id, RealSize p_size, bool* new_value = null)
 	{
 		Node* _getSpot(Node* p_node, IdType p_id, RealSize p_size)
 		{
@@ -256,12 +445,12 @@ struct TextureAtlas(IdType, TextureDataType)
 
 		if(p_id in map)
 		{
+			*new_value = false;
 			return &map[p_id];
 		}
-		else
-		{
-			return null;
-		}
+
+		*new_value = true;
+		return _getSpot(&tree, p_id, p_size);
 	}
 
 	public bool blit(Node* p_node, TextureDataType[] p_data)
@@ -291,5 +480,24 @@ struct TextureAtlas(IdType, TextureDataType)
 			}
 		}
 		return true;
+	}
+
+	public void clearColor(TextureDataType p_color)
+	{
+		data[0..$] = p_color;
+		reload();
+	}
+
+	public void reload()
+	{
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0, internalFormat,
+			width, height,
+			0, textureFormat,
+			GL_UNSIGNED_BYTE, 
+			data.ptr);
+		glcheck();
 	}
 }

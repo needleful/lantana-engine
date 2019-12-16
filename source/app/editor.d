@@ -29,10 +29,20 @@ int main()
 
 	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
-
-	UIRenderer ui = new UIRenderer();
+	UIRenderer ui = new UIRenderer(ww.getSize());
 
 	ww.grab_mouse(false);
+
+	// TODO: put some text and sprite stuff here to test the atlas functions
+
+	ww.begin_frame();
+	ui.debugRender();
+	ww.end_frame();
+
+	while(!ww.state & WindowState.CLOSED)
+	{
+		ww.poll_events(ii);
+	}
 	
 	return 0;
 }
