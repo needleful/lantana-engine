@@ -222,10 +222,12 @@ public class ImageBox : LeafWidget
 {
 	RealSize textureSize;
 	UIMesh spriteQuad;
+	ushort spriteId;
 
-	public this(UIRenderer p_renderer, Texture!Color texture)
+	public this(UIRenderer p_renderer, Texture!AlphaColor texture)
 	{
 
+		p_renderer.spriteAtlas.blit(texture);
 	}
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow

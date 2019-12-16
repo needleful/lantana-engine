@@ -93,6 +93,8 @@ public class UIRenderer
 	private TextureAtlas!(dchar, ubyte) atlasText;
 	private TextureAtlas!(ushort, AlphaColor) atlasSprite;
 
+	private ushort spriteCount;
+
 	/++++++++++++++++++++++++++++++++++++++
 		public methods
 	+++++++++++++++++++++++++++++++++++++++/
@@ -266,8 +268,13 @@ public class UIRenderer
 		glDisableVertexAttribArray(atrText.position);
 
 		glcheck();
+	}
 
-		glcheck();
+	public ushort getSpriteId()
+	{
+		ushort ret = spriteCount;
+		spriteCount ++;
+		return ret;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
