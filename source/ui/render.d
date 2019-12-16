@@ -140,6 +140,7 @@ public class UIRenderer
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glcheck();
 		// We'll just render the atlases as quads
 		uvs.length = 4;
@@ -226,6 +227,46 @@ public class UIRenderer
 			Render the text atlas with the camera at (-256, -256)
 		+++++++++/
 
+		matText.enable();
+
+		glBindTexture(GL_TEXTURE_2D, atlasText.textureId);
+		glActiveTexture(GL_TEXTURE0);
+
+		matText.set_uniform(uniText.in_tex, 0);
+		matText.set_uniform(uniText.cam_position, ivec2(-256, -256));
+		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
+		matText.set_uniform(uniText.color, vec3(1, 0, 1));
+
+		glEnableVertexAttribArray(atrText.uv);
+		glEnableVertexAttribArray(atrText.position);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glVertexAttribIPointer(
+			atrText.position,
+			2, GL_SHORT,
+			0, 
+			cast(void*) 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glVertexAttribPointer(
+			atrText.uv,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+		glDrawElements(
+			GL_TRIANGLES,
+			cast(int) elemText.length,
+			GL_UNSIGNED_SHORT,
+			cast(void*) 0);
+
+		glDisableVertexAttribArray(atrText.uv);
+		glDisableVertexAttribArray(atrText.position);
+
+		glcheck();
+
 		glcheck();
 	}
 
@@ -277,8 +318,13 @@ public class UIRenderer
 
 	private void initAtlases()
 	{
-		atlasSprite = TextureAtlas!(ushort, AlphaColor)(16, 16, color(1, 1, 0, 1));
-		atlasText   = TextureAtlas!(dchar, ubyte)(16, 16);
+		atlasSprite = TextureAtlas!(ushort, AlphaColor)(256, 256);
+		atlasText   = TextureAtlas!(dchar, ubyte)(256, 256);
+		debug
+		{
+			atlasSprite.blitgrid(color(255,255,0,255));
+			atlasText.blitgrid(255);
+		}
 	}
 
 	private void initBuffers()
@@ -407,7 +453,7 @@ struct TextureAtlas(IdType, TextureDataType)
 	/// The dimensions of the texture data
 	ushort width, height;
 
-	public this(ushort p_width, ushort p_height, tex p_clearColor = tex.init)
+	public this(ushort p_width, ushort p_height)
 	{
 		width = p_width;
 		height = p_height;
@@ -417,8 +463,6 @@ struct TextureAtlas(IdType, TextureDataType)
 
 		glGenTextures(1, &textureId);
 		glBindTexture(GL_TEXTURE_2D, textureId);
-
-		clearColor(p_clearColor);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -480,6 +524,29 @@ struct TextureAtlas(IdType, TextureDataType)
 			}
 		}
 		return true;
+	}
+
+	void blitgrid(tex p_color)
+	{
+		data[0..$] = tex.init;
+
+		for(uint row = 0; row < height; row++)
+		{
+			for(uint col = 0; col < width; col += 32)
+			{
+				data[row*width + col] = p_color;
+			}
+		}
+
+		for(uint row = 0; row < height; row += 32)
+		{
+			for(uint col = 0; col < width; col++)
+			{
+				data[row*width + col] = p_color;
+			}
+		}
+
+		reload();
 	}
 
 	public void clearColor(TextureDataType p_color)
