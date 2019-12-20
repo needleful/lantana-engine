@@ -4,7 +4,6 @@
 
 module ui;
 
-public import ui.images;
 public import ui.layout;
 public import ui.render;
 public import ui.text;

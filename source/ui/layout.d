@@ -224,10 +224,12 @@ public class ImageBox : LeafWidget
 	UIMesh spriteQuad;
 	ushort spriteId;
 
-	public this(UIRenderer p_renderer, Texture!AlphaColor texture)
+	public this(UIRenderer p_renderer, Texture!AlphaColor p_texture)
 	{
-
-		p_renderer.spriteAtlas.blit(texture);
+		textureSize = p_texture.size;
+		// TODO: prevent duplicates of the same image?
+		spriteId = p_renderer.addSprite(p_texture);
+		assert(spriteId != 0);
 	}
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
@@ -317,8 +319,13 @@ public struct RealSize
 			assert(false, "No operator "~op~" between RealSize objects");
 	}
 
-	bool opEquals(RealSize rhs) @nogc nothrow
+	bool opEquals(RealSize rhs) @nogc nothrow const
 	{
 		return width == rhs.width && height == rhs.height;
+	}
+
+	bool contains(RealSize rhs) @nogc nothrow const
+	{
+		return width >= rhs.width && height >= rhs.height;
 	}
 }

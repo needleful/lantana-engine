@@ -12,6 +12,7 @@ import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
+import lanlib.types;
 import lanlib.util.gl;
 import lanlib.util.sdl;
 
@@ -24,8 +25,11 @@ import ui;
 
 int main()
 {
-	auto screen_w = 720;
-	auto screen_h = 512;
+	ushort screen_w = 720;
+	ushort screen_h = 512;
+	
+	FreeImage_Initialise(true);
+	scope(exit) FreeImage_DeInitialise();
 
 	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
@@ -33,8 +37,17 @@ int main()
 
 	ww.grab_mouse(false);
 
-	// TODO: put some text and sprite stuff here to test the atlas functions
+	Texture!AlphaColor image;
+	auto format = FreeImage_GetFileType("data/test/needleful.png");
+	FIBITMAP* bitmap = FreeImage_Load(format, "data/test/needleful.png");
 
+	image.size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
+	image.buffer = cast(AlphaColor*)FreeImage_GetBits(bitmap);
+
+	ui.root = new ImageBox(ui, image);
+	FreeImage_Unload(bitmap);
+
+	ui.update(0f);
 	ww.begin_frame();
 	ui.debugRender();
 	ww.end_frame();
@@ -47,6 +60,7 @@ int main()
 	return 0;
 }
 
+/*
 int basicRun()
 {
 	auto screen_w = 720;
@@ -56,19 +70,6 @@ int basicRun()
 	ww.grab_mouse(false);
 
 	Input ii = Input();
-
-	try
-	{
-		DerelictFT.load();
-	}
-	catch(derelict.util.exception.SymbolLoadException e)
-	{
-		// FT_Stream_OpenBzip2 is a known missing symbol
-		if(e.symbolName() != "FT_Stream_OpenBzip2")
-		{
-			throw e;
-		}
-	}
 
 	auto atlas = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 32, 256, 256);
 
@@ -169,5 +170,5 @@ int basicRun()
 		ww.end_frame();
 	}
 	return 0;
-	//*/
 }
+*/

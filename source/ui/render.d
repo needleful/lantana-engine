@@ -109,13 +109,18 @@ public class UIRenderer
 		invalidated.setAll();
 	}
 
-	public void update(float delta) @nogc nothrow
+	public void update(float delta)
 	{
 		if(invalidated[UIData.Layout])
 		{
 			IntrinsicSize intrinsics = IntrinsicSize(Bounds(size.width), Bounds(size.height)); 
 			root.layout(this, intrinsics);
 			root.prepareRender(this, root.position);
+		}
+		if(invalidated[UIData.SpriteAtlas])
+		{
+			debug writeln("Updating sprite atlas");
+			atlasSprite.reload();
 		}
 
 		invalidated.clear();
@@ -129,6 +134,31 @@ public class UIRenderer
 		// Render text
 		matText.enable();
 
+	}
+
+	/// Add a sprite to be rendered
+	/// spriteId: a pointer that's populated with the re
+	ushort addSprite(Texture!AlphaColor p_texture)
+	{
+		spriteCount += 1;
+
+		auto node = atlasSprite.getAtlasSpot(spriteCount, p_texture.size);
+		if(node == null)
+		{
+			debug writeln("Failed to get atlas spot");
+			return 0;
+		}
+
+		bool success = atlasSprite.blit(node, p_texture.buffer);
+		if(!success)
+		{
+			debug writeln("Failed to blit sprite");
+			return 0;
+		}
+
+		invalidated[UIData.SpriteAtlas] = true;
+
+		return spriteCount;
 	}
 
 	public ~this()
@@ -270,13 +300,6 @@ public class UIRenderer
 		glcheck();
 	}
 
-	public ushort getSpriteId()
-	{
-		ushort ret = spriteCount;
-		spriteCount ++;
-		return ret;
-	}
-
 	/++++++++++++++++++++++++++++++++++++++
 		private methods
 	+++++++++++++++++++++++++++++++++++++++/
@@ -374,16 +397,6 @@ public class UIRenderer
 			elemText.length*ushort.sizeof, elemText.ptr, 
 			GL_STATIC_DRAW);
 	}
-
-	private void updateSpriteAtlas()
-	{
-
-	}
-
-	private void updateTextAtlas()
-	{
-
-	}
 }
 
 /// A reference to vertices in a UIRenderer buffer
@@ -405,6 +418,7 @@ struct TextureAtlas(IdType, TextureDataType)
 		Node* left, right;
 		ivec2 position;
 		RealSize size;
+		bool occupied;
 
 		this(ivec2 p_position, RealSize p_size)
 		{
@@ -412,14 +426,14 @@ struct TextureAtlas(IdType, TextureDataType)
 			size = p_size;
 		}
 
+		~this()
+		{
+			debug writefln("Deleting %s atlas node", occupied? "occupied" : "empty");
+		}
+
 		bool isLeaf()
 		{
 			return left == null && right == null;
-		}
-
-		bool isEmpty()
-		{
-			return size.width == 0 && size.height == 0;
 		}
 	}
 
@@ -446,7 +460,7 @@ struct TextureAtlas(IdType, TextureDataType)
 	}
 
 	/// Map of IDs to nodes
-	Node[IdType] map;
+	Node*[IdType] map;
 
 	/// The binary tree of nodes for texture packing
 	Node tree;
@@ -487,24 +501,100 @@ struct TextureAtlas(IdType, TextureDataType)
 	{
 		Node* _getSpot(Node* p_node, IdType p_id, RealSize p_size)
 		{
+			// Occupied or too small
+			if(p_node.occupied || !p_node.size.contains(p_size))
+			{
+				return null;
+			}
 			if(p_node.isLeaf())
 			{
+				// Perfect size
+				if(p_node.size == p_size)
+				{
+					p_node.occupied = true;
+					map[p_id] = p_node;
+					return p_node;
+				}
+
+				// Too big, requires splitting
+				// When splitting, we only create the left node.
+				// the right is created only when needed
 				RealSize space = p_node.size - p_size;
+				if(space.height >= space.width)
+				{
+					p_node.left = new Node(
+						p_node.position, 
+						RealSize(p_node.size.width, p_size.height));
+
+					return _getSpot(p_node.left, p_id, p_size);
+				}
+				else
+				{
+					p_node.left = new Node(
+						p_node.position,
+						RealSize(p_size.width, p_node.size.height));
+
+					return _getSpot(p_node.left, p_id, p_size);
+				}
 			}
-			return null;
+			else // Not a leaf
+			{
+				Node* result = _getSpot(p_node.left, p_id, p_size);
+				if(result != null)
+				{
+					return result;
+				}
+				if(p_node.right != null)
+				{
+					return _getSpot(p_node.right, p_id, p_size);
+				}
+
+				// Create a right node if it can contain this texture
+				RealSize space = p_node.size - p_node.left.size;
+				RealSize newSize;
+				ivec2 newPos;
+				// It was split vertically if the heights are the same
+				if(space.height == 0)
+				{
+					newSize = RealSize(space.width, p_node.size.height);
+					newPos = ivec2(p_node.position.x + p_node.left.size.width, p_node.position.y);
+					// Making sure my assumption is correct
+					// Laying the left and right nodes side-by-side should equal the parent node
+					assert(p_node.size == 
+						RealSize(newSize.width + p_node.left.size.width, newSize.height));
+				}
+				else
+				{
+					newSize = RealSize(p_node.size.width, space.height);
+					newPos = ivec2(p_node.position.x, p_node.position.y + p_node.left.size.height);
+
+					assert(p_node.size == 
+						RealSize(newSize.width, newSize.height + p_node.left.size.height));
+				}
+
+				if(newSize.contains(p_size)) // big enough for the image
+				{
+					p_node.right = new Node(newPos, newSize);
+					return _getSpot(p_node.right, p_id, p_size);
+				}
+				else
+				{
+					return null;
+				}
+			}
 		}
 
 		if(p_id in map)
 		{
-			*new_value = false;
-			return &map[p_id];
+			if(new_value) *new_value = false;
+			return map[p_id];
 		}
 
-		*new_value = true;
+		if(new_value) *new_value = true;
 		return _getSpot(&tree, p_id, p_size);
 	}
 
-	public bool blit(Node* p_node, TextureDataType[] p_data)
+	public bool blit(Node* p_node, TextureDataType* p_data)
 	{
 		debug import std.format;
 		// Return false if the texture can't be blit
@@ -523,9 +613,6 @@ struct TextureAtlas(IdType, TextureDataType)
 			{
 				uint source = sourceRowOffset + col;
 				uint target = targetRowOffset + (p_node.position.x + col);
-
-				assert(target >= 0 && target < data.length, 
-					format("Invalid index %d [valid: 0 to %u]", target, data.length));
 
 				data[target] = p_data[source];
 			}
