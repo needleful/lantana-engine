@@ -1,7 +1,8 @@
 TODO:
 
-- Game is crashing currently
-	- Fix that
+- UI sprites
+	- Some images have RGB components in a different order.  I'll have to find a way to detect this and correct it.
+	- Have to make a system for loading multiple boxes with the same image.  Currently each image box will blit a whole new copy to the atlas.
 
 - Text and UI
 	- Ability to change text

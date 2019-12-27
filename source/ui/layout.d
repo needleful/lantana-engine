@@ -222,7 +222,14 @@ public class ImageBox : LeafWidget
 {
 	RealSize textureSize;
 	UIMesh spriteQuad;
-	ushort spriteId;
+	SpriteId spriteId;
+
+	public this(UIRenderer p_renderer, SpriteId p_spriteId)
+	{
+		spriteId = p_spriteId;
+		textureSize = p_renderer.getSpriteSize(spriteId);
+		// TODO: get UI mesh
+	}
 
 	public this(UIRenderer p_renderer, Texture!AlphaColor p_texture)
 	{

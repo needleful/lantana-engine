@@ -6,11 +6,18 @@ module ui.render;
 
 debug import std.stdio;
 
+import deimos.freeimage;
+
 import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.gl;
 import render.material;
 import ui.layout;
+
+struct SpriteId
+{
+	mixin StrictAlias!ushort;
+}
 
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
@@ -91,7 +98,7 @@ public class UIRenderer
 	private SpriteUniforms uniSprite;
 
 	private TextureAtlas!(dchar, ubyte) atlasText;
-	private TextureAtlas!(ushort, AlphaColor) atlasSprite;
+	private TextureAtlas!(SpriteId, AlphaColor) atlasSprite;
 
 	private ushort spriteCount;
 
@@ -137,28 +144,50 @@ public class UIRenderer
 	}
 
 	/// Add a sprite to be rendered
-	/// spriteId: a pointer that's populated with the re
-	ushort addSprite(Texture!AlphaColor p_texture)
+	public SpriteId addSprite(Texture!AlphaColor p_texture)
 	{
 		spriteCount += 1;
+		SpriteId id = SpriteId(spriteCount);
 
-		auto node = atlasSprite.getAtlasSpot(spriteCount, p_texture.size);
+		auto node = atlasSprite.getAtlasSpot(id, p_texture.size);
 		if(node == null)
 		{
 			debug writeln("Failed to get atlas spot");
-			return 0;
+			return SpriteId(0);
 		}
 
 		bool success = atlasSprite.blit(node, p_texture.buffer);
 		if(!success)
 		{
 			debug writeln("Failed to blit sprite");
-			return 0;
+			return SpriteId(0);
 		}
 
 		invalidated[UIData.SpriteAtlas] = true;
 
-		return spriteCount;
+		return id;
+	}
+
+	/// Load a sprite from a file and add it
+	/// filename: the path to the image
+	public SpriteId loadSprite(const string filename)
+	{
+		Texture!AlphaColor image;
+		auto format = FreeImage_GetFileType(filename.ptr);
+		FIBITMAP* bitmap = FreeImage_Load(format, filename.ptr);
+		image.size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
+		image.buffer = cast(AlphaColor*)FreeImage_GetBits(bitmap);
+
+		auto result = addSprite(image);
+		FreeImage_Unload(bitmap);
+
+		return result;
+	}
+
+	public RealSize getSpriteSize(SpriteId p_id)
+	{
+		assert(p_id in atlasSprite.map);
+		return atlasSprite.map[p_id].size;
 	}
 
 	public ~this()
@@ -348,7 +377,7 @@ public class UIRenderer
 
 	private void initAtlases()
 	{
-		atlasSprite = TextureAtlas!(ushort, AlphaColor)(256, 256);
+		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(1024, 1024);
 		atlasText   = TextureAtlas!(dchar, ubyte)(256, 256);
 		debug
 		{
@@ -411,32 +440,32 @@ struct Texture(TextureDataType)
 	TextureDataType* buffer;
 }
 
-struct TextureAtlas(IdType, TextureDataType)
+struct TextureNode
 {
-	struct Node
+	TextureNode* left, right;
+	ivec2 position;
+	RealSize size;
+	bool occupied;
+
+	this(ivec2 p_position, RealSize p_size)
 	{
-		Node* left, right;
-		ivec2 position;
-		RealSize size;
-		bool occupied;
-
-		this(ivec2 p_position, RealSize p_size)
-		{
-			position = p_position;
-			size = p_size;
-		}
-
-		~this()
-		{
-			debug writefln("Deleting %s atlas node", occupied? "occupied" : "empty");
-		}
-
-		bool isLeaf()
-		{
-			return left == null && right == null;
-		}
+		position = p_position;
+		size = p_size;
 	}
 
+	~this()
+	{
+		debug writefln("Deleting %s atlas node", occupied? "occupied" : (isLeaf?"empty": "joining") );
+	}
+
+	bool isLeaf()
+	{
+		return left == null && right == null;
+	}
+}
+
+struct TextureAtlas(IdType, TextureDataType)
+{
 	alias tex = TextureDataType;
 
 	static if(is(tex == ubyte))
@@ -460,10 +489,10 @@ struct TextureAtlas(IdType, TextureDataType)
 	}
 
 	/// Map of IDs to nodes
-	Node*[IdType] map;
+	TextureNode*[IdType] map;
 
 	/// The binary tree of nodes for texture packing
-	Node tree;
+	TextureNode tree;
 
 	/// The texture data
 	TextureDataType[] data;
@@ -480,7 +509,7 @@ struct TextureAtlas(IdType, TextureDataType)
 		height = p_height;
 		data.length = width*height;
 
-		tree = Node(ivec2(0,0), RealSize(width, height));
+		tree = TextureNode(ivec2(0,0), RealSize(width, height));
 
 		glGenTextures(1, &textureId);
 		glBindTexture(GL_TEXTURE_2D, textureId);
@@ -497,9 +526,9 @@ struct TextureAtlas(IdType, TextureDataType)
 
 	///TODO implement
 	/// new_value indicates the atlas texture was changed
-	public Node* getAtlasSpot(IdType p_id, RealSize p_size, bool* new_value = null)
+	public TextureNode* getAtlasSpot(IdType p_id, RealSize p_size, bool* new_value = null)
 	{
-		Node* _getSpot(Node* p_node, IdType p_id, RealSize p_size)
+		TextureNode* _getSpot(TextureNode* p_node, IdType p_id, RealSize p_size)
 		{
 			// Occupied or too small
 			if(p_node.occupied || !p_node.size.contains(p_size))
@@ -522,7 +551,7 @@ struct TextureAtlas(IdType, TextureDataType)
 				RealSize space = p_node.size - p_size;
 				if(space.height >= space.width)
 				{
-					p_node.left = new Node(
+					p_node.left = new TextureNode(
 						p_node.position, 
 						RealSize(p_node.size.width, p_size.height));
 
@@ -530,7 +559,7 @@ struct TextureAtlas(IdType, TextureDataType)
 				}
 				else
 				{
-					p_node.left = new Node(
+					p_node.left = new TextureNode(
 						p_node.position,
 						RealSize(p_size.width, p_node.size.height));
 
@@ -539,7 +568,7 @@ struct TextureAtlas(IdType, TextureDataType)
 			}
 			else // Not a leaf
 			{
-				Node* result = _getSpot(p_node.left, p_id, p_size);
+				TextureNode* result = _getSpot(p_node.left, p_id, p_size);
 				if(result != null)
 				{
 					return result;
@@ -574,7 +603,7 @@ struct TextureAtlas(IdType, TextureDataType)
 
 				if(newSize.contains(p_size)) // big enough for the image
 				{
-					p_node.right = new Node(newPos, newSize);
+					p_node.right = new TextureNode(newPos, newSize);
 					return _getSpot(p_node.right, p_id, p_size);
 				}
 				else
@@ -594,7 +623,7 @@ struct TextureAtlas(IdType, TextureDataType)
 		return _getSpot(&tree, p_id, p_size);
 	}
 
-	public bool blit(Node* p_node, TextureDataType* p_data)
+	public bool blit(TextureNode* p_node, TextureDataType* p_data)
 	{
 		debug import std.format;
 		// Return false if the texture can't be blit

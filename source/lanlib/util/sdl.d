@@ -14,6 +14,7 @@ import derelict.sdl2.sdl;
 import gl3n.linalg;
 
 import lanlib.math.transform;
+import lanlib.types;
 import logic.input;
 import lanlib.util.gl;
 import ui.layout: RealSize;
@@ -50,11 +51,11 @@ static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
 	}
 }
 
-enum WindowState : ubyte
+enum WindowState
 {
-	NONE = 0,
-	CLOSED = 1,
-	RESIZED = 2,
+	NONE,
+	CLOSED,
+	RESIZED,
 }
 
 /**
@@ -66,12 +67,9 @@ struct SDLWindow
 	SDL_Window *window;
 	SDL_GLContext glContext;
 	SDL_Event event;
-	WindowState state;
+	Bitfield!WindowState state;
 	uint time;
 
-	/**
-	 *
-	 */
 	this (int width, int height, string name)
 	{
 		try
@@ -89,7 +87,7 @@ struct SDLWindow
 		DerelictSDL2.load();
 		DerelictGL3.load();
 
-		state = WindowState.NONE;
+		state.clear();
 
 		if(SDL_Init(SDL_INIT_VIDEO) < 0){
 			throw new Exception(format("Failed to initialize SDL: %s", SDL_GetError()));
@@ -183,7 +181,7 @@ struct SDLWindow
 	void poll_events(ref Input input) @nogc nothrow
 	{
 		time = SDL_GetTicks();
-		state = WindowState.NONE;
+		state.clear();
 		
 		input.mouse_movement = vec2(0,0);
 		foreach(ref Input.Status status; input.status)
@@ -206,7 +204,7 @@ struct SDLWindow
 					switch(event.window.event)
 					{
 						case SDL_WINDOWEVENT_CLOSE:
-							state |= WindowState.CLOSED;
+							state[WindowState.CLOSED] = true;
 							break;
 						case SDL_WINDOWEVENT_MAXIMIZED:
 							continue;
@@ -216,7 +214,7 @@ struct SDLWindow
 							int w, h;
 							window.SDL_GetWindowSize(&w, &h);
 							glViewport(0, 0, w, h);
-							state |= WindowState.RESIZED;
+							state[WindowState.RESIZED] = true;
 							break;
 						default:
 							break;

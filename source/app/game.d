@@ -80,14 +80,14 @@ int main()
 	writeln("Beginning game loop");
 	stdout.flush();
 
-	while(!(ww.state & WindowState.CLOSED))
+	while(!ww.state[WindowState.CLOSED])
 	{
 		float delta = ww.delta_ms()/1000.0;
 		delta_time += delta;
 	
 		ww.poll_events(input);
 
-		if(ww.state & WindowState.RESIZED)
+		if(ww.state[WindowState.RESIZED])
 		{
 			wsize = ww.get_dimensions();
 			cam.set_projection(

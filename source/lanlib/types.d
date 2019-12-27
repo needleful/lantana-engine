@@ -42,8 +42,7 @@ mixin template StrictAlias(T)
 
 	@disable this(U)(U u);
 
-	this(U : U)(U data) @nogc @safe nothrow 
-		if( is(U == T) )
+	this(T data) @nogc @safe nothrow
 	{
 		_handle = data;
 	}
