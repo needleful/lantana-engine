@@ -154,7 +154,7 @@ class TextAtlas
 	struct Uniforms
 	{
 		UniformId cam_resolution,
-		cam_position,
+		translation,
 		in_tex, 
 		color;
 	}
@@ -176,7 +176,7 @@ class TextAtlas
 		assert(text_mat.can_render());
 
 		un.cam_resolution = text_mat.get_uniform_id("cam_resolution");
-		un.cam_position = text_mat.get_uniform_id("cam_position");
+		un.translation = text_mat.get_uniform_id("translation");
 		un.in_tex = text_mat.get_uniform_id("in_tex");
 		un.color = text_mat.get_uniform_id("color");
 
@@ -354,7 +354,7 @@ class TextAtlas
 
 		text_mat.set_uniform(un.in_tex, 0);
 		text_mat.set_uniform(un.cam_resolution, uvec2(wsize[0], wsize[1]));
-		text_mat.set_uniform(un.cam_position, ivec2(0, 0));
+		text_mat.set_uniform(un.translation, ivec2(0, 0));
 
 		glcheck();
 

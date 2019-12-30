@@ -15,6 +15,7 @@ import lanlib.util.gl;
 import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
+import render.lights;
 import render.material;
 
 struct StaticMeshInstance
@@ -42,7 +43,7 @@ struct StaticMeshSystem
 	Material mat;
 	Uniforms un;
 
-	this(uint reserved_meshes)
+	this(uint p_reserved_count)
 	{
 		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
 
@@ -56,16 +57,16 @@ struct StaticMeshSystem
 		un.light_ambient = mat.get_uniform_id("light_ambient");
 		un.light_bias = mat.get_uniform_id("light_bias");
 
-		meshes.reserve(reserved_meshes);
+		meshes.reserve(p_reserved_count);
 
 		glcheck();
 		assert(mat.can_render());
 	}
 
-	StaticMesh* build_mesh(GLBMeshAccessor accessor, ubyte[] data)
+	StaticMesh* build_mesh(GLBMeshAccessor p_accessor, ubyte[] p_data)
 	{
 		meshes.length += 1;
-		meshes[$-1] = StaticMesh(this, accessor, data);
+		meshes[$-1] = StaticMesh(this, p_accessor, p_data);
 		return &meshes[$-1];
 	}
 
@@ -77,21 +78,21 @@ struct StaticMeshSystem
 	//	// TODO implement
 	//}
 
-	void render(mat4 projection, StaticMeshInstance[] instances)
+	void render(mat4 p_projection, ref LightInfo p_lights, StaticMeshInstance[] p_instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
 
 		mat.enable();
-		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, vec3(1,0.5,0.3));
-		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, vec3(0, 0, 0.1));
-		mat.set_uniform(un.light_bias, 0.2);
+		mat.set_uniform(un.projection, p_projection);
+		mat.set_uniform(un.light_color, p_lights.color);
+		mat.set_uniform(un.light_direction, p_lights.direction);
+		mat.set_uniform(un.light_ambient, p_lights.ambiance);
+		mat.set_uniform(un.light_bias, p_lights.bias);
 
 		GLuint current_vao = 0;
-		foreach(ref inst; instances)
+		foreach(ref inst; p_instances)
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);
@@ -119,10 +120,10 @@ struct StaticMesh
 	GLBMeshAccessor accessor;
 	GLuint vbo, vao;
 
-	this(ref StaticMeshSystem parent, GLBMeshAccessor accessor, ubyte[] data)
+	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data)
 	{
-		this.data = data;
-		this.accessor = accessor;
+		data = p_data;
+		accessor = p_accessor;
 
 		glcheck();
 		glGenBuffers(1, &vbo);
@@ -130,14 +131,14 @@ struct StaticMesh
 
 		glBindVertexArray(vao);
 
-		glEnableVertexAttribArray(parent.atr.position);
-		glEnableVertexAttribArray(parent.atr.normal);
+		glEnableVertexAttribArray(p_parent.atr.position);
+		glEnableVertexAttribArray(p_parent.atr.normal);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
 		
 		glVertexAttribPointer(
-			parent.atr.normal,
+			p_parent.atr.normal,
 			accessor.normals.dataType.componentCount,
 			accessor.normals.componentType,
 			GL_FALSE,
@@ -145,7 +146,7 @@ struct StaticMesh
 			cast(void*) accessor.normals.byteOffset);
 
 		glVertexAttribPointer(
-			parent.atr.position,
+			p_parent.atr.position,
 			accessor.positions.dataType.componentCount,
 			accessor.positions.componentType,
 			GL_FALSE,
@@ -155,8 +156,8 @@ struct StaticMesh
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
 
 		glBindVertexArray(0);
-		glDisableVertexAttribArray(parent.atr.position);
-		glDisableVertexAttribArray(parent.atr.normal);
+		glDisableVertexAttribArray(p_parent.atr.position);
+		glDisableVertexAttribArray(p_parent.atr.normal);
 
 		glcheck();
 	}
@@ -189,7 +190,7 @@ struct AnimatedMeshSystem
 	Material mat;
 	Uniforms un;
 
-	this(uint reserved_meshes)
+	this(uint p_reserved_count)
 	{
 		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
 
@@ -206,21 +207,21 @@ struct AnimatedMeshSystem
 		un.light_bias = mat.get_uniform_id("light_bias");
 		un.bones = mat.get_uniform_id("bones");
 
-		meshes.reserve(reserved_meshes);
+		meshes.reserve(p_reserved_count);
 
 		glcheck();
 	}
 
-	AnimatedMesh* build_mesh(GLBAnimatedAccessor accessor, GLBAnimatedLoadResults loaded)
+	AnimatedMesh* build_mesh(GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded)
 	{
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, accessor, loaded.inverseBindMatrices, loaded.animations, loaded.bones, loaded.data);
+		meshes[$-1] = AnimatedMesh(this, p_accessor, p_loaded.inverseBindMatrices, p_loaded.animations, p_loaded.bones, p_loaded.data);
 		return &meshes[$-1];
 	}
 
-	private void animation_update(float delta, ref AnimatedMeshInstance inst)
+	private void animation_update(float p_delta, ref AnimatedMeshInstance inst)
 	{
-		inst.time += delta;
+		inst.time += p_delta;
 		const(GLBAnimation*) anim = &inst.currentAnimation;
 		foreach(channel; anim.channels)
 		{
@@ -300,10 +301,10 @@ struct AnimatedMeshSystem
 			}
 		}
 	} 
-	void update(float delta, AnimatedMeshInstance[] instances)
+	void update(float p_delta, AnimatedMeshInstance[] p_instances)
 	{
 		debug uint inst_id = 0;
-		foreach(ref inst; instances)
+		foreach(ref inst; p_instances)
 		{
 			if(inst.is_updated && !inst.is_playing)
 			{
@@ -311,7 +312,7 @@ struct AnimatedMeshSystem
 			}
 			if(inst.is_playing)
 			{
-				animation_update(delta, inst);
+				animation_update(p_delta, inst);
 			}
 			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
 			{
@@ -333,7 +334,7 @@ struct AnimatedMeshSystem
 		}
 	}
 
-	void render(mat4 projection, AnimatedMeshInstance[] instances)
+	void render(mat4 projection, ref LightInfo p_lights, AnimatedMeshInstance[] p_instances)
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
@@ -341,14 +342,14 @@ struct AnimatedMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, vec3(1));
-		mat.set_uniform(un.light_direction, vec3(-0.3, -1, 0.2));
-		mat.set_uniform(un.light_ambient, vec3(0.1, 0.05, 0.2));
-		mat.set_uniform(un.light_bias, 0.2);
+		mat.set_uniform(un.light_color, p_lights.color);
+		mat.set_uniform(un.light_direction, p_lights.direction);
+		mat.set_uniform(un.light_ambient, p_lights.ambiance);
+		mat.set_uniform(un.light_bias, p_lights.bias);
 		glcheck();
 
 		AnimatedMesh* current_mesh = null;
-		foreach(ref inst; instances)
+		foreach(ref inst; p_instances)
 		{
 			inst.transform.compute_matrix();
 			mat.set_uniform(un.transform, inst.transform.matrix);

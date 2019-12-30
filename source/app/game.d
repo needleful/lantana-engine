@@ -18,6 +18,7 @@ import logic.input;
 import logic.player;
 
 import render.camera;
+import render.lights;
 import render.material;
 import render.mesh;
 
@@ -61,7 +62,7 @@ int main()
 
 	auto pmesh = &anim_meshes[0];
 
-	pmesh.transform = Transform(0.5, vec3(0,0,2));
+	pmesh.transform = Transform(0.5, vec3(0,0,0));
 	pmesh.mesh = test_mesh;
 	pmesh.boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
 	pmesh.bones = mm.make_list!GLBNode(test_mesh.bones.length);
@@ -70,6 +71,8 @@ int main()
 	pmesh.play_animation("TestAnim", true);
 
 	auto level_meshes = mm.make_list!StaticMeshInstance(1);
+	level_meshes[0].mesh = level_mesh;
+	level_meshes[0].transform = Transform(4, vec3(5,10,5));
 
 	float delta_time = 0;
 	import std.datetime.stopwatch: StopWatch, AutoStart;
@@ -79,6 +82,12 @@ int main()
 
 	writeln("Beginning game loop");
 	stdout.flush();
+
+	LightInfo worldLight;
+	worldLight.color = vec3(1, 1, 0.8);
+	worldLight.ambiance = vec3(0.15, 0.1, 0.4);
+	worldLight.direction = vec3(0.2, -1, 0.1);
+	worldLight.bias = 0.2;
 
 	while(!ww.state[WindowState.CLOSED])
 	{
@@ -115,8 +124,9 @@ int main()
 		}
 
 		ww.begin_frame();
-		smesh.render(cam.vp(), level_meshes);
-		anmesh.render(cam.vp(), anim_meshes);
+		mat4 vp = cam.vp();
+		smesh.render(vp, worldLight, level_meshes);
+		anmesh.render(vp, worldLight, anim_meshes);
 
 		text.render(wsize);
 
@@ -124,7 +134,7 @@ int main()
 		frame ++;
 	}
 	sw.stop();
-	writeln("Delta time: ", delta_time, ", Actual Time: ", sw.peek.total!"msecs"()/1000.0);
+	writeln("Delta time (sec): ", delta_time, ", Actual Time (sec): ", sw.peek.total!"msecs"()/1000.0);
 	writeln("Exiting game");
 	return 0;
 }
