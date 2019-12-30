@@ -25,7 +25,7 @@ import ui.render;
 // Some children want a particular size, some are flexible (varying flex factors)
 //		Flex calculation: FlexFactor * SpacePerFlex
 //		Parent passes its own constraints to the children (at least)
-//		For max size, use Infinity to indicate no preference
+//		For max size, use infinity to indicate no preference
 // Relayout boundaries: conditions where a widget will never need a relayout
 //		Tight constraints: sized determined by parent, will not change size for children
 //		Parent Uses Size: the parent does/doesn't care about the child's size for positioning or sizing itself
@@ -184,11 +184,26 @@ public class Anchor: SingularContainer
 		double anchorToLeft = parentWidth * anchor.x;
 		double anchorToRight = parentWidth*(1-anchor.x);
 
-		// The target width of the child if it meets the left edge
-		double childWidthMeetingLeft = anchorToLeft + anchorToLeft*(1-childAnchor.x);
-		
-		// Width if the child meets the right edge
-		double childWidthMeetingRight = anchorToRight + anchorToRight*childAnchor.x;
+		// We're looking at two cases:
+		// 		1. The child meets the left border (or both)
+		//		2. The child meets the right border
+		double childWidthMeetingLeft, childWidthMeetingRight;
+		if(childAnchor.x == 0)
+		{
+			childWidthMeetingLeft = parentWidth;
+			childWidthMeetingRight = parentWidth;
+		}
+		else if(childAnchor.x == 1)
+		{
+			childWidthMeetingLeft = anchorToLeft;
+			// invalid
+			childWidthMeetingRight = double.infinity;
+		}
+		else
+		{
+			childWidthMeetingLeft = anchorToLeft/childAnchor.x;
+			childWidthMeetingRight = anchorToRight/ (1-childAnchor.x);
+		}
 
 		// we need to select the maximum width for the child such that it's within the parent
 		if(childWidthMeetingLeft <= parentWidth && childWidthMeetingRight <= parentWidth)
@@ -196,26 +211,20 @@ public class Anchor: SingularContainer
 			if(childWidthMeetingLeft > childWidthMeetingRight)
 			{
 				childIntrinsic.width.max = childWidthMeetingLeft;
-				// The child meets the left edge, no calculation required
-				child.position.x = 0;
 			}
 			else
 			{
 				childIntrinsic.width.max = childWidthMeetingRight;
-				// calculate the child's distance from the left edge
-				child.position.x = cast(int) (anchorToLeft - childWidthMeetingRight*childAnchor.x);
 			}
 		}
 		// I wish I knew how to remove this duplicated code
 		else if(childWidthMeetingLeft <= parentWidth)
 		{
 			childIntrinsic.width.max = childWidthMeetingLeft;
-			child.position.x = 0;
 		}
 		else if(childWidthMeetingRight <= parentWidth)
 		{
 			childIntrinsic.width.max = childWidthMeetingRight;
-			child.position.x = cast(int) (anchorToLeft - childWidthMeetingRight*childAnchor.x);
 		}
 		else
 		{
@@ -230,33 +239,42 @@ public class Anchor: SingularContainer
 		double anchorToBottom = parentHeight * anchor.y;
 		double anchorToTop = parentHeight*(1-anchor.y);
 
-		double childHeightMeetingBottom = anchorToBottom + anchorToBottom*(1-childAnchor.y);
-		double childHeightMeetingTop = anchorToTop + anchorToTop*childAnchor.y;
+		double childHeightMeetingBottom, childHeightMeetingTop;
+		if(childAnchor.y == 0)
+		{
+			childHeightMeetingBottom = parentHeight;
+			childHeightMeetingTop = parentHeight;
+		}
+		else if(childAnchor.y == 1)
+		{
+			childHeightMeetingBottom = anchorToBottom;
+			// invalid
+			childHeightMeetingTop = double.infinity;
+		}
+		else
+		{
+			childHeightMeetingBottom = anchorToBottom/childAnchor.y;
+			childHeightMeetingTop = anchorToTop/(1-childAnchor.y);
+		}
 
 		if(childHeightMeetingBottom <= parentHeight && childHeightMeetingTop <= parentHeight)
 		{
 			if(childHeightMeetingBottom > childHeightMeetingTop)
 			{
 				childIntrinsic.height.max = childHeightMeetingBottom;
-				// Meets the bottom, no calculation needed
-				child.position.y = 0;
 			}
 			else
 			{
 				childIntrinsic.height.max = childHeightMeetingTop;
-				// calculate the distance from the bottom
-				child.position.y = cast(int) (anchorToBottom - childHeightMeetingTop*childAnchor.y);
 			}
 		}
 		else if(childHeightMeetingBottom <= parentHeight)
 		{
 			childIntrinsic.height.max = childHeightMeetingBottom;
-			child.position.y = 0;
 		}
 		else if(childHeightMeetingTop <= parentHeight)
 		{
 			childIntrinsic.height.max = childHeightMeetingTop;
-			child.position.y = cast(int) (anchorToBottom - childHeightMeetingTop*childAnchor.y);
 		}
 		else
 		{
@@ -265,6 +283,10 @@ public class Anchor: SingularContainer
 		}
 
 		RealSize childSize = child.layout(p_renderer, childIntrinsic);
+
+		child.position = ivec2(
+			cast(int)(parentWidth*anchor.x - childSize.width*childAnchor.x),
+			cast(int)(parentHeight*anchor.y - childSize.height*childAnchor.y));
 
 		debug assert(child.position.x >= 0 && child.position.y >= 0, "Child extends beyond container bounds.");
 

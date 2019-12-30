@@ -36,15 +36,31 @@ int main()
 
 	ww.grab_mouse(false);
 
+	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
+	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+
 	ui.setRootWidget(new HodgePodge([
 		// Needleful PNG in the center
 		new Anchor(
-			new ImageBox(ui, "data/test/needleful.png"),
+			new ImageBox(ui, upclickSprite),
 			vec2(0.5,0.5),
 			vec2(0.5,0.5)
 		),
-		// Random image in the bottom left
-		new ImageBox(ui, "data/test/ui_sprites/upclick.png")
+		// various tests
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0, 0.9),
+			vec2(0, 1)
+		),
+		new Anchor(
+			new ImageBox(ui, upclickSprite),
+			vec2(1,1), vec2(1,1)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0.8, 0.5),
+			vec2(1, 0.5)
+		)
 	]));
 
 	while(!ww.state[WindowState.CLOSED])
