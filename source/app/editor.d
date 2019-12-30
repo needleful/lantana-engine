@@ -40,13 +40,12 @@ int main()
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	ui.setRootWidget(new HodgePodge([
-		// Needleful PNG in the center
+		// various tests for Anchor and ImageBox
 		new Anchor(
 			new ImageBox(ui, upclickSprite),
-			vec2(0.5,0.5),
-			vec2(0.5,0.5)
+			vec2(0.5,0.6),
+			vec2(0.5,0)
 		),
-		// various tests
 		new Anchor(
 			new ImageBox(ui, needlefulPNG),
 			vec2(0, 0.9),
@@ -58,8 +57,8 @@ int main()
 		),
 		new Anchor(
 			new ImageBox(ui, needlefulPNG),
-			vec2(0.8, 0.5),
-			vec2(1, 0.5)
+			vec2(0.027, 0.048),
+			vec2(0, 0)
 		)
 	]));
 

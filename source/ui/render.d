@@ -35,7 +35,8 @@ public class UIRenderer
 		Layout,
 		TextEBO,
 		SpriteEBO,
-		Vertices,
+		PositionBuffer,
+		UVBuffer,
 		TextAtlas,
 		SpriteAtlas,
 	}
@@ -149,9 +150,13 @@ public class UIRenderer
 		{
 			updateSpriteEBO();
 		}
-		if(invalidated[UIData.Vertices])
+		if(invalidated[UIData.PositionBuffer])
 		{
-			updateVertices();
+			updatePositionBuffer();
+		}
+		if(invalidated[UIData.UVBuffer])
+		{
+			updateUVBuffer();
 		}
 
 		invalidated.clear();
@@ -321,17 +326,7 @@ public class UIRenderer
 			cast(ushort)(vertStart+3)
 		];
 
-		debug
-		{
-			puts("Quad UVs:");
-			foreach(vert; elemSprite[elemStart..elemStart+6])
-			{
-				vec2 uv = uvs[vert];
-				printf("\tv%d: [%f, %f]\n", vert, uv.x, uv.y);
-			}
-		}
-
-		invalidated[UIData.Vertices] = true;
+		invalidated[UIData.UVBuffer] = true;
 		invalidated[UIData.SpriteEBO] = true;
 
 		return elemSprite[elemStart..elemStart+6];
@@ -349,17 +344,7 @@ public class UIRenderer
 		vertpos[quadStart + 2] = svec(p_size.width, 0);
 		vertpos[quadStart + 3] = svec(p_size.width, p_size.height);
 
-		debug
-		{
-			puts("Quad Size:");
-			foreach(vert; p_vertices)
-			{
-				svec2 p = vertpos[vert];
-				printf("\tv%d: [%d, %d]\n", vert, p.x, p.y);
-			}
-		}
-
-		invalidated[UIData.Vertices] = true;
+		invalidated[UIData.PositionBuffer] = true;
 	}
 
 	public void translateQuad(ushort[] p_vertices, svec2 p_translation) @nogc nothrow
@@ -372,17 +357,7 @@ public class UIRenderer
 		vertpos[quadStart + 2] += p_translation;
 		vertpos[quadStart + 3] += p_translation;
 
-		debug
-		{
-			puts("Translated Quad:");
-			foreach(vert; p_vertices)
-			{
-				svec2 p = vertpos[vert];
-				printf("\tv%d: [%d, %d]\n", vert, p.x, p.y);
-			}
-		}
-
-		invalidated[UIData.Vertices] = true;
+		invalidated[UIData.PositionBuffer] = true;
 	}
 
 	/// Should not be called every frame
@@ -423,7 +398,8 @@ public class UIRenderer
 			1, 2, 3
 		];
 
-		updateVertices();
+		updateUVBuffer();
+		updatePositionBuffer();
 		updateTextEBO();
 		updateSpriteEBO();
 
@@ -628,27 +604,29 @@ public class UIRenderer
 			cast(void*) 0);
 
 		glBindVertexArray(0);
-		
+
 		glDisableVertexAttribArray(atrSprite.uv);
 		glDisableVertexAttribArray(atrSprite.position);
 	}
 
-	/// Updates both the vertpos and UV
-	private void updateVertices()
+	/// Updates UV buffer
+	private void updateUVBuffer()
 	{
-		// Vertex positions
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glBufferData(GL_ARRAY_BUFFER,
-			vertpos.length*svec2.sizeof, vertpos.ptr,
-			GL_STATIC_DRAW);
-
-		// Vertex UVs
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 		glBufferData(GL_ARRAY_BUFFER,
 			uvs.length*vec3.sizeof, uvs.ptr,
 			GL_STATIC_DRAW);
 
 		debug puts("Updated vertices");
+	}
+
+	private void updatePositionBuffer()
+	{
+		// Vertex positions
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glBufferData(GL_ARRAY_BUFFER,
+			vertpos.length*svec2.sizeof, vertpos.ptr,
+			GL_STATIC_DRAW);
 	}
 
 	private void updateTextEBO()

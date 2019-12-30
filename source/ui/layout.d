@@ -22,16 +22,6 @@ import ui.render;
 //		Paradigms: Fixed size; Width-In, Height-Out; Height-in, Width-Out; 
 //		Child knows size, parent knows position
 //		This means the child's size cannot depend on its position
-// Some children want a particular size, some are flexible (varying flex factors)
-//		Flex calculation: FlexFactor * SpacePerFlex
-//		Parent passes its own constraints to the children (at least)
-//		For max size, use infinity to indicate no preference
-// Relayout boundaries: conditions where a widget will never need a relayout
-//		Tight constraints: sized determined by parent, will not change size for children
-//		Parent Uses Size: the parent does/doesn't care about the child's size for positioning or sizing itself
-//		Sized By Parent: like tight constraints, but for widgets that always expand/shrink
-// Create separate walks along the trees for layout and drawing
-// Repaint boundaries: determine what objects will often need repainting and separate them out
 
 /// Base UI class.  All UI elements are Widgets
 public abstract class Widget
@@ -293,8 +283,6 @@ public class Anchor: SingularContainer
 		// Final size of the container
 		RealSize result = RealSize(childSize.width + position.x, childSize.height + position.y);
 		debug assert(!result.contains(RealSize(cast(int)parentHeight, cast(int)parentWidth)), "Child is larger than container.");
-
-		debug puts("Successfully laid out anchor");
 
 		return result;
 	}
