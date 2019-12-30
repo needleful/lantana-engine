@@ -70,9 +70,11 @@ int main()
 	pmesh.is_playing = false;
 	pmesh.play_animation("TestAnim", true);
 
-	auto level_meshes = mm.make_list!StaticMeshInstance(1);
+	auto level_meshes = mm.make_list!StaticMeshInstance(2);
 	level_meshes[0].mesh = level_mesh;
 	level_meshes[0].transform = Transform(4, vec3(5,10,5));
+	level_meshes[1].mesh = smesh.build_mesh(player_loaded.accessors[0].mesh(), player_loaded.data);
+	level_meshes[1].transform = Transform(2, vec3(2, 12, 2));
 
 	float delta_time = 0;
 	import std.datetime.stopwatch: StopWatch, AutoStart;
@@ -84,7 +86,7 @@ int main()
 	stdout.flush();
 
 	LightInfo worldLight;
-	worldLight.color = vec3(1, 1, 0.8);
+	worldLight.color = vec3(.9, .9, 0.7);
 	worldLight.ambiance = vec3(0.15, 0.1, 0.4);
 	worldLight.direction = vec3(0.2, -1, 0.1);
 	worldLight.bias = 0.2;

@@ -393,6 +393,18 @@ struct GLBAnimatedAccessor
 	GLBBufferView indices;
 	GLBBufferView bone_idx;
 	GLBBufferView bone_weight;
+
+	GLBMeshAccessor mesh()
+	{
+		GLBMeshAccessor m;
+		m.name = name;
+		m.positions = positions;
+		m.uv = uv;
+		m.normals = normals;
+		m.indices = indices;
+
+		return m;
+	}
 }
 
 //Check a binary gltf2 file
