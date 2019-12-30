@@ -161,6 +161,7 @@ public class UIRenderer
 	{
 		// Render sprites
 		matSprite.enable();
+		glBindVertexArray(vao[1]);
 
 		glBindTexture(GL_TEXTURE_2D, atlasSprite.textureId);
 		glActiveTexture(GL_TEXTURE0);
@@ -179,6 +180,7 @@ public class UIRenderer
 
 		// Render text
 		matText.enable();
+		glBindVertexArray(vao[0]);
 
 		glBindTexture(GL_TEXTURE_2D, atlasText.textureId);
 		glActiveTexture(GL_TEXTURE0);
@@ -194,6 +196,8 @@ public class UIRenderer
 			cast(int) elemText.length,
 			GL_UNSIGNED_SHORT,
 			cast(void*) 0);
+
+		glBindVertexArray(0);
 
 		glcheck();
 	}
@@ -261,16 +265,7 @@ public class UIRenderer
 
 	/// Add a quad for a sprite (not sized yet)
 	public ushort[] addSpriteQuad(SpriteId p_sprite)
-	{	
-		// Quads are laid out in two tris as follows:
-		// 		{0, 2, 1}
-		// 		{1, 2, 3}
-		// With this layout:
-		// 1-------3
-		// |       |
-		// |       |
-		// 0-------2
-
+	{
 		assert(p_sprite in atlasSprite.map);
 
 		// The uv positions are set by other functions, 
@@ -296,7 +291,16 @@ public class UIRenderer
 		uv_off.x /= atlasSprite.width;
 		uv_off.y /= atlasSprite.height;
 
-		// Bottom left, top left, bottom right, top right
+		// Quads are laid out in space like so:
+		// 1-------3   /\ +y
+		// |       |   |
+		// |       |   |
+		// 0-------2   |
+		// -------------> +x
+		// With vertex indeces in this order:
+		// 		{0, 2, 1}
+		// 		{1, 2, 3}
+		// This applies to both texture UV and screen position.
 		uvs[uvstart..uvstart+4] = [
 			uv_pos,
 			uv_pos + vec2(0, uv_off.y),
