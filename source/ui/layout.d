@@ -180,8 +180,9 @@ public class Anchor: SingularContainer
 		double childWidthMeetingLeft, childWidthMeetingRight;
 		if(childAnchor.x == 0)
 		{
-			childWidthMeetingLeft = parentWidth;
-			childWidthMeetingRight = parentWidth;
+			childWidthMeetingRight = anchorToRight;
+			// invalid
+			childWidthMeetingLeft = double.infinity;
 		}
 		else if(childAnchor.x == 1)
 		{
@@ -232,8 +233,9 @@ public class Anchor: SingularContainer
 		double childHeightMeetingBottom, childHeightMeetingTop;
 		if(childAnchor.y == 0)
 		{
-			childHeightMeetingBottom = parentHeight;
-			childHeightMeetingTop = parentHeight;
+			childHeightMeetingTop = anchorToTop;
+			// invalid
+			childHeightMeetingBottom = double.infinity;
 		}
 		else if(childAnchor.y == 1)
 		{
