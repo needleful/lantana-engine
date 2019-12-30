@@ -2,8 +2,9 @@ TODO:
 
 - Text and UI
 	- Some images have RGB components in a different order.  I'll have to find a way to detect this and correct it.
-	- Implement text boxes
 	- VBox and HBox widgets
+	- Image box sizeing
+	- Implement text boxes
 	- 9-patch boxes
 	- "Partial Window" widgets (Modal, Scrollbox, and others)
 		a "Partial Window" is a type of Widget that handles its own vertex buffers, so it can be more indepentent of the rest of the UI

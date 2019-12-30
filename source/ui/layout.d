@@ -293,7 +293,28 @@ public class Padding : SingularContainer
 	// Padding, in pixels
 	int top, bottom, left, right;
 
-	public this(Widget p_child, int p_top = 0, int p_bottom = 0, int p_left = 0, int p_right = 0) @nogc nothrow
+	public this(Widget p_child, int p_padding) @nogc nothrow
+	{
+		child = p_child;
+
+		top = p_padding;
+		bottom = p_padding;
+		left = p_padding;
+		right = p_padding;
+	}
+
+	public this(Widget p_child, int p_vertical, int p_horizontal) @nogc nothrow
+	{
+		child = p_child;
+
+		top = p_vertical;
+		bottom = p_vertical;
+
+		left = p_horizontal;
+		right = p_horizontal;
+	}
+
+	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) @nogc nothrow
 	{
 		child = p_child;
 
@@ -359,6 +380,42 @@ public class ImageBox : LeafWidget
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
 		p_renderer.translateQuad(vertices, p);
+	}
+}
+
+// TODO: implement
+public class TextBox: LeafWidget
+{
+	string text;
+	ushort[] vertices;
+	bool textChanged;
+
+	public this(UIRenderer p_renderer, string text)
+	{
+		// TODO: adding text to the renderer
+	}
+
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	{
+		if(textChanged)
+		{
+			// TODO: update text EBO in this case
+		}
+		// Then calculate the size of each glyph and word.  We insert line breaks between words to keep width.
+		// This is the only element that can overflow.
+
+		return RealSize(0,0);
+	}
+
+	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
+	{
+		// TODO: translation of quads
+	}
+
+	public void setText(string p_text)
+	{
+		text = p_text;
+		textChanged = true;
 	}
 }
 
