@@ -33,17 +33,18 @@ public class UIRenderer
 	enum UIData
 	{
 		Layout,
-		TextMesh,
-		SpriteMesh,
+		TextEBO,
+		SpriteEBO,
+		Vertices,
 		TextAtlas,
 		SpriteAtlas,
 	}
 	private Bitfield!UIData invalidated;
 
 	/// The base widget of the UI
-	public Widget root;
+	private Widget root;
 	/// The size of the UI window
-	public RealSize size;
+	private RealSize size;
 
 	/++++++++++++++++++++++++++++++++++++++
 		OpenGL data
@@ -116,6 +117,12 @@ public class UIRenderer
 		invalidated.setAll();
 	}
 
+	public ~this()
+	{
+		glDeleteVertexArrays(vao.length, vao.ptr);
+		glDeleteBuffers(vbo.length, vbo.ptr);
+	}
+
 	public void update(float delta)
 	{
 		if(invalidated[UIData.Layout])
@@ -124,23 +131,71 @@ public class UIRenderer
 			root.layout(this, intrinsics);
 			root.prepareRender(this, root.position);
 		}
+
 		if(invalidated[UIData.SpriteAtlas])
 		{
-			debug writeln("Updating sprite atlas");
 			atlasSprite.reload();
+		}
+		if(invalidated[UIData.TextAtlas])
+		{
+			atlasText.reload();
+		}
+
+		if(invalidated[UIData.TextEBO])
+		{
+			updateTextEBO();
+		}
+		if(invalidated[UIData.SpriteEBO])
+		{
+			updateSpriteEBO();
+		}
+		if(invalidated[UIData.Vertices])
+		{
+			updateVertices();
 		}
 
 		invalidated.clear();
 	}
 
-	public void render() @nogc nothrow
+	public void render() @nogc
 	{
 		// Render sprites
 		matSprite.enable();
 
+		glBindTexture(GL_TEXTURE_2D, atlasSprite.textureId);
+		glActiveTexture(GL_TEXTURE0);
+
+		matSprite.set_uniform(uniSprite.in_tex, 0);
+		matSprite.set_uniform(uniSprite.cam_position, ivec2(0,0));
+		matSprite.set_uniform(uniSprite.cam_resolution, uvec2(size.width, size.height));
+		
+		glDrawElements(
+			GL_TRIANGLES,
+			cast(int) elemSprite.length,
+			GL_UNSIGNED_SHORT,
+			cast(void*) 0);
+
+		glcheck();
+
 		// Render text
 		matText.enable();
 
+		glBindTexture(GL_TEXTURE_2D, atlasText.textureId);
+		glActiveTexture(GL_TEXTURE0);
+
+		matText.set_uniform(uniText.in_tex, 0);
+		matText.set_uniform(uniText.cam_position, ivec2(0,0));
+		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
+		// TODO: text color should be configurable
+		matText.set_uniform(uniText.color, vec3(1, 1, 1));
+		
+		glDrawElements(
+			GL_TRIANGLES,
+			cast(int) elemText.length,
+			GL_UNSIGNED_SHORT,
+			cast(void*) 0);
+
+		glcheck();
 	}
 
 	/// Add a sprite to be rendered
@@ -190,10 +245,140 @@ public class UIRenderer
 		return atlasSprite.map[p_id].size;
 	}
 
-	public ~this()
+	public void setRootWidget(Widget p_root)
 	{
-		glDeleteVertexArrays(vao.length, vao.ptr);
-		glDeleteBuffers(vbo.length, vbo.ptr);
+		root = p_root;
+		invalidated[UIData.Layout] = true;
+	}
+
+	public void setSize(RealSize p_size)
+	{
+		size = p_size;
+		invalidated[UIData.Layout] = true;
+	}
+
+	// Sprite methods
+
+	/// Add a quad for a sprite (not sized yet)
+	public ushort[] addSpriteQuad(SpriteId p_sprite)
+	{	
+		// Quads are laid out in two tris as follows:
+		// 		{0, 2, 1}
+		// 		{1, 2, 3}
+		// With this layout:
+		// 1-------3
+		// |       |
+		// |       |
+		// 0-------2
+
+		assert(p_sprite in atlasSprite.map);
+
+		// The uv positions are set by other functions, 
+		// so they can stay (0,0) right now
+		ushort vertStart = cast(ushort)vertpos.length;
+		vertpos.length += 4;
+
+		// The UVs must be set, though
+		ushort uvstart = cast(ushort)uvs.length;
+		assert(uvstart == vertStart);
+		uvs.length += 4;
+
+		TextureNode* node = atlasSprite.map[p_sprite];
+
+		// UV start, normalized
+		vec2 uv_pos = vec2(node.position.x, node.position.y);
+		uv_pos.x /= atlasSprite.width;
+		uv_pos.y /= atlasSprite.height;
+
+		// UV offset, normalized
+		vec2 uv_off = vec2(node.size.width, node.size.height);
+
+		uv_off.x /= atlasSprite.width;
+		uv_off.y /= atlasSprite.height;
+
+		// Bottom left, top left, bottom right, top right
+		uvs[uvstart..uvstart+4] = [
+			uv_pos,
+			uv_pos + vec2(0, uv_off.y),
+			uv_pos + vec2(uv_off.x, 0),
+			uv_pos + uv_off
+		];
+
+		ulong elemStart = elemSprite.length;
+		elemSprite.length += 6;
+
+		elemSprite[elemStart..elemStart+6]= [
+			cast(ushort)(vertStart+0), 
+			cast(ushort)(vertStart+2), 
+			cast(ushort)(vertStart+1),
+
+			cast(ushort)(vertStart+1), 
+			cast(ushort)(vertStart+2), 
+			cast(ushort)(vertStart+3)
+		];
+
+		debug
+		{
+			puts("Quad UVs:");
+			foreach(vert; elemSprite[elemStart..elemStart+6])
+			{
+				vec2 uv = uvs[vert];
+				printf("\tv%d: [%f, %f]\n", vert, uv.x, uv.y);
+			}
+		}
+
+		invalidated[UIData.Vertices] = true;
+		invalidated[UIData.SpriteEBO] = true;
+
+		return elemSprite[elemStart..elemStart+6];
+	}
+
+	/// Set the size of the quad (while removing translation)
+	public void setQuadSize(ushort[] p_vertices, RealSize p_size) @nogc nothrow
+	{
+		assert(p_vertices.length == 6);
+
+		// Consult the diagram in addSpriteQuad for explanation
+		ushort quadStart = p_vertices[0];
+		vertpos[quadStart] = svec(0,0);
+		vertpos[quadStart + 1] = svec(0, p_size.height);
+		vertpos[quadStart + 2] = svec(p_size.width, 0);
+		vertpos[quadStart + 3] = svec(p_size.width, p_size.height);
+
+		debug
+		{
+			puts("Quad Size:");
+			foreach(vert; p_vertices)
+			{
+				svec2 p = vertpos[vert];
+				printf("\tv%d: [%d, %d]\n", vert, p.x, p.y);
+			}
+		}
+
+		invalidated[UIData.Vertices] = true;
+	}
+
+	public void translateQuad(ushort[] p_vertices, svec2 p_translation) @nogc nothrow
+	{
+		assert(p_vertices.length == 6);
+		ushort quadStart = p_vertices[0];
+
+		vertpos[quadStart] += p_translation;
+		vertpos[quadStart + 1] += p_translation;
+		vertpos[quadStart + 2] += p_translation;
+		vertpos[quadStart + 3] += p_translation;
+
+		debug
+		{
+			puts("Translated Quad:");
+			foreach(vert; p_vertices)
+			{
+				svec2 p = vertpos[vert];
+				printf("\tv%d: [%d, %d]\n", vert, p.x, p.y);
+			}
+		}
+
+		invalidated[UIData.Vertices] = true;
 	}
 
 	/// Should not be called every frame
@@ -240,10 +425,7 @@ public class UIRenderer
 
 		glcheck();
 
-
-		/+++++++++
-			Render the Sprite atlas at (0, 0)
-		+++++++++/
+		// Render the Sprite atlas at (0, 0)
 
 		matSprite.enable();
 
@@ -284,9 +466,8 @@ public class UIRenderer
 
 		glcheck();
 
-		/+++++++++
-			Render the text atlas with the camera at (-256, -256)
-		+++++++++/
+		/// Render the text atlas with the camera at (-256, -256)
+		// I'm moving the camera because UI elements have no translation property
 
 		matText.enable();
 
@@ -316,7 +497,7 @@ public class UIRenderer
 			0,
 			cast(void*) 0);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
 		glDrawElements(
 			GL_TRIANGLES,
 			cast(int) elemText.length,
@@ -359,8 +540,7 @@ public class UIRenderer
 		GLuint fragSprite = 
 			compile_shader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
 
-		atrText   = _build(&matText, vert2d, fragText);
-
+		atrText = _build(&matText, vert2d, fragText);
 		uniText.cam_resolution = matText.get_uniform_id("cam_resolution");
 		uniText.cam_position = matText.get_uniform_id("cam_position");
 		uniText.in_tex = matText.get_uniform_id("in_tex");
@@ -391,6 +571,62 @@ public class UIRenderer
 		glcheck();
 		glGenBuffers(vbo.length, vbo.ptr);
 		glGenVertexArrays(vao.length, vao.ptr);
+
+		// Text EBO
+		glBindVertexArray(vao[0]);
+
+		glEnableVertexAttribArray(atrText.uv);
+		glEnableVertexAttribArray(atrText.position);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glVertexAttribIPointer(
+			atrText.position,
+			2, GL_SHORT,
+			0, 
+			cast(void*) 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glVertexAttribPointer(
+			atrText.uv,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glDisableVertexAttribArray(atrText.uv);
+		glDisableVertexAttribArray(atrText.position);
+
+		glcheck();
+
+		// Sprite EBO
+		glBindVertexArray(vao[1]);
+
+		glEnableVertexAttribArray(atrSprite.uv);
+		glEnableVertexAttribArray(atrSprite.position);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glVertexAttribIPointer(
+			atrSprite.position,
+			2, GL_SHORT,
+			0, 
+			cast(void*) 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		glVertexAttribPointer(
+			atrSprite.uv,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glDisableVertexAttribArray(atrSprite.uv);
+		glDisableVertexAttribArray(atrSprite.position);
+
+		glBindVertexArray(0);
 	}
 
 	/// Updates both the vertpos and UV
@@ -407,15 +643,8 @@ public class UIRenderer
 		glBufferData(GL_ARRAY_BUFFER,
 			uvs.length*vec3.sizeof, uvs.ptr,
 			GL_STATIC_DRAW);
-	}
 
-	private void updateSpriteEBO()
-	{
-		// Sprite EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			elemText.length*ushort.sizeof, elemText.ptr,
-			GL_STATIC_DRAW);
+		debug puts("Updated vertices");
 	}
 
 	private void updateTextEBO()
@@ -425,6 +654,19 @@ public class UIRenderer
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
 			elemText.length*ushort.sizeof, elemText.ptr, 
 			GL_STATIC_DRAW);
+
+		debug puts("Updated text EBO");
+	}
+
+	private void updateSpriteEBO()
+	{
+		// Sprite EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			elemSprite.length*ushort.sizeof, elemSprite.ptr,
+			GL_STATIC_DRAW);
+
+		debug puts("Updated sprite EBO");
 	}
 }
 
@@ -516,7 +758,6 @@ struct TextureAtlas(IdType, TextureDataType)
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 	}
 
 	public ~this()

@@ -5,6 +5,7 @@
 module ui.layout;
 
 import std.math;
+debug import std.stdio;
 
 import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
@@ -149,7 +150,6 @@ public abstract class LeafWidget : Widget
 	}
 } 
 
-
 /// Anchor the widget to a specific point
 public class Anchor: SingularContainer
 {
@@ -169,23 +169,112 @@ public class Anchor: SingularContainer
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
 	{
-		RealSize rs = RealSize(cast(int)p_intrinsic.width.max, cast(int)p_intrinsic.height.max);
+		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
+		// I'm sure I could break this down into something presentable with more work.
 
-		// determine distance from boundaries in pixels.  This will be the max child size. 
-		vec2 baseAnchor = anchor + childAnchor;
-		vec2 absAnchor = vec2(fmin(baseAnchor.x, 1 - baseAnchor.x), fmin(baseAnchor.y, 1 - baseAnchor.y));
+		IntrinsicSize childIntrinsic;
+		// Child can be as small as it wants to be
+		childIntrinsic.width.min = 0;
+		childIntrinsic.height.min = 0;
 
-		double widthToSide = p_intrinsic.width.max * absAnchor.x;
-		double heightToSide = p_intrinsic.height.max * absAnchor.y;
+		// The bounds for the anchor
+		double parentWidth = p_intrinsic.width.max;
 
-		RealSize childSize = child.layout(p_renderer, p_intrinsic);
+		// calculate the distances from the parent anchor to the edges
+		double anchorToLeft = parentWidth * anchor.x;
+		double anchorToRight = parentWidth*(1-anchor.x);
 
-		// Compute the position of the child, in pixel coordinates relative to the bottom left of this widget, based on the anchor
-		child.position = ivec2(
-			cast(int) (anchor.x*rs.width - childAnchor.x*childSize.width),
-			cast(int) (anchor.y*rs.height - childAnchor.y*childSize.height)
-		);
-		return rs;
+		// The target width of the child if it meets the left edge
+		double childWidthMeetingLeft = anchorToLeft + anchorToLeft*(1-childAnchor.x);
+		
+		// Width if the child meets the right edge
+		double childWidthMeetingRight = anchorToRight + anchorToRight*childAnchor.x;
+
+		// we need to select the maximum width for the child such that it's within the parent
+		if(childWidthMeetingLeft <= parentWidth && childWidthMeetingRight <= parentWidth)
+		{
+			if(childWidthMeetingLeft > childWidthMeetingRight)
+			{
+				childIntrinsic.width.max = childWidthMeetingLeft;
+				// The child meets the left edge, no calculation required
+				child.position.x = 0;
+			}
+			else
+			{
+				childIntrinsic.width.max = childWidthMeetingRight;
+				// calculate the child's distance from the left edge
+				child.position.x = cast(int) (anchorToLeft - childWidthMeetingRight*childAnchor.x);
+			}
+		}
+		// I wish I knew how to remove this duplicated code
+		else if(childWidthMeetingLeft <= parentWidth)
+		{
+			childIntrinsic.width.max = childWidthMeetingLeft;
+			child.position.x = 0;
+		}
+		else if(childWidthMeetingRight <= parentWidth)
+		{
+			childIntrinsic.width.max = childWidthMeetingRight;
+			child.position.x = cast(int) (anchorToLeft - childWidthMeetingRight*childAnchor.x);
+		}
+		else
+		{
+			// If this algorithm is correct, this should never be reached under any circumstances
+			debug assert(false, "Cannot fit child width within parent");
+			else return RealSize(0,0);
+		}
+
+		// We do the same process as above on the y axis
+		double parentHeight = p_intrinsic.height.max;
+
+		double anchorToBottom = parentHeight * anchor.y;
+		double anchorToTop = parentHeight*(1-anchor.y);
+
+		double childHeightMeetingBottom = anchorToBottom + anchorToBottom*(1-childAnchor.y);
+		double childHeightMeetingTop = anchorToTop + anchorToTop*childAnchor.y;
+
+		if(childHeightMeetingBottom <= parentHeight && childHeightMeetingTop <= parentHeight)
+		{
+			if(childHeightMeetingBottom > childHeightMeetingTop)
+			{
+				childIntrinsic.height.max = childHeightMeetingBottom;
+				// Meets the bottom, no calculation needed
+				child.position.y = 0;
+			}
+			else
+			{
+				childIntrinsic.height.max = childHeightMeetingTop;
+				// calculate the distance from the bottom
+				child.position.y = cast(int) (anchorToBottom - childHeightMeetingTop*childAnchor.y);
+			}
+		}
+		else if(childHeightMeetingBottom <= parentHeight)
+		{
+			childIntrinsic.height.max = childHeightMeetingBottom;
+			child.position.y = 0;
+		}
+		else if(childHeightMeetingTop <= parentHeight)
+		{
+			childIntrinsic.height.max = childHeightMeetingTop;
+			child.position.y = cast(int) (anchorToBottom - childHeightMeetingTop*childAnchor.y);
+		}
+		else
+		{
+			debug assert(false, "Cannot fit child height within parent");
+			else return RealSize(0,0);
+		}
+
+		RealSize childSize = child.layout(p_renderer, childIntrinsic);
+
+		debug assert(child.position.x >= 0 && child.position.y >= 0, "Child extends beyond container bounds.");
+
+		// Final size of the container
+		RealSize result = RealSize(childSize.width + position.x, childSize.height + position.y);
+		debug assert(!result.contains(RealSize(cast(int)parentHeight, cast(int)parentWidth)), "Child is larger than container.");
+
+		debug puts("Successfully laid out anchor");
+
+		return result;
 	}
 }
 
@@ -221,43 +310,45 @@ public class Padding : SingularContainer
 public class ImageBox : LeafWidget
 {
 	RealSize textureSize;
-	UIMesh spriteQuad;
 	SpriteId spriteId;
+	// indeces into the UIRenderer vertex buffer
+	ushort[] vertices;
+
+	/// Currently no way for the UIRenderer to check if an image is loaded,
+	/// so only use this if the image is going to be shown once on screen
+	public this(UIRenderer p_renderer, string filename)
+	{
+		spriteId = p_renderer.loadSprite(filename);
+		assert(spriteId != 0);
+		textureSize = p_renderer.getSpriteSize(spriteId);
+		init(p_renderer);
+	}
 
 	public this(UIRenderer p_renderer, SpriteId p_spriteId)
 	{
 		spriteId = p_spriteId;
 		textureSize = p_renderer.getSpriteSize(spriteId);
-		// TODO: get UI mesh
+		init(p_renderer);
 	}
 
-	public this(UIRenderer p_renderer, Texture!AlphaColor p_texture)
+	private void init(UIRenderer p_renderer)
 	{
-		textureSize = p_texture.size;
-		// TODO: prevent duplicates of the same image?
-		spriteId = p_renderer.addSprite(p_texture);
-		assert(spriteId != 0);
+		vertices = p_renderer.addSpriteQuad(spriteId);
+		assert(vertices.length == 6);
 	}
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
 	{
-		int desiredWidth = cast(int) textureSize.width;
-		int desiredHeight = cast(int) textureSize.height;
+		// TODO: respect the intrinsics
+		RealSize result = textureSize;
+		p_renderer.setQuadSize(vertices, result);
+		return result;
+	}
 
-		if(p_intrinsic.inBounds(desiredWidth, desiredHeight))
-		{
-			return RealSize(desiredWidth, desiredHeight);
-		}
-
-		// Have to resize the image
-		double relativeMaxWidth = p_intrinsic.width.max / desiredWidth;
-		double relativeMaxHeight = p_intrinsic.height.max / desiredHeight;
-
-		double relativeMinWidth = p_intrinsic.width.min / desiredWidth;
-		double relativeMinHeight = p_intrinsic.height.min / desiredHeight;
-
-		// TODO: fix this
-		return RealSize(desiredWidth, desiredHeight);
+	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
+	{
+		svec2 p = svec(p_pen.x, p_pen.y);
+		p_renderer.translateQuad(vertices, p);
 	}
 }
 
@@ -285,9 +376,9 @@ public struct Bounds
 
 	this(double p_min, double p_max = -double.infinity) @nogc nothrow
 	{
-		if(p_min > p_max)
+		if(p_max < p_min)
 		{
-			p_min = p_max;
+			p_max = p_min;
 		}
 		min = p_min;
 		max = p_max;

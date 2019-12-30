@@ -8,5 +8,5 @@ out vec4 out_color;
 
 void main()
 {
-	out_color = texture(in_tex, vert_uv);
+	out_color = texture(in_tex, vert_uv) + vec4(0.3, 0.6, 0.1, 1);
 }

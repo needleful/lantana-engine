@@ -37,23 +37,30 @@ int main()
 
 	ww.grab_mouse(false);
 
-	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	SpriteId uiSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
-
-	ui.root = new HodgePodge([
-		new ImageBox(ui, needlefulPNG),
-		new ImageBox(ui, needlefulPNG),
-		new ImageBox(ui, uiSprite)
-	]);
-
-	ui.update(0f);
-	ww.begin_frame();
-	ui.debugRender();
-	ww.end_frame();
+	ui.setRootWidget(new HodgePodge([
+		// Needleful PNG in the center
+		new Anchor(
+			new ImageBox(ui, "data/test/needleful.png"),
+			vec2(0.5,0.5),
+			vec2(0.5,0.5)
+		),
+		// Random image in the bottom left
+		new ImageBox(ui, "data/test/ui_sprites/upclick.png")
+	]));
 
 	while(!ww.state[WindowState.CLOSED])
 	{
 		ww.poll_events(ii);
+
+		if(ww.state[WindowState.RESIZED])
+		{
+			ui.setSize(ww.getSize());
+		}
+
+		ui.update(0.016f);
+		ww.begin_frame();
+		ui.render();
+		ww.end_frame();
 	}
 	
 	return 0;

@@ -16,9 +16,9 @@ alias AlphaColor = Vector!(ubyte, 4);
 /// so this is a function that does exactly that.
 /// Otherwise, svec2 requires casting when constructing, like
 /// `svec2(cast(short)0, cast(short)1);`
-public svec2 svec(int x, int y)
+public svec2 svec(int x, int y) @nogc nothrow
 {
-	return svec2(cast(short)x, cast(short) y);
+	return svec2(cast(short) x, cast(short) y);
 }
 
 /// Same problem as svec
