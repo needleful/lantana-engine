@@ -599,13 +599,13 @@ public class UIRenderer
 			0,
 			cast(void*) 0);
 
-		glDisableVertexAttribArray(atrText.uv);
-		glDisableVertexAttribArray(atrText.position);
-
 		glcheck();
 
 		// Sprite EBO
 		glBindVertexArray(vao[1]);
+
+		glDisableVertexAttribArray(atrText.uv);
+		glDisableVertexAttribArray(atrText.position);
 
 		glEnableVertexAttribArray(atrSprite.uv);
 		glEnableVertexAttribArray(atrSprite.position);
@@ -627,10 +627,10 @@ public class UIRenderer
 			0,
 			cast(void*) 0);
 
+		glBindVertexArray(0);
+		
 		glDisableVertexAttribArray(atrSprite.uv);
 		glDisableVertexAttribArray(atrSprite.position);
-
-		glBindVertexArray(0);
 	}
 
 	/// Updates both the vertpos and UV

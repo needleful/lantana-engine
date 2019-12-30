@@ -2,7 +2,6 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-
 import std.format;
 import std.stdio;
 
