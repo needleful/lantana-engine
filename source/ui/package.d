@@ -5,5 +5,5 @@
 module ui;
 
 public import ui.layout;
+public import ui.widgets;
 public import ui.render;
-public import ui.text;

@@ -22,6 +22,8 @@ import render.mesh;
 
 import ui;
 
+enum atlas_test = false;
+
 int main()
 {
 	ushort screen_w = 720;
@@ -62,6 +64,7 @@ int main()
 		)
 	]));
 
+	ui.update(0.016f);
 	while(!ww.state[WindowState.CLOSED])
 	{
 		ww.poll_events(ii);
@@ -70,11 +73,19 @@ int main()
 		{
 			ui.setSize(ww.getSize());
 		}
-
-		ui.update(0.016f);
-		ww.begin_frame();
-		ui.render();
-		ww.end_frame();
+		static if(atlas_test)
+		{
+			ww.begin_frame();
+			ui.debugRender();
+			ww.end_frame();
+		}
+		else
+		{
+			ui.update(0.016f);
+			ww.begin_frame();
+			ui.render();
+			ww.end_frame();
+		}
 	}
 	
 	return 0;

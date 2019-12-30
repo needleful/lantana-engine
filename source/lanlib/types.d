@@ -70,7 +70,7 @@ enum isTemplateType(alias Template, Type) = __traits(
 );
 
 /// Create a bitfield from an enum
-/// IMPORTANT: it assumes the enum is tightly packed
+/// IMPORTANT: it assumes the enum is tightly packed, e.g it goes 0, 1, 2, etc
 struct Bitfield(Enum)
 	if(is(Enum == enum))
 {
@@ -96,7 +96,7 @@ struct Bitfield(Enum)
 	}
 	else
 	{
-		static assert(false, "currently no support for enums with values larger than 64");
+		static assert(false, "enums with values larger than 64 are not supported");
 	}
 
 	private dt data;

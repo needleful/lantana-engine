@@ -6,8 +6,8 @@ TODO:
 	- Image box sizeing
 	- Implement text boxes
 	- 9-patch boxes
-	- "Partial Window" widgets (Modal, Scrollbox, and others)
-		a "Partial Window" is a type of Widget that handles its own vertex buffers, so it can be more indepentent of the rest of the UI
+	- Sub-window widgets (Modal, Scrollbox, and others)
+		a sub-window is a type of Widget that handles its own vertex buffers, so it can be more indepentent of the rest of the UI
 
 - Grid movement
 	- Populating floor
