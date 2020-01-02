@@ -62,13 +62,8 @@ int main()
 			vec2(0.5,0)
 		),
 		new Anchor(
-			new ImageBox(ui, needlefulPNG),
-			vec2(0, 0.9),
-			vec2(0, 1)
-		),
-		new Anchor(
 			new ImageBox(ui, upclickSprite),
-			vec2(1,1), vec2(1,1)
+			vec2(1,0), vec2(1,0)
 		),
 		new Anchor(
 			new ImageBox(ui, needlefulPNG),
@@ -77,8 +72,8 @@ int main()
 		),
 		new Anchor(
 			frameTime,
-			vec2(0.27, 1-0.048),
-			vec2(0, 1)
+			vec2(0.99, 0.99),
+			vec2(1, 1)
 		)
 	]));
 
@@ -89,16 +84,15 @@ int main()
 	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, vec3(5, 7, 5));
 	auto player = Player(grid, GridPos(0,0,0));
 
-	auto test_mesh = anmesh.build_mesh(player_loaded.accessors[0], player_loaded);
 	auto anim_meshes = mm.make_list!AnimatedMeshInstance(1);
 
 	auto pmesh = &anim_meshes[0];
 
 	pmesh.transform = Transform(0.5, vec3(0,0,0));
-	pmesh.mesh = test_mesh;
-	pmesh.boneMatrices = mm.make_list!mat4(test_mesh.bones.length);
-	pmesh.bones = mm.make_list!GLBNode(test_mesh.bones.length);
-	pmesh.bones[0..$] = test_mesh.bones[0..$];
+	pmesh.mesh = player_mesh;
+	pmesh.boneMatrices = mm.make_list!mat4(player_mesh.bones.length);
+	pmesh.bones = mm.make_list!GLBNode(player_mesh.bones.length);
+	pmesh.bones[0..$] = player_mesh.bones[0..$];
 	pmesh.is_playing = false;
 	pmesh.play_animation("TestAnim", true);
 

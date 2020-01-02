@@ -328,19 +328,13 @@ public class TextBox: LeafWidget
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
 	{
-		if(textChanged)
-		{
-			// TODO: update text mesh
-		}
-		// Then calculate the size of each glyph and word.  We insert line breaks between words to respect width.
-		// This is the only element that can overflow.
-
-		return RealSize(0,0);
+		// TODO: update text layout
+		return mesh.boundingSize;
 	}
 
 	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
 	{
-		// TODO: translation of quads
+		p_renderer.translateTextMesh(mesh, p_pen);
 	}
 
 	public void setText(string p_text)

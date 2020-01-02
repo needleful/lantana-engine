@@ -97,6 +97,12 @@ public struct RealSize
 		height = p_height;
 	}
 
+	public this(ivec2 p_vector) @nogc nothrow
+	{
+		width = p_vector.x;
+		height = p_vector.y;
+	}
+
 	public RealSize opBinary(string op)(RealSize rhs) @nogc nothrow
 	{
 		static if(op == "+")

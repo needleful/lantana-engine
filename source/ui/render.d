@@ -53,11 +53,15 @@ struct GlyphId
 // To clarify, the EBO isn't changed
 public struct TextMeshRef
 {
-	// Offset within the VBO
+	// The total bounding box
+	RealSize boundingSize;
+	// Translation of the mesh
+	ivec2 translation;
+	// Offset within the EBO
 	ushort offset;
-	// Number of vertices to render (should be a multiple of 6)
+	// Number of quads to render
 	ushort length;
-	// Amount of space in the VBO (for dynamically updating text without needing to shift other vertices)
+	// Amount of quads allocated
 	ushort capacity;
 }
 
@@ -268,16 +272,16 @@ public class UIRenderer
 		glActiveTexture(GL_TEXTURE0);
 
 		matText.set_uniform(uniText.in_tex, 0);
-		matText.set_uniform(uniText.translation, ivec2(0));
 		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
 		// TODO: text color should be configurable
 		matText.set_uniform(uniText.color, vec3(1, 1, 1));
 		
 		foreach(tm; textMeshes)
 		{
+			matText.set_uniform(uniText.translation, tm.translation);
 			glDrawElements(
 				GL_TRIANGLES,
-				cast(int) tm.length,
+				cast(int) tm.length*6,
 				GL_UNSIGNED_SHORT,
 				cast(void*) (tm.offset*ushort.sizeof));
 		}
@@ -501,6 +505,11 @@ public class UIRenderer
 
 		FT_Face face = fonts[p_font];
 		ushort vertstart = cast(ushort)vertpos.length;
+		auto ebostart = elemText.length;
+
+		// Bounds of the entire text box
+		ivec2 bottom_left = ivec2(int.max, int.max);
+		ivec2 top_right = ivec2(int.min, int.min);
 
 		// Calculate number of quads to add
 		ushort quads = 0;
@@ -511,25 +520,20 @@ public class UIRenderer
 				quads += 1;
 			}
 		}
-		// If a dynamically sized string, allocate 150% of the current size plus 10 extra chars
-		auto vertspace = p_dynamicSize? cast(ushort)(quads*1.5+10) : quads;
+		// If a dynamically sized string, allocate 150% of the current size
+		auto vertspace = p_dynamicSize? cast(ushort)(quads*1.5) : quads;
 
 		vertpos.length += 4*vertspace;
 		uvs.length += 4*vertspace;
+		elemText.length += 6*vertspace;
 
 		assert(uvs.length == vertpos.length);
-
-		if(vertspace*6 > elemText.length)
-		{
-			// TODO reallocate the text EBO in this case
-			assert(false, format("No support for text larger than %u characters", elemText.length/6));
-		}
 
 		// Set fields in the TextMeshRef
 		textMeshes ~= TextMeshRef();
 		TextMeshRef* tm = &textMeshes[$-1];
-		tm.length = cast(short)(quads*6);
-		tm.offset = vertstart;
+		tm.length = cast(ushort)(quads);
+		tm.offset = cast(ushort)ebostart;
 		tm.capacity = vertspace;
 
 		// Write the buffers
@@ -576,7 +580,9 @@ public class UIRenderer
 			// |       |   |
 			// |       |   |
 			// 0-------2   |
-			// -------------> +x
+			// -------------> +x	
+			// 		{0, 2, 1}
+			// 		{1, 2, 3}
 
 			svec2 left = svec(ftGlyph.bitmap_left, 0);
 			svec2 right = svec(ftGlyph.bitmap_left + ftGlyph.bitmap.width, 0);
@@ -589,6 +595,12 @@ public class UIRenderer
 				pen.add(right).add(bottom),
 				pen.add(right).add(top)
 			];
+
+			ivec2 blchar = vertpos[vertstart];
+			ivec2 trchar = vertpos[vertstart+3];
+
+			bottom_left = vmin(bottom_left, blchar);
+			top_right = vmax(top_right, trchar);
 
 			// UV start, normalized
 			vec2 uv_pos = vec2(node.position.x, node.position.y);
@@ -611,7 +623,18 @@ public class UIRenderer
 				uv_pos + vec2(uv_off.x, 0),
 			];
 
+			elemText[ebostart..ebostart+6] = [
+				cast(ushort)(vertstart),
+				cast(ushort)(vertstart + 2),
+				cast(ushort)(vertstart + 1),
+
+				cast(ushort)(vertstart + 1),
+				cast(ushort)(vertstart + 2),
+				cast(ushort)(vertstart + 3),
+			];
+
 			vertstart += 4;
+			ebostart += 6;
 
 			pen += svec(
 				ftGlyph.advance.x >> 6, 
@@ -621,8 +644,16 @@ public class UIRenderer
 		invalidated[UIData.UVBuffer] = true;
 		invalidated[UIData.PositionBuffer] = true;
 		invalidated[UIData.TextAtlas] = true;
+		invalidated[UIData.TextEBO] = true;
+
+		tm.boundingSize = RealSize(top_right - bottom_left);
 
 		return tm;
+	}
+
+	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation) @nogc nothrow
+	{
+		p_text.translation = p_translation;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -744,34 +775,16 @@ public class UIRenderer
 
 	private void initBuffers()
 	{
-		// Reserve space for 3 strings of 128 characters
-		enum textQuads = 80;
-		enum stringCount = 3;
+		// Reserve space for 256 characters
+		enum textQuads = 256;
 		// Space for 10 sprites
 		enum spriteQuads = 10;
 
+		elemText.reserve(6*textQuads);
 		elemSprite.reserve(6*spriteQuads);
-		vertpos.reserve(4*(textQuads*stringCount + spriteQuads));
-		uvs.reserve(4*(textQuads*stringCount + spriteQuads));
 
-		// The text EBO is the same for all strings and can be generated now.
-		// Larger strings can be accomidated if needed.
-		elemText.length = 6*textQuads;
-		foreach(quad; 0..textQuads)
-		{
-			auto elemStart = quad*6;
-			auto vertStart = quad*4;
-			// Populating quads
-			elemText[elemStart..elemStart+6] = [
-				cast(ushort)(vertStart+0),
-				cast(ushort)(vertStart+2),
-				cast(ushort)(vertStart+1),
-
-				cast(ushort)(vertStart+1),
-				cast(ushort)(vertStart+2),
-				cast(ushort)(vertStart+3)
-			];
-		}
+		vertpos.reserve(4*(textQuads + spriteQuads));
+		uvs.reserve(4*(textQuads + spriteQuads));
 
 		glcheck();
 		glGenBuffers(vbo.length, vbo.ptr);

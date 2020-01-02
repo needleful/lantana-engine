@@ -21,11 +21,38 @@ public svec2 svec(int x, int y) @nogc nothrow
 	return svec2(cast(short) x, cast(short) y);
 }
 
+public svec2 svec(ivec2 v) @nogc nothrow
+{
+	return svec2(cast(short) v.x, cast(short) v.y);
+}
+
 public svec2 add(svec2 lhs, svec2 rhs)
 {
 	svec2 ret;
 	ret.x = cast(short)(lhs.x + rhs.x);
 	ret.y = cast(short)(lhs.y + rhs.y);
+	return ret;
+}
+
+public auto vmax(L, R)(L lhs, R rhs)
+	if(is(L == R) && isTemplateType!(Vector, R))
+{
+	L ret;
+	foreach(v; 0..R.dimension)
+	{
+		ret.vector[v] = rhs.vector[v] > lhs.vector[v] ? rhs.vector[v] : lhs.vector[v];
+	}
+	return ret;
+}
+
+public auto vmin(L, R)(L lhs, R rhs)
+	if(is(L == R) && isTemplateType!(Vector, R))
+{
+	L ret;
+	foreach(v; 0..R.dimension)
+	{
+		ret.vector[v] = rhs.vector[v] < lhs.vector[v] ? rhs.vector[v] : lhs.vector[v];
+	}
 	return ret;
 }
 

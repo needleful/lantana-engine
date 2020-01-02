@@ -89,6 +89,7 @@ class LanRegion : ILanAllocator
 		{
 			printf("Creating Region with %u bytes\n", capacity);
 		}
+		GC.addRange(data, capacity);
 	}
 
 	~this() @nogc
@@ -103,6 +104,7 @@ class LanRegion : ILanAllocator
 		{
 			printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 		}
+		GC.removeRange(data);
 	}
 
 	override void* make(ulong bytes) @nogc 
