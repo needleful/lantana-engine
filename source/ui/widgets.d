@@ -31,50 +31,6 @@ public abstract class LeafWidget : Widget
 	}
 }
 
-// TODO: this may wind up being a sub-window widget
-public class Modal : Widget
-{
-	public Widget[] pages;
-	public uint pageIndex;
-
-	public const(Widget[]) getPages() const @nogc nothrow
-	{
-		return pages;
-	}
-
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
-	{
-		auto currentPage = pages[pageIndex];
-		RealSize returnValue;
-
-		// Lay out each page to reduce work when switching pages.
-		foreach(page; pages)
-		{
-			page.position = ivec2(0);
-			if(&page == &currentPage)
-			{
-				returnValue = page.layout(p_renderer, p_intrinsic);
-			}
-			else 
-			{
-				page.layout(p_renderer, p_intrinsic);
-			}
-		}
-		return returnValue;
-	}
-
-	public override Widget[] getChildren() @nogc nothrow
-	{
-		return pages;
-	}
-
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
-	{
-		auto page = pages[pageIndex];
-		page.prepareRender(p_renderer, page.position + p_pen);
-	}
-}
-
 /// Provides no layout hints.  All widgets are laid out in the same space and position
 public class HodgePodge : Widget
 {
@@ -356,22 +312,27 @@ public class ImageBox : LeafWidget
 // TODO: implement
 public class TextBox: LeafWidget
 {
+	FontId font;
 	string text;
-	ushort[] vertices;
+	TextMeshRef* mesh;
 	bool textChanged;
 
-	public this(UIRenderer p_renderer, string text)
+	public this(UIRenderer p_renderer, FontId p_font, string p_text, bool p_dynamicSize = false)
 	{
 		// TODO: adding text to the renderer
+		font = p_font;
+		text = p_text;
+
+		mesh = p_renderer.addTextMesh(font, text, p_dynamicSize);
 	}
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
 	{
 		if(textChanged)
 		{
-			// TODO: update text EBO in this case
+			// TODO: update text mesh
 		}
-		// Then calculate the size of each glyph and word.  We insert line breaks between words to keep width.
+		// Then calculate the size of each glyph and word.  We insert line breaks between words to respect width.
 		// This is the only element that can overflow.
 
 		return RealSize(0,0);
@@ -385,6 +346,6 @@ public class TextBox: LeafWidget
 	public void setText(string p_text)
 	{
 		text = p_text;
-		textChanged = true;
+		textChanged = text != p_text;
 	}
 }

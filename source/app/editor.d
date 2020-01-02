@@ -41,8 +41,11 @@ int main()
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
+	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf");
+	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
+
 	ui.setRootWidget(new HodgePodge([
-		// various tests for Anchor and ImageBox
+		// various tests for Anchor, ImageBox, and TextBox
 		new Anchor(
 			new ImageBox(ui, upclickSprite),
 			vec2(0.5,0.6),
@@ -61,6 +64,11 @@ int main()
 			new ImageBox(ui, needlefulPNG),
 			vec2(0.027, 0.048),
 			vec2(0, 0)
+		),
+		new Anchor(
+			frameTime,
+			vec2(0.27, 1-0.048),
+			vec2(0, 1)
 		)
 	]));
 

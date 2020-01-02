@@ -21,6 +21,14 @@ public svec2 svec(int x, int y) @nogc nothrow
 	return svec2(cast(short) x, cast(short) y);
 }
 
+public svec2 add(svec2 lhs, svec2 rhs)
+{
+	svec2 ret;
+	ret.x = cast(short)(lhs.x + rhs.x);
+	ret.y = cast(short)(lhs.y + rhs.y);
+	return ret;
+}
+
 /// Same problem as svec
 public AlphaColor color(uint r, uint g, uint b, uint a)
 {
@@ -38,6 +46,9 @@ public AlphaColor color(uint r, uint g, uint b, uint a)
  */
 mixin template StrictAlias(T)
 {
+	/// Internal datatype of the alias struct
+	alias dt = T;
+
 	private T _handle;
 
 	@disable this(U)(U u);
