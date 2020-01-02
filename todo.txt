@@ -1,7 +1,10 @@
 TODO:
 
-- Text and UI
+Bugs:
+	- My text mesh is wrong, I misunderstood the meaning of offset in glDrawElements.  Will not be hard to fix
 	- Some images have RGB components in a different order.  I'll have to find a way to detect this and correct it.
+
+- UI
 	- VBox and HBox widgets
 	- Image box sizeing
 	- Implement text boxes

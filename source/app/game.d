@@ -22,8 +22,7 @@ import render.lights;
 import render.material;
 import render.mesh;
 
-import ui.layout;
-import ui.text;
+import ui;
 
 enum MAX_MEMORY = 1024*1024*5;
 
@@ -40,7 +39,6 @@ int main()
 	
 	auto mm = new LanRegion(MAX_MEMORY, new SysMemManager());
 	Input input = Input();
-	TextAtlas text = new TextAtlas("data/fonts/averia/Averia-Light.ttf", 28, 256, 256);
 
 	StaticMeshSystem smesh = StaticMeshSystem(3);
 	AnimatedMeshSystem anmesh = AnimatedMeshSystem(2);
@@ -48,7 +46,41 @@ int main()
 	GLBStaticLoadResults level_loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
 	GLBAnimatedLoadResults player_loaded = glb_load!true("data/test/meshes/anim_test.glb", mm);
 
-	auto debug_msg = text.add_text("Hello, world!", ivec2(20, 20), vec3(1, 0.2, 0.2));
+	UIRenderer ui = new UIRenderer(ww.getSize());
+
+	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
+	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+
+	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf");
+	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
+
+	ui.setRootWidget(new HodgePodge([
+		// various tests for Anchor, ImageBox, and TextBox
+		new Anchor(
+			new TextBox(ui, testFont, "Henlo"),
+			vec2(0.5,0.6),
+			vec2(0.5,0)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0, 0.9),
+			vec2(0, 1)
+		),
+		new Anchor(
+			new ImageBox(ui, upclickSprite),
+			vec2(1,1), vec2(1,1)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0.027, 0.048),
+			vec2(0, 0)
+		),
+		new Anchor(
+			frameTime,
+			vec2(0.27, 1-0.048),
+			vec2(0, 1)
+		)
+	]));
 
 	auto level_mesh = smesh.build_mesh(level_loaded.accessors[0], level_loaded.data);
 	auto player_mesh = anmesh.build_mesh(player_loaded.accessors[0], player_loaded);
@@ -104,6 +136,7 @@ int main()
 			cam.set_projection(
 				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 			);
+			ui.setSize(ww.getSize());
 		}
 
 		if(input.is_just_pressed(Input.Action.PAUSE))
@@ -124,13 +157,13 @@ int main()
 			pmesh.transform.compute_matrix();
 			anmesh.update(delta, anim_meshes);
 		}
+		ui.update(delta);
 
 		ww.begin_frame();
 		mat4 vp = cam.vp();
 		smesh.render(vp, worldLight, level_meshes);
 		anmesh.render(vp, worldLight, anim_meshes);
-
-		text.render(wsize);
+		ui.render();
 
 		ww.end_frame();
 		frame ++;
