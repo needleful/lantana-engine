@@ -239,6 +239,8 @@ public class UIRenderer
 
 	public void render() @nogc
 	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// Render sprites
 		matSprite.enable();
 		glBindVertexArray(vao[1]);
@@ -599,11 +601,14 @@ public class UIRenderer
 			uv_off.x /= atlasText.width;
 			uv_off.y /= atlasText.height;
 
+			writefln("\t%c -> %s to %s", c, uv_pos, uv_pos + uv_off);
+
+			// FreeType blits text upside-down relative to images
 			uvs[vertstart..vertstart+4] = [
-				uv_pos,
 				uv_pos + vec2(0, uv_off.y),
+				uv_pos,
+				uv_pos + uv_off,
 				uv_pos + vec2(uv_off.x, 0),
-				uv_pos + uv_off
 			];
 
 			vertstart += 4;
@@ -611,7 +616,6 @@ public class UIRenderer
 			pen += svec(
 				ftGlyph.advance.x >> 6, 
 				ftGlyph.advance.y >> 6);
-
 		}
 
 		invalidated[UIData.UVBuffer] = true;
@@ -630,13 +634,10 @@ public class UIRenderer
 	/// so only render this once.
 	debug public void debugRender()
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glcheck();
 		// We'll just render the atlases as quads
-		uvs.length = 7;
-		vertpos.length = 7;
+		uvs.length = 8;
+		vertpos.length = 8;
 
 		uvs[0..$] = [
 			vec2(0,0),
@@ -644,6 +645,7 @@ public class UIRenderer
 			vec2(1,0),
 			vec2(1,1),
 
+			vec2(0,0),
 			vec2(0,1),
 			vec2(1,0),
 			vec2(1,1)
@@ -655,9 +657,10 @@ public class UIRenderer
 			svec(256, 0),
 			svec(256, 256),
 
-			svec(0, 1024),
-			svec(1024, 0),
-			svec(1024, 1024)
+			svec(256, 256),
+			svec(256, 256+1024),
+			svec(256+1024, 256),
+			svec(256+1024, 256+1024)
 		];
 
 		elemText.length = 6;
@@ -669,8 +672,8 @@ public class UIRenderer
 		];
 
 		elemSprite[0..$] = [
-			0, 5, 4,
-			4, 5, 6
+			4, 6, 5,
+			5, 6, 7
 		];
 
 		updateUVBuffer();
@@ -680,88 +683,7 @@ public class UIRenderer
 
 		glcheck();
 
-		/// Render the text atlas with the camera at (0,0)
-
-		matText.enable();
-
-		glBindTexture(GL_TEXTURE_2D, atlasText.textureId);
-		glActiveTexture(GL_TEXTURE0);
-
-		matText.set_uniform(uniText.in_tex, 0);
-		matText.set_uniform(uniText.translation, ivec2(0));
-		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
-		matText.set_uniform(uniText.color, vec3(1, 0, 1));
-
-		glEnableVertexAttribArray(atrText.uv);
-		glEnableVertexAttribArray(atrText.position);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glVertexAttribIPointer(
-			atrText.position,
-			2, GL_SHORT,
-			0, 
-			cast(void*) 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		glVertexAttribPointer(
-			atrText.uv,
-			2, GL_FLOAT,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
-		glDrawElements(
-			GL_TRIANGLES,
-			cast(int) elemText.length,
-			GL_UNSIGNED_SHORT,
-			cast(void*) 0);
-
-		glDisableVertexAttribArray(atrText.uv);
-		glDisableVertexAttribArray(atrText.position);
-
-		glcheck();
-
-		// Render the Sprite atlas at (256, 256)
-
-		matSprite.enable();
-
-		glBindTexture(GL_TEXTURE_2D, atlasSprite.textureId);
-		glActiveTexture(GL_TEXTURE0);
-
-		matSprite.set_uniform(uniSprite.in_tex, 0);
-		matSprite.set_uniform(uniSprite.translation, ivec2(256));
-		matSprite.set_uniform(uniSprite.cam_resolution, uvec2(size.width, size.height));
-
-		glEnableVertexAttribArray(atrSprite.uv);
-		glEnableVertexAttribArray(atrSprite.position);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glVertexAttribIPointer(
-			atrSprite.position,
-			2, GL_SHORT,
-			0, 
-			cast(void*) 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		glVertexAttribPointer(
-			atrSprite.uv,
-			2, GL_FLOAT,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
-		glDrawElements(
-			GL_TRIANGLES,
-			cast(int) elemSprite.length,
-			GL_UNSIGNED_SHORT,
-			cast(void*) 0);
-
-		glDisableVertexAttribArray(atrSprite.uv);
-		glDisableVertexAttribArray(atrSprite.position);
-
-		glcheck();
+		render();
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
