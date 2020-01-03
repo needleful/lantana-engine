@@ -157,7 +157,6 @@ struct SDLWindow
 
 		// Our default OpenGL settings
 		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
 		// Frame color is irrelevant, since it should never be seen in normal execution

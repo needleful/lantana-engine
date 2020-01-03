@@ -83,6 +83,7 @@ struct StaticMeshSystem
 		glcheck();
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
 
 		mat.enable();
 		mat.set_uniform(un.projection, p_projection);
@@ -339,6 +340,7 @@ struct AnimatedMeshSystem
 		glcheck();
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);

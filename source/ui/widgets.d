@@ -309,7 +309,7 @@ public class ImageBox : LeafWidget
 	}
 }
 
-// TODO: implement
+// TODO: implement sizing
 public class TextBox: LeafWidget
 {
 	FontId font;
@@ -320,7 +320,6 @@ public class TextBox: LeafWidget
 
 	public this(UIRenderer p_renderer, FontId p_font, string p_text, bool p_dynamicSize = false)
 	{
-		// TODO: adding text to the renderer
 		font = p_font;
 		text = p_text;
 
@@ -330,6 +329,7 @@ public class TextBox: LeafWidget
 
 	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
+		// TODO: layout text to fit bounds
 		return mesh.boundingSize;
 	}
 
@@ -345,5 +345,15 @@ public class TextBox: LeafWidget
 			renderer.replaceTextMesh(mesh, font, p_text);
 		}
 		text = p_text;
+	}
+
+	public void setVisiblePortion(float p_visible)
+	{
+		mesh.visiblePortion = p_visible;
+	}
+
+	public float getPortionVisible()
+	{
+		return mesh.visiblePortion;
 	}
 }

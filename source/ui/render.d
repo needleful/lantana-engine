@@ -5,6 +5,7 @@
 module ui.render;
 
 import std.format;
+import std.math:floor;
 debug import std.stdio;
 
 import deimos.freeimage;
@@ -57,6 +58,8 @@ public struct TextMeshRef
 	RealSize boundingSize;
 	// Translation of the mesh
 	ivec2 translation;
+	// (between 0 and 1) the proportion of characters visible.
+	float visiblePortion;
 	// Offset within the EBO
 	ushort offset;
 	// Number of quads to render
@@ -173,6 +176,7 @@ public class UIRenderer
 
 	public this(RealSize p_windowSize)
 	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		size = p_windowSize;
 		// Reserving space for 5 fonts by default
 		// can go up to FontId.dt.max (probably 255)
@@ -244,7 +248,7 @@ public class UIRenderer
 	public void render() @nogc
 	{
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_DEPTH_TEST);
 		// Render sprites
 		matSprite.enable();
 		glBindVertexArray(vao[1]);
@@ -274,14 +278,14 @@ public class UIRenderer
 		matText.set_uniform(uniText.in_tex, 0);
 		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
 		// TODO: text color should be configurable
-		matText.set_uniform(uniText.color, vec3(1, 1, 1));
+		matText.set_uniform(uniText.color, vec3(1, 0.7, 1));
 		
 		foreach(tm; textMeshes)
 		{
 			matText.set_uniform(uniText.translation, tm.translation);
 			glDrawElements(
 				GL_TRIANGLES,
-				cast(int) tm.length*6,
+				cast(int) floor(tm.length*tm.visiblePortion)*6,
 				GL_UNSIGNED_SHORT,
 				cast(void*) (tm.offset*ushort.sizeof));
 		}
@@ -521,6 +525,7 @@ public class UIRenderer
 		tm.length = cast(ushort)(quads);
 		tm.capacity = vertspace;
 		tm.offset = cast(ushort)elemText.length;
+		tm.visiblePortion = 1;
 
 		elemText.length += 6*vertspace;
 		elemText[tm.offset] = cast(ushort)vertpos.length;
@@ -578,8 +583,14 @@ public class UIRenderer
 
 			if(c == '\n')
 			{
+				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
 				pen.x = 0;
-				pen.y -= face.height >> 6;
+				auto lineHeight = face.height >> 6;
+				foreach(v; elemText[p_mesh.offset]..vertstart)
+				{
+					vertpos[v].y += lineHeight;
+				}
+				top_right.y += lineHeight;
 				continue;
 			}
 			else if(c.isWhite())

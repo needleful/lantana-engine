@@ -60,7 +60,7 @@ int main()
 	ui.setRootWidget(new HodgePodge([
 		// various tests for Anchor, ImageBox, and TextBox
 		new Anchor(
-			new TextBox(ui, testFont, "Henlo"),
+			new TextBox(ui, testFont, "Hello"),
 			vec2(0.5,0.6),
 			vec2(0.5,0)
 		),
