@@ -28,10 +28,10 @@ public abstract class Widget
 
 	/// First phase of layout, taking some IntrinsicSize (bounds), and providing the real size of the object
 	/// Parents calculate the position of their children
-	public abstract RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow;
+	public abstract RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow;
 
 	/// Second phase of layout: this is 
-	public void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
+	public void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
 	{
 		foreach(child; getChildren())
 		{
@@ -39,7 +39,7 @@ public abstract class Widget
 		}
 	}
 
-	public abstract Widget[] getChildren() @nogc nothrow;
+	public abstract Widget[] getChildren() nothrow;
 }
 
 public struct IntrinsicSize

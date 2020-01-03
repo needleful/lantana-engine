@@ -2,6 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
+import std.format;
 import std.math;
 import std.stdio;
 
@@ -52,7 +53,9 @@ int main()
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf");
-	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
+
+	string debugState = "Frame Time: %4.2f ms\nMax       : %8.4f ms\nAverage   : %8.4f ms";
+	TextBox frameTime = new TextBox(ui, testFont, debugState, true);
 
 	ui.setRootWidget(new HodgePodge([
 		// various tests for Anchor, ImageBox, and TextBox
@@ -76,6 +79,7 @@ int main()
 			vec2(1, 1)
 		)
 	]));
+
 
 	auto level_mesh = smesh.build_mesh(level_loaded.accessors[0], level_loaded.data);
 	auto player_mesh = anmesh.build_mesh(player_loaded.accessors[0], player_loaded);
@@ -102,9 +106,6 @@ int main()
 	level_meshes[1].mesh = smesh.build_mesh(player_loaded.accessors[0].mesh(), player_loaded.data);
 	level_meshes[1].transform = Transform(2, vec3(2, 12, 2));
 
-	float delta_time = 0;
-	import std.datetime.stopwatch: StopWatch, AutoStart;
-	auto sw = StopWatch(AutoStart.yes);
 	uint frame = 0;
 	int[2] wsize = ww.get_dimensions();
 
@@ -117,10 +118,30 @@ int main()
 	worldLight.direction = vec3(0.2, -1, 0.1);
 	worldLight.bias = 0.2;
 
+	float maxDelta_ms = -1;
+	float runningMaxDelta_ms = -1;
+	float accumDelta_ms = 0;
+	float runningFrame = 0;
+
 	while(!ww.state[WindowState.CLOSED])
 	{
-		float delta = ww.delta_ms()/1000.0;
-		delta_time += delta;
+		float delta_ms = ww.delta_ms();
+		float delta = delta_ms/1000.0;
+		debug
+		{	
+			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+			
+			if(frame % 1024 == 0)
+			{
+				maxDelta_ms = runningMaxDelta_ms;
+				runningMaxDelta_ms = -1;
+				accumDelta_ms = 0;
+				runningFrame = 1;
+			}
+			accumDelta_ms += delta_ms;
+			frameTime.setText(format(debugState, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
+			runningFrame ++;
+		}
 	
 		ww.poll_events(input);
 
@@ -162,8 +183,5 @@ int main()
 		ww.end_frame();
 		frame ++;
 	}
-	sw.stop();
-	writeln("Delta time (sec): ", delta_time, ", Actual Time (sec): ", sw.peek.total!"msecs"()/1000.0);
-	writeln("Exiting game");
 	return 0;
 }

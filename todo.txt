@@ -1,13 +1,14 @@
 TODO:
 
 Bugs:
-	- My text mesh is wrong, I misunderstood the meaning of offset in glDrawElements.  Will not be hard to fix
 	- Some images have RGB components in a different order.  I'll have to find a way to detect this and correct it.
+	- Text boxes don't seem to be positioned properly when they have multiple lines
 
 - UI
+	- Use glSubData instead of glBufferData for better performace
 	- VBox and HBox widgets
 	- Image box sizeing
-	- Implement text boxes
+	- Text box sizing
 	- 9-patch boxes
 	- Sub-window widgets (Modal, Scrollbox, and others)
 		a sub-window is a type of Widget that handles its own vertex buffers, so it can be more indepentent of the rest of the UI

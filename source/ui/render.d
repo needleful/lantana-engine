@@ -503,14 +503,6 @@ public class UIRenderer
 
 		debug writefln("FontId: %u, Total Fonts: %u", p_font.handle(), fonts.length);
 
-		FT_Face face = fonts[p_font];
-		ushort vertstart = cast(ushort)vertpos.length;
-		auto ebostart = elemText.length;
-
-		// Bounds of the entire text box
-		ivec2 bottom_left = ivec2(int.max, int.max);
-		ivec2 top_right = ivec2(int.min, int.min);
-
 		// Calculate number of quads to add
 		ushort quads = 0;
 		foreach(c; p_text)
@@ -523,21 +515,54 @@ public class UIRenderer
 		// If a dynamically sized string, allocate 150% of the current size
 		auto vertspace = p_dynamicSize? cast(ushort)(quads*1.5) : quads;
 
-		vertpos.length += 4*vertspace;
-		uvs.length += 4*vertspace;
-		elemText.length += 6*vertspace;
-
-		assert(uvs.length == vertpos.length);
-
 		// Set fields in the TextMeshRef
 		textMeshes ~= TextMeshRef();
 		TextMeshRef* tm = &textMeshes[$-1];
 		tm.length = cast(ushort)(quads);
-		tm.offset = cast(ushort)ebostart;
 		tm.capacity = vertspace;
+		tm.offset = cast(ushort)elemText.length;
+
+		elemText.length += 6*vertspace;
+		elemText[tm.offset] = cast(ushort)vertpos.length;
+
+		vertpos.length += 4*vertspace;
+		uvs.length += 4*vertspace;
+
+		assert(uvs.length == vertpos.length);
+
+		replaceTextMesh(tm, p_font, p_text);
+
+		return tm;
+	}
+
+	public void replaceTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
+	{	
+		import std.uni: isWhite;
+
+		ushort oldCount = p_mesh.length;
+
+		ushort quads = 0;
+		foreach(c; p_text)
+		{
+			if(!c.isWhite())
+			{
+				quads += 1;
+			}
+		}
+		assert(quads <= p_mesh.capacity, "Tried to resize text, but it was too large");
+		p_mesh.length = cast(ushort)(quads);
 
 		// Write the buffers
 		svec2 pen = svec(0,0);
+
+		FT_Face face = fonts[p_font];
+
+		// Bounds of the entire text box
+		ivec2 bottom_left = ivec2(int.max, int.max);
+		ivec2 top_right = ivec2(int.min, int.min);
+
+		auto ebostart = p_mesh.offset;
+		auto vertstart = elemText[ebostart];
 
 		GlyphId g;
 		g.font = p_font;
@@ -613,8 +638,6 @@ public class UIRenderer
 			uv_off.x /= atlasText.width;
 			uv_off.y /= atlasText.height;
 
-			writefln("\t%c -> %s to %s", c, uv_pos, uv_pos + uv_off);
-
 			// FreeType blits text upside-down relative to images
 			uvs[vertstart..vertstart+4] = [
 				uv_pos + vec2(0, uv_off.y),
@@ -644,11 +667,9 @@ public class UIRenderer
 		invalidated[UIData.UVBuffer] = true;
 		invalidated[UIData.PositionBuffer] = true;
 		invalidated[UIData.TextAtlas] = true;
-		invalidated[UIData.TextEBO] = true;
+		invalidated[UIData.TextEBO] = p_mesh.length != oldCount;
 
-		tm.boundingSize = RealSize(top_right - bottom_left);
-
-		return tm;
+		p_mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
 
 	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation) @nogc nothrow

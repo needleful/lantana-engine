@@ -4,6 +4,7 @@
 
 module lanlib.util.sdl;
 
+import std.datetime.stopwatch: StopWatch, AutoStart;
 import std.exception;
 import std.format;
 import std.stdio;
@@ -64,14 +65,15 @@ enum WindowState
  */
 struct SDLWindow
 {
-	SDL_Window *window;
-	SDL_GLContext glContext;
-	SDL_Event event;
 	Bitfield!WindowState state;
-	uint time;
+	private SDL_Window *window;
+	private SDL_GLContext glContext;
+	private SDL_Event event;
+	private StopWatch time;
 
 	this (int width, int height, string name)
 	{
+		time = StopWatch(AutoStart.yes);
 		try
 		{
 			DerelictFT.load();
@@ -162,7 +164,6 @@ struct SDLWindow
 		glClearColor(0, 0, 0, 1);
 		glClearDepth(1.0f);
 
-		time = SDL_GetTicks();
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
@@ -180,7 +181,6 @@ struct SDLWindow
 
 	void poll_events(ref Input input) @nogc nothrow
 	{
-		time = SDL_GetTicks();
 		state.clear();
 		
 		input.mouse_movement = vec2(0,0);
@@ -270,8 +270,10 @@ struct SDLWindow
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	@property uint delta_ms() @nogc nothrow
+	float delta_ms() @nogc nothrow
 	{
-		return SDL_GetTicks() - time;
+		float ms = time.peek.total!"usecs"/1000.0;
+		time.reset();
+		return ms;
 	}
 }

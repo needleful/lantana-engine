@@ -26,20 +26,20 @@ struct TextureNode
 	RealSize size;
 	bool occupied;
 
-	this(ivec2 p_position, RealSize p_size)
+	this(ivec2 p_position, RealSize p_size) nothrow
 	{
 		position = p_position;
 		size = p_size;
 	}
 
-	~this()
+	~this() nothrow
 	{
 		// I want to minimize the number of empty nodes
 		// Occupied nodes point to a specific image, and joining nodes are necessary for splitting the atlas 
-		debug writefln("Deleting %s atlas node", occupied? "occupied" : (isLeaf?"empty": "joining") );
+		debug printf("Deleting %s atlas node\n", occupied? "occupied".ptr : (isLeaf?"empty".ptr: "joining".ptr) );
 	}
 
-	bool isLeaf()
+	bool isLeaf() nothrow
 	{
 		return left == null && right == null;
 	}
@@ -106,9 +106,9 @@ struct TextureAtlas(IdType, TextureDataType)
 
 	///TODO implement
 	/// new_value indicates the atlas texture was changed
-	public TextureNode* getAtlasSpot(IdType p_id, RealSize p_size, bool* new_value = null)
+	public TextureNode* getAtlasSpot(IdType p_id, RealSize p_size, bool* new_value = null) nothrow
 	{
-		TextureNode* _getSpot(TextureNode* p_node, IdType p_id, RealSize p_size)
+		TextureNode* _getSpot(TextureNode* p_node, IdType p_id, RealSize p_size) nothrow
 		{
 			// Occupied or too small
 			if(p_node.occupied || !p_node.size.contains(p_size))

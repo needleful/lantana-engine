@@ -17,7 +17,7 @@ public abstract class SingularContainer: Widget
 {
 	Widget child;
 
-	public override Widget[] getChildren() @nogc nothrow
+	public override Widget[] getChildren() nothrow
 	{
 		return (&child)[0..1];
 	}
@@ -25,7 +25,7 @@ public abstract class SingularContainer: Widget
 
 public abstract class LeafWidget : Widget
 {
-	public override Widget[] getChildren() @nogc nothrow
+	public override Widget[] getChildren() nothrow
 	{
 		return [];
 	}
@@ -37,12 +37,12 @@ public class HodgePodge : Widget
 	public Widget[] children;
 
 
-	public this(Widget[] p_children) @nogc nothrow
+	public this(Widget[] p_children) nothrow
 	{
 		children = p_children;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
 		ivec2 top_right;
 
@@ -58,7 +58,7 @@ public class HodgePodge : Widget
 		return RealSize(top_right.x, top_right.y);
 	}
 
-	public override Widget[] getChildren() @nogc nothrow
+	public override Widget[] getChildren() nothrow
 	{
 		return children;
 	}
@@ -72,7 +72,7 @@ public class Anchor: SingularContainer
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
 	vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) @nogc nothrow
+	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) nothrow
 	{
 		child = p_child;
 		child.position = ivec2(0,0);
@@ -81,7 +81,7 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
 		// I'm sure I could break this down into something presentable with more work.
@@ -219,7 +219,7 @@ public class Padding : SingularContainer
 	// Padding, in pixels
 	int top, bottom, left, right;
 
-	public this(Widget p_child, int p_padding) @nogc nothrow
+	public this(Widget p_child, int p_padding) nothrow
 	{
 		child = p_child;
 
@@ -229,7 +229,7 @@ public class Padding : SingularContainer
 		right = p_padding;
 	}
 
-	public this(Widget p_child, int p_vertical, int p_horizontal) @nogc nothrow
+	public this(Widget p_child, int p_vertical, int p_horizontal) nothrow
 	{
 		child = p_child;
 
@@ -240,7 +240,7 @@ public class Padding : SingularContainer
 		right = p_horizontal;
 	}
 
-	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) @nogc nothrow
+	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
 	{
 		child = p_child;
 
@@ -250,7 +250,7 @@ public class Padding : SingularContainer
 		right = p_right;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
 		double maxWidth = p_intrinsic.width.max - (left + right);
 		double maxHeight = p_intrinsic.height.max - (top + bottom);
@@ -294,7 +294,7 @@ public class ImageBox : LeafWidget
 		assert(vertices.length == 6);
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
 		// TODO: respect the intrinsics
 		RealSize result = textureSize;
@@ -302,7 +302,7 @@ public class ImageBox : LeafWidget
 		return result;
 	}
 
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
+	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
 		p_renderer.translateQuad(vertices, p);
@@ -315,6 +315,7 @@ public class TextBox: LeafWidget
 	FontId font;
 	string text;
 	TextMeshRef* mesh;
+	UIRenderer renderer;
 	bool textChanged;
 
 	public this(UIRenderer p_renderer, FontId p_font, string p_text, bool p_dynamicSize = false)
@@ -324,22 +325,25 @@ public class TextBox: LeafWidget
 		text = p_text;
 
 		mesh = p_renderer.addTextMesh(font, text, p_dynamicSize);
+		renderer = p_renderer;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) @nogc nothrow
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
 	{
-		// TODO: update text layout
 		return mesh.boundingSize;
 	}
 
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) @nogc nothrow
+	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
 	{
 		p_renderer.translateTextMesh(mesh, p_pen);
 	}
 
 	public void setText(string p_text)
 	{
+		if(text != p_text)
+		{
+			renderer.replaceTextMesh(mesh, font, p_text);
+		}
 		text = p_text;
-		textChanged = text != p_text;
 	}
 }

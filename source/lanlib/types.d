@@ -26,7 +26,7 @@ public svec2 svec(ivec2 v) @nogc nothrow
 	return svec2(cast(short) v.x, cast(short) v.y);
 }
 
-public svec2 add(svec2 lhs, svec2 rhs)
+public svec2 add(svec2 lhs, svec2 rhs) @nogc nothrow pure
 {
 	svec2 ret;
 	ret.x = cast(short)(lhs.x + rhs.x);
