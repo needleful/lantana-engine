@@ -8,8 +8,7 @@ import gl3n.linalg: vec3;
 
 struct LightInfo
 {
-	public vec3 color;
-	public vec3 direction;
-	public vec3 ambiance;
-	public float bias;
+	vec3 direction;
+	float bias;
+	float areaCeiling, areaSpan;
 }

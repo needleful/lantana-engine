@@ -5,6 +5,11 @@ uniform mat4 projection;
 
 uniform mat4 bones[24];
 
+// The y coordinate for the ceiling of the lights
+uniform float area_ceiling;
+// The distance from the ceiling before the light is completely dark
+uniform float area_span;
+
 in vec3 position;
 in vec3 normal;
 
@@ -12,6 +17,7 @@ in vec4 bone_weight;
 in uvec4 bone_idx;
 
 out vec3 vert_normal;
+out float area_gradient;
 
 void main()
 {
@@ -28,4 +34,5 @@ void main()
 
 	vec4 sknorm = skmatrix * vec4(normal, 0);
 	vert_normal = (transform * sknorm).xyz;
+	area_gradient = 1 - clamp(-(area_ceiling - world_pos.y)/area_span, 0, 1);
 }

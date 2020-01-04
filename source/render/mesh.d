@@ -24,6 +24,12 @@ struct StaticMeshInstance
 	StaticMesh* mesh;
 }
 
+struct LightUniforms
+{
+	UniformId direction, bias;
+	UniformId area_ceiling, area_span;
+}
+
 struct StaticMeshSystem
 {
 	struct Uniforms
@@ -31,7 +37,7 @@ struct StaticMeshSystem
 		// Vertex uniforms
 		UniformId transform, projection;
 		// Fragment uniforms
-		UniformId light_color, light_direction, light_ambient, light_bias;
+		LightUniforms light;
 	}
 	struct Attributes
 	{
@@ -52,10 +58,10 @@ struct StaticMeshSystem
 
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
-		un.light_color = mat.get_uniform_id("light_color");
-		un.light_direction = mat.get_uniform_id("light_direction");
-		un.light_ambient = mat.get_uniform_id("light_ambient");
-		un.light_bias = mat.get_uniform_id("light_bias");
+		un.light.direction = mat.get_uniform_id("light_direction");
+		un.light.bias = mat.get_uniform_id("light_bias");
+		un.light.area_span = mat.get_uniform_id("area_span");
+		un.light.area_ceiling = mat.get_uniform_id("area_ceiling");
 
 		meshes.reserve(p_reserved_count);
 
@@ -88,10 +94,10 @@ struct StaticMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, p_projection);
-		mat.set_uniform(un.light_color, p_lights.color);
-		mat.set_uniform(un.light_direction, p_lights.direction);
-		mat.set_uniform(un.light_ambient, p_lights.ambiance);
-		mat.set_uniform(un.light_bias, p_lights.bias);
+		mat.set_uniform(un.light.direction, p_lights.direction);
+		mat.set_uniform(un.light.bias, p_lights.bias);
+		mat.set_uniform(un.light.area_span, p_lights.areaSpan);
+		mat.set_uniform(un.light.area_ceiling, p_lights.areaCeiling);
 
 		GLuint current_vao = 0;
 		foreach(ref inst; p_instances)
@@ -180,7 +186,7 @@ struct AnimatedMeshSystem
 		// Vertex uniforms
 		UniformId transform, projection, bones;
 		// Fragment uniforms
-		UniformId light_color, light_direction, light_ambient, light_bias;
+		LightUniforms light;
 	}
 	struct Attributes
 	{
@@ -203,10 +209,11 @@ struct AnimatedMeshSystem
 
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
-		un.light_color = mat.get_uniform_id("light_color");
-		un.light_direction = mat.get_uniform_id("light_direction");
-		un.light_ambient = mat.get_uniform_id("light_ambient");
-		un.light_bias = mat.get_uniform_id("light_bias");
+		un.light.direction = mat.get_uniform_id("light_direction");
+		un.light.bias = mat.get_uniform_id("light_bias");
+		un.light.area_span = mat.get_uniform_id("area_span");
+		un.light.area_ceiling = mat.get_uniform_id("area_ceiling");
+
 		un.bones = mat.get_uniform_id("bones");
 
 		meshes.reserve(p_reserved_count);
@@ -346,10 +353,11 @@ struct AnimatedMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light_color, p_lights.color);
-		mat.set_uniform(un.light_direction, p_lights.direction);
-		mat.set_uniform(un.light_ambient, p_lights.ambiance);
-		mat.set_uniform(un.light_bias, p_lights.bias);
+		mat.set_uniform(un.light.direction, p_lights.direction);
+		mat.set_uniform(un.light.bias, p_lights.bias);
+		mat.set_uniform(un.light.area_span, p_lights.areaSpan);
+		mat.set_uniform(un.light.area_ceiling, p_lights.areaCeiling);
+
 		glcheck();
 
 		AnimatedMesh* current_mesh = null;

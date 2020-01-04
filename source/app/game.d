@@ -42,7 +42,7 @@ int main()
 	StaticMeshSystem smesh = StaticMeshSystem(3);
 	AnimatedMeshSystem anmesh = AnimatedMeshSystem(2);
 
-	UIRenderer ui = new UIRenderer(ww.getSize());
+	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
 
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
@@ -62,6 +62,7 @@ int main()
 		),
 		new Anchor(
 			new HBox([
+				new ImageBox(ui, upclickSprite),
 				new TextBox(ui, debugFont, "Frame Time\nMax\nAverage"), 
 				frameTime
 			], 5),
@@ -86,7 +87,7 @@ int main()
 	animTest.is_playing = false;
 	animTest.play_animation("TestAnim", true);
 
-	auto static_meshes = mm.make_list!StaticMeshInstance(4);
+	auto static_meshes = mm.make_list!StaticMeshInstance(5);
 	// Player
 	static_meshes[0].mesh = player_mesh;
 	static_meshes[0].transform = Transform(1, vec3(0));
@@ -94,6 +95,9 @@ int main()
 	// Static geometry
 	static_meshes[1].mesh = level_mesh;
 	static_meshes[1].transform = Transform(4, vec3(0, 5, 0));
+
+	static_meshes[4].mesh = level_mesh;
+	static_meshes[4].transform = Transform(4, vec3(8, 0, 0));
 
 	// BLocks
 	static_meshes[2].mesh = level_mesh;
@@ -117,10 +121,10 @@ int main()
 	stdout.flush();
 
 	LightInfo worldLight;
-	worldLight.color = vec3(.9, .9, 0.7);
-	worldLight.ambiance = vec3(0.15, 0.1, 0.4);
-	worldLight.direction = vec3(0.2, -1, 0.1);
-	worldLight.bias = 0.2;
+	worldLight.direction = vec3(-0.2, -1, 0.1);
+	worldLight.bias = 0.3;
+	worldLight.areaCeiling = -5;
+	worldLight.areaSpan = 12;
 
 	float maxDelta_ms = -1;
 	float runningMaxDelta_ms = -1;

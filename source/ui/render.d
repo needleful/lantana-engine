@@ -15,10 +15,11 @@ import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.array;
 import lanlib.util.gl;
+import lanlib.util.memory;
 import render.material;
+import render.textures;
 
 import ui.layout;
-import ui.textures;
 
 struct SpriteId
 {
@@ -174,7 +175,7 @@ public class UIRenderer
 		public methods -- basic
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public this(RealSize p_windowSize)
+	public this(RealSize p_windowSize, ILanAllocator p_alloc)
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		size = p_windowSize;
@@ -190,8 +191,15 @@ public class UIRenderer
 		}
 
 		initMaterials();
-		initAtlases();
 		initBuffers();
+
+		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(1024, 1024), p_alloc);
+		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(256, 256), p_alloc);
+		debug
+		{
+			atlasSprite.texture.blitgrid(color(255,255,0,255));
+			atlasText.texture.blitgrid(255);
+		}
 		invalidated.setAll();
 	}
 
@@ -253,7 +261,7 @@ public class UIRenderer
 		matSprite.enable();
 		glBindVertexArray(vao[1]);
 
-		glBindTexture(GL_TEXTURE_2D, atlasSprite.textureId);
+		glBindTexture(GL_TEXTURE_2D, atlasSprite.texture.id);
 		glActiveTexture(GL_TEXTURE0);
 
 		matSprite.set_uniform(uniSprite.in_tex, 0);
@@ -272,7 +280,7 @@ public class UIRenderer
 		matText.enable();
 		glBindVertexArray(vao[0]);
 
-		glBindTexture(GL_TEXTURE_2D, atlasText.textureId);
+		glBindTexture(GL_TEXTURE_2D, atlasText.texture.id);
 		glActiveTexture(GL_TEXTURE0);
 
 		matText.set_uniform(uniText.in_tex, 0);
@@ -312,21 +320,21 @@ public class UIRenderer
 	+++++++++++++++++++++++++++++++++++++++/
 
 	/// Add a sprite to be rendered
-	public SpriteId addSprite(Texture!AlphaColor p_texture)
+	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer)
 	{
 		assert(spriteCount < SpriteId.dt.max, "Sprite limit exceeded.");
 
 		spriteCount += 1;
 		SpriteId id = SpriteId(spriteCount);
 
-		auto node = atlasSprite.getAtlasSpot(id, p_texture.size);
+		auto node = atlasSprite.getAtlasSpot(id, p_size);
 		if(node == null)
 		{
 			debug writeln("Failed to get atlas spot");
 			return SpriteId(0);
 		}
 
-		bool success = atlasSprite.blit(node, p_texture.buffer);
+		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer);
 		if(!success)
 		{
 			debug writeln("Failed to blit sprite");
@@ -342,13 +350,13 @@ public class UIRenderer
 	/// filename: the path to the image
 	public SpriteId loadSprite(const string filename)
 	{
-		Texture!AlphaColor image;
 		auto format = FreeImage_GetFileType(filename.ptr);
 		FIBITMAP* bitmap = FreeImage_Load(format, filename.ptr);
-		image.size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
-		image.buffer = cast(AlphaColor*)FreeImage_GetBits(bitmap);
 
-		auto result = addSprite(image);
+		RealSize size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
+		AlphaColor* buffer = cast(AlphaColor*)FreeImage_GetBits(bitmap);
+
+		auto result = addSprite(size, buffer);
 		FreeImage_Unload(bitmap);
 
 		return result;
@@ -379,14 +387,14 @@ public class UIRenderer
 
 		// UV start, normalized
 		vec2 uv_pos = vec2(node.position.x, node.position.y);
-		uv_pos.x /= atlasSprite.width;
-		uv_pos.y /= atlasSprite.height;
+		uv_pos.x /= atlasSprite.texture.size.width;
+		uv_pos.y /= atlasSprite.texture.size.height;
 
 		// UV offset, normalized
 		vec2 uv_off = vec2(node.size.width, node.size.height);
 
-		uv_off.x /= atlasSprite.width;
-		uv_off.y /= atlasSprite.height;
+		uv_off.x /= atlasSprite.texture.size.width;
+		uv_off.y /= atlasSprite.texture.size.height;
 
 		// Quads are laid out in space like so:
 		// 1-------3   /\ +y
@@ -608,7 +616,7 @@ public class UIRenderer
 			if(newGlyph)
 			{
 				FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
-				atlasText.blit(node, ftGlyph.bitmap.buffer);
+				atlasText.texture.blit(node.size, node.position, ftGlyph.bitmap.buffer);
 			}
 
 			// 1-------3   /\ +y
@@ -639,14 +647,14 @@ public class UIRenderer
 
 			// UV start, normalized
 			vec2 uv_pos = vec2(node.position.x, node.position.y);
-			uv_pos.x /= atlasText.width;
-			uv_pos.y /= atlasText.height;
+			uv_pos.x /= atlasText.texture.size.width;
+			uv_pos.y /= atlasText.texture.size.height;
 
 			// UV offset, normalized
 			vec2 uv_off = vec2(node.size.width, node.size.height);
 
-			uv_off.x /= atlasText.width;
-			uv_off.y /= atlasText.height;
+			uv_off.x /= atlasText.texture.size.width;
+			uv_off.y /= atlasText.texture.size.height;
 
 			// FreeType blits text upside-down relative to images
 			uvs[vertstart..vertstart+4] = [
@@ -791,17 +799,6 @@ public class UIRenderer
 
 		glDisable(GL_BLEND);
 		glcheck();
-	}
-
-	private void initAtlases()
-	{
-		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(1024, 1024);
-		atlasText   = TextureAtlas!(GlyphId, ubyte)(256, 256);
-		debug
-		{
-			atlasSprite.blitgrid(color(255,255,0,255));
-			atlasText.blitgrid(255);
-		}
 	}
 
 	private void initBuffers()

@@ -105,9 +105,9 @@ class LanRegion : ILanAllocator
 		ulong cap = capacity();
 		set_capacity(0);
 		set_space_used(0);
-		parent.remove(cast(void*)data);
 		data = null;
 		GC.removeRange(data);
+		parent.remove(cast(void*)data);
 		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
