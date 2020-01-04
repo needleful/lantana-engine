@@ -42,6 +42,7 @@ public abstract class Widget
 	public abstract Widget[] getChildren() nothrow;
 }
 
+/// Bounds for laying out UI elements
 public struct IntrinsicSize
 {
 	Bounds width;
@@ -86,6 +87,7 @@ public struct Bounds
 	}
 }
 
+/// The actual size, in pixels, of a UI element
 public struct RealSize
 {
 	int width;
@@ -110,7 +112,7 @@ public struct RealSize
 		static if(op == "-")
 			return RealSize(width - rhs.width, height - rhs.height);
 		else
-			assert(false, "No operator "~op~" between RealSize objects");
+			assert(false, "No operator '"~op~"' between RealSize objects");
 	}
 
 	bool opEquals(RealSize rhs) @nogc nothrow const

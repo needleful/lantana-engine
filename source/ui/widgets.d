@@ -338,7 +338,7 @@ public class TextBox: LeafWidget
 		p_renderer.translateTextMesh(mesh, p_pen);
 	}
 
-	public void setText(string p_text)
+	public void setText(string p_text) nothrow
 	{
 		if(text != p_text)
 		{
@@ -347,13 +347,56 @@ public class TextBox: LeafWidget
 		text = p_text;
 	}
 
-	public void setVisiblePortion(float p_visible)
+	public void setVisiblePortion(float p_visible) @nogc nothrow
 	{
 		mesh.visiblePortion = p_visible;
 	}
 
-	public float getPortionVisible()
+	public float getPortionVisible() @nogc nothrow
 	{
 		return mesh.visiblePortion;
+	}
+}
+
+class HBox: Widget
+{
+	Widget[] children;
+	// Space between children
+	int spacing;
+
+	this(Widget[] p_children, int p_spacing)
+	{
+		children = p_children;
+		spacing = p_spacing;
+	}
+
+	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	{
+		//TODO: respect intrinsics properly
+		RealSize size;
+		ivec2 pen = ivec2(0,0);
+		foreach(child; children)
+		{
+			RealSize childSize = child.layout(p_renderer, p_intrinsic);
+			child.position.x = pen.x;
+			child.position.y = -childSize.height/2;
+
+			size.width = pen.x + childSize.width;
+			size.height = childSize.height > size.height? childSize.height: size.height;
+
+			pen.x += childSize.width + spacing;
+		}
+
+		foreach(child; children)
+		{
+			child.position.y += size.height/2;
+		}
+
+		return size;
+	}
+
+	public override Widget[] getChildren() nothrow
+	{
+		return children;
 	}
 }

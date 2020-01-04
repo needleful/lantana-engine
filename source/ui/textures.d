@@ -205,6 +205,8 @@ struct TextureAtlas(IdType, TextureDataType)
 
 	public bool blit(TextureNode* p_node, TextureDataType* p_data)
 	{
+		assert(p_node != null);
+		
 		debug import std.format;
 		// Return false if the texture can't be blit
 		ivec2 end = ivec2(p_node.position.x + p_node.size.width, p_node.position.y + p_node.size.height);

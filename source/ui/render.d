@@ -456,7 +456,7 @@ public class UIRenderer
 		public methods -- fonts and text
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public FontId loadFont(string p_fontfile)
+	public FontId loadFont(string p_fontfile, ubyte p_size)
 	{
 		FT_Face newface;
 		FT_Error error = FT_New_Face(
@@ -475,7 +475,7 @@ public class UIRenderer
 
 		try
 		{
-			return addFont(newface);
+			return addFont(newface, p_size);
 		}
 		catch(Exception e)
 		{
@@ -483,7 +483,7 @@ public class UIRenderer
 		}
 	}
 
-	public FontId addFont(FT_Face p_face)
+	public FontId addFont(FT_Face p_face, ubyte p_size)
 	{
 		// Search if this font already exists
 		auto f = fonts.indexOf(p_face);
@@ -492,8 +492,7 @@ public class UIRenderer
 			return FontId(cast(ubyte) f);
 		}
 
-		// TODO: configurable font size, currently 32 pixels
-		FT_Set_Pixel_Sizes(p_face, 0, 32);
+		FT_Set_Pixel_Sizes(p_face, 0, p_size);
 
 		assert(fontCount < FontId.dt.max, "Exceeded allowed font count");
 		fonts ~= p_face;
@@ -585,7 +584,7 @@ public class UIRenderer
 			{
 				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
 				pen.x = 0;
-				auto lineHeight = face.height >> 6;
+				auto lineHeight = face.size.metrics.height >> 6;
 				foreach(v; elemText[p_mesh.offset]..vertstart)
 				{
 					vertpos[v].y += lineHeight;
@@ -886,8 +885,6 @@ public class UIRenderer
 		glBufferData(GL_ARRAY_BUFFER,
 			uvs.length*vec3.sizeof, uvs.ptr,
 			GL_STATIC_DRAW);
-
-		debug puts("Updated vertices");
 	}
 
 	private void updatePositionBuffer()
@@ -906,8 +903,6 @@ public class UIRenderer
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
 			elemText.length*ushort.sizeof, elemText.ptr, 
 			GL_STATIC_DRAW);
-
-		debug puts("Updated text EBO");
 	}
 
 	private void updateSpriteEBO()
@@ -917,7 +912,5 @@ public class UIRenderer
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			elemSprite.length*ushort.sizeof, elemSprite.ptr,
 			GL_STATIC_DRAW);
-
-		debug puts("Updated sprite EBO");
 	}
 }

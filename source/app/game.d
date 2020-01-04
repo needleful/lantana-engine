@@ -50,17 +50,18 @@ int main()
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf");
+	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Light.ttf", 24);
 
-	string debugState = "Frame Time: %4.2f ms\nMax       : %8.4f ms\nAverage   : %8.4f ms";
-	TextBox frameTime = new TextBox(ui, testFont, debugState, true);
+	string debugLabel = "Frame Time\nMax\nAverage";
+	string debugText = ": %6.3f\n: %6.3f\n: %6.3f";
+	TextBox frameTime = new TextBox(ui, testFont, debugText, true);
 
 	ui.setRootWidget(new HodgePodge([
 		// various tests for Anchor, ImageBox, and TextBox
 		new Anchor(
-			new TextBox(ui, testFont, "Hello"),
-			vec2(0.5,0.6),
-			vec2(0.5,0)
+			new TextBox(ui, testFont, "Lantana Engine"),
+			vec2(0.05, 0.99),
+			vec2(0, 1)
 		),
 		new Anchor(
 			new ImageBox(ui, upclickSprite),
@@ -72,7 +73,10 @@ int main()
 			vec2(0, 0)
 		),
 		new Anchor(
-			frameTime,
+			new HBox([
+				new TextBox(ui, testFont, debugLabel), 
+				frameTime
+			], 5),
 			vec2(0.99, 0.99),
 			vec2(1, 1)
 		)
@@ -136,7 +140,7 @@ int main()
 				runningFrame = 1;
 			}
 			accumDelta_ms += delta_ms;
-			frameTime.setText(format(debugState, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
+			frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
 			runningFrame ++;
 		}
 	
