@@ -70,14 +70,10 @@ int main()
 		)
 	]));
 
+	// Meshes
 	auto level_mesh = smesh.load_mesh("data/test/meshes/funny-cube.glb", mm);
 	auto player_mesh = smesh.load_mesh("data/test/meshes/kitty-test.glb", mm);
 	auto anim_mesh = anmesh.load_mesh("data/test/meshes/anim_test.glb", mm);
-
-	auto cam = mm.create!Camera(vec3(-3, -10, -8), 720.0/512, 75);
-	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, vec3(0,0,0));
-	auto player = Player(grid, GridPos(0,0,0));
-
 	auto anim_meshes = mm.make_list!AnimatedMeshInstance(1);
 
 	auto animTest = &anim_meshes[0];
@@ -90,14 +86,29 @@ int main()
 	animTest.is_playing = false;
 	animTest.play_animation("TestAnim", false);
 
-	auto static_meshes = mm.make_list!StaticMeshInstance(2);
-	static_meshes[0].mesh = level_mesh;
-	static_meshes[0].transform = Transform(4, vec3(0, 5, 0));
+	auto static_meshes = mm.make_list!StaticMeshInstance(4);
 	// Player
-	static_meshes[1].mesh = player_mesh;
-	static_meshes[1].transform = Transform(1, vec3(0,0,0));
+	static_meshes[0].mesh = player_mesh;
+	static_meshes[0].transform = Transform(1, vec3(0));
+	auto pmesh = &static_meshes[0];
+	// Static geometry
+	static_meshes[1].mesh = level_mesh;
+	static_meshes[1].transform = Transform(4, vec3(0, 5, 0));
 
-	auto pmesh = &static_meshes[1];
+	// BLocks
+	static_meshes[2].mesh = level_mesh;
+	static_meshes[2].transform = Transform(1, vec3(0));
+	static_meshes[3].mesh = level_mesh;
+	static_meshes[3].transform = Transform(1, vec3(0));
+
+
+	auto cam = mm.create!Camera(vec3(-3, -15, -6), 720.0/512, 75);
+	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), vec3(0,0,0));
+	auto player = Player(grid, GridPos(0,0,0));
+
+	grid.blocks = mm.make_list!GridBlock(2);
+	grid.blocks[0].position = GridPos(2, 0, 2);
+	grid.blocks[1].position = GridPos(3, 0, 3);
 
 	uint frame = 0;
 	int[2] wsize = ww.get_dimensions();
@@ -124,7 +135,7 @@ int main()
 		{	
 			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
 			
-			if(frame % 1024 == 0)
+			if(frame % 512 == 0)
 			{
 				maxDelta_ms = runningMaxDelta_ms;
 				runningMaxDelta_ms = -1;
@@ -164,6 +175,12 @@ int main()
 			pmesh.transform._position = player.realPosition();
 			pmesh.transform._rotation.y = player.realRotation();
 			pmesh.transform.compute_matrix();
+
+			static_meshes[2].transform._position = grid.getRealPosition(grid.blocks[0].position);
+			static_meshes[2].transform.compute_matrix();
+			static_meshes[3].transform._position = grid.getRealPosition(grid.blocks[1].position);
+			static_meshes[3].transform.compute_matrix();
+
 			anmesh.update(delta, anim_meshes);
 		}
 		ui.update(delta);
