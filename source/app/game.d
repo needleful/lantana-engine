@@ -84,7 +84,7 @@ int main()
 	animTest.bones = mm.make_list!GLBNode(anim_mesh.bones.length);
 	animTest.bones[0..$] = anim_mesh.bones[0..$];
 	animTest.is_playing = false;
-	animTest.play_animation("TestAnim", false);
+	animTest.play_animation("TestAnim", true);
 
 	auto static_meshes = mm.make_list!StaticMeshInstance(4);
 	// Player
@@ -102,13 +102,13 @@ int main()
 	static_meshes[3].transform = Transform(1, vec3(0));
 
 
-	auto cam = mm.create!Camera(vec3(-3, -15, -6), 720.0/512, 75);
+	auto cam = mm.create!Camera(vec3(-3, -9, -3), 720.0/512, 75);
 	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), vec3(0,0,0));
 	auto player = Player(grid, GridPos(0,0,0));
 
 	grid.blocks = mm.make_list!GridBlock(2);
-	grid.blocks[0].position = GridPos(2, 0, 2);
-	grid.blocks[1].position = GridPos(3, 0, 3);
+	grid.blocks[0].setPosition(2, 0, 2);
+	grid.blocks[1].setPosition(3, 0, 3);
 
 	uint frame = 0;
 	int[2] wsize = ww.get_dimensions();
@@ -171,14 +171,14 @@ int main()
 			if(abs(next_rot) < 90){
 				cam.rot.y = next_rot;
 			}
-			player.frame(input, delta);
+			player.update(input, delta);
 			pmesh.transform._position = player.realPosition();
 			pmesh.transform._rotation.y = player.realRotation();
 			pmesh.transform.compute_matrix();
 
-			static_meshes[2].transform._position = grid.getRealPosition(grid.blocks[0].position);
+			static_meshes[2].transform._position = grid.getRealPosition(grid.blocks[0].position, grid.blocks[0].pos_target);
 			static_meshes[2].transform.compute_matrix();
-			static_meshes[3].transform._position = grid.getRealPosition(grid.blocks[1].position);
+			static_meshes[3].transform._position = grid.getRealPosition(grid.blocks[1].position, grid.blocks[1].pos_target);
 			static_meshes[3].transform.compute_matrix();
 
 			anmesh.update(delta, anim_meshes);

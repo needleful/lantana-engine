@@ -5,6 +5,7 @@
 
 module logic.grid;
 
+import gl3n.interpolate;
 import gl3n.linalg;
 
 enum GridDirection
@@ -82,30 +83,68 @@ struct GridBlock
 {
 	GridPos position;
 	GridPos pos_target;
+
+	@disable this();
+
+	public this(GridPos p_position)
+	{
+		position = p_position;
+		pos_target = p_position;
+	}
+
+	/// Sets position and target position
+	public void setPosition(short x, short y, short z)
+	{
+		position = GridPos(x,y,z);
+		pos_target = position;
+	}
 }
 
 struct Grid
 {
-	// Time to go from one grid point to another
+	// Time it takes for a move to advance
 	enum TIME_MOVE = 0.25;
 
+	// Pushable blocks
 	GridBlock[] blocks;
 	//Bounds of grid, inclusive (assumed a 3-dimensional rectangle for now)
 	GridPos lowBounds, highBounds;
 	// Position of lower bounds corner (-x, -y, -z)
 	vec3 position;
+	// Timer for movement
+	float timer_move = 0;
+	bool active = false;
+
 
 	@disable this();
 
-	this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0)) @nogc @safe nothrow
+	public this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0)) @nogc @safe nothrow
 	{
 		this.lowBounds = lowBounds;
 		this.highBounds = highBounds;
 		this.position = position;
 	}
 
-	GridPos move(GridPos p_from, GridDirection p_dir) @nogc @safe nothrow
+	public void update(float p_delta) @nogc @safe nothrow
 	{
+		if(!active) return;
+
+		timer_move += p_delta;
+		if(timer_move >= TIME_MOVE)
+		{
+			timer_move = 0;
+			active = false;
+			foreach(ref block; blocks)
+			{
+				block.position = block.pos_target;
+			}
+		}
+	}
+
+	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push) @nogc @safe nothrow
+	{
+		active = true;
+
 		debug import std.stdio;
 		GridPos to = p_from;
 		switch(p_dir)
@@ -129,13 +168,17 @@ struct Grid
 		{
 			if(block.position == to)
 			{
-				block.position = move(to, p_dir);
-				if(block.position == to)
+				if(!p_can_push)
+				{
+					return p_from;
+				}
+				block.pos_target = move(to, p_dir, false);
+				if(block.pos_target == to)
 				{
 					return p_from;
 				}
 				debug printf("GRID >> Moving block (%d, %d, %d) -> (%d, %d, %d)\n",
-					to.x, to.y, to.z, block.position.x, block.position.y, block.position.z);
+					to.x, to.y, to.z, block.pos_target.x, block.pos_target.y, block.pos_target.z);
 				break;
 			}
 		}
@@ -146,16 +189,21 @@ struct Grid
 		return to;
 	}
 
-	bool inBounds(GridPos gp) @nogc @safe nothrow const
+	public bool inBounds(GridPos gp) @nogc @safe nothrow const
 	{
 		return gp.x >= lowBounds.x && gp.x <= highBounds.x
 			&& gp.y >= lowBounds.y && gp.y <= highBounds.y
 			&& gp.z >= lowBounds.z && gp.z <= highBounds.z;
 	}
 
-	vec3 getRealPosition(GridPos gp) @nogc @safe nothrow const
+	public vec3 getRealPosition(GridPos p_current, GridPos p_target) @nogc @safe nothrow const
 	{
-		assert(inBounds(gp));
-		return vec3(gp.x, gp.y, gp.z) + position;
+		assert(inBounds(p_current));
+		assert(inBounds(p_target));
+
+		vec3 cur = vec3(p_current.pos);
+		vec3 tar = vec3(p_target.pos);
+
+		return lerp(cur, tar, timer_move/Grid.TIME_MOVE) + position;
 	}
 }

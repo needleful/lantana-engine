@@ -4,7 +4,6 @@
 
 module logic.player;
 
-import gl3n.interpolate;
 import gl3n.linalg;
 
 import logic.grid;
@@ -27,8 +26,6 @@ struct Player
 
 	Grid* grid;
 	GridPos pos, pos_target;
-	float timer_move = 0;
-	float rotation;
 
 	GridDirection dir;
 	State state;
@@ -44,22 +41,16 @@ struct Player
 		pos_target = pos;
 
 		dir = p_dir;
-		rotation = dir.getRealRotation();
 	}
 
-	void frame(const ref Input input, const float delta)  @nogc @safe nothrow
+	void update(const ref Input input, const float delta)  @nogc @safe nothrow
 	{
+		grid.update(delta);
+
 		// Calculate new state
-		if(state == State.MOVE)
-		{
-			timer_move += delta;
-			if(timer_move >= Grid.TIME_MOVE)
-			{
-				state = State.IDLE;
-				timer_move = 0;
-			}
-		}
-		if(state == State.IDLE)
+
+		// !grid.active means the current move has ended
+		if(!grid.active)
 		{
 			State next_state = State.IDLE;
 			pos = pos_target;
@@ -85,13 +76,12 @@ struct Player
 				next_state = State.MOVE;
 			}
 
-			// Could not move
 			if(next_state == State.MOVE)
 			{
-				pos_target = grid.move(pos, dir);
+				pos_target = grid.move(pos, dir, true);
 				if(pos == pos_target)
 				{
-					state = State.BLOCKED;
+					next_state = State.BLOCKED;
 				}
 			}
 			state = next_state;
@@ -100,10 +90,7 @@ struct Player
 
 	vec3 realPosition() @nogc @safe nothrow
 	{
-		return lerp(
-			grid.getRealPosition(pos),
-			grid.getRealPosition(pos_target), 
-			timer_move/Grid.TIME_MOVE);
+		return grid.getRealPosition(pos, pos_target);
 	}
 
 	float realRotation() @nogc @safe nothrow
