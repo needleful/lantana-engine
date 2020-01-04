@@ -30,6 +30,27 @@ interface ILanAllocator
 	bool remove(void* data) @nogc;
 }
 
+/+
+ +  User-friendly methods for allocators 
+ +/
+
+T[] make_list(T)(ILanAllocator alloc, ulong count) @nogc
+{
+	return (cast(T*)alloc.make(T.sizeof * count))[0..count];
+}
+
+T *create(T, A...)(ILanAllocator alloc, auto ref A args) @nogc 
+{
+	T *ptr = cast(T*) alloc.make(T.sizeof);
+	assert(ptr != null, "Failed to allocate memory");
+	emplace!(T, A)(ptr, args);
+	return ptr;
+}
+
+bool remove_list(T)(ILanAllocator alloc, T[] data) @nogc
+{
+	return alloc.remove(cast(void*) data.ptr);
+}
 
 /++
  Manager for system memory.  Wraps malloc() and free()
@@ -44,26 +65,14 @@ class SysMemManager : ILanAllocator
 		void* res = malloc(bytes);
 		return res;
 	}
-
-	T[] make_list(T)(ulong count) @nogc
-	{
-		return (cast(T*)make(T.sizeof * count))[0..count];
-	}
-
 	override bool remove(void* data) @nogc
 	{
 		free(data);
 		return true;
 	}
-
-	bool remove_list(T)(T[] data) @nogc
-	{
-		free(cast(void*) data.ptr);
-		return true;
-	}
 }
 
-/++ A stack of non-GCd memory
+/++ A stack of memory for dumb data that can quickly be deallocated.
    note: when stack space is freed, it does not call any destructors.
    It is the responsibility of the calling code to call destroy()
    on any objects that manage other resources.
@@ -79,17 +88,15 @@ class LanRegion : ILanAllocator
 	{
 		this.parent = parent;
 		assert(capacity > minimum_size);
-		data = cast(ubyte*)parent.make(capacity);
+		data = parent.make_list!ubyte(capacity).ptr;
 
 		assert(data != null, "Failed to get memory for region");
 
 		set_capacity(capacity);
 		set_space_used(2*ulong.sizeof);
-		debug
-		{
-			printf("Creating Region with %u bytes\n", capacity);
-		}
 		GC.addRange(data, capacity);
+
+		debug printf("Creating Region with %u bytes\n", capacity);
 	}
 
 	~this() @nogc
@@ -100,11 +107,8 @@ class LanRegion : ILanAllocator
 		set_space_used(0);
 		parent.remove(cast(void*)data);
 		data = null;
-		debug
-		{
-			printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
-		}
 		GC.removeRange(data);
+		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
 	override void* make(ulong bytes) @nogc 
@@ -120,19 +124,6 @@ class LanRegion : ILanAllocator
 		set_space_used(space_used + bytes);
 
 		return result;
-	}
-
-	T[] make_list(T)(ulong count) @nogc
-	{
-		return (cast(T*)make(T.sizeof * count))[0..count];
-	}
-
-	T *create(T, A...)(auto ref A args) @nogc 
-	{
-		T *ptr = cast(T*) make(T.sizeof);
-		assert(ptr != null, "Failed to allocate memory");
-		emplace!(T, A)(ptr, args);
-		return ptr;
 	}
 
 	override bool remove(void* data)

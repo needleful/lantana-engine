@@ -33,9 +33,7 @@ bool paused;
 
 int main()
 {
-	debug {
-		writeln("Running Axe Manor in debug mode!");
-	}
+	debug writeln("Running Axe Manor in debug mode!");
 	SDLWindow ww = SDLWindow(720, 512, "Axe Manor");
 	
 	auto mm = new LanRegion(MAX_MEMORY, new SysMemManager());
@@ -79,7 +77,6 @@ int main()
 			vec2(1, 1)
 		)
 	]));
-
 
 	auto level_mesh = smesh.build_mesh(level_loaded.accessors[0], level_loaded.data);
 	auto player_mesh = anmesh.build_mesh(player_loaded.accessors[0], player_loaded);
