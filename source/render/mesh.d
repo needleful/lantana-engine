@@ -12,7 +12,7 @@ import gl3n.linalg;
 import lanlib.math.transform;
 import lanlib.formats.gltf2;
 import lanlib.util.gl;
-import lanlib.util.memory:GpuResource;
+import lanlib.util.memory;
 import lanlib.types;
 
 import render.lights;
@@ -63,10 +63,11 @@ struct StaticMeshSystem
 		assert(mat.can_render());
 	}
 
-	StaticMesh* build_mesh(GLBMeshAccessor p_accessor, ubyte[] p_data)
+	StaticMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
 	{
 		meshes.length += 1;
-		meshes[$-1] = StaticMesh(this, p_accessor, p_data);
+		auto loaded = glb_load(p_filename, p_allocator);
+		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data);
 		return &meshes[$-1];
 	}
 
@@ -213,10 +214,11 @@ struct AnimatedMeshSystem
 		glcheck();
 	}
 
-	AnimatedMesh* build_mesh(GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded)
+	AnimatedMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
 	{
+		auto loaded = glb_load!true(p_filename, p_allocator);
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, p_accessor, p_loaded.inverseBindMatrices, p_loaded.animations, p_loaded.bones, p_loaded.data);
+		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded.inverseBindMatrices, loaded.animations, loaded.bones, loaded.data);
 		return &meshes[$-1];
 	}
 

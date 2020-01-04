@@ -434,11 +434,6 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	results.data = (cast(ubyte*)meshAllocator.make(binaryHeader[0]))[0..binaryHeader[0]];
 	input.rawRead(results.data);
 
-	//static if(is_animated)
-	//{
-	//	glb_print(results);
-	//}
-
 	return results;
 }
 

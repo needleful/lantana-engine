@@ -42,39 +42,27 @@ int main()
 	StaticMeshSystem smesh = StaticMeshSystem(3);
 	AnimatedMeshSystem anmesh = AnimatedMeshSystem(2);
 
-	GLBStaticLoadResults level_loaded = glb_load("data/test/meshes/funny-cube.glb", mm);
-	GLBAnimatedLoadResults player_loaded = glb_load!true("data/test/meshes/anim_test.glb", mm);
-
 	UIRenderer ui = new UIRenderer(ww.getSize());
 
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Light.ttf", 24);
+	FontId debugFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 20);
+	FontId titleFont = ui.loadFont("data/fonts/averia/Averia-Light.ttf", 40);
 
-	string debugLabel = "Frame Time\nMax\nAverage";
 	string debugText = ": %6.3f\n: %6.3f\n: %6.3f";
-	TextBox frameTime = new TextBox(ui, testFont, debugText, true);
+	TextBox frameTime = new TextBox(ui, debugFont, debugText, true);
 
 	ui.setRootWidget(new HodgePodge([
 		// various tests for Anchor, ImageBox, and TextBox
 		new Anchor(
-			new TextBox(ui, testFont, "Lantana Engine"),
+			new TextBox(ui, titleFont, "Lantana Engine"),
 			vec2(0.05, 0.99),
 			vec2(0, 1)
 		),
 		new Anchor(
-			new ImageBox(ui, upclickSprite),
-			vec2(1,0), vec2(1,0)
-		),
-		new Anchor(
-			new ImageBox(ui, needlefulPNG),
-			vec2(0.027, 0.048),
-			vec2(0, 0)
-		),
-		new Anchor(
 			new HBox([
-				new TextBox(ui, testFont, debugLabel), 
+				new TextBox(ui, debugFont, "Frame Time\nMax\nAverage"), 
 				frameTime
 			], 5),
 			vec2(0.99, 0.99),
@@ -82,30 +70,34 @@ int main()
 		)
 	]));
 
-	auto level_mesh = smesh.build_mesh(level_loaded.accessors[0], level_loaded.data);
-	auto player_mesh = anmesh.build_mesh(player_loaded.accessors[0], player_loaded);
+	auto level_mesh = smesh.load_mesh("data/test/meshes/funny-cube.glb", mm);
+	auto player_mesh = smesh.load_mesh("data/test/meshes/kitty-test.glb", mm);
+	auto anim_mesh = anmesh.load_mesh("data/test/meshes/anim_test.glb", mm);
 
-	auto cam = mm.create!Camera(vec3(0,0,0), 720.0/512, 60);
-	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, vec3(5, 7, 5));
+	auto cam = mm.create!Camera(vec3(-3, -10, -8), 720.0/512, 75);
+	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), 1, vec3(0,0,0));
 	auto player = Player(grid, GridPos(0,0,0));
 
 	auto anim_meshes = mm.make_list!AnimatedMeshInstance(1);
 
-	auto pmesh = &anim_meshes[0];
+	auto animTest = &anim_meshes[0];
 
-	pmesh.transform = Transform(0.5, vec3(0,0,0));
-	pmesh.mesh = player_mesh;
-	pmesh.boneMatrices = mm.make_list!mat4(player_mesh.bones.length);
-	pmesh.bones = mm.make_list!GLBNode(player_mesh.bones.length);
-	pmesh.bones[0..$] = player_mesh.bones[0..$];
-	pmesh.is_playing = false;
-	pmesh.play_animation("TestAnim", true);
+	animTest.transform = Transform(1, vec3(-6,0,6));
+	animTest.mesh = anim_mesh;
+	animTest.boneMatrices = mm.make_list!mat4(anim_mesh.bones.length);
+	animTest.bones = mm.make_list!GLBNode(anim_mesh.bones.length);
+	animTest.bones[0..$] = anim_mesh.bones[0..$];
+	animTest.is_playing = false;
+	animTest.play_animation("TestAnim", false);
 
-	auto level_meshes = mm.make_list!StaticMeshInstance(2);
-	level_meshes[0].mesh = level_mesh;
-	level_meshes[0].transform = Transform(4, vec3(5,10,5));
-	level_meshes[1].mesh = smesh.build_mesh(player_loaded.accessors[0].mesh(), player_loaded.data);
-	level_meshes[1].transform = Transform(2, vec3(2, 12, 2));
+	auto static_meshes = mm.make_list!StaticMeshInstance(2);
+	static_meshes[0].mesh = level_mesh;
+	static_meshes[0].transform = Transform(4, vec3(0, 5, 0));
+	// Player
+	static_meshes[1].mesh = player_mesh;
+	static_meshes[1].transform = Transform(1, vec3(0,0,0));
+
+	auto pmesh = &static_meshes[1];
 
 	uint frame = 0;
 	int[2] wsize = ww.get_dimensions();
@@ -169,7 +161,8 @@ int main()
 				cam.rot.y = next_rot;
 			}
 			player.frame(input, delta);
-			pmesh.transform._position = player.getPos();
+			pmesh.transform._position = player.realPosition();
+			pmesh.transform._rotation.y = player.realRotation();
 			pmesh.transform.compute_matrix();
 			anmesh.update(delta, anim_meshes);
 		}
@@ -177,7 +170,7 @@ int main()
 
 		ww.begin_frame();
 		mat4 vp = cam.vp();
-		smesh.render(vp, worldLight, level_meshes);
+		smesh.render(vp, worldLight, static_meshes);
 		anmesh.render(vp, worldLight, anim_meshes);
 		ui.render();
 
