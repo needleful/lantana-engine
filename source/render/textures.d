@@ -129,7 +129,7 @@ struct Texture(TextureDataType)
 		glDeleteTextures(1, &id);
 	}
 
-	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data)
+	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data, bool p_swap_red_blue = false)
 	{
 		debug import std.format;
 		// Return false if the texture can't be blit
@@ -149,7 +149,21 @@ struct Texture(TextureDataType)
 				uint source = sourceRowOffset + col;
 				uint target = targetRowOffset + (p_position.x + col);
 
-				buffer[target] = p_data[source];
+				if(p_swap_red_blue && !is(tex == ubyte))
+				{
+					static if(is(tex == AlphaColor))
+					{
+						buffer[target] = p_data[source].bgra;
+					}
+					else static if(is(tex == Color))
+					{
+						buffer[target] = p_data[source].bgr;
+					}
+				}
+				else 
+				{	
+					buffer[target] = p_data[source];
+				}
 			}
 		}
 		return true;

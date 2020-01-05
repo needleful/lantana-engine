@@ -333,7 +333,7 @@ public class UIRenderer
 			return SpriteId(0);
 		}
 
-		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer);
+		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer, true);
 		if(!success)
 		{
 			debug writeln("Failed to blit sprite");
