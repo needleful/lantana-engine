@@ -65,8 +65,6 @@ struct Texture(TextureDataType)
 	GLuint id;
 	RealSize size;
 
-	@disable this();
-
 	this(string p_filename, bool p_filter, ILanAllocator p_alloc)
 	{
 		Bitmap!tex b = Bitmap!tex(p_filename);

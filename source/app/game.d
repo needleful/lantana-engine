@@ -122,7 +122,8 @@ int main()
 	writeln("Beginning game loop");
 	stdout.flush();
 
-	LightInfo worldLight = LightInfo("data/palettes/test.png", mm);
+	LightInfo worldLight;
+	worldLight.palette = Texture!Color("data/palettes/test.png", true, mm);
 	worldLight.direction = vec3(-0.2, -1, 0.1);
 	worldLight.bias = 0.3;
 	worldLight.areaCeiling = -5;

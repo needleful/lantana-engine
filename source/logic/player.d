@@ -31,8 +31,6 @@ struct Player
 	State state;
 	Mode mode;
 
-
-	@disable this();
 	this(Grid* p_grid, GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, State p_state = State.IDLE) @nogc @safe nothrow
 	{
 		grid = p_grid;

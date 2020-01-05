@@ -84,8 +84,6 @@ struct GridBlock
 	GridPos position;
 	GridPos pos_target;
 
-	@disable this();
-
 	public this(GridPos p_position)
 	{
 		position = p_position;
@@ -107,6 +105,8 @@ struct Grid
 
 	// Pushable blocks
 	GridBlock[] blocks;
+	// Unmovable areas
+	GridPos[] unmovable;
 	//Bounds of grid, inclusive (assumed a 3-dimensional rectangle for now)
 	GridPos lowBounds, highBounds;
 	// Position of lower bounds corner (-x, -y, -z)
@@ -114,9 +114,6 @@ struct Grid
 	// Timer for movement
 	float timer_move = 0;
 	bool active = false;
-
-
-	@disable this();
 
 	public this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0)) @nogc @safe nothrow
 	{
@@ -164,6 +161,18 @@ struct Grid
 			default:
 				assert(false);
 		}
+		if(!inBounds(to))
+		{
+			return p_from;
+		}
+		foreach(ref u; unmovable)
+		{
+			// Cannot move to this position
+			if(u == to)
+			{
+				return p_from;
+			}
+		}
 		foreach(ref block; blocks)
 		{
 			if(block.position == to)
@@ -181,10 +190,6 @@ struct Grid
 					to.x, to.y, to.z, block.pos_target.x, block.pos_target.y, block.pos_target.z);
 				break;
 			}
-		}
-		if(!inBounds(to))
-		{
-			return p_from;
 		}
 		return to;
 	}

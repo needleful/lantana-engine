@@ -18,7 +18,7 @@ struct Transform
 	vec3 _position;
 	vec3 _scale;
 
-	this(const float scale, const vec3 position) @nogc @safe nothrow
+	this(const float scale, const vec3 position = vec3(0)) @nogc @safe nothrow
 	{
 		_scale = vec3(scale);
 		_position = position;
