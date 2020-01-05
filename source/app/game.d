@@ -9,6 +9,7 @@ import std.stdio;
 import lanlib.formats.gltf2;
 import lanlib.math.projection;
 import lanlib.math.transform;
+import lanlib.types;
 import lanlib.util.memory;
 import lanlib.util.sdl;
 
@@ -22,6 +23,7 @@ import render.camera;
 import render.lights;
 import render.material;
 import render.mesh;
+import render.textures;
 
 import ui;
 
@@ -120,7 +122,7 @@ int main()
 	writeln("Beginning game loop");
 	stdout.flush();
 
-	LightInfo worldLight;
+	LightInfo worldLight = LightInfo("data/palettes/test.png", mm);
 	worldLight.direction = vec3(-0.2, -1, 0.1);
 	worldLight.bias = 0.3;
 	worldLight.areaCeiling = -5;

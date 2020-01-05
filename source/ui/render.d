@@ -8,7 +8,6 @@ import std.format;
 import std.math:floor;
 debug import std.stdio;
 
-import deimos.freeimage;
 import derelict.freetype;
 
 import gl3n.linalg: vec2, vec3, Vector;
@@ -348,16 +347,11 @@ public class UIRenderer
 
 	/// Load a sprite from a file and add it
 	/// filename: the path to the image
-	public SpriteId loadSprite(const string filename)
+	public SpriteId loadSprite(const string p_filename)
 	{
-		auto format = FreeImage_GetFileType(filename.ptr);
-		FIBITMAP* bitmap = FreeImage_Load(format, filename.ptr);
+		Bitmap!AlphaColor bitmap = Bitmap!AlphaColor(p_filename);
 
-		RealSize size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
-		AlphaColor* buffer = cast(AlphaColor*)FreeImage_GetBits(bitmap);
-
-		auto result = addSprite(size, buffer);
-		FreeImage_Unload(bitmap);
+		auto result = addSprite(bitmap.size, bitmap.buffer);
 
 		return result;
 	}
