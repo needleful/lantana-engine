@@ -1,22 +1,16 @@
 TODO:
 
 Bugs:
-	- Some images have RGB components in a different order.  I'll have to find a way to detect this and correct it.
-	- Text boxes don't seem to be positioned properly when they have multiple lines
 
 - UI
-	- Use glSubData instead of glBufferData for better performace
-	- VBox and HBox widgets
-	- Image box sizeing
+	- Interactive elements
+	- Use glSubData instead of glBufferData for better performace (probably)
+	- VBox
+	- Image box sizing
 	- Text box sizing
 	- 9-patch boxes
 	- Sub-window widgets (Modal, Scrollbox, and others)
 		a sub-window is a type of Widget that handles its own vertex buffers, so it can be more indepentent of the rest of the UI
-
-- Grid movement
-	- Populating floor
-	- Blocking spaces
-	- Basic player movement (rotation)
 
 - Load a model.
 	- Animations
@@ -26,10 +20,15 @@ Bugs:
 		- Load UVs and images from GLB
 
 	ideas for mesh formats relevant to Axe manor:
-	* Palette - a set of meshes that are all joined into a single buffer.  Maps are instances of these paletteemeshes in a grid.  Only one palette can be active at a time.
-	* Static Mesh - meshes that have the same materal as Palette meshes, but they don't align to a grid and can be loaded/unloaded freely
+	* Grid set - a set of meshes that are all joined into a single buffer.  Maps are instances of these meshes in a grid.  Only one set can be active at a time.
+	* Static Mesh - meshes that have the same materal as Grid set meshes, but they don't align to a grid and can be loaded/unloaded freely
 	* Animated Mesh - like static meshes, but with skeletal animations.
 	* Player Mesh - the only file with two meshes: the player and the axe, since they'll need some parenting/unparenting shenanigans and synced animations.
+
+- Scenes and levels
+	- How to structure scenes?
+	- How to transition between scenes?
+	- Start with a code format and then move to file format
 
 - Puzzles
 	- Undo
@@ -40,6 +39,8 @@ Bugs:
 - Improvements
 	- Switch from Derelict to BindBC (?)
 
+- Cutscenes
+
 LONG-TERM
 
 - Puzzles
@@ -47,7 +48,7 @@ LONG-TERM
 - Art
 - Character designs
 
-- Design idea:
+- Architectural idea:
 
 	Design the game as a series of libraries.
 	Git submodules could be used, even.
