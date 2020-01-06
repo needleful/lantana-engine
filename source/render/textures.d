@@ -227,7 +227,7 @@ struct TextureNode
 	{
 		// I want to minimize the number of empty nodes
 		// Occupied nodes point to a specific image, and joining nodes are necessary for splitting the atlas 
-		debug printf("Deleting %s atlas node\n", occupied? "occupied".ptr : (isLeaf?"empty".ptr: "joining".ptr) );
+		// debug printf("Deleting %s atlas node\n", occupied? "occupied".ptr : (isLeaf?"empty".ptr: "joining".ptr) );
 	}
 
 	bool isLeaf() nothrow

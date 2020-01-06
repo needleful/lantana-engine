@@ -18,12 +18,6 @@ import lanlib.types;
 import render.lights;
 import render.material;
 
-struct StaticMeshInstance
-{
-	Transform transform;
-	StaticMesh* mesh;
-}
-
 struct LightUniforms
 {
 	UniformId direction, bias;
@@ -46,6 +40,12 @@ struct LightUniforms
 		p_mat.set_uniform(area_span, p_info.areaSpan);
 		p_mat.set_uniform(area_ceiling, p_info.areaCeiling);
 	}
+}
+
+struct StaticMeshInstance
+{
+	Transform transform;
+	StaticMesh* mesh;
 }
 
 struct StaticMeshSystem
@@ -91,15 +91,7 @@ struct StaticMeshSystem
 		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data);
 		return &meshes[$-1];
 	}
-
-	//StaticMesh[] build_meshes(GLBStaticLoadResults loaded)
-	//{
-	//	uint start = meshes.length-1;
-	//	meshes.length += loaded.accessors.length;
-	//	uint end = meshes.length;
-	//	// TODO implement
-	//}
-
+	
 	void render(mat4 p_projection, ref LightInfo p_lights, StaticMeshInstance[] p_instances)
 	{
 		glcheck();
@@ -492,6 +484,16 @@ struct AnimatedMeshInstance
 	bool is_updated;
 	bool looping;
 	bool is_playing;
+
+	this(AnimatedMesh* p_mesh, Transform p_transform, ILanAllocator p_alloc)
+	{
+		is_playing = false;
+		time = 0;
+		mesh = p_mesh;
+		boneMatrices = p_alloc.make_list!mat4(p_mesh.bones.length);
+		bones = p_alloc.make_list!GLBNode(p_mesh.bones.length);
+		bones[0..$] = p_mesh.bones[0..$];
+	}
 
 	/// Play an animation
 	/// Returns true if the animation could be started

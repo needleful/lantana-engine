@@ -42,17 +42,15 @@ struct AnimatedInstanceLoader
 {
 	string animation;
 	Transform transform;
-	float animTime;
 	ushort id;
 	bool loop;
 
-	this(ushort p_id, Transform p_transform, string p_animation, bool p_loop, float p_time = 0)
+	this(ushort p_id, Transform p_transform, string p_animation = "", bool p_loop = false)
 	{
 		id = p_id;
 		transform = p_transform;
 		animation = p_animation;
 		loop = p_loop;
-		animTime = p_time;
 	}
 }
 
@@ -81,5 +79,6 @@ struct SceneLoader
 	AnimatedInstanceLoader[] animatedInstances;
 	// Index into the mesh instances for the player mesh
 	ushort playerMeshInstance;
+	// First index of a block's mesh instance.  Blocks are assumed to be next to each other
 	ushort blockInstancesOffset;
 }

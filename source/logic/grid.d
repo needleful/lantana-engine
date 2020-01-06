@@ -186,8 +186,8 @@ struct Grid
 				{
 					return p_from;
 				}
-				debug printf("GRID >> Moving block (%d, %d, %d) -> (%d, %d, %d)\n",
-					to.x, to.y, to.z, block.pos_target.x, block.pos_target.y, block.pos_target.z);
+				//debug printf("GRID >> Moving block (%d, %d, %d) -> (%d, %d, %d)\n",
+				//	to.x, to.y, to.z, block.pos_target.x, block.pos_target.y, block.pos_target.z);
 				break;
 			}
 		}

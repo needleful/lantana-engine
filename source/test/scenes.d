@@ -12,9 +12,9 @@ import logic.grid;
 import logic.player;
 import scene;
 
-SceneLoader* testScene()
+SceneLoader testScene()
 {
-	SceneLoader* s;
+	SceneLoader s;
 
 	s.lights = LightLoader(
 		vec3(-0.2, -1, 0.1), // Direction
@@ -42,18 +42,19 @@ SceneLoader* testScene()
 	];
 
 	s.animatedInstances = [
-		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, -6)), "TestAnim", true)
+		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
+		AnimatedInstanceLoader(0, Transform(1))
 	];
 
 
-	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 0), vec3(0,0,0));
+	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
 	s.grid.blocks = [
 		GridBlock(GridPos(2, 0, 2)),
 		GridBlock(GridPos(3, 0, 3))
 	];
 	s.player = Player(&s.grid, GridPos(0,0,0));
 	s.playerMeshInstance = 0;
-	s.blockInstancesOffset - 3;
+	s.blockInstancesOffset = 3;
 
 	return s;
 }

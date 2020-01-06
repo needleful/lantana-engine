@@ -141,12 +141,12 @@ struct SDLWindow
 		{
 			if(SDL_GL_SetSwapInterval(1) >= 0)
 			{
-				printf("Could not create SDL_GL context with "
+				debug printf("Could not create SDL_GL context with "
 					~"adaptive swap interval, using synced swap interval\n");
 			}
 			else
 			{
-				printf("Warning: Could not enable synced swapping inverval."
+				debug printf("Warning: Could not enable synced swapping inverval."
 					~" This could case performance issues.\n");
 			}
 

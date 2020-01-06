@@ -24,14 +24,14 @@ import render.lights;
 import render.material;
 import render.mesh;
 import render.textures;
+import scene;
+import test.scenes;
 
 import ui;
 
-enum MAX_MEMORY = 1024*1024*5;
+enum MAX_MEMORY = 1024*1024*16;
 
 enum cam_speed = 8;
-
-bool paused;
 
 int main()
 {
@@ -50,18 +50,11 @@ int main()
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	FontId debugFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 20);
-	FontId titleFont = ui.loadFont("data/fonts/averia/Averia-Light.ttf", 40);
 
 	string debugText = ": %6.3f\n: %6.3f\n: %6.3f";
 	TextBox frameTime = new TextBox(ui, debugFont, debugText, true);
 
 	ui.setRootWidget(new HodgePodge([
-		// various tests for Anchor, ImageBox, and TextBox
-		new Anchor(
-			new TextBox(ui, titleFont, "Lantana Engine"),
-			vec2(0.05, 0.99),
-			vec2(0, 1)
-		),
 		new Anchor(
 			new HBox([
 				new ImageBox(ui, upclickSprite),
@@ -73,66 +66,75 @@ int main()
 		)
 	]));
 
-	// Meshes
-	auto level_mesh = smesh.load_mesh("data/test/meshes/funny-cube.glb", mm);
-	auto player_mesh = smesh.load_mesh("data/test/meshes/kitty-test.glb", mm);
-	auto anim_mesh = anmesh.load_mesh("data/test/meshes/anim_test.glb", mm);
-	auto anim_meshes = mm.make_list!AnimatedMeshInstance(1);
+	// Testing SceneLoader format
+	StaticMeshInstance[] staticMeshes;
+	AnimatedMeshInstance[] animMeshes;
+	LightInfo worldLight;
+	Grid grid;
+	Player player;
+	ushort playerMesh, blockMesh;
+	{
+		SceneLoader loader = testScene();
+		StaticMesh*[] smeshes;
+		AnimatedMesh*[] ameshes;
+		smeshes.reserve(loader.files_staticMesh.length);
+		ameshes.reserve(loader.files_animMesh.length);
 
-	auto animTest = &anim_meshes[0];
+		foreach(meshFile; loader.files_staticMesh)
+		{
+			smeshes ~= smesh.load_mesh(meshFile, mm);
+		}
+		foreach(meshFile; loader.files_animMesh)
+		{
+			ameshes ~= anmesh.load_mesh(meshFile, mm);
+		}
 
-	animTest.transform = Transform(1, vec3(-6,0,6));
-	animTest.mesh = anim_mesh;
-	animTest.boneMatrices = mm.make_list!mat4(anim_mesh.bones.length);
-	animTest.bones = mm.make_list!GLBNode(anim_mesh.bones.length);
-	animTest.bones[0..$] = anim_mesh.bones[0..$];
-	animTest.is_playing = false;
-	animTest.play_animation("TestAnim", true);
+		staticMeshes = mm.make_list!StaticMeshInstance(loader.meshInstances.length);
+		animMeshes = mm.make_list!AnimatedMeshInstance(loader.animatedInstances.length);
 
-	auto static_meshes = mm.make_list!StaticMeshInstance(5);
-	// Player
-	static_meshes[0].mesh = player_mesh;
-	static_meshes[0].transform = Transform(1, vec3(0));
-	auto pmesh = &static_meshes[0];
-	// Static geometry
-	static_meshes[1].mesh = level_mesh;
-	static_meshes[1].transform = Transform(4, vec3(0, 5, 0));
+		foreach(i; 0..loader.meshInstances.length)
+		{
+			auto m = &loader.meshInstances[i];
+			staticMeshes[i].mesh = smeshes[m.id];
+			staticMeshes[i].transform = m.transform;
+		}
 
-	static_meshes[4].mesh = level_mesh;
-	static_meshes[4].transform = Transform(4, vec3(8, 0, 0));
+		foreach(i; 0..loader.animatedInstances.length)
+		{
+			auto m = &loader.animatedInstances[i];
+			animMeshes[i] = AnimatedMeshInstance(ameshes[m.id], m.transform, mm);
+			if(m.animation != "")
+			{
+				animMeshes[i].play_animation(m.animation, m.loop);
+			}
+		}
 
-	// BLocks
-	static_meshes[2].mesh = level_mesh;
-	static_meshes[2].transform = Transform(1, vec3(0));
-	static_meshes[3].mesh = level_mesh;
-	static_meshes[3].transform = Transform(1, vec3(0));
+		grid = loader.grid;
+		player = loader.player;
+		player.grid = &grid;
+		playerMesh = loader.playerMeshInstance;
+		blockMesh = loader.blockInstancesOffset;
 
+		worldLight = LightInfo(loader.lights.file_palette, mm);
+		worldLight.direction = loader.lights.direction;
+		worldLight.bias = loader.lights.bias;
+		worldLight.areaCeiling = loader.lights.areaCeiling;
+		worldLight.areaSpan = loader.lights.areaSpan;
+	}
 
-	auto cam = mm.create!Camera(vec3(-3, -9, -3), 720.0/512, 75);
-	auto grid = mm.create!Grid(GridPos(-5, 0, -5), GridPos(5,0,5), vec3(0,0,0));
-	auto player = Player(grid, GridPos(0,0,0));
-
-	grid.blocks = mm.make_list!GridBlock(2);
-	grid.blocks[0].setPosition(2, 0, 2);
-	grid.blocks[1].setPosition(3, 0, 3);
+	auto cam = mm.create!Camera(vec3(-3, -9, -3), 720.0/512, 60);
 
 	uint frame = 0;
 	int[2] wsize = ww.get_dimensions();
 
-	writeln("Beginning game loop");
+	debug writeln("Beginning game loop");
 	stdout.flush();
-
-	LightInfo worldLight;
-	worldLight.palette = Texture!Color("data/palettes/test.png", true, mm);
-	worldLight.direction = vec3(-0.2, -1, 0.1);
-	worldLight.bias = 0.3;
-	worldLight.areaCeiling = -5;
-	worldLight.areaSpan = 12;
 
 	float maxDelta_ms = -1;
 	float runningMaxDelta_ms = -1;
 	float accumDelta_ms = 0;
 	float runningFrame = 0;
+	bool paused;
 
 	while(!ww.state[WindowState.CLOSED])
 	{
@@ -175,31 +177,36 @@ int main()
 		{
 			cam.rot.x += input.mouse_movement.x*delta*60;
 			float next_rot = cam.rot.y + input.mouse_movement.y;
-			if(abs(next_rot) < 90){
+			if(abs(next_rot) < 90)
+			{
 				cam.rot.y = next_rot;
 			}
 			player.update(input, delta);
-			pmesh.transform._position = player.realPosition();
-			pmesh.transform._rotation.y = player.realRotation();
-			pmesh.transform.compute_matrix();
 
-			static_meshes[2].transform._position = grid.getRealPosition(grid.blocks[0].position, grid.blocks[0].pos_target);
-			static_meshes[2].transform.compute_matrix();
-			static_meshes[3].transform._position = grid.getRealPosition(grid.blocks[1].position, grid.blocks[1].pos_target);
-			static_meshes[3].transform.compute_matrix();
+			staticMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
+			staticMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
+			staticMeshes[playerMesh].transform.compute_matrix();
 
-			anmesh.update(delta, anim_meshes);
+			foreach(i; 0..grid.blocks.length)
+			{
+				auto s = i+blockMesh;
+				staticMeshes[s].transform._position = grid.getRealPosition(grid.blocks[i].position, grid.blocks[i].pos_target);
+				staticMeshes[s].transform.compute_matrix();
+			}
+
+			anmesh.update(delta, animMeshes);
 		}
 		ui.update(delta);
 
 		ww.begin_frame();
 		mat4 vp = cam.vp();
-		smesh.render(vp, worldLight, static_meshes);
-		anmesh.render(vp, worldLight, anim_meshes);
+		anmesh.render(vp, worldLight, animMeshes);
+		smesh.render(vp, worldLight, staticMeshes);
 		ui.render();
 
 		ww.end_frame();
 		frame ++;
 	}
+	debug writeln("Game closing");
 	return 0;
 }

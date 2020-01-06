@@ -36,11 +36,13 @@ interface ILanAllocator
 
 T[] make_list(T)(ILanAllocator alloc, ulong count) @nogc
 {
+	//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
 	return (cast(T*)alloc.make(T.sizeof * count))[0..count];
 }
 
 T *create(T, A...)(ILanAllocator alloc, auto ref A args) @nogc 
 {
+	//debug printf("MEM: Creating instnace of %s\n", T.stringof.ptr);
 	T *ptr = cast(T*) alloc.make(T.sizeof);
 	assert(ptr != null, "Failed to allocate memory");
 	emplace!(T, A)(ptr, args);
@@ -123,6 +125,8 @@ class LanRegion : ILanAllocator
 		void* result = cast(void*)(&data[space_used]);
 		set_space_used(space_used + bytes);
 
+		//debug printf("MEM: Allocating %u bytes, total: %u\n", bytes, space_used);
+
 		return result;
 	}
 
@@ -166,5 +170,6 @@ class LanRegion : ILanAllocator
 	private void set_space_used(ulong val) @nogc nothrow
 	{
 		(cast(ulong *) data)[1] = val;
+		assert(space_used() == val);
 	}
 }

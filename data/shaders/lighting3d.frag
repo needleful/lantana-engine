@@ -12,7 +12,5 @@ out vec3 out_color;
 void main()
 {
 	float light = dot(normalize(light_direction), normalize(vert_normal)) + light_bias;
-	light = clamp(light, 0, 1);
-	vec2 palette_selector = vec2(light, area_gradient);
-	out_color = texture(light_palette, palette_selector).xyz;
+	out_color = texture(light_palette, vec2(light, area_gradient)).xyz;
 }
