@@ -38,12 +38,11 @@ SceneLoader testScene()
 		MeshInstanceLoader(0, Transform(4, vec3(0, 5, 0))),
 		MeshInstanceLoader(0, Transform(4, vec3(8, 0, 8))),
 		MeshInstanceLoader(0, Transform(1)),
-		MeshInstanceLoader(0, Transform(1)),	
+		MeshInstanceLoader(0, Transform(1)),
 	];
 
 	s.animatedInstances = [
-		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
-		AnimatedInstanceLoader(0, Transform(1))
+		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true)
 	];
 
 
