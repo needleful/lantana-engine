@@ -136,21 +136,18 @@ int main()
 	{
 		float delta_ms = ww.delta_ms();
 		float delta = delta_ms/1000.0;
-		debug
-		{	
-			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
-			
-			if(frame % 512 == 0)
-			{
-				maxDelta_ms = runningMaxDelta_ms;
-				runningMaxDelta_ms = -1;
-				accumDelta_ms = 0;
-				runningFrame = 1;
-			}
-			accumDelta_ms += delta_ms;
-			frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
-			runningFrame ++;
+		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+		
+		if(frame % 512 == 0)
+		{
+			maxDelta_ms = runningMaxDelta_ms;
+			runningMaxDelta_ms = -1;
+			accumDelta_ms = 0;
+			runningFrame = 1;
 		}
+		accumDelta_ms += delta_ms;
+		frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
+		runningFrame ++;
 	
 		ww.poll_events(input);
 

@@ -5,7 +5,7 @@
 module lanlib.formats.gltf2;
 
 import std.file;
-import std.format;
+debug import std.format;
 import std.json;
 import std.stdio;
 
@@ -406,7 +406,7 @@ struct GLBAnimation
 		return a;
 	}
 
-	const string toString()
+	debug const string toString()
 	{
 		return format("%s [%u channels, %u buffers]", 
 			name, channels.length, bufferViews.length);
@@ -550,7 +550,7 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, 
 						{
 							result_bone.parent = cast(byte)parent_joint_index;
 						}
-						writeln(format("Joint %d has parent: %d", idx-1, parent_joint_index));
+						debug writeln(format("Joint %d has parent: %d", idx-1, parent_joint_index));
 					}
 				}
 			}
@@ -711,7 +711,7 @@ void glb_print(ref GLBAnimatedLoadResults results)
 
 void glb_printBuffer(ref GLBBufferView view, ubyte[] bytes)
 {
-	assert(view.byteOffset < bytes.length, 
+	debug assert(view.byteOffset < bytes.length, 
 		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", bytes.length, view.byteOffset));
 	switch(view.componentType)
 	{
