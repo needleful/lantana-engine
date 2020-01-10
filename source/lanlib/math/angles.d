@@ -19,10 +19,10 @@ struct Angles
 		this.axis.normalize();
 
 		this.angle = angle;
-		normalize_angle();
+		normalize();
 	}
 
-	void normalize_angle() @nogc @safe nothrow
+	void normalize() @nogc @safe nothrow
 	{
 		while(angle > 2*PI)
 		{
@@ -37,7 +37,7 @@ struct Angles
 	void rotate(float f) @nogc @safe nothrow
 	{
 		angle += f;
-		normalize_angle();
+		normalize();
 	}
 
 	const mat4 to_matrix() @nogc @safe nothrow

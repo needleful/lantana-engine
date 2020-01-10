@@ -44,25 +44,25 @@ struct StaticMeshSystem
 	{
 		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
 
-		atr.position = mat.get_attrib_id("position");
-		atr.normal = mat.get_attrib_id("normal");
-		atr.uv = mat.get_attrib_id("uv");
-		un.transform = mat.get_uniform_id("transform");
-		un.projection = mat.get_uniform_id("projection");
-		un.tex_albedo = mat.get_uniform_id("tex_albedo");
+		atr.position = mat.getAttribId("position");
+		atr.normal = mat.getAttribId("normal");
+		atr.uv = mat.getAttribId("uv");
+		un.transform = mat.getUniformId("transform");
+		un.projection = mat.getUniformId("projection");
+		un.tex_albedo = mat.getUniformId("tex_albedo");
 
 		un.light = LightUniforms(mat);
 
 		meshes.reserve(p_reserved_count);
 
 		glcheck();
-		assert(mat.can_render());
+		assert(mat.canRender());
 	}
 
 	StaticMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
 	{
 		meshes.length += 1;
-		auto loaded = glb_load(p_filename, p_allocator);
+		auto loaded = glbLoad(p_filename, p_allocator);
 		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_allocator);
 		return &meshes[$-1];
 	}
@@ -75,9 +75,9 @@ struct StaticMeshSystem
 		glEnable(GL_DEPTH_TEST);
 
 		mat.enable();
-		mat.set_uniform(un.projection, p_projection);
-		mat.set_uniform(un.light.palette, 0);
-		mat.set_uniform(un.tex_albedo, 1);
+		mat.setUniform(un.projection, p_projection);
+		mat.setUniform(un.light.palette, 0);
+		mat.setUniform(un.tex_albedo, 1);
 
 		un.light.set(mat, p_lights);
 
@@ -87,8 +87,8 @@ struct StaticMeshSystem
 		GLuint current_vao = 0;
 		foreach(ref inst; p_instances)
 		{
-			inst.transform.compute_matrix();
-			mat.set_uniform(un.transform, inst.transform.matrix);
+			inst.transform.computeMatrix();
+			mat.setUniform(un.transform, inst.transform.matrix);
 
 			if(current_vao != inst.mesh.vao)
 			{
@@ -214,18 +214,18 @@ struct AnimatedMeshSystem
 	{
 		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
 
-		atr.position = mat.get_attrib_id("position");
-		atr.normal = mat.get_attrib_id("normal");
-		atr.uv = mat.get_attrib_id("uv");
-		atr.bone_weight = mat.get_attrib_id("bone_weight");
-		atr.bone_idx = mat.get_attrib_id("bone_idx");
+		atr.position = mat.getAttribId("position");
+		atr.normal = mat.getAttribId("normal");
+		atr.uv = mat.getAttribId("uv");
+		atr.bone_weight = mat.getAttribId("bone_weight");
+		atr.bone_idx = mat.getAttribId("bone_idx");
 
-		un.transform = mat.get_uniform_id("transform");
-		un.projection = mat.get_uniform_id("projection");
-		un.tex_albedo = mat.get_uniform_id("tex_albedo");
+		un.transform = mat.getUniformId("transform");
+		un.projection = mat.getUniformId("projection");
+		un.tex_albedo = mat.getUniformId("tex_albedo");
 		un.light = LightUniforms(mat);
 
-		un.bones = mat.get_uniform_id("bones");
+		un.bones = mat.getUniformId("bones");
 
 		meshes.reserve(p_reserved_count);
 
@@ -234,7 +234,7 @@ struct AnimatedMeshSystem
 
 	AnimatedMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
 	{
-		auto loaded = glb_load!true(p_filename, p_allocator);
+		auto loaded = glbLoad!true(p_filename, p_allocator);
 		meshes.length += 1;
 		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded, p_allocator);
 		return &meshes[$-1];
@@ -283,10 +283,10 @@ struct AnimatedMeshSystem
 					{
 						auto value = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data)[frame];
 						inst.bones[channel.targetBone].rotation = quat(
-							glb_convert!(float, T)(value.w),
-							glb_convert!(float, T)(value.x),
-							glb_convert!(float, T)(value.y),
-							glb_convert!(float, T)(value.z)
+							glbConvert!(float, T)(value.w),
+							glbConvert!(float, T)(value.x),
+							glbConvert!(float, T)(value.y),
+							glbConvert!(float, T)(value.z)
 						);
 					}
 					switch(valueBuffer.componentType)
@@ -339,11 +339,11 @@ struct AnimatedMeshSystem
 			{
 				if(node.parent >= 0)
 				{
-					return applyParentTransform(nodes[node.parent], nodes) * node.compute_matrix();
+					return applyParentTransform(nodes[node.parent], nodes) * node.computeMatrix();
 				}
 				else
 				{
-					return node.compute_matrix();
+					return node.computeMatrix();
 				}
 			}
 			foreach(ulong i; 0..inst.mesh.bones.length)
@@ -364,9 +364,9 @@ struct AnimatedMeshSystem
 
 		mat.enable();
 		un.light.set(mat, p_lights);
-		mat.set_uniform(un.projection, projection);
-		mat.set_uniform(un.light.palette, 0);
-		mat.set_uniform(un.tex_albedo, 1);
+		mat.setUniform(un.projection, projection);
+		mat.setUniform(un.light.palette, 0);
+		mat.setUniform(un.tex_albedo, 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
@@ -376,9 +376,9 @@ struct AnimatedMeshSystem
 		AnimatedMesh* current_mesh = null;
 		foreach(ref inst; p_instances)
 		{
-			inst.transform.compute_matrix();
-			mat.set_uniform(un.transform, inst.transform.matrix);
-			mat.set_uniform(un.bones, inst.boneMatrices);
+			inst.transform.computeMatrix();
+			mat.setUniform(un.transform, inst.transform.matrix);
+			mat.setUniform(un.bones, inst.boneMatrices);
 			if(current_mesh != inst.mesh)
 			{
 				current_mesh = inst.mesh;

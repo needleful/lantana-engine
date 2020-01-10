@@ -54,7 +54,7 @@ enum GLBComponentType
 	FLOAT = 5126,
 }
 
-bool isCompatible(T)(GLBComponentType type)
+bool isCompatible(T)(GLBComponentType p_type)
 {
 	static if(isTemplateType!(Vector, T))
 	{
@@ -72,7 +72,7 @@ bool isCompatible(T)(GLBComponentType type)
 	{
 		alias ValueType = T;
 	}
-	switch(type)
+	switch(p_type)
 	{
 		case GLBComponentType.BYTE:
 			return is(ValueType == byte);
@@ -91,9 +91,9 @@ bool isCompatible(T)(GLBComponentType type)
 	}
 }
 
-uint size(GLBComponentType type)
+uint size(GLBComponentType p_type)
 {
-	switch(type)
+	switch(p_type)
 	{
 		case GLBComponentType.BYTE:  return 1;
 		case GLBComponentType.SHORT: return 2;
@@ -102,7 +102,7 @@ uint size(GLBComponentType type)
 		case GLBComponentType.UNSIGNED_BYTE:  return 1;
 		case GLBComponentType.UNSIGNED_SHORT: return 2;
 		default: 
-			debug throw new Exception(format("Invalid GLBComponentType: %u", type));
+			debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
 			else return -1;
 	}
 }
@@ -119,9 +119,9 @@ enum GLBDataType
 	UNKNOWN
 }
 
-GLBDataType typeFromString(string typename)
+GLBDataType typeFromString(string p_type)
 {
-	switch(typename)
+	switch(p_type)
 	{
 		case "SCALAR": return GLBDataType.SCALAR;
 		case "VEC2"  : return GLBDataType.VEC2;
@@ -131,14 +131,14 @@ GLBDataType typeFromString(string typename)
 		case "MAT3"  : return GLBDataType.MAT3;
 		case "MAT4"  : return GLBDataType.MAT4;
 		default: 
-			debug throw new Exception("Invalid GLBDataType name: "~typename);
+			debug throw new Exception("Invalid GLBDataType name: "~p_type);
 			else return GLBDataType.UNKNOWN;
 	}
 }
 
-uint componentCount(GLBDataType type)
+uint componentCount(GLBDataType p_type)
 {
-	switch(type)
+	switch(p_type)
 	{
 		case GLBDataType.SCALAR: return 1;
 		case GLBDataType.VEC2: return 2;
@@ -148,7 +148,7 @@ uint componentCount(GLBDataType type)
 		case GLBDataType.MAT3: return 9;
 		case GLBDataType.MAT4: return 16;
 		default:
-			debug throw new Exception(format("Unknown GLBDataType: %u", type));
+			debug throw new Exception(format("Unknown GLBDataType: %u", p_type));
 			else return 0;
 	}
 }
@@ -163,26 +163,26 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	static GLBBufferView fromJSON(JSONValue accessor, JSONValue[] bufferViews)
+	static GLBBufferView fromJSON(JSONValue p_access, JSONValue[] p_views)
 	{
-		uint idx_buffer = cast(uint)accessor["bufferView"].integer();
-		auto b = bufferViews[idx_buffer];
+		uint idx_buffer = cast(uint)p_access["bufferView"].integer();
+		auto b = p_views[idx_buffer];
 
 		GLBBufferView view;
-		view.componentType = cast(GLBComponentType) accessor["componentType"].integer();
-		view.dataType = typeFromString(accessor["type"].str());
+		view.componentType = cast(GLBComponentType) p_access["componentType"].integer();
+		view.dataType = typeFromString(p_access["type"].str());
 		view.byteOffset = cast(uint) b["byteOffset"].integer();
 		view.byteLength = cast(uint) b["byteLength"].integer();
 		return view;
 	}
 
-	const T[] asArray(T)(ubyte[] buffer)
+	const T[] asArray(T)(ubyte[] p_buffer)
 	{
 		assert(componentType.isCompatible!T());
 
 		auto len = byteLength/
 			(dataType.componentCount()*componentType.size());
-		return (cast(T*)(&buffer[byteOffset]))[0..len];
+		return (cast(T*)(&p_buffer[byteOffset]))[0..len];
 	}
 }
 
@@ -231,9 +231,9 @@ enum GLBAnimationPath
 	UNKNOWN
 }
 
-GLBAnimationPath pathFromString(string pathname)
+GLBAnimationPath pathFromString(string p_name)
 {
-	switch(pathname)
+	switch(p_name)
 	{
 		case "translation": return GLBAnimationPath.TRANSLATION;
 		case "rotation": return GLBAnimationPath.ROTATION;
@@ -251,9 +251,9 @@ enum GLBInterpolationMode
 	UNKNOWN
 }
 
-GLBInterpolationMode interpolationFromString(string interp)
+GLBInterpolationMode interpolationFromString(string p_interp)
 {
-	switch(interp)
+	switch(p_interp)
 	{
 		case "CUBICSPLINE": return GLBInterpolationMode.CUBICSPLINE;
 		case "LINEAR": return GLBInterpolationMode.LINEAR;
@@ -285,7 +285,7 @@ struct GLBNode
 	// -1 means it has no parent
 	byte parent;
 
-	mat4 compute_matrix()
+	mat4 computeMatrix()
 	{
 		mat4 result = mat4(
 			vec4(scale.x, 0.0f,     0.0f,     0),
@@ -301,25 +301,25 @@ struct GLBNode
 		return result;
 	}
 
-	static GLBNode fromJSON(JSONValue node)
+	static GLBNode fromJSON(JSONValue p_node)
 	{
 		GLBNode bone;
 		bone.translation = vec3(0);
 		bone.scale = vec3(1);
 		bone.rotation = quat.identity();
 		
-		if("translation" in node)
+		if("translation" in p_node)
 		{
-			auto tr = node["translation"].array();
+			auto tr = p_node["translation"].array();
 			bone.translation = vec3(
 				tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
 				tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
 				tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
 		}
 
-		if("rotation" in node)
+		if("rotation" in p_node)
 		{
-			auto rot = node["rotation"].array();
+			auto rot = p_node["rotation"].array();
 
 			bone.rotation = quat(
 				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer(),
@@ -328,9 +328,9 @@ struct GLBNode
 				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer());
 		}
 
-		if("scale" in node)
+		if("scale" in p_node)
 		{
-			auto scl = node["scale"].array();
+			auto scl = p_node["scale"].array();
 
 			bone.scale = vec3(
 				scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
@@ -348,15 +348,15 @@ struct GLBAnimation
 	GLBAnimationChannel[] channels;
 	GLBBufferView[] bufferViews;
 
-	static GLBAnimation fromJSON(JSONValue animation, JSONValue[] bufferViews, JSONValue[] access)
+	static GLBAnimation fromJSON(JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
 	{
 		GLBAnimation a;
-		a.name = animation["name"].str();
+		a.name = p_anim["name"].str();
 		debug writeln("Loading animation: ", a.name);
-		auto channels = animation["channels"].array();
+		auto channels = p_anim["channels"].array();
 		a.channels.reserve(channels.length);
 
-		auto samplers = animation["samplers"].array();
+		auto samplers = p_anim["samplers"].array();
 		// heuristic guess for bufferViews length
 		a.bufferViews.reserve(samplers.length + 3);
 
@@ -388,7 +388,7 @@ struct GLBAnimation
 			{
 				inputBuffers ~= input;
 				auto in_access = access[input];
-				a.bufferViews ~= GLBBufferView.fromJSON(in_access, bufferViews);
+				a.bufferViews ~= GLBBufferView.fromJSON(in_access, p_views);
 				ubyte index = cast(ubyte) (a.bufferViews.length - 1);
 				chan.timeBuffer = index;
 			}
@@ -398,7 +398,7 @@ struct GLBAnimation
 			{
 				outputBuffers ~= output;
 				auto in_access = access[output];
-				a.bufferViews ~= GLBBufferView.fromJSON(in_access, bufferViews);
+				a.bufferViews ~= GLBBufferView.fromJSON(in_access, p_views);
 				ubyte index = cast(ubyte) (a.bufferViews.length - 1);
 				chan.valueBuffer = index;
 			}
@@ -446,13 +446,13 @@ struct GLBAnimatedAccessor
 }
 
 //Check a binary gltf2 file
-auto glb_load(bool is_animated = false)(string file, ILanAllocator p_alloc)
+auto glbLoad(bool is_animated = false)(string p_file, ILanAllocator p_alloc)
 {
-	assert(file.exists(), "File does not exist: " ~ file);
-	debug writeln("Loading "~file);
-	debug scope(failure) writeln("Could not load "~file);
+	assert(p_file.exists(), "File does not exist: " ~ p_file);
+	debug writeln("Loading "~p_file);
+	debug scope(failure) writeln("Could not load "~p_file);
 
-	auto input = File(file, "rb");
+	auto input = File(p_file, "rb");
 	uint[3] header;
 	input.rawRead(header);
 	// We won't bother checking the version (header[1]) or length (header[2])
@@ -466,7 +466,7 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator p_alloc)
 	json.length = jsonHeader[0];
 	input.rawRead(json);
 	uint bufferMax;
-	auto results = glb_json_parse!is_animated(json, p_alloc, bufferMax);
+	auto results = glbJsonParse!is_animated(json, p_alloc, bufferMax);
 	results.bufferSize = bufferMax;
 
 	uint[2] binaryHeader;
@@ -479,11 +479,11 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator p_alloc)
 	return results;
 }
 
-auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, ref uint p_bufferMax)
+auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref uint p_bufferMax)
 {
-	//debug writeln(ascii_json);
+	//debug writeln(p_json);
 
-	JSONValue scn = parseJSON(ascii_json);
+	JSONValue scn = parseJSON(p_json);
 	assert(scn.type == JSONType.object);
 
 	auto jMeshes = scn["meshes"].array();
@@ -538,19 +538,19 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, 
 					if(child.integer() == node_idx)
 					{
 						// is the parent part of the joints?
-						int parent_joint_index = -1;
+						int parentJointIndex = -1;
 						foreach(j; 0..joints.length)
 						{
 							if(joints[j].integer() == n)
 							{
-								parent_joint_index = cast(int)j;
+								parentJointIndex = cast(int)j;
 							}
 						}
-						if(parent_joint_index >= 0)
+						if(parentJointIndex >= 0)
 						{
-							result_bone.parent = cast(byte)parent_joint_index;
+							result_bone.parent = cast(byte)parentJointIndex;
 						}
-						debug writeln(format("Joint %d has parent: %d", idx-1, parent_joint_index));
+						debug writeln(format("Joint %d has parent: %d", idx-1, parentJointIndex));
 					}
 				}
 			}
@@ -561,14 +561,14 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, 
 			foreach(ref chan; anim.channels)
 			{
 				auto targetBone = chan.targetBone;
-				ubyte joint_index = 0;
+				ubyte jointIndex = 0;
 				foreach(j; joints)
 				{
 					if(j.integer() == targetBone)
 					{
-						chan.targetBone = joint_index;
+						chan.targetBone = jointIndex;
 					}
-					joint_index++;
+					jointIndex++;
 				}
 			}
 		}
@@ -647,12 +647,12 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, 
 	return result;
 }
 
-OutType glb_convert(OutType, InType)(InType inval)
+OutType glbConvert(OutType, InType)(InType p_val)
 {
 	import std.math;
 	static if(is(OutType == InType))
 	{
-		return inval;
+		return p_val;
 	}
 	else
 	{
@@ -678,103 +678,103 @@ OutType glb_convert(OutType, InType)(InType inval)
 		}
 		else
 		{
-			static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+			static assert(false, "glbConvert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
 		}
 
 		static if(is(OutType == float))
 		{
-			return fmax(inval/tmax, min);
+			return fmax(p_val/tmax, min);
 		}
 		else static if(is(InType == float))
 		{
-			return cast(OutType)round(inval * tmax);
+			return cast(OutType)round(p_val * tmax);
 		}
 		else
 		{
-			static assert(false, "glb_convert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
+			static assert(false, "glbConvert, invalid type combination: "~InType.stringof ~ ", "~OutType.stringof);
 		}
 	}
 
 }
 
-void glb_print(ref GLBAnimatedLoadResults results)
+void glbPrint(ref GLBAnimatedLoadResults p_loaded)
 {
-	foreach(access; results.accessors)
+	foreach(access; p_loaded.accessors)
 	{
 		writeln(access.name);
 		writeln("Bone indeces");
-		glb_printBuffer(access.bone_idx, results.data);
+		glbPrintBuffer(access.bone_idx, p_loaded.data);
 		writeln("Bone weights");
-		glb_printBuffer(access.bone_weight, results.data);
+		glbPrintBuffer(access.bone_weight, p_loaded.data);
 	}
 }
 
-void glb_printBuffer(ref GLBBufferView view, ubyte[] bytes)
+void glbPrintBuffer(ref GLBBufferView p_view, ubyte[] p_bytes)
 {
-	debug assert(view.byteOffset < bytes.length, 
-		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", bytes.length, view.byteOffset));
-	switch(view.componentType)
+	debug assert(p_view.byteOffset < p_bytes.length, 
+		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", p_bytes.length, p_view.byteOffset));
+	switch(p_view.componentType)
 	{
 		case GLBComponentType.BYTE:
-			printThis!byte(view, bytes);
+			printThis!byte(p_view, p_bytes);
 			break;
 		case GLBComponentType.UNSIGNED_BYTE:
-			printThis!ubyte(view, bytes);
+			printThis!ubyte(p_view, p_bytes);
 			break;
 		case GLBComponentType.SHORT:
-			printThis!short(view, bytes);
+			printThis!short(p_view, p_bytes);
 			break;
 		case GLBComponentType.UNSIGNED_SHORT:
-			printThis!ushort(view, bytes);
+			printThis!ushort(p_view, p_bytes);
 			break;
 		case GLBComponentType.UNSIGNED_INT:
-			printThis!uint(view, bytes);
+			printThis!uint(p_view, p_bytes);
 			break;
 		case GLBComponentType.FLOAT:
-			printThis!float(view, bytes);
+			printThis!float(p_view, p_bytes);
 			break;
 		default:
 			write("Can't print componentType: ");
-			writeln(view.componentType);
+			writeln(p_view.componentType);
 			break;
 	}
 }
-void printThis(Type)(GLBBufferView view, ubyte[] bytes)
+void printThis(Type)(GLBBufferView p_view, ubyte[] p_bytes)
 {
-	switch(view.dataType)
+	switch(p_view.dataType)
 	{
 		case GLBDataType.SCALAR:
-			printThisStuff!Type(view, bytes);
+			printThisStuff!Type(p_view, p_bytes);
 			break;
 		case GLBDataType.VEC2:
-			printThisStuff!(Type[2])(view, bytes);
+			printThisStuff!(Type[2])(p_view, p_bytes);
 			break;
 		case GLBDataType.VEC3:
-			printThisStuff!(Type[3])(view, bytes);
+			printThisStuff!(Type[3])(p_view, p_bytes);
 			break;
 		case GLBDataType.VEC4:
-			printThisStuff!(Type[4])(view, bytes);
+			printThisStuff!(Type[4])(p_view, p_bytes);
 			break;
 		//case GLBDataType.MAT2:
-		//	printThisStuff!(Matrix!(Type, 2, 2))(view, bytes);
+		//	printThisStuff!(Matrix!(Type, 2, 2))(p_view, p_bytes);
 		//	break;
 		//case GLBDataType.MAT3:
-		//	printThisStuff!(Matrix!(Type, 3, 3))(view, bytes);
+		//	printThisStuff!(Matrix!(Type, 3, 3))(p_view, p_bytes);
 		//	break;
 		//case GLBDataType.MAT4:
-		//	printThisStuff!(Matrix!(Type, 4, 4))(view, bytes);
+		//	printThisStuff!(Matrix!(Type, 4, 4))(p_view, p_bytes);
 		//	break;
 		default:
 			write("Unsupported data type: ");
-			writeln(view.dataType);
+			writeln(p_view.dataType);
 			break;
 	}
 }
 
-void printThisStuff(Type)(GLBBufferView view, ubyte[] data)
+void printThisStuff(Type)(GLBBufferView p_view, ubyte[] p_data)
 {
-	uint length = view.byteLength/Type.sizeof;
-	Type[] values = (cast(Type*)(&data[view.byteOffset]))[0..length];
+	uint length = p_view.byteLength/Type.sizeof;
+	Type[] values = (cast(Type*)(&p_data[p_view.byteOffset]))[0..length];
 	foreach(value; values)
 	{
 		write("\t->");

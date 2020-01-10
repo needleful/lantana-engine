@@ -36,7 +36,7 @@ enum cam_speed = 8;
 int main()
 {
 	debug writeln("Running Axe Manor in debug mode!");
-	SDLWindow ww = SDLWindow(720, 512, "Axe Manor");
+	Window ww = Window(720, 512, "Axe Manor");
 	
 	auto mm = new LanRegion(MAX_MEMORY, new SysMemManager());
 	Input input = Input();
@@ -138,15 +138,15 @@ int main()
 		float delta = delta_ms/1000.0;
 		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
 		
-		if(frame % 512 == 0)
+		accumDelta_ms += delta_ms;
+		if(frame % 256 == 0)
 		{
 			maxDelta_ms = runningMaxDelta_ms;
 			runningMaxDelta_ms = -1;
-			accumDelta_ms = 0;
+			frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
 			runningFrame = 1;
+			accumDelta_ms = 0;
 		}
-		accumDelta_ms += delta_ms;
-		frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
 		runningFrame ++;
 	
 		ww.poll_events(input);
@@ -178,13 +178,11 @@ int main()
 
 			staticMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
 			staticMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
-			staticMeshes[playerMesh].transform.compute_matrix();
 
 			foreach(i; 0..grid.blocks.length)
 			{
 				auto s = i+blockMesh;
 				staticMeshes[s].transform._position = grid.getRealPosition(grid.blocks[i].position, grid.blocks[i].pos_target);
-				staticMeshes[s].transform.compute_matrix();
 			}
 
 			anmesh.update(delta, animMeshes);

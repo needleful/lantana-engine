@@ -37,33 +37,33 @@ struct LightUniforms
 
 	this(ref Material p_mat)
 	{
-		direction = p_mat.get_uniform_id("light_direction");
-		bias = p_mat.get_uniform_id("light_bias");
-		area_span = p_mat.get_uniform_id("area_span");
-		area_ceiling = p_mat.get_uniform_id("area_ceiling");
-		palette = p_mat.get_uniform_id("light_palette");
+		direction = p_mat.getUniformId("light_direction");
+		bias = p_mat.getUniformId("light_bias");
+		area_span = p_mat.getUniformId("area_span");
+		area_ceiling = p_mat.getUniformId("area_ceiling");
+		palette = p_mat.getUniformId("light_palette");
 	}
 
 	void set(ref Material p_mat, ref LightInfo p_info)
 	{
-		p_mat.set_uniform(direction, p_info.direction);
-		p_mat.set_uniform(bias, p_info.bias);
-		p_mat.set_uniform(area_span, p_info.areaSpan);
-		p_mat.set_uniform(area_ceiling, p_info.areaCeiling);
+		p_mat.setUniform(direction, p_info.direction);
+		p_mat.setUniform(bias, p_info.bias);
+		p_mat.setUniform(area_span, p_info.areaSpan);
+		p_mat.setUniform(area_ceiling, p_info.areaCeiling);
 	}
 }
 
-Material loadMaterial(const string vert_file, const string frag_file)
+Material loadMaterial(const string p_vertFile, const string p_fragFile)
 {
 	GLuint matId = glCreateProgram();
 
-	GLuint vert_shader = compile_shader(vert_file, GL_VERTEX_SHADER);
-	GLuint frag_shader = compile_shader(frag_file, GL_FRAGMENT_SHADER);
+	GLuint vertShader = compileShader(p_vertFile, GL_VERTEX_SHADER);
+	GLuint fragShader = compileShader(p_fragFile, GL_FRAGMENT_SHADER);
 
-	matId.glAttachShader(vert_shader);
-	matId.glAttachShader(frag_shader);
+	matId.glAttachShader(vertShader);
+	matId.glAttachShader(fragShader);
 
-	bool success = link_shader(matId);
+	bool success = linkShader(matId);
 	
 	glcheck();
 
@@ -78,17 +78,17 @@ struct Material
 {
 	MaterialId matId;
 
-	this(MaterialId matId) @safe @nogc nothrow
+	this(MaterialId p_matId) @safe @nogc nothrow
 	{
-		this.matId = matId;
+		matId = p_matId;
 	}
 
 	// Move constructors
 
-	this(Material rhs) @safe @nogc nothrow
+	this(Material p_rhs) @safe @nogc nothrow
 	{
-		this.matId = rhs.matId;
-		rhs.matId = MaterialId(0u);
+		matId = p_rhs.matId;
+		p_rhs.matId = MaterialId(0u);
 	}
 
 	~this() @trusted @nogc nothrow
@@ -101,10 +101,10 @@ struct Material
 	}
 
 	// Move assignment
-	void OpAssign(ref Material rhs) @nogc @safe nothrow
+	void OpAssign(ref Material p_rhs) @nogc @safe nothrow
 	{
-		this.matId = rhs.matId;
-		rhs.matId = MaterialId(0u);
+		matId = p_rhs.matId;
+		p_rhs.matId = MaterialId(0u);
 	}
 
 	const void enable() @nogc nothrow
@@ -119,7 +119,7 @@ struct Material
 		matId.glUseProgram();
 	}
 
-	const bool can_render() @nogc
+	const bool canRender() @nogc
 	{
 		scope(exit) glcheck;
 
@@ -149,41 +149,23 @@ struct Material
 		}
 	}
 
-	UniformId get_uniform_id(string param) @nogc const
+	UniformId getUniformId(string p_name) @nogc const
 	{
 		scope(exit)
 		{
 			glcheck();
 		}
 
-		GLint res = matId.glGetUniformLocation(param.ptr);
+		GLint res = matId.glGetUniformLocation(p_name.ptr);
 		assert(res != -1, "Missing parameter ID");
 
 		return UniformId(res);
 
 	}
 
-	UniformId set_uniform(T)(const string param, auto ref T value) @nogc
+	bool setUniform(T)(const UniformId p_uniform, auto ref T p_value) @nogc
 	{
-		scope(exit) 
-		{
-			glcheck();
-		}
-
-		UniformId uniform = UniformId(matId.glGetUniformLocation(param.ptr));
-
-		debug {
-			assert(uniform != -1, format("Missing uniform location: %s", param ));
-		}
-
-		set_uniform!T(uniform, value);
-
-		return uniform;
-	}
-
-	bool set_uniform(T)(const UniformId uniform, auto ref T value) @nogc
-	{
-		if(uniform == -1)
+		if(p_uniform == -1)
 		{
 			return false;
 		}
@@ -198,29 +180,29 @@ struct Material
 			static if(is(T == double))
 			{
 				pragma(msg, "Notice: Doubles are automatically converted to floats when setting uniforms");
-				gl_set_uniform!float(uniform, cast(float)value);
+				gl_setUniform!float(p_uniform, cast(float)p_value);
 				return true;
 			}
 			else
 			{
-				gl_set_uniform!T(uniform, value);
+				gl_setUniform!T(p_uniform, p_value);
 				return true;
 			}
 		}
 	}
-	AttribId get_attrib_id(const string attrib) @nogc const
+	AttribId getAttribId(const string p_attrib) @nogc const
 	{
 		scope(exit) glcheck();
 
-		auto val = AttribId(matId.glGetAttribLocation(attrib.ptr));
-		debug assert(val > -1, "Invalid attribute: " ~ attrib);
+		auto val = AttribId(matId.glGetAttribLocation(p_attrib.ptr));
+		debug assert(val > -1, "Invalid attribute: " ~ p_attrib);
 		return val;
 	}
 
-	void set_attrib_id(const string attrib, AttribId id) @nogc
+	void setAttribId(const string p_attrib, AttribId p_id) @nogc
 	{
 		scope(exit) glcheck();
 		
-		return matId.glBindAttribLocation(id, attrib.ptr);
+		return matId.glBindAttribLocation(p_id, p_attrib.ptr);
 	}
 }

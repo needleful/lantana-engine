@@ -23,7 +23,7 @@ import render.mesh;
 
 import ui;
 
-enum atlas_test = false;
+enum atlasTest = false;
 
 int main()
 {
@@ -33,7 +33,7 @@ int main()
 	FreeImage_Initialise(true);
 	scope(exit) FreeImage_DeInitialise();
 
-	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
+	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
 	ILanAllocator mm = new LanRegion(1024*1024*16, new SysMemManager());
 	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
@@ -83,7 +83,7 @@ int main()
 		{
 			ui.setSize(ww.getSize());
 		}
-		static if(atlas_test)
+		static if(atlasTest)
 		{
 			ww.begin_frame();
 			ui.debugRender();

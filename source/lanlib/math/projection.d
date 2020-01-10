@@ -13,17 +13,17 @@ import lanlib.math.func;
 struct Projection
 {
 	private mat4 _matrix;
-	float aspect_ratio;
+	float aspectRatio;
 	float fov;
-	float near_plane;
-	float far_plane;
+	float nearPlane;
+	float farPlane;
 
-	this(float aspect_ratio, float fov, float near_plane, float far_plane) @nogc @safe nothrow
+	this(float p_aspectRatio, float p_fov, float p_nearPlane, float p_farPlane) @nogc @safe nothrow
 	{
-		this.aspect_ratio = aspect_ratio;
-		this.fov = fov;
-		this.near_plane = near_plane;
-		this.far_plane = far_plane;
+		aspectRatio = p_aspectRatio;
+		fov = p_fov;
+		nearPlane = p_nearPlane;
+		farPlane = p_farPlane;
 
 		compute_matrix();
 	}
@@ -31,10 +31,10 @@ struct Projection
 	void compute_matrix() @nogc @safe nothrow
 	{
 		float t = tan(radians(fov)/2);
-		float ar = aspect_ratio;
+		float ar = aspectRatio;
 
-		float z1 = (-near_plane - far_plane)/(near_plane - far_plane);
-		float z2 = (2*near_plane*far_plane)/(near_plane - far_plane); 
+		float z1 = (-nearPlane - farPlane)/(nearPlane - farPlane);
+		float z2 = (2*nearPlane*farPlane)/(nearPlane - farPlane); 
 
 		_matrix = mat4(
 			vec4(1/(ar*t),   0,  0, 0f),

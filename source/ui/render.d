@@ -265,9 +265,9 @@ public class UIRenderer
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, atlasSprite.texture.id);
 
-		matSprite.set_uniform(uniSprite.in_tex, 0);
-		matSprite.set_uniform(uniSprite.translation, ivec2(0));
-		matSprite.set_uniform(uniSprite.cam_resolution, uvec2(size.width, size.height));
+		matSprite.setUniform(uniSprite.in_tex, 0);
+		matSprite.setUniform(uniSprite.translation, ivec2(0));
+		matSprite.setUniform(uniSprite.cam_resolution, uvec2(size.width, size.height));
 		
 		glDrawElements(
 			GL_TRIANGLES,
@@ -284,14 +284,14 @@ public class UIRenderer
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, atlasText.texture.id);
 
-		matText.set_uniform(uniText.in_tex, 0);
-		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));
+		matText.setUniform(uniText.in_tex, 0);
+		matText.setUniform(uniText.cam_resolution, uvec2(size.width, size.height));
 		// TODO: text color should be configurable
-		matText.set_uniform(uniText.color, vec3(1, 0.7, 1));
+		matText.setUniform(uniText.color, vec3(1, 0.7, 1));
 		
 		foreach(tm; textMeshes)
 		{
-			matText.set_uniform(uniText.translation, tm.translation);
+			matText.setUniform(uniText.translation, tm.translation);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -763,35 +763,35 @@ public class UIRenderer
 			MaterialId prog = MaterialId(glCreateProgram());
 			prog.glAttachShader(p_vert);
 			prog.glAttachShader(p_frag);
-			prog.link_shader();
+			prog.linkShader();
 
 			*p_mat = Material(prog);
-			assert(p_mat.can_render());
+			assert(p_mat.canRender());
 
 			VertAttributes atr;
-			atr.uv = p_mat.get_attrib_id("uv");
-			atr.position = p_mat.get_attrib_id("position");
+			atr.uv = p_mat.getAttribId("uv");
+			atr.position = p_mat.getAttribId("position");
 
 			return atr;
 		} 
 
 		GLuint vert2d = 
-			compile_shader("data/shaders/screenspace2d.vert", GL_VERTEX_SHADER);
+			compileShader("data/shaders/screenspace2d.vert", GL_VERTEX_SHADER);
 		GLuint fragText = 
-			compile_shader("data/shaders/text2d.frag", GL_FRAGMENT_SHADER);
+			compileShader("data/shaders/text2d.frag", GL_FRAGMENT_SHADER);
 		GLuint fragSprite = 
-			compile_shader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
+			compileShader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
 
 		atrText = _build(&matText, vert2d, fragText);
-		uniText.cam_resolution = matText.get_uniform_id("cam_resolution");
-		uniText.translation = matText.get_uniform_id("translation");
-		uniText.in_tex = matText.get_uniform_id("in_tex");
-		uniText.color = matText.get_uniform_id("color");
+		uniText.cam_resolution = matText.getUniformId("cam_resolution");
+		uniText.translation = matText.getUniformId("translation");
+		uniText.in_tex = matText.getUniformId("in_tex");
+		uniText.color = matText.getUniformId("color");
 
 		atrSprite = _build(&matSprite, vert2d, fragSprite);
-		uniSprite.cam_resolution = matSprite.get_uniform_id("cam_resolution");
-		uniSprite.translation = matSprite.get_uniform_id("translation");
-		uniSprite.in_tex = matSprite.get_uniform_id("in_tex");
+		uniSprite.cam_resolution = matSprite.getUniformId("cam_resolution");
+		uniSprite.translation = matSprite.getUniformId("translation");
+		uniSprite.in_tex = matSprite.getUniformId("in_tex");
 
 		glDisable(GL_BLEND);
 		glcheck();

@@ -33,7 +33,7 @@ void glcheck() @nogc @safe
 	}
 }
 
-bool link_shader(GLuint p_program)
+bool linkShader(GLuint p_program)
 {
 	p_program.glLinkProgram();
 
@@ -62,7 +62,7 @@ bool link_shader(GLuint p_program)
 	return true;
 }
 
-GLuint compile_shader(string filename, GLenum type)
+GLuint compileShader(string filename, GLenum type)
 {
 	debug
 	{
@@ -113,7 +113,7 @@ GLuint compile_shader(string filename, GLenum type)
 	return shader;
 }
 
-void gl_set_uniform(T)(GLint uniform, auto ref T value) @nogc
+void gl_setUniform(T)(GLint uniform, auto ref T value) @nogc
 {
 	scope(exit) glcheck;
 

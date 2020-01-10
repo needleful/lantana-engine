@@ -23,10 +23,10 @@ struct Transform
 		_scale = vec3(scale);
 		_position = position;
 		_rotation = vec3(180,0,0);
-		compute_matrix();
+		computeMatrix();
 	}
 
-	void compute_matrix() @nogc @safe nothrow
+	void computeMatrix() @nogc @safe nothrow
 	{
 		matrix = mat4(
 			vec4(_scale.x, 0.0f,     0.0f,     0),

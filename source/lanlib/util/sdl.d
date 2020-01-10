@@ -63,7 +63,7 @@ enum WindowState
  * Management for SDL window.  Also manages an OpenGL 
  * context and loads libraries through Derelict
  */
-struct SDLWindow
+struct Window
 {
 	Bitfield!WindowState state;
 	private SDL_Window *window;
