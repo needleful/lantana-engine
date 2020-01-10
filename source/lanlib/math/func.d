@@ -16,3 +16,8 @@ void sincos(float radians, ref float s, ref float c) @nogc @safe nothrow
 	s = sin(radians);
 	c = cos(radians);
 }
+
+public uint max(uint a, uint b)
+{
+	return a > b? a : b;
+}

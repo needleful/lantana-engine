@@ -12,11 +12,13 @@ uniform float area_span;
 
 in vec3 position;
 in vec3 normal;
+in vec2 uv;
 
 in vec4 bone_weight;
 in uvec4 bone_idx;
 
 out vec3 vert_normal;
+out vec2 vert_uv;
 out float area_gradient;
 
 void main()
@@ -34,5 +36,6 @@ void main()
 
 	vec4 sknorm = skmatrix * vec4(normal, 0);
 	vert_normal = (transform * sknorm).xyz;
+	vert_uv = uv;
 	area_gradient = 1 - clamp(-(area_ceiling - world_pos.y)/area_span, 0, 1);
 }

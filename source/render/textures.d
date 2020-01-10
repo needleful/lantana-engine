@@ -8,6 +8,7 @@ debug import std.stdio;
 import deimos.freeimage;
 import gl3n.linalg: vec2, vec3, Vector;
 
+import lanlib.formats.gltf2 : ImageType;
 import lanlib.types;
 import lanlib.util.gl;
 import lanlib.util.memory;
@@ -64,6 +65,52 @@ struct Texture(TextureDataType)
 	tex* buffer;
 	GLuint id;
 	RealSize size;
+
+	this(bool p_filter, ImageType p_type, ubyte[] p_data, ILanAllocator p_alloc)
+	{
+		FREE_IMAGE_FORMAT format;
+		switch(p_type)
+		{
+			case ImageType.PNG:
+				format = FIF_PNG;
+				break;
+			case ImageType.BMP:
+				format = FIF_BMP;
+				break;
+			default:
+				debug writeln("Unsupported image format: ", p_type);
+				assert(false);
+		}
+
+		FIMEMORY* mem = FreeImage_OpenMemory(p_data.ptr, cast(uint)p_data.length);
+		FIBITMAP* bitmap = FreeImage_LoadFromMemory(format, mem);
+		size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
+
+		uint length = size.width*size.height;
+		buffer = p_alloc.make_list!tex(length).ptr;
+
+		buffer[0..length] = (cast(tex*)FreeImage_GetBits(bitmap))[0..length];
+
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, p_filter? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		// Swap blue and red channels for FreeImage bitmaps
+		static if(is(tex == Color))
+		{
+			GLint[4] swizzle = [GL_BLUE, GL_GREEN, GL_RED, GL_ONE];
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle.ptr);
+		}
+		else static if(is(tex == AlphaColor))
+		{
+			GLint[4] swizzle = [GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA];
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle.ptr);
+		}
+
+		reload();
+	}
 
 	this(string p_filename, bool p_filter, ILanAllocator p_alloc)
 	{
@@ -124,6 +171,7 @@ struct Texture(TextureDataType)
 
 	public ~this()
 	{
+		debug writefln("Deleting Texture %u", id);
 		glDeleteTextures(1, &id);
 	}
 

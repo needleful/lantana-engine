@@ -34,11 +34,11 @@ SceneLoader testScene()
 	];
 
 	s.meshInstances = [
-		MeshInstanceLoader(1, Transform(1)),
 		MeshInstanceLoader(0, Transform(4, vec3(0, 5, 0))),
 		MeshInstanceLoader(0, Transform(4, vec3(8, 0, 8))),
 		MeshInstanceLoader(0, Transform(1)),
 		MeshInstanceLoader(0, Transform(1)),
+		MeshInstanceLoader(1, Transform(1)),
 	];
 
 	s.animatedInstances = [
@@ -52,8 +52,8 @@ SceneLoader testScene()
 		GridBlock(GridPos(3, 0, 3))
 	];
 	s.player = Player(&s.grid, GridPos(0,0,0));
-	s.playerMeshInstance = 0;
-	s.blockInstancesOffset = 3;
+	s.playerMeshInstance = 4;
+	s.blockInstancesOffset = 2;
 
 	return s;
 }

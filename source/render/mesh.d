@@ -17,36 +17,7 @@ import lanlib.types;
 
 import render.lights;
 import render.material;
-
-struct LightUniforms
-{
-	UniformId direction, bias;
-	UniformId area_ceiling, area_span;
-	UniformId palette;
-
-	this(ref Material p_mat)
-	{
-		direction = p_mat.get_uniform_id("light_direction");
-		bias = p_mat.get_uniform_id("light_bias");
-		area_span = p_mat.get_uniform_id("area_span");
-		area_ceiling = p_mat.get_uniform_id("area_ceiling");
-		palette = p_mat.get_uniform_id("light_palette");
-	}
-
-	void set(ref Material p_mat, ref LightInfo p_info)
-	{
-		p_mat.set_uniform(direction, p_info.direction);
-		p_mat.set_uniform(bias, p_info.bias);
-		p_mat.set_uniform(area_span, p_info.areaSpan);
-		p_mat.set_uniform(area_ceiling, p_info.areaCeiling);
-	}
-}
-
-struct StaticMeshInstance
-{
-	Transform transform;
-	StaticMesh* mesh;
-}
+import render.textures;
 
 struct StaticMeshSystem
 {
@@ -54,12 +25,14 @@ struct StaticMeshSystem
 	{
 		// Vertex uniforms
 		UniformId transform, projection;
-		// Fragment uniforms
+		// Texture uniforms
+		UniformId tex_albedo;
+		// Light Uniforms
 		LightUniforms light;
 	}
 	struct Attributes
 	{
-		AttribId position, normal;
+		AttribId position, normal, uv;
 	}
 
 	Attributes atr;
@@ -69,12 +42,14 @@ struct StaticMeshSystem
 
 	this(uint p_reserved_count)
 	{
-		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/lighting3d.frag");
+		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
+		atr.uv = mat.get_attrib_id("uv");
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
+		un.tex_albedo = mat.get_uniform_id("tex_albedo");
 
 		un.light = LightUniforms(mat);
 
@@ -88,7 +63,7 @@ struct StaticMeshSystem
 	{
 		meshes.length += 1;
 		auto loaded = glb_load(p_filename, p_allocator);
-		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data);
+		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_allocator);
 		return &meshes[$-1];
 	}
 	
@@ -101,11 +76,13 @@ struct StaticMeshSystem
 
 		mat.enable();
 		mat.set_uniform(un.projection, p_projection);
+		mat.set_uniform(un.light.palette, 0);
+		mat.set_uniform(un.tex_albedo, 1);
 
 		un.light.set(mat, p_lights);
-		glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
+
 		glActiveTexture(GL_TEXTURE0);
-		mat.set_uniform(un.light.palette, 0);
+		glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
 
 		GLuint current_vao = 0;
 		foreach(ref inst; p_instances)
@@ -117,6 +94,9 @@ struct StaticMeshSystem
 			{
 				current_vao = inst.mesh.vao;
 				glBindVertexArray(current_vao);
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, inst.mesh.tex_albedo.id);
 			}
 
 			glDrawElements(
@@ -134,9 +114,10 @@ struct StaticMesh
 {
 	ubyte[] data;
 	GLBMeshAccessor accessor;
+	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data)
+	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ILanAllocator p_alloc)
 	{
 		data = p_data;
 		accessor = p_accessor;
@@ -149,9 +130,10 @@ struct StaticMesh
 
 		glEnableVertexAttribArray(p_parent.atr.position);
 		glEnableVertexAttribArray(p_parent.atr.normal);
+		glEnableVertexAttribArray(p_parent.atr.uv);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, p_bufferSize, data.ptr, GL_STATIC_DRAW);
 		
 		glVertexAttribPointer(
 			p_parent.atr.normal,
@@ -169,11 +151,25 @@ struct StaticMesh
 			0,
 			cast(void*) accessor.positions.byteOffset);
 
+		glVertexAttribPointer(
+			p_parent.atr.uv,
+			accessor.uv.dataType.componentCount,
+			accessor.uv.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) accessor.uv.byteOffset);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
 
 		glBindVertexArray(0);
 		glDisableVertexAttribArray(p_parent.atr.position);
 		glDisableVertexAttribArray(p_parent.atr.normal);
+		glDisableVertexAttribArray(p_parent.atr.uv);
+
+		with(p_accessor.tex_albedo)
+		{
+			tex_albedo = Texture!Color(true, type, p_data[byteOffset..byteOffset+byteLength], p_alloc);
+		}
 
 		glcheck();
 	}
@@ -187,18 +183,26 @@ struct StaticMesh
 	}
 }
 
+struct StaticMeshInstance
+{
+	Transform transform;
+	StaticMesh* mesh;
+}
+
 struct AnimatedMeshSystem
 {
 	struct Uniforms
 	{
 		// Vertex uniforms
 		UniformId transform, projection, bones;
-		// Fragment uniforms
+		// Texture uniforms
+		UniformId tex_albedo;
+		// Light Uniforms
 		LightUniforms light;
 	}
 	struct Attributes
 	{
-		AttribId position, normal, bone_weight, bone_idx;
+		AttribId position, normal, uv, bone_weight, bone_idx;
 	}
 
 	Attributes atr;
@@ -208,15 +212,17 @@ struct AnimatedMeshSystem
 
 	this(uint p_reserved_count)
 	{
-		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/lighting3d.frag");
+		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
 
 		atr.position = mat.get_attrib_id("position");
 		atr.normal = mat.get_attrib_id("normal");
+		atr.uv = mat.get_attrib_id("uv");
 		atr.bone_weight = mat.get_attrib_id("bone_weight");
 		atr.bone_idx = mat.get_attrib_id("bone_idx");
 
 		un.transform = mat.get_uniform_id("transform");
 		un.projection = mat.get_uniform_id("projection");
+		un.tex_albedo = mat.get_uniform_id("tex_albedo");
 		un.light = LightUniforms(mat);
 
 		un.bones = mat.get_uniform_id("bones");
@@ -230,7 +236,7 @@ struct AnimatedMeshSystem
 	{
 		auto loaded = glb_load!true(p_filename, p_allocator);
 		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded.inverseBindMatrices, loaded.animations, loaded.bones, loaded.data);
+		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded, p_allocator);
 		return &meshes[$-1];
 	}
 
@@ -357,12 +363,13 @@ struct AnimatedMeshSystem
 		glEnable(GL_DEPTH_TEST);
 
 		mat.enable();
-		mat.set_uniform(un.projection, projection);
-
 		un.light.set(mat, p_lights);
-		glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
-		glActiveTexture(GL_TEXTURE0);
+		mat.set_uniform(un.projection, projection);
 		mat.set_uniform(un.light.palette, 0);
+		mat.set_uniform(un.tex_albedo, 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
 
 		glcheck();
 
@@ -376,6 +383,9 @@ struct AnimatedMeshSystem
 			{
 				current_mesh = inst.mesh;
 				glBindVertexArray(current_mesh.vao);
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, current_mesh.tex_albedo.id);
 			}
 
 			glDrawElements(
@@ -397,16 +407,23 @@ struct AnimatedMesh
 	ubyte[] data;
 	GLBAnimation[] animations;
 	GLBAnimatedAccessor accessor;
+	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem parent, GLBAnimatedAccessor accessor, GLBBufferView ibmview, GLBAnimation[] animations, GLBNode[] bones, ubyte[] data)
+	this(ref AnimatedMeshSystem p_system, GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded, ILanAllocator p_alloc)
 	{
-		this.data = data;
-		this.bones = bones;
-		this.accessor = accessor;
-		this.animations = animations;
+		data = p_loaded.data;
+		bones = p_loaded.bones;
+		accessor = p_accessor;
+		animations = p_loaded.animations;
+		with(p_accessor.tex_albedo)
+		{
+			tex_albedo = Texture!Color(true, type, p_loaded.data[byteOffset..byteOffset+byteLength], p_alloc);
+		}
 
-		inverseBindMatrices = (cast(mat4*)&data[ibmview.byteOffset])[0..ibmview.byteLength/mat4.sizeof];
+		auto ibmStart = p_loaded.inverseBindMatrices.byteOffset;
+		auto ibmEnd = p_loaded.inverseBindMatrices.byteLength;
+		inverseBindMatrices = (cast(mat4*) &data[ibmStart])[0..ibmEnd/mat4.sizeof];
 
 		glcheck();
 		glGenBuffers(1, &vbo);
@@ -414,16 +431,17 @@ struct AnimatedMesh
 
 		glBindVertexArray(vao);
 
-		glEnableVertexAttribArray(parent.atr.position);
-		glEnableVertexAttribArray(parent.atr.normal);
-		glEnableVertexAttribArray(parent.atr.bone_weight);
-		glEnableVertexAttribArray(parent.atr.bone_idx);
+		glEnableVertexAttribArray(p_system.atr.position);
+		glEnableVertexAttribArray(p_system.atr.normal);
+		glEnableVertexAttribArray(p_system.atr.uv);
+		glEnableVertexAttribArray(p_system.atr.bone_weight);
+		glEnableVertexAttribArray(p_system.atr.bone_idx);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, data.length, data.ptr, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, p_loaded.bufferSize, data.ptr, GL_STATIC_DRAW);
 		
 		glVertexAttribPointer(
-			parent.atr.normal,
+			p_system.atr.normal,
 			accessor.normals.dataType.componentCount,
 			accessor.normals.componentType,
 			GL_FALSE,
@@ -431,22 +449,30 @@ struct AnimatedMesh
 			cast(void*) accessor.normals.byteOffset);
 
 		glVertexAttribPointer(
-			parent.atr.position,
+			p_system.atr.position,
 			accessor.positions.dataType.componentCount,
 			accessor.positions.componentType,
 			GL_FALSE,
 			0,
 			cast(void*) accessor.positions.byteOffset);
 
+		glVertexAttribPointer(
+			p_system.atr.uv,
+			accessor.uv.dataType.componentCount,
+			accessor.uv.componentType,
+			GL_FALSE,
+			0,
+			cast(void*) accessor.uv.byteOffset);
+
 		glVertexAttribIPointer(
-			parent.atr.bone_idx,
+			p_system.atr.bone_idx,
 			accessor.bone_idx.dataType.componentCount,
 			accessor.bone_idx.componentType,
 			0,
 			cast(void*) accessor.bone_idx.byteOffset);
 
 		glVertexAttribPointer(
-			parent.atr.bone_weight,
+			p_system.atr.bone_weight,
 			accessor.bone_weight.dataType.componentCount,
 			accessor.bone_weight.componentType,
 			GL_TRUE,
@@ -456,10 +482,11 @@ struct AnimatedMesh
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
 
 		glBindVertexArray(0);
-		glDisableVertexAttribArray(parent.atr.position);
-		glDisableVertexAttribArray(parent.atr.normal);
-		glDisableVertexAttribArray(parent.atr.bone_weight);
-		glDisableVertexAttribArray(parent.atr.bone_idx);
+		glDisableVertexAttribArray(p_system.atr.position);
+		glDisableVertexAttribArray(p_system.atr.normal);
+		glDisableVertexAttribArray(p_system.atr.uv);
+		glDisableVertexAttribArray(p_system.atr.bone_weight);
+		glDisableVertexAttribArray(p_system.atr.bone_idx);
 
 		glcheck();
 	}

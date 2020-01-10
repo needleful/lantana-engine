@@ -14,6 +14,8 @@ import lanlib.util.gl;
 import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
+import render.lights;
+
 struct MaterialId
 {
 	mixin StrictAlias!GLuint;
@@ -25,6 +27,30 @@ struct UniformId
 struct AttribId
 {
 	mixin StrictAlias!GLint;
+}
+
+struct LightUniforms
+{
+	UniformId direction, bias;
+	UniformId area_ceiling, area_span;
+	UniformId palette;
+
+	this(ref Material p_mat)
+	{
+		direction = p_mat.get_uniform_id("light_direction");
+		bias = p_mat.get_uniform_id("light_bias");
+		area_span = p_mat.get_uniform_id("area_span");
+		area_ceiling = p_mat.get_uniform_id("area_ceiling");
+		palette = p_mat.get_uniform_id("light_palette");
+	}
+
+	void set(ref Material p_mat, ref LightInfo p_info)
+	{
+		p_mat.set_uniform(direction, p_info.direction);
+		p_mat.set_uniform(bias, p_info.bias);
+		p_mat.set_uniform(area_span, p_info.areaSpan);
+		p_mat.set_uniform(area_ceiling, p_info.areaCeiling);
+	}
 }
 
 Material loadMaterial(const string vert_file, const string frag_file)

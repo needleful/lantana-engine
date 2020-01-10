@@ -46,9 +46,6 @@ int main()
 
 	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
 
-	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
-
 	FontId debugFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 20);
 
 	string debugText = ": %6.3f\n: %6.3f\n: %6.3f";
@@ -57,7 +54,6 @@ int main()
 	ui.setRootWidget(new HodgePodge([
 		new Anchor(
 			new HBox([
-				new ImageBox(ui, upclickSprite),
 				new TextBox(ui, debugFont, "Frame Time\nMax\nAverage"), 
 				frameTime
 			], 5),

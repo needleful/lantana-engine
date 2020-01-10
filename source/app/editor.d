@@ -13,6 +13,7 @@ import gl3n.linalg;
 
 import lanlib.types;
 import lanlib.util.gl;
+import lanlib.util.memory;
 import lanlib.util.sdl;
 
 import logic.input;
@@ -34,14 +35,15 @@ int main()
 
 	SDLWindow ww = SDLWindow(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
-	UIRenderer ui = new UIRenderer(ww.getSize());
+	ILanAllocator mm = new LanRegion(1024*1024*16, new SysMemManager());
+	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
 
 	ww.grab_mouse(false);
 
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf");
+	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 24);
 	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
 
 	ui.setRootWidget(new HodgePodge([

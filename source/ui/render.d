@@ -165,6 +165,8 @@ public class UIRenderer
 	private TextUniforms uniText;
 	private SpriteUniforms uniSprite;
 
+	enum atlasSizeText = 256;
+	enum atlasSizeSprite = 512;
 	private TextureAtlas!(GlyphId, ubyte) atlasText;
 	private TextureAtlas!(SpriteId, AlphaColor) atlasSprite;
 
@@ -192,8 +194,8 @@ public class UIRenderer
 		initMaterials();
 		initBuffers();
 
-		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(1024, 1024), p_alloc);
-		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(256, 256), p_alloc);
+		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeText), p_alloc);
+		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeSprite), p_alloc);
 		debug
 		{
 			atlasSprite.texture.blitgrid(color(255,255,0,255));
@@ -260,8 +262,8 @@ public class UIRenderer
 		matSprite.enable();
 		glBindVertexArray(vao[1]);
 
-		glBindTexture(GL_TEXTURE_2D, atlasSprite.texture.id);
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, atlasSprite.texture.id);
 
 		matSprite.set_uniform(uniSprite.in_tex, 0);
 		matSprite.set_uniform(uniSprite.translation, ivec2(0));
@@ -279,8 +281,8 @@ public class UIRenderer
 		matText.enable();
 		glBindVertexArray(vao[0]);
 
-		glBindTexture(GL_TEXTURE_2D, atlasText.texture.id);
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, atlasText.texture.id);
 
 		matText.set_uniform(uniText.in_tex, 0);
 		matText.set_uniform(uniText.cam_resolution, uvec2(size.width, size.height));

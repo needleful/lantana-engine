@@ -10,6 +10,7 @@ import std.json;
 import std.stdio;
 
 import gl3n.linalg;
+import lanlib.math.func;
 import lanlib.types;
 import lanlib.util.memory;
 import lanlib.util.array;
@@ -18,6 +19,10 @@ struct GLBStaticLoadResults
 {
 	GLBMeshAccessor[] accessors;
 	ubyte[] data;
+	/// `data[0..bufferSize]` is what's put in the vertex buffer.
+	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
+	/// without requiring the buffer to be chopped up and copied around.
+	uint bufferSize;
 }
 
 struct GLBAnimatedLoadResults
@@ -27,6 +32,10 @@ struct GLBAnimatedLoadResults
 	GLBNode[] bones;
 	ubyte[] data;
 	GLBBufferView inverseBindMatrices;
+	/// `data[0..bufferSize]` is what's put in the vertex buffer.
+	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
+	/// without requiring the buffer to be chopped up and copied around.
+	uint bufferSize;
 }
 
 enum GLBChunkType : uint
@@ -177,6 +186,32 @@ struct GLBBufferView
 	}
 }
 
+enum ImageType
+{
+	PNG,
+	BMP,
+	TGA,
+	UNKNOWN
+}
+
+ImageType imageTypeFromString(string p_mime)
+{
+	switch(p_mime)
+	{
+		case "image/png":
+			return ImageType.PNG;
+		default:
+			return ImageType.UNKNOWN;
+	}
+}
+
+struct GLBImage
+{
+	uint byteLength;
+	uint byteOffset;
+	ImageType type;
+}
+
 struct GLBMeshAccessor
 {
 	string name;
@@ -184,6 +219,7 @@ struct GLBMeshAccessor
 	GLBBufferView uv;
 	GLBBufferView normals;
 	GLBBufferView indices;
+	GLBImage tex_albedo;
 }
 
 enum GLBAnimationPath
@@ -393,6 +429,7 @@ struct GLBAnimatedAccessor
 	GLBBufferView indices;
 	GLBBufferView bone_idx;
 	GLBBufferView bone_weight;
+	GLBImage tex_albedo;
 
 	GLBMeshAccessor mesh()
 	{
@@ -402,15 +439,18 @@ struct GLBAnimatedAccessor
 		m.uv = uv;
 		m.normals = normals;
 		m.indices = indices;
+		m.tex_albedo = tex_albedo;
 
 		return m;
 	}
 }
 
 //Check a binary gltf2 file
-auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator)
+auto glb_load(bool is_animated = false)(string file, ILanAllocator p_alloc)
 {
 	assert(file.exists(), "File does not exist: " ~ file);
+	debug writeln("Loading "~file);
+	debug scope(failure) writeln("Could not load "~file);
 
 	auto input = File(file, "rb");
 	uint[3] header;
@@ -425,19 +465,21 @@ auto glb_load(bool is_animated = false)(string file, ILanAllocator meshAllocator
 	char[] json;
 	json.length = jsonHeader[0];
 	input.rawRead(json);
-	auto results = glb_json_parse!is_animated(json, meshAllocator);
+	uint bufferMax;
+	auto results = glb_json_parse!is_animated(json, p_alloc, bufferMax);
+	results.bufferSize = bufferMax;
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
 	assert(binaryHeader[1] == GLBChunkType.BIN, "Second chunk of a GLB must be BIN");
 	
-	results.data = (cast(ubyte*)meshAllocator.make(binaryHeader[0]))[0..binaryHeader[0]];
+	results.data = p_alloc.make_list!ubyte(binaryHeader[0]);
 	input.rawRead(results.data);
 
 	return results;
 }
 
-auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
+auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator p_alloc, ref uint p_bufferMax)
 {
 	//debug writeln(ascii_json);
 
@@ -456,9 +498,7 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 		auto scene = scn["scenes"].array()[scn_index];
 		auto anims = scn["animations"].array();
 
-		result.animations =
-			(cast(GLBAnimation*)alloc.make(anims.length*GLBAnimation.sizeof))
-			[0..anims.length];
+		result.animations = p_alloc.make_list!GLBAnimation(anims.length);
 
 		uint idx = 0;
 		foreach(animation; anims)
@@ -472,9 +512,7 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 		auto ibm_index = skin["inverseBindMatrices"].integer();
 		result.inverseBindMatrices = GLBBufferView.fromJSON(access[ibm_index], bufferViews);
 		auto joints = skin["joints"].array();
-		result.bones = 
-			(cast(GLBNode*)alloc.make(joints.length*GLBNode.sizeof))
-			[0..joints.length];
+		result.bones = p_alloc.make_list!GLBNode(joints.length);
 
 		idx = 0;
 		foreach(joint; joints)
@@ -568,17 +606,41 @@ auto glb_json_parse(bool is_animated)(char[] ascii_json, ILanAllocator alloc)
 		auto ac_normal = atr["NORMAL"].integer();
 		auto ac_uv = atr["TEXCOORD_0"].integer();
 
-		accessor.indices = GLBBufferView.fromJSON(access[ac_indeces], bufferViews);
-		accessor.positions = GLBBufferView.fromJSON(access[ac_position], bufferViews);
-		accessor.normals = GLBBufferView.fromJSON(access[ac_normal], bufferViews);
-		accessor.uv = GLBBufferView.fromJSON(access[ac_uv], bufferViews);
-
-		static if(is_animated)
+		with(accessor)
 		{
-			auto ac_weights = atr["WEIGHTS_0"].integer();
-			auto ac_joints = atr["JOINTS_0"].integer();
-			accessor.bone_weight = GLBBufferView.fromJSON(access[ac_weights], bufferViews);
-			accessor.bone_idx = GLBBufferView.fromJSON(access[ac_joints], bufferViews);
+			indices = GLBBufferView.fromJSON(access[ac_indeces], bufferViews);
+			p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
+
+			positions = GLBBufferView.fromJSON(access[ac_position], bufferViews);
+			p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
+
+			normals = GLBBufferView.fromJSON(access[ac_normal], bufferViews);
+			p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
+
+			uv = GLBBufferView.fromJSON(access[ac_uv], bufferViews);
+			p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
+			
+			auto material = scn["materials"][primitives["material"].integer()];
+			auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+			auto img_albedo = scn["images"][
+				scn["textures"][idx_texture]["source"].integer()
+			];
+			// Not used in VBO, so no change to p_bufferMax
+			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+			auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+
+			static if(is_animated)
+			{
+				auto ac_weights = atr["WEIGHTS_0"].integer();
+				auto ac_joints = atr["JOINTS_0"].integer();
+				bone_weight = GLBBufferView.fromJSON(access[ac_weights], bufferViews);
+				p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
+
+				bone_idx = GLBBufferView.fromJSON(access[ac_joints], bufferViews);
+				p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
+			}
 		}
 	}
 
