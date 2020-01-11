@@ -194,8 +194,8 @@ public class UIRenderer
 		initMaterials();
 		initBuffers();
 
-		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeText), p_alloc);
-		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeSprite), p_alloc);
+		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeSprite), p_alloc);
+		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText), p_alloc);
 		debug
 		{
 			atlasSprite.texture.blitgrid(color(255,255,0,255));
@@ -331,15 +331,15 @@ public class UIRenderer
 		auto node = atlasSprite.getAtlasSpot(id, p_size);
 		if(node == null)
 		{
-			debug writeln("Failed to get atlas spot");
-			return SpriteId(0);
+			debug assert(0, "Failed to get atlas spot");
+			else return SpriteId(0);
 		}
 
 		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer, true);
 		if(!success)
 		{
-			debug writeln("Failed to blit sprite");
-			return SpriteId(0);
+			debug assert(0, "Failed to blit sprite");
+			else return SpriteId(0);
 		}
 
 		invalidated[UIData.SpriteAtlas] = true;
