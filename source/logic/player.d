@@ -20,7 +20,7 @@ struct Player
 	}
 	enum Mode
 	{
-		ALONE,
+		FREE,
 		WITH_AXE,
 	}
 
@@ -28,6 +28,7 @@ struct Player
 	GridPos pos, pos_target;
 
 	GridDirection dir;
+	State previousState;
 	State state;
 	Mode mode;
 
@@ -47,6 +48,7 @@ struct Player
 
 		// Calculate new state
 
+		previousState = state;
 		// !grid.active means the current move has ended
 		if(!grid.active)
 		{
@@ -83,6 +85,19 @@ struct Player
 				}
 			}
 			state = next_state;
+		}
+	}
+
+	string getAnimation() @nogc @safe nothrow
+	{
+		switch(state)
+		{
+			case State.MOVE:
+				return "FreeWalk";
+			case State.IDLE:
+				goto default;
+			default:
+				return "FreeIdle";
 		}
 	}
 

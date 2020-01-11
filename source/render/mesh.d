@@ -523,25 +523,35 @@ struct AnimatedMeshInstance
 		time = 0;
 	}
 
+	bool queueAnimation(string p_name, bool p_looping = false)
+	{
+		if(is_playing)
+		{
+			return false;
+		}
+		else 
+		{
+			return playAnimation(p_name, p_looping);
+		}
+	}
+
 	/// Play an animation
 	/// Returns true if the animation could be started
-	bool play_animation(string name, bool looping = false)
+	bool playAnimation(string p_name, bool p_looping = false)
 	{
-		debug writeln("Playing animation: ", name);
 		is_updated = false;
 		foreach(anim; mesh.animations)
 		{
-			debug writeln("->\t", anim.name);
-			if(anim.name == name)
+			if(anim.name == p_name)
 			{
 				currentAnimation = anim;
 				time = 0;
 				is_playing = true;
-				this.looping = looping;
+				looping = p_looping;
 				return true;
 			}
 		}
-		debug writeln("Failed to play animation: ", name);
+		debug writeln("Failed to play animation: ", p_name);
 		is_playing = false;
 		return false;
 	}

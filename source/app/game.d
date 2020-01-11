@@ -101,7 +101,7 @@ int main()
 			animMeshes[i] = AnimatedMeshInstance(ameshes[m.id], m.transform, mm);
 			if(m.animation != "")
 			{
-				animMeshes[i].play_animation(m.animation, m.loop);
+				animMeshes[i].playAnimation(m.animation, m.loop);
 			}
 		}
 
@@ -176,8 +176,16 @@ int main()
 			}
 			player.update(input, delta);
 
-			staticMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
-			staticMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
+			animMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
+			animMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
+			if(player.previousState != player.state)
+			{
+				animMeshes[playerMesh].playAnimation(player.getAnimation());
+			}
+			else
+			{
+				animMeshes[playerMesh].queueAnimation(player.getAnimation());
+			}
 
 			foreach(i; 0..grid.blocks.length)
 			{

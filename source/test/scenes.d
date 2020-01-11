@@ -25,35 +25,36 @@ SceneLoader testScene()
 	);
 
 	s.files_staticMesh = [
-		"data/test/meshes/funny-cube.glb", 
-		"data/test/meshes/kitty-test.glb"
+		"data/test/meshes/funny-cube.glb"
 	];
 
 	s.files_animMesh = [
-		"data/test/meshes/anim_test.glb"
+		"data/test/meshes/anim_test.glb",
+		"data/test/meshes/kitty-test.glb"
 	];
 
 	s.meshInstances = [
 		MeshInstanceLoader(0, Transform(4, vec3(0, 5, 0))),
 		MeshInstanceLoader(0, Transform(4, vec3(8, 0, 8))),
 		MeshInstanceLoader(0, Transform(1)),
-		MeshInstanceLoader(0, Transform(1)),
-		MeshInstanceLoader(1, Transform(1)),
+		MeshInstanceLoader(0, Transform(1))
 	];
 
 	s.animatedInstances = [
-		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true)
+		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
+		AnimatedInstanceLoader(1, Transform(1), "FreeIdle")
 	];
 
 
 	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
+	s.blockInstancesOffset = 2;
 	s.grid.blocks = [
 		GridBlock(GridPos(2, 0, 2)),
 		GridBlock(GridPos(3, 0, 3))
 	];
+
 	s.player = Player(&s.grid, GridPos(0,0,0));
-	s.playerMeshInstance = 4;
-	s.blockInstancesOffset = 2;
+	s.playerMeshInstance = 1;
 
 	return s;
 }
