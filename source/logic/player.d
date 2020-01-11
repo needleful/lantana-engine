@@ -17,6 +17,12 @@ struct Player
 		IDLE,
 		MOVE,
 		BLOCKED,
+		PUSHING,
+		MOVE_BACKWARD,
+		TURN90_RIGHT,
+		TURN90_LEFT,
+		TURN180_RIGHT,
+		TURN180_LEFT
 	}
 	enum Mode
 	{
@@ -28,8 +34,10 @@ struct Player
 	GridPos pos, pos_target;
 
 	GridDirection dir;
-	State previousState;
 	State state;
+	State previousState;
+	// For visual appeal, the character turns in one direction
+	State previousTurnState;
 	Mode mode;
 
 	this(Grid* p_grid, GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, State p_state = State.IDLE) @nogc @safe nothrow
@@ -48,43 +56,83 @@ struct Player
 
 		// Calculate new state
 
+		// While free, turning only lasts for one frame
+		// We're assigning 'state' here to bypass the queueAnimation/playAnimation logic
+		if(state == State.TURN90_LEFT 
+			|| state == State.TURN90_RIGHT 
+			|| state == State.TURN180_LEFT 
+			|| state == State.TURN180_RIGHT)
+		{
+			state = State.MOVE;
+		}
 		previousState = state;
 		// !grid.active means the current move has ended
 		if(!grid.active)
 		{
-			State next_state = State.IDLE;
+			State nextState = State.IDLE;
 			pos = pos_target;
+
+			GridDirection previousDir = dir;
 			// Can only move one grid space at a time
 			if(input.is_pressed(Input.Action.FORWARD))
 			{
 				dir = GridDirection.UP;
-				next_state = State.MOVE;
+				nextState = State.MOVE;
 			}
 			else if(input.is_pressed(Input.Action.BACK))
 			{
 				dir = GridDirection.DOWN;
-				next_state = State.MOVE;
+				nextState = State.MOVE;
 			}
 			else if(input.is_pressed(Input.Action.RIGHT))
 			{
 				dir = GridDirection.RIGHT;
-				next_state = State.MOVE;
+				nextState = State.MOVE;
 			}
 			else if(input.is_pressed(Input.Action.LEFT))
 			{
 				dir = GridDirection.LEFT;
-				next_state = State.MOVE;
+				nextState = State.MOVE;
 			}
 
-			if(next_state == State.MOVE)
+			if(nextState == State.MOVE)
 			{
-				pos_target = grid.move(pos, dir, true);
+				bool blockPushed;
+				pos_target = grid.move(pos, dir, true, blockPushed);
 				if(pos == pos_target)
 				{
-					next_state = State.BLOCKED;
+					nextState = State.BLOCKED;
+				}
+				else if(blockPushed)
+				{
+					nextState = State.PUSHING;
 				}
 			}
-			state = next_state;
+
+			float diff = dir.getRealRotation() - previousDir.getRealRotation();
+			if(diff == -270 || diff == 90)
+			{
+				nextState = State.TURN90_RIGHT;
+				previousTurnState = nextState;
+			}
+			else if(diff == 270 || diff == -90)
+			{
+				nextState = State.TURN90_LEFT;
+				previousTurnState = nextState;
+			}
+			else if(diff == 180 || diff == -180)
+			{
+				if(previousTurnState == State.TURN180_LEFT || previousTurnState == State.TURN90_LEFT)
+				{
+					nextState = State.TURN180_LEFT;
+				}
+				else if(previousTurnState == State.TURN180_RIGHT || previousTurnState == State.TURN90_RIGHT)
+				{
+					nextState = State.TURN180_RIGHT;
+				}
+			}
+
+			state = nextState;
 		}
 	}
 
@@ -94,6 +142,17 @@ struct Player
 		{
 			case State.MOVE:
 				return "FreeWalk";
+
+			case State.TURN90_RIGHT:
+				return "FreeTurn90Right";
+			case State.TURN90_LEFT:
+				return "FreeTurn90Left";
+
+			case State.TURN180_RIGHT:
+				return "FreeTurn180Right";
+			case State.TURN180_LEFT:
+				return "FreeTurn180Left";
+
 			case State.IDLE:
 				goto default;
 			default:

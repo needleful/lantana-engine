@@ -138,7 +138,7 @@ struct Grid
 		}
 	}
 
-	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push) @nogc @safe nothrow
+	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push, ref bool p_pushed) @nogc @safe nothrow
 	{
 		active = true;
 
@@ -181,11 +181,13 @@ struct Grid
 				{
 					return p_from;
 				}
-				block.pos_target = move(to, p_dir, false);
+				bool pushed;
+				block.pos_target = move(to, p_dir, false, pushed);
 				if(block.pos_target == to)
 				{
 					return p_from;
 				}
+				p_pushed = true;
 				//debug printf("GRID >> Moving block (%d, %d, %d) -> (%d, %d, %d)\n",
 				//	to.x, to.y, to.z, block.pos_target.x, block.pos_target.y, block.pos_target.z);
 				break;
