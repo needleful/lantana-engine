@@ -33,6 +33,8 @@ enum MAX_MEMORY = 1024*1024*16;
 
 enum cam_speed = 8;
 
+float g_timescale = 1;
+
 int main()
 {
 	debug writeln("Running Axe Manor in debug mode!");
@@ -135,7 +137,7 @@ int main()
 	while(!ww.state[WindowState.CLOSED])
 	{
 		float delta_ms = ww.delta_ms();
-		float delta = delta_ms/1000.0;
+		float delta = g_timescale*delta_ms/1000.0;
 		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
 		
 		accumDelta_ms += delta_ms;

@@ -7,6 +7,7 @@ module render.mesh;
 debug import std.stdio;
 debug import std.format;
 
+import gl3n.interpolate;
 import gl3n.linalg;
 
 import lanlib.math.transform;
@@ -240,88 +241,6 @@ struct AnimatedMeshSystem
 		return &meshes[$-1];
 	}
 
-	private void animation_update(float p_delta, ref AnimatedMeshInstance inst)
-	{
-		inst.time += p_delta;
-		const(GLBAnimation*) anim = &inst.currentAnimation;
-		foreach(channel; anim.channels)
-		{
-			float[] keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
-			ulong frame = 0;
-			foreach(i; 0..keyTimes.length)
-			{
-				if(inst.time <= keyTimes[i])
-				{
-					break;
-				}
-				frame = i;
-			}
-
-			// Got to last frame
-			if(frame == keyTimes.length-1)
-			{
-				if(inst.looping)
-				{
-					// Restart next frame (TODO: maybe restart this frame?)
-					inst.restart();
-				}
-				else
-				{
-					inst.is_playing = false;
-				}
-			}
-
-			auto valueBuffer = anim.bufferViews[channel.valueBuffer];
-			switch(channel.path)
-			{
-				case GLBAnimationPath.TRANSLATION:
-					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-					inst.bones[channel.targetBone].translation = valueFrames[frame];
-					break;
-				case GLBAnimationPath.ROTATION:
-					void get_rot(T)()
-					{
-						auto value = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data)[frame];
-						inst.bones[channel.targetBone].rotation = quat(
-							glbConvert!(float, T)(value.w),
-							glbConvert!(float, T)(value.x),
-							glbConvert!(float, T)(value.y),
-							glbConvert!(float, T)(value.z)
-						);
-					}
-					switch(valueBuffer.componentType)
-					{
-						case GLBComponentType.BYTE:
-							get_rot!byte();
-							break;
-						case GLBComponentType.UNSIGNED_BYTE:
-							get_rot!ubyte();
-							break;
-						case GLBComponentType.SHORT:
-							get_rot!short();
-							break;
-						case GLBComponentType.UNSIGNED_SHORT:
-							get_rot!ushort();
-							break;
-						case GLBComponentType.FLOAT:
-							get_rot!float();
-							break;
-						default:
-							break;
-					}
-					break;
-				case GLBAnimationPath.SCALE:
-					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-					inst.bones[channel.targetBone].scale = valueFrames[frame];
-					break;
-				case GLBAnimationPath.WEIGHTS:
-				// TODO: support for morph targets?
-				default:
-					debug writeln("Unsupported animation path: ", channel.path);
-					break;
-			}
-		}
-	} 
 	void update(float p_delta, AnimatedMeshInstance[] p_instances)
 	{
 		debug uint inst_id = 0;
@@ -333,7 +252,7 @@ struct AnimatedMeshSystem
 			}
 			if(inst.is_playing)
 			{
-				animation_update(p_delta, inst);
+				updateAnimation(p_delta, inst);
 			}
 			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
 			{
@@ -398,6 +317,133 @@ struct AnimatedMeshSystem
 
 		glBindVertexArray(0);
 	}
+
+	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst)
+	{
+		inst.time += p_delta;
+		const(GLBAnimation*) anim = &inst.currentAnimation;
+		foreach(ref channel; anim.channels)
+		{
+			float[] keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
+			ulong frame = 0;
+			foreach(i; 0..keyTimes.length)
+			{
+				if(inst.time <= keyTimes[i])
+				{
+					break;
+				}
+				frame = i;
+			}
+			ulong nextframe = (frame + 1) % keyTimes.length;
+			float interp;
+			if(nextframe > frame && channel.interpolation == GLBInterpolationMode.LINEAR)
+			{
+				float frametime = inst.time - keyTimes[frame];
+				interp = frametime/(keyTimes[nextframe] - keyTimes[frame]);
+			}
+			else
+			{
+				// TODO: interpolate to frame 0 if the animation loops?
+				interp = 0;
+			}
+
+			// Got to last frame
+			if(frame == keyTimes.length-1)
+			{
+				if(inst.looping)
+				{
+					// Restart next frame (TODO: maybe restart this frame?)
+					inst.restart();
+				}
+				else
+				{
+					inst.is_playing = false;
+				}
+			}
+
+			auto valueBuffer = anim.bufferViews[channel.valueBuffer];
+			switch(channel.path)
+			{
+				case GLBAnimationPath.TRANSLATION:
+					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+					vec3 value;
+					if(channel.interpolation == GLBInterpolationMode.LINEAR)
+					{
+						vec3 current = valueFrames[frame];
+						vec3 next = valueFrames[nextframe];
+						value = lerp(current, next, interp);
+					}
+					else
+					{
+						value = valueFrames[frame];
+					}
+					inst.bones[channel.targetBone].translation = value;
+					break;
+
+				case GLBAnimationPath.ROTATION:
+					void get_rot(T)()
+					{
+						quat value;
+						auto rotations = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data);
+
+						if(channel.interpolation == GLBInterpolationMode.LINEAR)
+						{
+							auto current = getQuat(rotations[frame]);
+							auto next = getQuat(rotations[nextframe]);
+							value = slerp(current, next, interp);
+						}
+						else
+						{
+							value = getQuat(rotations[frame]);
+						}
+						inst.bones[channel.targetBone].rotation = value;
+					}
+
+					switch(valueBuffer.componentType)
+					{
+						case GLBComponentType.BYTE:
+							get_rot!byte();
+							break;
+						case GLBComponentType.UNSIGNED_BYTE:
+							get_rot!ubyte();
+							break;
+						case GLBComponentType.SHORT:
+							get_rot!short();
+							break;
+						case GLBComponentType.UNSIGNED_SHORT:
+							get_rot!ushort();
+							break;
+						case GLBComponentType.FLOAT:
+							get_rot!float();
+							break;
+						default:
+							break;
+					}
+					break;
+
+				case GLBAnimationPath.SCALE:
+					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
+					if(channel.interpolation == GLBInterpolationMode.LINEAR)
+					{
+						auto current = valueFrames[frame];
+						auto next = valueFrames[nextframe];
+						inst.bones[channel.targetBone].scale = lerp(current, next, interp);
+					}
+					else
+					{
+						inst.bones[channel.targetBone].scale = valueFrames[frame];
+					}
+					break;
+
+				case GLBAnimationPath.WEIGHTS:
+					goto default;
+				// TODO: support for morph targets?
+				default:
+					debug writeln("Unsupported animation path: ", channel.path);
+					break;
+			}
+		}
+	} 
 }
 
 struct AnimatedMesh

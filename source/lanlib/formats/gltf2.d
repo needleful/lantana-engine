@@ -647,6 +647,16 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 	return result;
 }
 
+quat getQuat(T)(Vector!(T, 4) p_val)
+{
+	return quat(
+		glbConvert!(float, T)(p_val.w),
+		glbConvert!(float, T)(p_val.x),
+		glbConvert!(float, T)(p_val.y),
+		glbConvert!(float, T)(p_val.z)
+	);
+}
+
 OutType glbConvert(OutType, InType)(InType p_val)
 {
 	import std.math;

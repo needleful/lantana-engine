@@ -6,15 +6,15 @@ module lanlib.math.func;
 
 public import std.math: sin, cos, tan, PI;
 
-float radians(float degrees) @nogc @safe nothrow
+float radians(float p_degrees) @nogc @safe nothrow
 {
-	return (degrees/180)*PI;
+	return (p_degrees/180)*PI;
 }
 
-void sincos(float radians, ref float s, ref float c) @nogc @safe nothrow
+void sincos(float p_radians, ref float s, ref float c) @nogc @safe nothrow
 {
-	s = sin(radians);
-	c = cos(radians);
+	s = sin(p_radians);
+	c = cos(p_radians);
 }
 
 public uint max(uint a, uint b)
