@@ -339,7 +339,18 @@ struct AnimatedMeshSystem
 			if(nextframe > frame && channel.interpolation == GLBInterpolationMode.LINEAR)
 			{
 				float frametime = inst.time - keyTimes[frame];
-				interp = frametime/(keyTimes[nextframe] - keyTimes[frame]);
+				if(frametime <= 0)
+				{
+					interp = 0;
+				}
+				else
+				{
+					interp = frametime/(keyTimes[nextframe] - keyTimes[frame]);
+				}
+				debug import std.format;
+				debug assert(interp <= 1 && interp >= 0, 
+					format("interp not within [0,1]: %f/(%f - %f) = %f", 
+						frametime, keyTimes[nextframe], keyTimes[frame], interp));
 			}
 			else
 			{
