@@ -401,7 +401,7 @@ struct AnimatedMeshSystem
 						{
 							auto current = getQuat(rotations[frame]);
 							auto next = getQuat(rotations[nextframe]);
-							value = slerp(current, next, interp);
+							value = nlerp(current, next, interp);
 						}
 						else
 						{

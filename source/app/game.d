@@ -171,7 +171,7 @@ int main()
 		if(!paused)
 		{
 			cam.rot.x += input.mouse_movement.x*delta*60;
-			float next_rot = cam.rot.y + input.mouse_movement.y;
+			float next_rot = cam.rot.y + input.mouse_movement.y*delta*60;
 			if(abs(next_rot) < 90)
 			{
 				cam.rot.y = next_rot;
