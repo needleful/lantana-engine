@@ -318,6 +318,8 @@ struct AnimatedMeshSystem
 		glBindVertexArray(0);
 	}
 
+	/// Update the animations of a specific mesh.
+	/// Only supports linear interpolation
 	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst)
 	{
 		inst.time += p_delta;
@@ -336,17 +338,15 @@ struct AnimatedMeshSystem
 			}
 			ulong nextframe = (frame + 1) % keyTimes.length;
 			float interp;
-			if(nextframe > frame && channel.interpolation == GLBInterpolationMode.LINEAR)
+
+			if(nextframe > frame)
 			{
 				float frametime = inst.time - keyTimes[frame];
 				if(frametime <= 0)
-				{
 					interp = 0;
-				}
 				else
-				{
 					interp = frametime/(keyTimes[nextframe] - keyTimes[frame]);
-				}
+
 				debug import std.format;
 				debug assert(interp <= 1 && interp >= 0, 
 					format("interp not within [0,1]: %f/(%f - %f) = %f", 
@@ -358,18 +358,14 @@ struct AnimatedMeshSystem
 				interp = 0;
 			}
 
-			// Got to last frame
+			// At the last frame
 			if(frame == keyTimes.length-1)
 			{
+				// Restart next frame (TODO: maybe restart this frame?)
 				if(inst.looping)
-				{
-					// Restart next frame (TODO: maybe restart this frame?)
 					inst.restart();
-				}
 				else
-				{
 					inst.is_playing = false;
-				}
 			}
 
 			auto valueBuffer = anim.bufferViews[channel.valueBuffer];
@@ -377,18 +373,9 @@ struct AnimatedMeshSystem
 			{
 				case GLBAnimationPath.TRANSLATION:
 					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-					vec3 value;
-					if(channel.interpolation == GLBInterpolationMode.LINEAR)
-					{
-						vec3 current = valueFrames[frame];
-						vec3 next = valueFrames[nextframe];
-						value = lerp(current, next, interp);
-					}
-					else
-					{
-						value = valueFrames[frame];
-					}
-					inst.bones[channel.targetBone].translation = value;
+					vec3 current = valueFrames[frame];
+					vec3 next = valueFrames[nextframe];
+					inst.bones[channel.targetBone].translation = lerp(current, next, interp);
 					break;
 
 				case GLBAnimationPath.ROTATION:
@@ -397,17 +384,9 @@ struct AnimatedMeshSystem
 						quat value;
 						auto rotations = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data);
 
-						if(channel.interpolation == GLBInterpolationMode.LINEAR)
-						{
-							auto current = getQuat(rotations[frame]);
-							auto next = getQuat(rotations[nextframe]);
-							value = nlerp(current, next, interp);
-						}
-						else
-						{
-							value = getQuat(rotations[frame]);
-						}
-						inst.bones[channel.targetBone].rotation = value;
+						auto current = getQuat(rotations[frame]);
+						auto next = getQuat(rotations[nextframe]);
+						inst.bones[channel.targetBone].rotation = nlerp(current, next, interp);
 					}
 
 					switch(valueBuffer.componentType)
@@ -434,16 +413,9 @@ struct AnimatedMeshSystem
 
 				case GLBAnimationPath.SCALE:
 					vec3[] valueFrames = valueBuffer.asArray!vec3(inst.mesh.data);
-					if(channel.interpolation == GLBInterpolationMode.LINEAR)
-					{
-						auto current = valueFrames[frame];
-						auto next = valueFrames[nextframe];
-						inst.bones[channel.targetBone].scale = lerp(current, next, interp);
-					}
-					else
-					{
-						inst.bones[channel.targetBone].scale = valueFrames[frame];
-					}
+					auto current = valueFrames[frame];
+					auto next = valueFrames[nextframe];
+					inst.bones[channel.targetBone].scale = lerp(current, next, interp);
 					break;
 
 				case GLBAnimationPath.WEIGHTS:
