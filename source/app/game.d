@@ -18,13 +18,13 @@ import gl3n.linalg;
 import logic.grid;
 import logic.input;
 import logic.player;
+import logic.scene;
 
 import render.camera;
 import render.lights;
 import render.material;
 import render.mesh;
 import render.textures;
-import scene;
 import test.scenes;
 
 import ui;

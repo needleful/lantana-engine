@@ -10,7 +10,7 @@ import lanlib.math.transform;
 import lanlib.util.memory;
 import logic.grid;
 import logic.player;
-import scene;
+import logic.scene;
 
 SceneLoader testScene()
 {

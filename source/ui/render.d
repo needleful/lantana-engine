@@ -68,7 +68,9 @@ public struct TextMeshRef
 	ushort capacity;
 }
 
-struct Range
+/// Describes a range in a buffer like `Buffer[start..end]`
+/// Like the rest of D, this goes up to and excluding index `end`
+struct BufferRange
 {
 	uint start;
 	uint end;
@@ -85,14 +87,15 @@ struct Range
 		end = uint.min;
 	}
 
-	void apply(Range rhs) nothrow @nogc @safe
+	void apply(BufferRange rhs) nothrow @nogc @safe
 	{
-		debug printf("rn[%u, %u] %% rn[%u, %u]", start, end, rhs.start, rhs.end);
+		apply(rhs.start, rhs.end);
+	}
 
-		start = start < rhs.start? start : rhs.start;
-		end = end > rhs.end? end : rhs.end;
-
-		debug printf(" = rn[%u, %u]\n", start, end);
+	void apply(uint p_start, uint p_end) nothrow @nogc @safe
+	{
+		start = start < p_start? start : p_start;
+		end = end > p_end? end : p_end;
 	}
 }
 
@@ -128,8 +131,8 @@ public class UIRenderer
 	}
 	private Bitfield!UIData invalidated;
 
-	/// When a buffer is partially invalidated, this describes what needs updated
-	private Range textInvalid, spriteInvalid, uvInvalid, posInvalid;
+	/// A buffer is altered at max once per frame by checking these ranges.
+	private BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
 	/// The base widget of the UI
 	private Widget root;
@@ -494,7 +497,7 @@ public class UIRenderer
 		vertpos[quadStart + 2] = svec(p_size.width, 0);
 		vertpos[quadStart + 3] = svec(p_size.width, p_size.height);
 
-		posInvalid.apply(Range(quadStart, quadStart + 4));
+		posInvalid.apply(quadStart, quadStart + 4);
 		invalidated[UIData.PositionBufferPartial] = true;
 	}
 
@@ -508,7 +511,7 @@ public class UIRenderer
 		vertpos[quadStart + 2] += p_translation;
 		vertpos[quadStart + 3] += p_translation;
 
-		posInvalid.apply(Range(quadStart, quadStart + 4));
+		posInvalid.apply(quadStart, quadStart + 4);
 		invalidated[UIData.PositionBufferPartial] = true;
 	}
 
@@ -741,13 +744,13 @@ public class UIRenderer
 				ftGlyph.advance.y >> 6);
 		}
 
-		posInvalid.apply(Range(vertstart, vertstart + p_mesh.length*4));
+		posInvalid.apply(vertstart, vertstart + p_mesh.length*4);
 		invalidated[UIData.PositionBufferPartial] = true;
 
-		uvInvalid.apply(Range(vertstart, vertstart + p_mesh.length*4));
+		uvInvalid.apply(vertstart, vertstart + p_mesh.length*4);
 		invalidated[UIData.UVBufferPartial] = true;
 
-		textInvalid.apply(Range(ebostart, ebostart + p_mesh.length*6));
+		textInvalid.apply(ebostart, ebostart + p_mesh.length*6);
 		invalidated[UIData.TextEBOPartial] = p_mesh.length > oldCount;
 
 		p_mesh.boundingSize = RealSize(top_right - bottom_left);
@@ -948,9 +951,8 @@ public class UIRenderer
 			GL_DYNAMIC_DRAW);
 	}
 
-	private void updateBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer, Range p_range)
+	private void updateBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer, BufferRange p_range)
 	{
-		debug printf("Applying range [%u, %u]\n", p_range.start, p_range.end);
 		assert(p_range.start < p_range.end);
 		glBindBuffer(p_type, p_vbo);
 		glBufferSubData(

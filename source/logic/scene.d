@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module scene;
+module logic.scene;
 
 import gl3n.linalg: vec3;
 import lanlib.math.transform;
