@@ -87,8 +87,12 @@ struct Range
 
 	void apply(Range rhs) nothrow @nogc @safe
 	{
+		debug printf("rn[%u, %u] %% rn[%u, %u]", start, end, rhs.start, rhs.end);
+
 		start = start < rhs.start? start : rhs.start;
 		end = end > rhs.end? end : rhs.end;
+
+		debug printf(" = rn[%u, %u]\n", start, end);
 	}
 }
 
@@ -124,6 +128,7 @@ public class UIRenderer
 	}
 	private Bitfield!UIData invalidated;
 
+	/// When a buffer is partially invalidated, this describes what needs updated
 	private Range textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
 	/// The base widget of the UI
@@ -237,6 +242,12 @@ public class UIRenderer
 			atlasText.texture.blitgrid(255);
 		}
 		invalidated.setAll();
+
+		// Clearing invalidated buffer ranges
+		textInvalid.clear();
+		spriteInvalid.clear();
+		posInvalid.clear();
+		uvInvalid.clear();
 	}
 
 	public ~this()
@@ -261,14 +272,12 @@ public class UIRenderer
 		}
 
 		if(invalidated[UIData.SpriteAtlas])
-		{
 			atlasSprite.reload();
-		}
 
 		if(invalidated[UIData.TextAtlas])
-		{
 			atlasText.reload();
-		}
+
+		// If a buffer is fully invalidated, there's no reason to partially update it
 
 		if(invalidated[UIData.TextEBO])
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
@@ -551,11 +560,9 @@ public class UIRenderer
 		return FontId(fontCount);
 	}
 
-	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize)
+	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
 	{
 		import std.uni: isWhite;
-
-		debug writefln("FontId: %u, Total Fonts: %u", p_font.handle(), fonts.length);
 
 		// Calculate number of quads to add
 		ushort quads = 0;
@@ -589,14 +596,14 @@ public class UIRenderer
 
 		invalidated[UIData.UVBuffer] = true;
 		invalidated[UIData.PositionBuffer] = true;
-		invalidated[UIData.TextAtlas] = true;
 		invalidated[UIData.TextEBO] = true;
 
 		return tm;
 	}
 
 	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
-	{	
+	{
+		debug printf("Setting text: %s\n", p_text.ptr);
 		import std.uni: isWhite;
 
 		ushort oldCount = p_mesh.length;
@@ -624,6 +631,9 @@ public class UIRenderer
 		auto ebostart = p_mesh.offset;
 		auto vertstart = elemText[ebostart];
 
+		auto eboQuad = ebostart;
+		auto vertQuad = vertstart;
+
 		GlyphId g;
 		g.font = p_font;
 
@@ -641,7 +651,7 @@ public class UIRenderer
 				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
 				pen.x = 0;
 				auto lineHeight = face.size.metrics.height >> 6;
-				foreach(v; elemText[p_mesh.offset]..vertstart)
+				foreach(v; elemText[p_mesh.offset]..vertQuad)
 				{
 					vertpos[v].y += lineHeight;
 				}
@@ -665,6 +675,7 @@ public class UIRenderer
 			{
 				FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
 				atlasText.texture.blit(node.size, node.position, ftGlyph.bitmap.buffer);
+				invalidated[UIData.TextAtlas] = true;
 			}
 
 			// 1-------3   /\ +y
@@ -680,15 +691,15 @@ public class UIRenderer
 			svec2 bottom = svec(0, ftGlyph.bitmap_top - ftGlyph.bitmap.rows);
 			svec2 top = svec(0, ftGlyph.bitmap_top);
 
-			vertpos[vertstart..vertstart+4] = [
+			vertpos[vertQuad..vertQuad+4] = [
 				pen.add(left).add(bottom),
 				pen.add(left).add(top),
 				pen.add(right).add(bottom),
 				pen.add(right).add(top)
 			];
 
-			ivec2 blchar = vertpos[vertstart];
-			ivec2 trchar = vertpos[vertstart+3];
+			ivec2 blchar = vertpos[vertQuad];
+			ivec2 trchar = vertpos[vertQuad+3];
 
 			bottom_left = vmin(bottom_left, blchar);
 			top_right = vmax(top_right, trchar);
@@ -705,25 +716,25 @@ public class UIRenderer
 			uv_off.y /= atlasText.texture.size.height;
 
 			// FreeType blits text upside-down relative to images
-			uvs[vertstart..vertstart+4] = [
+			uvs[vertQuad..vertQuad+4] = [
 				uv_pos + vec2(0, uv_off.y),
 				uv_pos,
 				uv_pos + uv_off,
 				uv_pos + vec2(uv_off.x, 0),
 			];
 
-			elemText[ebostart..ebostart+6] = [
-				cast(ushort)(vertstart),
-				cast(ushort)(vertstart + 2),
-				cast(ushort)(vertstart + 1),
+			elemText[eboQuad..eboQuad+6] = [
+				cast(ushort)(vertQuad),
+				cast(ushort)(vertQuad + 2),
+				cast(ushort)(vertQuad + 1),
 
-				cast(ushort)(vertstart + 1),
-				cast(ushort)(vertstart + 2),
-				cast(ushort)(vertstart + 3),
+				cast(ushort)(vertQuad + 1),
+				cast(ushort)(vertQuad + 2),
+				cast(ushort)(vertQuad + 3),
 			];
 
-			vertstart += 4;
-			ebostart += 6;
+			vertQuad += 4;
+			eboQuad += 6;
 
 			pen += svec(
 				ftGlyph.advance.x >> 6, 
@@ -734,10 +745,10 @@ public class UIRenderer
 		invalidated[UIData.PositionBufferPartial] = true;
 
 		uvInvalid.apply(Range(vertstart, vertstart + p_mesh.length*4));
-		invalidated[UIData.TextEBOPartial] = true;
+		invalidated[UIData.UVBufferPartial] = true;
 
 		textInvalid.apply(Range(ebostart, ebostart + p_mesh.length*6));
-		invalidated[UIData.TextEBOPartial] = p_mesh.length != oldCount;
+		invalidated[UIData.TextEBOPartial] = p_mesh.length > oldCount;
 
 		p_mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
@@ -934,17 +945,18 @@ public class UIRenderer
 			p_type,
 			p_buffer.length*T.sizeof,
 			p_buffer.ptr,
-			GL_STATIC_DRAW);
+			GL_DYNAMIC_DRAW);
 	}
 
 	private void updateBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer, Range p_range)
 	{
+		debug printf("Applying range [%u, %u]\n", p_range.start, p_range.end);
 		assert(p_range.start < p_range.end);
 		glBindBuffer(p_type, p_vbo);
 		glBufferSubData(
 			p_type,
-			p_range.start,
-			p_range.end - p_range.start,
+			p_range.start*T.sizeof,
+			(p_range.end - p_range.start)*T.sizeof,
 			&p_buffer[p_range.start]);
 	}
 }

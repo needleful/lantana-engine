@@ -352,7 +352,6 @@ struct GLBAnimation
 	{
 		GLBAnimation a;
 		a.name = p_anim["name"].str();
-		debug writeln("Loading animation: ", a.name);
 		auto channels = p_anim["channels"].array();
 		a.channels.reserve(channels.length);
 
@@ -449,7 +448,6 @@ struct GLBAnimatedAccessor
 auto glbLoad(bool is_animated = false)(string p_file, ILanAllocator p_alloc)
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
-	debug writeln("Loading "~p_file);
 	debug scope(failure) writeln("Could not load "~p_file);
 
 	auto input = File(p_file, "rb");
@@ -550,7 +548,6 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 						{
 							result_bone.parent = cast(byte)parentJointIndex;
 						}
-						debug writeln(format("Joint %d has parent: %d", idx-1, parentJointIndex));
 					}
 				}
 			}
