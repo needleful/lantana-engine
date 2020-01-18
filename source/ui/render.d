@@ -68,6 +68,30 @@ public struct TextMeshRef
 	ushort capacity;
 }
 
+struct Range
+{
+	uint start;
+	uint end;
+
+	this(int p_start, int p_end) nothrow @nogc @safe
+	{
+		start = p_start;
+		end = p_end;
+	}
+
+	void clear() nothrow @nogc @safe
+	{
+		start = uint.max;
+		end = uint.min;
+	}
+
+	void apply(Range rhs) nothrow @nogc @safe
+	{
+		start = start < rhs.start? start : rhs.start;
+		end = end > rhs.end? end : rhs.end;
+	}
+}
+
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
 /// There should be exactly one UIRenderer
@@ -82,14 +106,25 @@ public class UIRenderer
 	enum UIData
 	{
 		Layout,
-		TextEBO,
+
 		SpriteEBO,
+		SpriteEBOPartial,
+
+		TextEBO,
+		TextEBOPartial,
+
 		PositionBuffer,
+		PositionBufferPartial,
+
 		UVBuffer,
+		UVBufferPartial,
+
 		TextAtlas,
 		SpriteAtlas,
 	}
 	private Bitfield!UIData invalidated;
+
+	private Range textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
 	/// The base widget of the UI
 	private Widget root;
@@ -229,29 +264,39 @@ public class UIRenderer
 		{
 			atlasSprite.reload();
 		}
+
 		if(invalidated[UIData.TextAtlas])
 		{
 			atlasText.reload();
 		}
 
 		if(invalidated[UIData.TextEBO])
-		{
-			updateTextEBO();
-		}
+			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
+		else if(invalidated[UIData.TextEBOPartial])
+			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText, textInvalid);
+
 		if(invalidated[UIData.SpriteEBO])
-		{
-			updateSpriteEBO();
-		}
+			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite);
+		else if(invalidated[UIData.SpriteEBOPartial])
+			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite, spriteInvalid);
+
 		if(invalidated[UIData.PositionBuffer])
-		{
-			updatePositionBuffer();
-		}
+			replaceBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos);
+		else if(invalidated[UIData.PositionBufferPartial])
+			updateBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos, posInvalid);
+
 		if(invalidated[UIData.UVBuffer])
-		{
-			updateUVBuffer();
-		}
+			replaceBuffer(GL_ARRAY_BUFFER, vbo[3], uvs);
+		else if(invalidated[UIData.UVBufferPartial])
+			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
 
 		invalidated.clear();
+		
+		// Clearing invalidated buffer ranges
+		textInvalid.clear();
+		spriteInvalid.clear();
+		posInvalid.clear();
+		uvInvalid.clear();
 	}
 
 	public void render() @nogc
@@ -440,7 +485,8 @@ public class UIRenderer
 		vertpos[quadStart + 2] = svec(p_size.width, 0);
 		vertpos[quadStart + 3] = svec(p_size.width, p_size.height);
 
-		invalidated[UIData.PositionBuffer] = true;
+		posInvalid.apply(Range(quadStart, quadStart + 4));
+		invalidated[UIData.PositionBufferPartial] = true;
 	}
 
 	public void translateQuad(ushort[] p_vertices, svec2 p_translation) @nogc nothrow
@@ -453,7 +499,8 @@ public class UIRenderer
 		vertpos[quadStart + 2] += p_translation;
 		vertpos[quadStart + 3] += p_translation;
 
-		invalidated[UIData.PositionBuffer] = true;
+		posInvalid.apply(Range(quadStart, quadStart + 4));
+		invalidated[UIData.PositionBufferPartial] = true;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -538,12 +585,17 @@ public class UIRenderer
 
 		assert(uvs.length == vertpos.length);
 
-		replaceTextMesh(tm, p_font, p_text);
+		setTextMesh(tm, p_font, p_text);
+
+		invalidated[UIData.UVBuffer] = true;
+		invalidated[UIData.PositionBuffer] = true;
+		invalidated[UIData.TextAtlas] = true;
+		invalidated[UIData.TextEBO] = true;
 
 		return tm;
 	}
 
-	public void replaceTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
+	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
 	{	
 		import std.uni: isWhite;
 
@@ -678,10 +730,14 @@ public class UIRenderer
 				ftGlyph.advance.y >> 6);
 		}
 
-		invalidated[UIData.UVBuffer] = true;
-		invalidated[UIData.PositionBuffer] = true;
-		invalidated[UIData.TextAtlas] = true;
-		invalidated[UIData.TextEBO] = p_mesh.length != oldCount;
+		posInvalid.apply(Range(vertstart, vertstart + p_mesh.length*4));
+		invalidated[UIData.PositionBufferPartial] = true;
+
+		uvInvalid.apply(Range(vertstart, vertstart + p_mesh.length*4));
+		invalidated[UIData.TextEBOPartial] = true;
+
+		textInvalid.apply(Range(ebostart, ebostart + p_mesh.length*6));
+		invalidated[UIData.TextEBOPartial] = p_mesh.length != oldCount;
 
 		p_mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
@@ -742,10 +798,10 @@ public class UIRenderer
 			5, 6, 7
 		];
 
-		updateUVBuffer();
-		updatePositionBuffer();
-		updateTextEBO();
-		updateSpriteEBO();
+		replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
+		replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite);
+		replaceBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos);
+		replaceBuffer(GL_ARRAY_BUFFER, vbo[3], uvs);
 
 		glcheck();
 
@@ -871,39 +927,24 @@ public class UIRenderer
 		glDisableVertexAttribArray(atrSprite.position);
 	}
 
-	/// Updates UV buffer
-	private void updateUVBuffer()
+	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		glBufferData(GL_ARRAY_BUFFER,
-			uvs.length*vec3.sizeof, uvs.ptr,
+		glBindBuffer(p_type, p_vbo);
+		glBufferData(
+			p_type,
+			p_buffer.length*T.sizeof,
+			p_buffer.ptr,
 			GL_STATIC_DRAW);
 	}
 
-	private void updatePositionBuffer()
+	private void updateBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer, Range p_range)
 	{
-		// Vertex positions
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glBufferData(GL_ARRAY_BUFFER,
-			vertpos.length*svec2.sizeof, vertpos.ptr,
-			GL_STATIC_DRAW);
-	}
-
-	private void updateTextEBO()
-	{
-		// Text EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
-			elemText.length*ushort.sizeof, elemText.ptr, 
-			GL_STATIC_DRAW);
-	}
-
-	private void updateSpriteEBO()
-	{
-		// Sprite EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			elemSprite.length*ushort.sizeof, elemSprite.ptr,
-			GL_STATIC_DRAW);
+		assert(p_range.start < p_range.end);
+		glBindBuffer(p_type, p_vbo);
+		glBufferSubData(
+			p_type,
+			p_range.start,
+			p_range.end - p_range.start,
+			&p_buffer[p_range.start]);
 	}
 }

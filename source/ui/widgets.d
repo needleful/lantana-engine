@@ -342,7 +342,7 @@ public class TextBox: LeafWidget
 	{
 		if(text != p_text)
 		{
-			renderer.replaceTextMesh(mesh, font, p_text);
+			renderer.setTextMesh(mesh, font, p_text);
 		}
 		text = p_text;
 	}
