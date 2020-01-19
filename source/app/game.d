@@ -6,7 +6,7 @@ import std.format;
 import std.math;
 import std.stdio;
 
-import lanlib.formats.gltf2;
+import lanlib.gltf2;
 import lanlib.math.projection;
 import lanlib.math.transform;
 import lanlib.types;

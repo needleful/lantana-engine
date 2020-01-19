@@ -11,7 +11,7 @@ import gl3n.interpolate;
 import gl3n.linalg;
 
 import lanlib.math.transform;
-import lanlib.formats.gltf2;
+import lanlib.gltf2;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.types;

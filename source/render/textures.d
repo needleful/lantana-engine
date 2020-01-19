@@ -8,7 +8,7 @@ debug import std.stdio;
 import deimos.freeimage;
 import gl3n.linalg: vec2, vec3, Vector;
 
-import lanlib.formats.gltf2 : ImageType;
+import lanlib.gltf2.types : ImageType;
 import lanlib.types;
 import lanlib.util.gl;
 import lanlib.util.memory;
