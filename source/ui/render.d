@@ -606,7 +606,6 @@ public class UIRenderer
 
 	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
 	{
-		debug printf("Setting text: %s\n", p_text.ptr);
 		import std.uni: isWhite;
 
 		ushort oldCount = p_mesh.length;

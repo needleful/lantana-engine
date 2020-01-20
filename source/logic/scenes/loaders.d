@@ -2,12 +2,17 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module logic.scene;
+module logic.scenes.load;
 
 import gl3n.linalg: vec3;
+
 import lanlib.math.transform;
+import lanlib.util.memory;
+
 import logic.grid;
 import logic.player;
+import logic.scenes.core;
+import render.mesh;
 
 struct LightLoader
 {

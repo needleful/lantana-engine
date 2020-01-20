@@ -18,7 +18,7 @@ import gl3n.linalg;
 import logic.grid;
 import logic.input;
 import logic.player;
-import logic.scene;
+import logic.scenes;
 
 import render.camera;
 import render.lights;
@@ -65,60 +65,7 @@ int main()
 	]));
 
 	// Testing SceneLoader format
-	StaticMeshInstance[] staticMeshes;
-	AnimatedMeshInstance[] animMeshes;
-	LightInfo worldLight;
-	Grid grid;
-	Player player;
-	ushort playerMesh, blockMesh;
-	{
-		SceneLoader loader = testScene();
-		StaticMesh*[] smeshes;
-		AnimatedMesh*[] ameshes;
-		smeshes.reserve(loader.files_staticMesh.length);
-		ameshes.reserve(loader.files_animMesh.length);
-
-		foreach(meshFile; loader.files_staticMesh)
-		{
-			smeshes ~= smesh.load_mesh(meshFile, mm);
-		}
-		foreach(meshFile; loader.files_animMesh)
-		{
-			ameshes ~= anmesh.load_mesh(meshFile, mm);
-		}
-
-		staticMeshes = mm.make_list!StaticMeshInstance(loader.meshInstances.length);
-		animMeshes = mm.make_list!AnimatedMeshInstance(loader.animatedInstances.length);
-
-		foreach(i; 0..loader.meshInstances.length)
-		{
-			auto m = &loader.meshInstances[i];
-			staticMeshes[i].mesh = smeshes[m.id];
-			staticMeshes[i].transform = m.transform;
-		}
-
-		foreach(i; 0..loader.animatedInstances.length)
-		{
-			auto m = &loader.animatedInstances[i];
-			animMeshes[i] = AnimatedMeshInstance(ameshes[m.id], m.transform, mm);
-			if(m.animation != "")
-			{
-				animMeshes[i].playAnimation(m.animation, m.loop);
-			}
-		}
-
-		grid = loader.grid;
-		player = loader.player;
-		player.grid = &grid;
-		playerMesh = loader.playerMeshInstance;
-		blockMesh = loader.blockInstancesOffset;
-
-		worldLight = LightInfo(loader.lights.file_palette, mm);
-		worldLight.direction = loader.lights.direction;
-		worldLight.bias = loader.lights.bias;
-		worldLight.areaCeiling = loader.lights.areaCeiling;
-		worldLight.areaSpan = loader.lights.areaSpan;
-	}
+	Scene currentScene = Scene(testScene(), smesh, anmesh, mm);
 
 	auto cam = mm.create!Camera(vec3(-3, -9, -3), 720.0/512, 60);
 
@@ -176,33 +123,17 @@ int main()
 			{
 				cam.rot.y = next_rot;
 			}
-			player.update(input, delta);
+			
+			currentScene.update(input, delta);
 
-			animMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
-			animMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
-			if(player.previousState != player.state)
-			{
-				animMeshes[playerMesh].playAnimation(player.getAnimation());
-			}
-			else
-			{
-				animMeshes[playerMesh].queueAnimation(player.getAnimation());
-			}
-
-			foreach(i; 0..grid.blocks.length)
-			{
-				auto s = i+blockMesh;
-				staticMeshes[s].transform._position = grid.getRealPosition(grid.blocks[i].position, grid.blocks[i].pos_target);
-			}
-
-			anmesh.update(delta, animMeshes);
+			anmesh.update(delta, currentScene.animMeshes);
 		}
 		ui.update(delta);
 
 		ww.begin_frame();
 		mat4 vp = cam.vp();
-		anmesh.render(vp, worldLight, animMeshes);
-		smesh.render(vp, worldLight, staticMeshes);
+		anmesh.render(vp, currentScene.worldLight, currentScene.animMeshes);
+		smesh.render(vp, currentScene.worldLight, currentScene.staticMeshes);
 		ui.render();
 
 		ww.end_frame();
