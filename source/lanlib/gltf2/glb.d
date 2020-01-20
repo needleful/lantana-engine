@@ -48,7 +48,7 @@ struct GLBAnimatedLoadResults
 }
 
 //Check a binary gltf2 file
-auto glbLoad(bool is_animated = false)(string p_file, ILanAllocator p_alloc)
+auto glbLoad(bool animated = false)(string p_file, ILanAllocator p_alloc)
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
 	debug scope(failure) writeln("Could not load "~p_file);
@@ -67,20 +67,20 @@ auto glbLoad(bool is_animated = false)(string p_file, ILanAllocator p_alloc)
 	json.length = jsonHeader[0];
 	input.rawRead(json);
 	uint bufferMax;
-	auto results = glbJsonParse!is_animated(json, p_alloc, bufferMax);
+	auto results = glbJsonParse!animated(json, p_alloc, bufferMax);
 	results.bufferSize = bufferMax;
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
 	assert(binaryHeader[1] == GLBChunkType.BIN, "Second chunk of a GLB must be BIN");
 	
-	results.data = p_alloc.make_list!ubyte(binaryHeader[0]);
+	results.data = p_alloc.makeList!ubyte(binaryHeader[0]);
 	input.rawRead(results.data);
 
 	return results;
 }
 
-auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref uint p_bufferMax)
+auto glbJsonParse(bool animated)(char[] p_json, ILanAllocator p_alloc, ref uint p_bufferMax)
 {
 	//debug writeln(p_json);
 
@@ -91,7 +91,7 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 	auto access = scn["accessors"].array();
 	auto bufferViews = scn["bufferViews"].array();
 
-	static if(is_animated)
+	static if(animated)
 	{
 		GLBAnimatedLoadResults result;
 
@@ -99,7 +99,7 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 		auto scene = scn["scenes"].array()[scn_index];
 		auto anims = scn["animations"].array();
 
-		result.animations = p_alloc.make_list!GLBAnimation(anims.length);
+		result.animations = p_alloc.makeList!GLBAnimation(anims.length);
 
 		uint idx = 0;
 		foreach(animation; anims)
@@ -113,7 +113,7 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 		auto ibm_index = skin["inverseBindMatrices"].integer();
 		result.inverseBindMatrices = bufferFromJSON(access[ibm_index], bufferViews);
 		auto joints = skin["joints"].array();
-		result.bones = p_alloc.make_list!GLBNode(joints.length);
+		result.bones = p_alloc.makeList!GLBNode(joints.length);
 
 		idx = 0;
 		foreach(joint; joints)
@@ -231,7 +231,7 @@ auto glbJsonParse(bool is_animated)(char[] p_json, ILanAllocator p_alloc, ref ui
 			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
 			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
 
-			static if(is_animated)
+			static if(animated)
 			{
 				auto ac_weights = atr["WEIGHTS_0"].integer();
 				auto ac_joints = atr["JOINTS_0"].integer();

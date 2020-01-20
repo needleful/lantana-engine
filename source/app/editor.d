@@ -35,7 +35,7 @@ int main()
 
 	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
-	ILanAllocator mm = new LanRegion(1024*1024*16, new SysMemManager());
+	ILanAllocator mm = new Region(1024*1024*16, new SysMemManager());
 	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
 
 	ww.grab_mouse(false);

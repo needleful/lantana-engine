@@ -545,8 +545,8 @@ struct AnimatedMeshInstance
 	{
 		mesh = p_mesh;
 		transform = p_transform;
-		boneMatrices = p_alloc.make_list!mat4(p_mesh.bones.length);
-		bones = p_alloc.make_list!GLBNode(p_mesh.bones.length);
+		boneMatrices = p_alloc.makeList!mat4(p_mesh.bones.length);
+		bones = p_alloc.makeList!GLBNode(p_mesh.bones.length);
 		bones[0..$] = p_mesh.bones[0..$];
 		is_playing = false;
 		time = 0;

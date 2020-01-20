@@ -34,7 +34,7 @@ interface ILanAllocator
  +  User-friendly methods for allocators 
  +/
 
-T[] make_list(T)(ILanAllocator alloc, ulong count) @nogc
+T[] makeList(T)(ILanAllocator alloc, ulong count) @nogc
 {
 	//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
 	return (cast(T*)alloc.make(T.sizeof * count))[0..count];
@@ -65,67 +65,67 @@ class SysMemManager : ILanAllocator
 	override void* make(ulong bytes) @nogc
 	{
 		void* res = malloc(bytes);
+		GC.addRange(cast(ubyte*)res, bytes);
 		return res;
 	}
 	override bool remove(void* data) @nogc
 	{
 		free(data);
+		GC.removeRange(cast(ubyte*)data);
 		return true;
 	}
 }
 
-/++ A stack of memory for dumb data that can quickly be deallocated.
-   note: when stack space is freed, it does not call any destructors.
+/++ A Region of memory for dumb data with quick allocation and clearing.
+   note: when Region space is freed, it does not call any destructors.
    It is the responsibility of the calling code to call destroy()
    on any objects that manage other resources.
 +/
-class LanRegion : ILanAllocator
+class Region : ILanAllocator
 {
-	enum minimum_size = ulong.sizeof*2;
+	enum minimumSize = ulong.sizeof*2;
 
 	ILanAllocator parent;
 	ubyte *data;
 
-	this(ulong capacity, ILanAllocator parent) @nogc
+	this(ulong p_capacity, ILanAllocator p_parent) @nogc
 	{
-		this.parent = parent;
-		assert(capacity > minimum_size);
-		data = parent.make_list!ubyte(capacity).ptr;
+		parent = p_parent;
+		assert(p_capacity > minimumSize);
+		data = parent.makeList!ubyte(p_capacity).ptr;
 
 		assert(data != null, "Failed to get memory for region");
 
-		set_capacity(capacity);
-		set_space_used(2*ulong.sizeof);
-		GC.addRange(data, capacity);
+		setCapacity(p_capacity);
+		setSpaceUsed(2*ulong.sizeof);
 
-		debug printf("Creating Region with %u bytes\n", capacity);
+		debug printf("Creating Region with %u bytes\n", p_capacity);
 	}
 
 	~this() @nogc
 	{
-		ulong used = space_used();
+		ulong used = spaceUsed();
 		ulong cap = capacity();
-		set_capacity(0);
-		set_space_used(0);
+		setCapacity(0);
+		setSpaceUsed(0);
 		data = null;
-		GC.removeRange(data);
 		parent.remove(cast(void*)data);
 		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
 	override void* make(ulong bytes) @nogc 
 	{
-		if(bytes + space_used > capacity)
+		if(bytes + spaceUsed > capacity)
 		{
 			debug
 				assert(false, "Out of memory");
 			else
 				return null;
 		}
-		void* result = cast(void*)(&data[space_used]);
-		set_space_used(space_used + bytes);
+		void* result = cast(void*)(&data[spaceUsed]);
+		setSpaceUsed(spaceUsed + bytes);
 
-		//debug printf("MEM: Allocating %u bytes, total: %u\n", bytes, space_used);
+		//debug printf("MEM: Allocating %u bytes, total: %u\n", bytes, spaceUsed);
 
 		return result;
 	}
@@ -136,20 +136,10 @@ class LanRegion : ILanAllocator
 		return false;
 	}
 
-	/// Wipe the stack with some memory preserved.
-	/// So you can allocate long-lived data here, then get the used space, 
-	/// then later call wipe_with_preserved using that value
-	void wipe_with_preserved(ulong preserved_bytes) @nogc
-	{
-		assert(preserved_bytes > minimum_size);
-		assert(preserved_bytes <= space_used);
-		set_space_used(preserved_bytes);
-	}
-
 	/// Wipe all data from the stack
 	void wipe() @nogc nothrow
 	{
-		set_space_used(minimum_size);
+		setSpaceUsed(minimumSize);
 	}
 
 	@property ulong capacity() @nogc const nothrow
@@ -157,19 +147,19 @@ class LanRegion : ILanAllocator
 		return (cast(ulong*)data)[0];
 	}
 
-	@property ulong space_used() @nogc const nothrow
+	@property ulong spaceUsed() @nogc const nothrow
 	{
 		return (cast(ulong*)data)[1];
 	}
 
-	private void set_capacity(ulong val) @nogc nothrow
+	private void setCapacity(ulong val) @nogc nothrow
 	{
 		(cast(ulong*)data)[0] = val;
 	}
 
-	private void set_space_used(ulong val) @nogc nothrow
+	private void setSpaceUsed(ulong val) @nogc nothrow
 	{
 		(cast(ulong *) data)[1] = val;
-		assert(space_used() == val);
+		assert(spaceUsed() == val);
 	}
 }

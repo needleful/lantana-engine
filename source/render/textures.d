@@ -87,7 +87,7 @@ struct Texture(TextureDataType)
 		size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
 
 		uint length = size.width*size.height;
-		buffer = p_alloc.make_list!tex(length).ptr;
+		buffer = p_alloc.makeList!tex(length).ptr;
 
 		buffer[0..length] = (cast(tex*)FreeImage_GetBits(bitmap))[0..length];
 
@@ -118,7 +118,7 @@ struct Texture(TextureDataType)
 		size = b.size;
 		// Copy loaded bitmap
 		uint length = size.width*size.height;
-		buffer = p_alloc.make_list!tex(length).ptr;
+		buffer = p_alloc.makeList!tex(length).ptr;
 		buffer[0..length] = b.buffer[0..length];
 
 		glGenTextures(1, &id);
@@ -153,7 +153,7 @@ struct Texture(TextureDataType)
 	public this(RealSize p_size, bool p_filter, ILanAllocator p_alloc)
 	{
 		size = p_size;
-		buffer = p_alloc.make_list!tex(size.width*size.height).ptr;
+		buffer = p_alloc.makeList!tex(size.width*size.height).ptr;
 
 		init(p_filter);
 	}

@@ -40,7 +40,7 @@ int main()
 	debug writeln("Running Axe Manor in debug mode!");
 	Window ww = Window(720, 512, "Axe Manor");
 	
-	auto mm = new LanRegion(MAX_MEMORY, new SysMemManager());
+	auto mm = new Region(MAX_MEMORY, new SysMemManager());
 	Input input = Input();
 
 	StaticMeshSystem smesh = StaticMeshSystem(3);

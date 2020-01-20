@@ -42,8 +42,8 @@ struct Scene
 			ameshes ~= p_anim.load_mesh(meshFile, p_alloc);
 		}
 
-		staticMeshes = p_alloc.make_list!StaticMeshInstance(p_load.meshInstances.length);
-		animMeshes = p_alloc.make_list!AnimatedMeshInstance(p_load.animatedInstances.length);
+		staticMeshes = p_alloc.makeList!StaticMeshInstance(p_load.meshInstances.length);
+		animMeshes = p_alloc.makeList!AnimatedMeshInstance(p_load.animatedInstances.length);
 
 		foreach(i; 0..p_load.meshInstances.length)
 		{
@@ -73,9 +73,6 @@ struct Scene
 		worldLight.bias = p_load.lights.bias;
 		worldLight.areaCeiling = p_load.lights.areaCeiling;
 		worldLight.areaSpan = p_load.lights.areaSpan;
-
-		debug import std.stdio;
-		debug printf("Loaded scene\n");
 	}
 
 	void update(Input p_input, float p_delta)
