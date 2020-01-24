@@ -21,6 +21,29 @@ enum GLBComponentType
 	FLOAT = 5126,
 }
 
+string toString(GLBComponentType p_type)
+{
+	switch(p_type)
+	{
+		case GLBComponentType.BYTE: return "BYTE";
+		case GLBComponentType.UNSIGNED_BYTE: return "UNSIGNED_BYTE";
+		case GLBComponentType.SHORT: return "SHORT";
+		case GLBComponentType.UNSIGNED_SHORT: return "UNSIGNED_SHORT";
+		case GLBComponentType.UNSIGNED_INT: return "UNSIGNED_INT";
+		case GLBComponentType.FLOAT: return "FLOAT";
+		default: 
+			debug
+			{
+				import std.format;
+				return format("UNKNOWN[%d]", p_type);
+			}
+			else
+			{
+				return "UNKNOWN";
+			}
+	}
+}
+
 bool isCompatible(T)(GLBComponentType p_type)
 {
 	static if(isTemplateType!(Vector, T))
@@ -103,6 +126,30 @@ GLBDataType typeFromString(string p_type)
 	}
 }
 
+string toString(GLBDataType p_type)
+{
+	switch(p_type)
+	{
+		case GLBDataType.SCALAR : return "SCALAR";
+		case GLBDataType.VEC2   : return "VEC2";
+		case GLBDataType.VEC3   : return "VEC3";
+		case GLBDataType.VEC4   : return "VEC4";
+		case GLBDataType.MAT2   : return "MAT2";
+		case GLBDataType.MAT3   : return "MAT3";
+		case GLBDataType.MAT4   : return "MAT4";
+		default: 
+			debug
+			{
+				import std.format;
+				return format("UNKNOWN[%d]", p_type);
+			}
+			else
+			{
+				return "UNKNOWN";
+			}
+	}
+}
+
 uint componentCount(GLBDataType p_type)
 {
 	switch(p_type)
@@ -132,7 +179,9 @@ struct GLBBufferView
 
 	const T[] asArray(T)(ubyte[] p_buffer)
 	{
-		assert(componentType.isCompatible!T());
+		debug import std.format;
+		assert(componentType.isCompatible!T(), format("Incompatible buffers: %s!%s versus %s", 
+			dataType.toString(), componentType.toString(), T.stringof));
 
 		auto len = byteLength/
 			(dataType.componentCount()*componentType.size());
