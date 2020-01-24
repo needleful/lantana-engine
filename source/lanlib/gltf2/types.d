@@ -177,7 +177,7 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	const T[] asArray(T)(ubyte[] p_buffer)
+	immutable(T[]) asArray(T)(immutable(ubyte[]) p_buffer) const
 	{
 		debug import std.format;
 		assert(componentType.isCompatible!T(), format("Incompatible buffers: %s!%s versus %s", 
@@ -185,7 +185,7 @@ struct GLBBufferView
 
 		auto len = byteLength/
 			(dataType.componentCount()*componentType.size());
-		return (cast(T*)(&p_buffer[byteOffset]))[0..len];
+		return cast(immutable(T[]))(cast(T*)(&p_buffer[byteOffset]))[0..len];
 	}
 }
 

@@ -36,15 +36,31 @@ struct GLBStaticLoadResults
 
 struct GLBAnimatedLoadResults
 {
-	GLBAnimatedAccessor[] accessors;
-	GLBAnimation[] animations;
-	GLBNode[] bones;
-	ubyte[] data;
-	GLBBufferView inverseBindMatrices;
+	immutable(GLBAnimatedAccessor[]) accessors;
+	immutable(GLBAnimation[]) animations;
+	immutable(GLBNode[]) bones;
+	immutable(ubyte[]) data;
+	immutable(GLBBufferView) inverseBindMatrices;
 	/// `data[0..bufferSize]` is what's put in the vertex buffer.
 	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
 	/// without requiring the buffer to be chopped up and copied around.
-	uint bufferSize;
+	immutable(uint) bufferSize;
+
+	@disable this();
+
+	this(
+		immutable(GLBAnimatedAccessor[]) p_accessor,
+		immutable(GLBAnimation[]) p_animations,
+		immutable(GLBNode[]) p_bones,
+		immutable(ubyte[]) p_data,
+		immutable(GLBBufferView) p_ibm)
+	{
+		accessors = p_accessor;
+		animations = p_animations;
+		bones = p_bones;
+		data = p_data;
+		inverseBindMatrices = p_ibm;
+	}
 }
 
 //Check a binary gltf2 file
@@ -93,13 +109,11 @@ auto glbJsonParse(bool animated)(char[] p_json, ILanAllocator p_alloc, ref uint 
 
 	static if(animated)
 	{
-		GLBAnimatedLoadResults result;
-
 		auto scn_index = scn["scene"].integer();
 		auto scene = scn["scenes"].array()[scn_index];
 		auto anims = scn["animations"].array();
 
-		result.animations = p_alloc.makeList!GLBAnimation(anims.length);
+		auto animations = p_alloc.makeList!GLBAnimation(anims.length);
 
 		uint idx = 0;
 		foreach(animation; anims)
@@ -111,9 +125,175 @@ auto glbJsonParse(bool animated)(char[] p_json, ILanAllocator p_alloc, ref uint 
 		auto skin = scn["skins"].array()[0];
 
 		auto ibm_index = skin["inverseBindMatrices"].integer();
-		result.inverseBindMatrices = bufferFromJSON(access[ibm_index], bufferViews);
+		auto inverseBindMatrices = bufferFromJSON(access[ibm_index], bufferViews);
+
 		auto joints = skin["joints"].array();
-		result.bones = p_alloc.makeList!GLBNode(joints.length);
+		auto bones = p_alloc.makeList!GLBNode(joints.length);
+
+		idx = 0;
+		foreach(joint; joints)
+		{
+			long node_idx = joint.integer();
+			auto node = nodes[node_idx];
+
+			result.bones[idx++] = nodeFromJSON(node);
+
+			auto result_bone = &result.bones[idx-1];
+			// slow, naive parent retrieval but I don't give a shit
+			foreach(n; 0..nodes.length)
+			{
+				auto test_node = nodes[n];
+				if(n == node_idx || "children" !in test_node)
+				{
+					continue;
+				}
+
+				foreach(child; test_node["children"].array())
+				{
+					// Current node has a parent
+					if(child.integer() == node_idx)
+					{
+						// is the parent part of the joints?
+						int parentJointIndex = -1;
+						foreach(j; 0..joints.length)
+						{
+							if(joints[j].integer() == n)
+							{
+								parentJointIndex = cast(int)j;
+							}
+						}
+						if(parentJointIndex >= 0)
+						{
+							result_bone.parent = cast(byte)parentJointIndex;
+						}
+					}
+				}
+			}
+		}
+		// Convert animations bone indeces to skin indeces
+		foreach(anim; result.animations)
+		{
+			foreach(ref chan; anim.channels)
+			{
+				auto targetBone = chan.targetBone;
+				ubyte jointIndex = 0;
+				foreach(j; joints)
+				{
+					if(j.integer() == targetBone)
+					{
+						chan.targetBone = jointIndex;
+					}
+					jointIndex++;
+				}
+			}
+		}
+	}
+	else
+	{
+		GLBStaticLoadResults result;
+	}
+
+	result.accessors.reserve(jMeshes.length);
+	
+	foreach(ref m; jMeshes)
+	{
+		result.accessors.length += 1;
+		auto accessor = &result.accessors[$-1];
+
+		JSONValue primitives, atr;
+		{
+			auto prim_json = m["primitives"];
+			assert(prim_json.type == JSONType.array);
+			auto prim = prim_json.array();
+			assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
+			primitives = prim[0];
+
+			atr = primitives["attributes"];
+			assert(atr.type == JSONType.object);
+		}
+
+		if("name" in m)
+		{
+			accessor.name = m["name"].str();
+		}
+		auto ac_indeces = primitives["indices"].integer();
+		auto ac_position = atr["POSITION"].integer();
+		auto ac_normal = atr["NORMAL"].integer();
+		auto ac_uv = atr["TEXCOORD_0"].integer();
+
+		with(accessor)
+		{
+			indices = bufferFromJSON(access[ac_indeces], bufferViews);
+			p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
+
+			positions = bufferFromJSON(access[ac_position], bufferViews);
+			p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
+
+			normals = bufferFromJSON(access[ac_normal], bufferViews);
+			p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
+
+			uv = bufferFromJSON(access[ac_uv], bufferViews);
+			p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
+			
+			auto material = scn["materials"][primitives["material"].integer()];
+			auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+			auto img_albedo = scn["images"][
+				scn["textures"][idx_texture]["source"].integer()
+			];
+			// Not used in VBO, so no change to p_bufferMax
+			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+			auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+
+			static if(animated)
+			{
+				auto ac_weights = atr["WEIGHTS_0"].integer();
+				auto ac_joints = atr["JOINTS_0"].integer();
+				bone_weight = bufferFromJSON(access[ac_weights], bufferViews);
+				p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
+
+				bone_idx = bufferFromJSON(access[ac_joints], bufferViews);
+				p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
+			}
+		}
+	}
+	return result;
+}
+
+auto glbJsonParseAnimated(char[] p_json, ILanAllocator p_alloc, ref uint p_bufferMax)
+{
+	//debug writeln(p_json);
+
+	JSONValue scn = parseJSON(p_json);
+	assert(scn.type == JSONType.object);
+
+	auto jMeshes = scn["meshes"].array();
+	auto access = scn["accessors"].array();
+	auto bufferViews = scn["bufferViews"].array();
+
+	static if(animated)
+	{
+		auto scn_index = scn["scene"].integer();
+		auto scene = scn["scenes"].array()[scn_index];
+		auto anims = scn["animations"].array();
+
+		auto animations = p_alloc.makeList!GLBAnimation(anims.length);
+
+		uint idx = 0;
+		foreach(animation; anims)
+		{
+			result.animations[idx++] = animationFromJSON(animation, bufferViews, access);
+		}
+
+		auto nodes = scn["nodes"].array();
+		auto skin = scn["skins"].array()[0];
+
+		auto ibm_index = skin["inverseBindMatrices"].integer();
+		auto inverseBindMatrices = bufferFromJSON(access[ibm_index], bufferViews);
+		
+		auto joints = skin["joints"].array();
+		auto bones = p_alloc.makeList!GLBNode(joints.length);
 
 		idx = 0;
 		foreach(joint; joints)
@@ -355,89 +535,4 @@ GLBAnimation animationFromJSON(JSONValue p_anim, JSONValue[] p_views, JSONValue[
 		}
 	}
 	return a;
-}
-
-void glbPrint(ref GLBAnimatedLoadResults p_loaded)
-{
-	foreach(access; p_loaded.accessors)
-	{
-		writeln(access.name);
-		writeln("Bone indeces");
-		glbPrintBuffer(access.bone_idx, p_loaded.data);
-		writeln("Bone weights");
-		glbPrintBuffer(access.bone_weight, p_loaded.data);
-	}
-}
-
-void glbPrintBuffer(ref GLBBufferView p_view, ubyte[] p_bytes)
-{
-	debug assert(p_view.byteOffset < p_bytes.length, 
-		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", p_bytes.length, p_view.byteOffset));
-	switch(p_view.componentType)
-	{
-		case GLBComponentType.BYTE:
-			printThis!byte(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_BYTE:
-			printThis!ubyte(p_view, p_bytes);
-			break;
-		case GLBComponentType.SHORT:
-			printThis!short(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_SHORT:
-			printThis!ushort(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_INT:
-			printThis!uint(p_view, p_bytes);
-			break;
-		case GLBComponentType.FLOAT:
-			printThis!float(p_view, p_bytes);
-			break;
-		default:
-			write("Can't print componentType: ");
-			writeln(p_view.componentType);
-			break;
-	}
-}
-void printThis(Type)(GLBBufferView p_view, ubyte[] p_bytes)
-{
-	switch(p_view.dataType)
-	{
-		case GLBDataType.SCALAR:
-			printThisStuff!Type(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC2:
-			printThisStuff!(Type[2])(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC3:
-			printThisStuff!(Type[3])(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC4:
-			printThisStuff!(Type[4])(p_view, p_bytes);
-			break;
-		//case GLBDataType.MAT2:
-		//	printThisStuff!(Matrix!(Type, 2, 2))(p_view, p_bytes);
-		//	break;
-		//case GLBDataType.MAT3:
-		//	printThisStuff!(Matrix!(Type, 3, 3))(p_view, p_bytes);
-		//	break;
-		//case GLBDataType.MAT4:
-		//	printThisStuff!(Matrix!(Type, 4, 4))(p_view, p_bytes);
-		//	break;
-		default:
-			write("Unsupported data type: ");
-			writeln(p_view.dataType);
-			break;
-	}
-}
-
-void printThisStuff(Type)(GLBBufferView p_view, ubyte[] p_data)
-{
-	uint length = p_view.byteLength/Type.sizeof;
-	Type[] values = (cast(Type*)(&p_data[p_view.byteOffset]))[0..length];
-	foreach(value; values)
-	{
-		write("\t->");
-		writeln(value);
-	}
 }
