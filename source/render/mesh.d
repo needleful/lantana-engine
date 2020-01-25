@@ -37,13 +37,13 @@ struct StaticMeshSystem
 	}
 
 	Attributes atr;
-	StaticMesh[] meshes;
+	OwnedList!StaticMesh meshes;
 	Material mat;
 	Uniforms un;
 
-	this(uint p_reserved_count)
+	this(Material p_material) 
 	{
-		mat = loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
+		mat = p_material;
 
 		atr.position = mat.getAttribId("position");
 		atr.normal = mat.getAttribId("normal");
@@ -54,17 +54,14 @@ struct StaticMeshSystem
 
 		un.light = LightUniforms(mat);
 
-		meshes.reserve(p_reserved_count);
-
 		glcheck();
 		assert(mat.canRender());
 	}
 
-	StaticMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
+	StaticMesh* loadMesh(string p_filename, ref Region p_allocator)
 	{
-		meshes.length += 1;
 		auto loaded = glbLoad(p_filename, p_allocator);
-		meshes[$-1] = StaticMesh(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_allocator);
+		meshes.place(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_allocator);
 		return &meshes[$-1];
 	}
 	
@@ -109,6 +106,11 @@ struct StaticMeshSystem
 
 		glBindVertexArray(0);
 	}
+
+	void clearMeshes()
+	{
+		destroy(meshes);
+	}
 }
 
 struct StaticMesh
@@ -118,7 +120,7 @@ struct StaticMesh
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ILanAllocator p_alloc)
+	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ref Region p_alloc) 
 	{
 		data = p_data;
 		accessor = p_accessor;
@@ -175,7 +177,20 @@ struct StaticMesh
 		glcheck();
 	}
 
-	~this()
+	this(ref StaticMesh rhs)
+	{
+		data = rhs.data;
+		accessor = rhs.accessor;
+		tex_albedo = rhs.tex_albedo;
+
+		vbo = rhs.vbo;
+		vao = rhs.vao;
+
+		rhs.vao = 0;
+		rhs.vbo = 0;
+	}
+
+	~this() 
 	{
 		debug printf("Deleting StaticMesh (vao %d)\n", vao);
 		glDeleteBuffers(1, &vbo);
@@ -207,13 +222,13 @@ struct AnimatedMeshSystem
 	}
 
 	Attributes atr;
-	AnimatedMesh[] meshes;
+	OwnedList!AnimatedMesh meshes;
 	Material mat;
 	Uniforms un;
 
-	this(uint p_reserved_count)
+	this(Material p_material) 
 	{
-		mat = loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
+		mat = p_material;
 
 		atr.position = mat.getAttribId("position");
 		atr.normal = mat.getAttribId("normal");
@@ -228,20 +243,17 @@ struct AnimatedMeshSystem
 
 		un.bones = mat.getUniformId("bones");
 
-		meshes.reserve(p_reserved_count);
-
 		glcheck();
 	}
 
-	AnimatedMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
+	AnimatedMesh* loadMesh(string p_filename, ref Region p_allocator)
 	{
 		auto loaded = glbLoad!true(p_filename, p_allocator);
-		meshes.length += 1;
-		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded, p_allocator);
+		meshes.place(this, loaded.accessors[0], loaded, p_allocator);
 		return &meshes[$-1];
 	}
 
-	void update(float p_delta, AnimatedMeshInstance[] p_instances)
+	void update(float p_delta, AnimatedMeshInstance[] p_instances) 
 	{
 		debug uint inst_id = 0;
 		foreach(ref inst; p_instances)
@@ -254,7 +266,7 @@ struct AnimatedMeshSystem
 			{
 				updateAnimation(p_delta, inst);
 			}
-			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes)
+			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes) 
 			{
 				if(node.parent >= 0)
 				{
@@ -274,7 +286,7 @@ struct AnimatedMeshSystem
 		}
 	}
 
-	void render(mat4 projection, ref LightInfo p_lights, AnimatedMeshInstance[] p_instances)
+	void render(mat4 projection, ref LightInfo p_lights, AnimatedMeshInstance[] p_instances) 
 	{
 		glcheck();
 		glEnable(GL_CULL_FACE);
@@ -320,7 +332,7 @@ struct AnimatedMeshSystem
 
 	/// Update the animations of a specific mesh.
 	/// Only supports linear interpolation
-	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst)
+	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst) 
 	{
 		inst.time += p_delta;
 		const(GLBAnimation*) anim = &inst.currentAnimation;
@@ -379,14 +391,15 @@ struct AnimatedMeshSystem
 					break;
 
 				case GLBAnimationPath.ROTATION:
-					void get_rot(T)()
+					void get_rot(T)() 
 					{
+						import lanlib.math.func;
 						quat value;
 						auto rotations = valueBuffer.asArray!(Vector!(T, 4))(inst.mesh.data);
 
 						auto current = getQuat(rotations[frame]);
 						auto next = getQuat(rotations[nextframe]);
-						inst.bones[channel.targetBone].rotation = nlerp(current, next, interp);
+						inst.bones[channel.targetBone].rotation = qlerp(current, next, interp);
 					}
 
 					switch(valueBuffer.componentType)
@@ -426,7 +439,12 @@ struct AnimatedMeshSystem
 					break;
 			}
 		}
-	} 
+	}
+
+	void clearMeshes() 
+	{
+		destroy(meshes);
+	}
 }
 
 struct AnimatedMesh
@@ -439,7 +457,7 @@ struct AnimatedMesh
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem p_system, GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded, ILanAllocator p_alloc)
+	this(ref AnimatedMeshSystem p_system, GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded, ref Region p_alloc) 
 	{
 		data = p_loaded.data;
 		bones = p_loaded.bones;
@@ -520,8 +538,25 @@ struct AnimatedMesh
 		glcheck();
 	}
 
-	~this()
+	this(ref AnimatedMesh rhs)
 	{
+		bones = rhs.bones;
+		inverseBindMatrices = rhs.inverseBindMatrices;
+		data = rhs.data;
+		animations = rhs.animations;
+		accessor = rhs.accessor;
+		tex_albedo = rhs.tex_albedo;
+		vbo = rhs.vbo;
+		vao = rhs.vao;
+
+		rhs.vao = 0;
+		rhs.vbo = 0;
+
+	}
+
+	~this() 
+	{
+		if(vao == 0) assert(false, "This should be a fuckin blit!");
 		debug printf("Deleting AnimatedMesh (vao %d)\n", vao);
 		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
@@ -541,7 +576,7 @@ struct AnimatedMeshInstance
 	bool looping;
 	bool is_playing;
 
-	this(AnimatedMesh* p_mesh, Transform p_transform, ILanAllocator p_alloc)
+	this(AnimatedMesh* p_mesh, Transform p_transform, ref Region p_alloc) 
 	{
 		mesh = p_mesh;
 		transform = p_transform;
@@ -552,7 +587,7 @@ struct AnimatedMeshInstance
 		time = 0;
 	}
 
-	bool queueAnimation(string p_name, bool p_looping = false)
+	bool queueAnimation(string p_name, bool p_looping = false) 
 	{
 		if(is_playing)
 		{
@@ -566,7 +601,7 @@ struct AnimatedMeshInstance
 
 	/// Play an animation
 	/// Returns true if the animation could be started
-	bool playAnimation(string p_name, bool p_looping = false)
+	bool playAnimation(string p_name, bool p_looping = false) 
 	{
 		is_updated = false;
 		foreach(anim; mesh.animations)
@@ -585,17 +620,17 @@ struct AnimatedMeshInstance
 		return false;
 	}
 
-	void pause()
+	void pause() 
 	{
 		is_playing = false;
 	}
 
-	void play_current()
+	void play_current() 
 	{
 		is_playing = true;
 	}
 
-	void restart()
+	void restart() 
 	{
 		time = 0;
 		bones[0..$] = mesh.bones[0..$];

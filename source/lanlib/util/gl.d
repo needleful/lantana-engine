@@ -23,13 +23,13 @@ debug
 	import std.format;
 }
 
-void glcheck() @nogc @safe
+void glcheck()  @safe
 {
 	debug
 	{
 		GLint err = glGetError();
 		assert(err == GL_NO_ERROR, 
-			format("OpenGL had an error: %d", err));
+			format("OpenGL had an error: %u (%X)", err, err));
 	}
 }
 
@@ -109,11 +109,11 @@ GLuint compileShader(string filename, GLenum type)
 		}
 	}
 
-	assert(glGetError() == GL_NO_ERROR);
+	glcheck();
 	return shader;
 }
 
-void gl_setUniform(T)(GLint uniform, auto ref T value) @nogc
+void gl_setUniform(T)(GLint uniform, auto ref T value) 
 {
 	scope(exit) glcheck;
 

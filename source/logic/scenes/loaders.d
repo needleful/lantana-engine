@@ -12,6 +12,7 @@ import lanlib.util.memory;
 import logic.grid;
 import logic.player;
 import logic.scenes.core;
+import render.camera;
 import render.mesh;
 
 struct LightLoader
@@ -79,6 +80,8 @@ struct SceneLoader
 	Grid grid;
 	/// Player's location on the grid
 	Player player;
+
+	Camera camera;
 
 	MeshInstanceLoader[] meshInstances;
 	AnimatedInstanceLoader[] animatedInstances;

@@ -40,7 +40,7 @@ struct Player
 	State previousTurnState;
 	Mode mode;
 
-	this(Grid* p_grid, GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, State p_state = State.IDLE) @nogc @safe nothrow
+	this(Grid* p_grid, GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, State p_state = State.IDLE)  @safe nothrow
 	{
 		grid = p_grid;
 		pos = p_gridPos;
@@ -50,7 +50,7 @@ struct Player
 		dir = p_dir;
 	}
 
-	void update(const ref Input input, const float delta)  @nogc @safe nothrow
+	void update(const(Input*) input, const float delta)   @safe nothrow
 	{
 		grid.update(delta);
 
@@ -136,7 +136,7 @@ struct Player
 		}
 	}
 
-	string getAnimation() @nogc @safe nothrow
+	string getAnimation()  @safe nothrow
 	{
 		switch(state)
 		{
@@ -160,12 +160,12 @@ struct Player
 		}
 	}
 
-	vec3 realPosition() @nogc @safe nothrow
+	vec3 realPosition()  @safe nothrow
 	{
 		return grid.getRealPosition(pos, pos_target);
 	}
 
-	float realRotation() @nogc @safe nothrow
+	float realRotation()  @safe nothrow
 	{
 		return dir.getRealRotation();
 	}

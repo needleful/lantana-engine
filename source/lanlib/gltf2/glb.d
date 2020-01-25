@@ -48,7 +48,7 @@ struct GLBAnimatedLoadResults
 }
 
 //Check a binary gltf2 file
-auto glbLoad(bool animated = false)(string p_file, ILanAllocator p_alloc)
+auto glbLoad(bool animated = false)(string p_file, ref Region p_alloc)
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
 	debug scope(failure) writeln("Could not load "~p_file);
@@ -80,7 +80,7 @@ auto glbLoad(bool animated = false)(string p_file, ILanAllocator p_alloc)
 	return results;
 }
 
-auto glbJsonParse(bool animated)(char[] p_json, ILanAllocator p_alloc, ref uint p_bufferMax)
+auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_bufferMax)
 {
 	//debug writeln(p_json);
 

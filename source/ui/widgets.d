@@ -347,12 +347,12 @@ public class TextBox: LeafWidget
 		text = p_text;
 	}
 
-	public void setVisiblePortion(float p_visible) @nogc nothrow
+	public void setVisiblePortion(float p_visible)  nothrow
 	{
 		mesh.visiblePortion = p_visible;
 	}
 
-	public float getPortionVisible() @nogc nothrow
+	public float getPortionVisible()  nothrow
 	{
 		return mesh.visiblePortion;
 	}

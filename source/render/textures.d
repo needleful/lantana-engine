@@ -21,18 +21,18 @@ struct Bitmap(TextureDataType)
 	RealSize size;
 	TextureDataType* buffer;
 
-	public this(string p_filename)
+	public this(string p_filename) 
 	{
 		auto format = FreeImage_GetFileType(p_filename.ptr);
 		_bits = FreeImage_Load(format, p_filename.ptr);
 
-		assert(_bits != null, "Failed to load image: "~p_filename);
+		assert(_bits != null, p_filename);
 
 		size = RealSize(FreeImage_GetWidth(_bits), FreeImage_GetHeight(_bits));
 		buffer = cast(TextureDataType*)FreeImage_GetBits(_bits);
 	}
 
-	public ~this()
+	public ~this()  nothrow
 	{
 		FreeImage_Unload(_bits);
 	}
@@ -66,7 +66,7 @@ struct Texture(TextureDataType)
 	GLuint id;
 	RealSize size;
 
-	this(bool p_filter, ImageType p_type, ubyte[] p_data, ILanAllocator p_alloc)
+	this(bool p_filter, ImageType p_type, ubyte[] p_data, ref Region p_alloc) 
 	{
 		FREE_IMAGE_FORMAT format;
 		switch(p_type)
@@ -78,7 +78,7 @@ struct Texture(TextureDataType)
 				format = FIF_BMP;
 				break;
 			default:
-				debug writeln("Unsupported image format: ", p_type);
+				debug printf("Unsupported image format: %u\n", p_type);
 				assert(false);
 		}
 
@@ -112,7 +112,7 @@ struct Texture(TextureDataType)
 		reload();
 	}
 
-	this(string p_filename, bool p_filter, ILanAllocator p_alloc)
+	this(string p_filename, bool p_filter, ref Region p_alloc) 
 	{
 		Bitmap!tex b = Bitmap!tex(p_filename);
 		size = b.size;
@@ -142,23 +142,32 @@ struct Texture(TextureDataType)
 		reload();
 	}
 
-	this(RealSize p_size, bool p_filter, tex* p_buffer)
+	this(RealSize p_size, bool p_filter, tex* p_buffer) 
 	{
 		size - p_size;
 		buffer = p_buffer;
 
-		init(p_filter);
+		initialize(p_filter);
 	}
 
-	public this(RealSize p_size, bool p_filter, ILanAllocator p_alloc)
+	public this(ref Texture!tex rhs)
+	{
+		buffer = rhs.buffer;
+		id = rhs.id;
+		size = rhs.size;
+
+		rhs.id = 0;
+	}
+
+	public this(RealSize p_size, bool p_filter, ref Region p_alloc) 
 	{
 		size = p_size;
 		buffer = p_alloc.makeList!tex(size.width*size.height).ptr;
 
-		init(p_filter);
+		initialize(p_filter);
 	}
 
-	private void init(bool p_filter)
+	private void initialize(bool p_filter) 
 	{
 		glGenTextures(1, &id);
 		glBindTexture(GL_TEXTURE_2D, id);
@@ -169,13 +178,13 @@ struct Texture(TextureDataType)
 		reload();
 	}
 
-	public ~this()
+	public ~this()  nothrow
 	{
-		debug writefln("Deleting Texture %u", id);
+		debug printf("Deleting Texture %u\n", id);
 		glDeleteTextures(1, &id);
 	}
 
-	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data, bool p_swap_red_blue = false)
+	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data, bool p_swap_red_blue = false) 
 	{
 		debug import std.format;
 		// Return false if the texture can't be blit
@@ -215,7 +224,7 @@ struct Texture(TextureDataType)
 		return true;
 	}
 
-	void blitgrid(tex p_color)
+	void blitgrid(tex p_color) 
 	{
 		buffer[0..size.width*size.height] = tex.init;
 
@@ -238,13 +247,13 @@ struct Texture(TextureDataType)
 		reload();
 	}
 
-	public void clearColor(TextureDataType p_color)
+	public void clearColor(TextureDataType p_color) 
 	{
 		buffer[0..size.width*size.height] = p_color;
 		reload();
 	}
 
-	public void reload()
+	public void reload() 
 	{
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexImage2D(
@@ -265,20 +274,20 @@ struct TextureNode
 	RealSize size;
 	bool occupied;
 
-	this(ivec2 p_position, RealSize p_size) nothrow
+	this(ivec2 p_position, RealSize p_size)   nothrow
 	{
 		position = p_position;
 		size = p_size;
 	}
 
-	~this() nothrow
+	~this()   nothrow
 	{
 		// I want to minimize the number of empty nodes
 		// Occupied nodes point to a specific image, and joining nodes are necessary for splitting the atlas 
 		// debug printf("Deleting %s atlas node\n", occupied? "occupied".ptr : (isLeaf?"empty".ptr: "joining".ptr) );
 	}
 
-	bool isLeaf() nothrow
+	bool isLeaf()   nothrow
 	{
 		return left == null && right == null;
 	}
@@ -294,11 +303,17 @@ struct TextureAtlas(IdType, TextureDataType)
 
 	Texture!TextureDataType texture;
 
-	public this(RealSize p_size, ILanAllocator p_alloc)
+	public this(RealSize p_size, ref Region p_alloc) 
 	{
 		tree = TextureNode(ivec2(0,0), p_size);
 
 		texture = Texture!TextureDataType(p_size, false, p_alloc);
+	}
+
+	public this(RealSize p_size)
+	{
+		tree = TextureNode(ivec2(0,0), p_size);
+		texture = Texture!TextureDataType(p_size, false, new TextureDataType[p_size.width*p_size.height].ptr);
 	}
 
 	///TODO implement
@@ -400,7 +415,7 @@ struct TextureAtlas(IdType, TextureDataType)
 		return _getSpot(&tree, p_id, p_size);
 	}
 
-	void reload()
+	void reload() 
 	{
 		return texture.reload();
 	}

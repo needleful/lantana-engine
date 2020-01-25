@@ -10,6 +10,7 @@ import logic.input;
 import logic.player;
 import logic.scenes.load;
 
+import render.camera;
 import render.mesh;
 import render.lights;
 
@@ -21,25 +22,27 @@ struct Scene
 	Grid grid;
 	Player player;
 	ushort playerMesh, blockMesh;
+	Camera camera;
 
 	public this(
 		SceneLoader p_load,
-		ref StaticMeshSystem p_static,
-		ref AnimatedMeshSystem p_anim,
-		ILanAllocator p_alloc)
+		StaticMeshSystem* p_static,
+		AnimatedMeshSystem* p_anim,
+		ref Region p_alloc)
 	{
-		StaticMesh*[] smeshes;
-		AnimatedMesh*[] ameshes;
-		smeshes.reserve(p_load.files_staticMesh.length);
-		ameshes.reserve(p_load.files_animMesh.length);
+		p_static.clearMeshes();
+		p_anim.clearMeshes();
+
+		p_static.meshes = p_alloc.makeOwnedList!StaticMesh(cast(ushort)p_load.files_staticMesh.length);
+		p_anim.meshes = p_alloc.makeOwnedList!AnimatedMesh(cast(ushort)p_load.files_animMesh.length);
 
 		foreach(meshFile; p_load.files_staticMesh)
 		{
-			smeshes ~= p_static.load_mesh(meshFile, p_alloc);
+			p_static.loadMesh(meshFile, p_alloc);
 		}
 		foreach(meshFile; p_load.files_animMesh)
 		{
-			ameshes ~= p_anim.load_mesh(meshFile, p_alloc);
+			p_anim.loadMesh(meshFile, p_alloc);
 		}
 
 		staticMeshes = p_alloc.makeList!StaticMeshInstance(p_load.meshInstances.length);
@@ -48,14 +51,14 @@ struct Scene
 		foreach(i; 0..p_load.meshInstances.length)
 		{
 			auto m = &p_load.meshInstances[i];
-			staticMeshes[i].mesh = smeshes[m.id];
+			staticMeshes[i].mesh = &p_static.meshes[m.id];
 			staticMeshes[i].transform = m.transform;
 		}
 
 		foreach(i; 0..p_load.animatedInstances.length)
 		{
 			auto m = &p_load.animatedInstances[i];
-			animMeshes[i] = AnimatedMeshInstance(ameshes[m.id], m.transform, p_alloc);
+			animMeshes[i] = AnimatedMeshInstance(&p_anim.meshes[m.id], m.transform, p_alloc);
 			if(m.animation != "")
 			{
 				animMeshes[i].playAnimation(m.animation, m.loop);
@@ -73,9 +76,11 @@ struct Scene
 		worldLight.bias = p_load.lights.bias;
 		worldLight.areaCeiling = p_load.lights.areaCeiling;
 		worldLight.areaSpan = p_load.lights.areaSpan;
+
+		camera = p_load.camera;
 	}
 
-	void update(Input p_input, float p_delta)
+	void update(Input* p_input, float p_delta)
 	{
 		player.update(p_input, p_delta);
 

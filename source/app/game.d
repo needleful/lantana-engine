@@ -35,28 +35,52 @@ enum cam_speed = 8;
 
 float g_timescale = 1;
 
+struct GameManager
+{
+	private BaseRegion mainMem;
+	private SubRegion sceneMem;
+	OwnedRef!Input input;
+	OwnedRef!StaticMeshSystem staticSystem;
+	OwnedRef!AnimatedMeshSystem animSystem;
+	OwnedRef!Scene scene;
+
+	@disable this();
+
+	this(size_t p_memCapacity)
+	{
+		mainMem = BaseRegion(p_memCapacity);
+
+		input = mainMem.make!Input();
+
+		staticSystem = mainMem.make!StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
+		animSystem = mainMem.make!AnimatedMeshSystem(loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag"));
+
+
+		sceneMem = mainMem.provideRemainder();
+	}
+
+	void loadScene(SceneLoader p_scene)
+	{
+		sceneMem.wipe();
+		scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
+	}
+}
+
 int main()
 {
+	Window window = Window(720, 512, "Axe manor");
+	GameManager game = GameManager(MAX_MEMORY);
 	debug writeln("Running Axe Manor in debug mode!");
-	Window ww = Window(720, 512, "Axe Manor");
-	
-	//auto mm = new Region(MAX_MEMORY, new SysMemManager());
-	auto mm = new LanGCAllocator();
-	Input input = Input();
 
-	StaticMeshSystem smesh = StaticMeshSystem(3);
-	AnimatedMeshSystem anmesh = AnimatedMeshSystem(2);
-
-	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
+	UIRenderer ui = new UIRenderer(window.getSize());
 
 	FontId debugFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 20);
+	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 
-	string debugText = ": %6.3f\n: %6.3f\n: %6.3f";
-	TextBox frameTime = new TextBox(ui, debugFont, debugText, true);
-
+	TextBox frameTime = new TextBox(ui, debugFont, debugFormat, true);
 	ui.setRootWidget(new HodgePodge([
-		new Anchor(
-			new HBox([
+	new Anchor(
+		new HBox([
 				new TextBox(ui, debugFont, "Frame Time\nMax\nAverage"), 
 				frameTime
 			], 5),
@@ -66,12 +90,10 @@ int main()
 	]));
 
 	// Testing SceneLoader format
-	Scene currentScene = Scene(testScene(), smesh, anmesh, mm);
-
-	auto cam = mm.create!Camera(vec3(-3, -9, -3), 720.0/512, 60);
+	game.loadScene(testScene());
 
 	uint frame = 0;
-	int[2] wsize = ww.get_dimensions();
+	int[2] wsize = window.get_dimensions();
 
 	debug writeln("Beginning game loop");
 	stdout.flush();
@@ -82,9 +104,9 @@ int main()
 	float runningFrame = 0;
 	bool paused;
 
-	while(!ww.state[WindowState.CLOSED])
+	while(!window.state[WindowState.CLOSED])
 	{
-		float delta_ms = ww.delta_ms();
+		float delta_ms = window.delta_ms();
 		float delta = g_timescale*delta_ms/1000.0;
 		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
 		
@@ -93,51 +115,51 @@ int main()
 		{
 			maxDelta_ms = runningMaxDelta_ms;
 			runningMaxDelta_ms = -1;
-			frameTime.setText(format(debugText, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
+			frameTime.setText(format(debugFormat, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
 			runningFrame = 1;
 			accumDelta_ms = 0;
 		}
 		runningFrame ++;
 	
-		ww.poll_events(input);
+		window.pollEvents(game.input);
 
-		if(ww.state[WindowState.RESIZED])
+		if(window.state[WindowState.RESIZED])
 		{
-			wsize = ww.get_dimensions();
-			cam.set_projection(
+			wsize = window.get_dimensions();
+			game.scene.camera.set_projection(
 				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 			);
-			ui.setSize(ww.getSize());
+			ui.setSize(window.getSize());
 		}
 
-		if(input.is_just_pressed(Input.Action.PAUSE))
+		if(game.input.is_just_pressed(Input.Action.PAUSE))
 		{
 			paused = !paused;
-			ww.grab_mouse(!paused);
+			window.grab_mouse(!paused);
 		}
 
 		if(!paused)
 		{
-			cam.rot.x += input.mouse_movement.x*delta*60;
-			float next_rot = cam.rot.y + input.mouse_movement.y*delta*60;
+			game.scene.camera.rot.x += game.input.mouse_movement.x*delta*60;
+			float next_rot = game.scene.camera.rot.y + game.input.mouse_movement.y*delta*60;
 			if(abs(next_rot) < 90)
 			{
-				cam.rot.y = next_rot;
+				game.scene.camera.rot.y = next_rot;
 			}
 			
-			currentScene.update(input, delta);
+			game.scene.update(game.input, delta);
 
-			anmesh.update(delta, currentScene.animMeshes);
+			game.animSystem.update(delta, game.scene.animMeshes);
 		}
 		ui.update(delta);
 
-		ww.begin_frame();
-		mat4 vp = cam.vp();
-		anmesh.render(vp, currentScene.worldLight, currentScene.animMeshes);
-		smesh.render(vp, currentScene.worldLight, currentScene.staticMeshes);
+		window.begin_frame();
+		mat4 vp = game.scene.camera.vp();
+		game.animSystem.render(vp, game.scene.worldLight, game.scene.animMeshes);
+		game.staticSystem.render(vp, game.scene.worldLight, game.scene.staticMeshes);
 		ui.render();
 
-		ww.end_frame();
+		window.end_frame();
 		frame ++;
 	}
 	debug writeln("Game closing");

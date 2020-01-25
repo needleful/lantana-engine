@@ -75,24 +75,24 @@ struct BufferRange
 	uint start;
 	uint end;
 
-	this(int p_start, int p_end) nothrow @nogc @safe
+	this(int p_start, int p_end) nothrow  @safe
 	{
 		start = p_start;
 		end = p_end;
 	}
 
-	void clear() nothrow @nogc @safe
+	void clear() nothrow  @safe
 	{
 		start = uint.max;
 		end = uint.min;
 	}
 
-	void apply(BufferRange rhs) nothrow @nogc @safe
+	void apply(BufferRange rhs) nothrow  @safe
 	{
 		apply(rhs.start, rhs.end);
 	}
 
-	void apply(uint p_start, uint p_end) nothrow @nogc @safe
+	void apply(uint p_start, uint p_end) nothrow  @safe
 	{
 		start = start < p_start? start : p_start;
 		end = end > p_end? end : p_end;
@@ -219,7 +219,7 @@ public class UIRenderer
 		public methods -- basic
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public this(RealSize p_windowSize, ILanAllocator p_alloc)
+	public this(RealSize p_windowSize)
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		size = p_windowSize;
@@ -237,8 +237,8 @@ public class UIRenderer
 		initMaterials();
 		initBuffers();
 
-		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeSprite), p_alloc);
-		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText), p_alloc);
+		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeSprite));
+		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText));
 		debug
 		{
 			atlasSprite.texture.blitgrid(color(255,255,0,255));
@@ -311,7 +311,7 @@ public class UIRenderer
 		uvInvalid.clear();
 	}
 
-	public void render() @nogc
+	public void render() 
 	{
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
@@ -486,7 +486,7 @@ public class UIRenderer
 	}
 
 	/// Set the size of the quad (while removing translation)
-	public void setQuadSize(ushort[] p_vertices, RealSize p_size) @nogc nothrow
+	public void setQuadSize(ushort[] p_vertices, RealSize p_size)  nothrow
 	{
 		assert(p_vertices.length == 6);
 
@@ -501,7 +501,7 @@ public class UIRenderer
 		invalidated[UIData.PositionBufferPartial] = true;
 	}
 
-	public void translateQuad(ushort[] p_vertices, svec2 p_translation) @nogc nothrow
+	public void translateQuad(ushort[] p_vertices, svec2 p_translation)  nothrow
 	{
 		assert(p_vertices.length == 6);
 		ushort quadStart = p_vertices[0];
@@ -755,7 +755,7 @@ public class UIRenderer
 		p_mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
 
-	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation) @nogc nothrow
+	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
 	{
 		p_text.translation = p_translation;
 	}

@@ -19,19 +19,19 @@ struct Camera
 	vec3 pos;
 	vec2 rot;
 
-	this(vec3 position, float aspect, float fov) @safe @nogc nothrow
+	this(vec3 position, float aspect, float fov) @safe  nothrow
 	{
 		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		pos = position;
 		rot = vec2(0,0);
 	}
 
-	void set_projection(Projection p) @safe @nogc nothrow
+	void set_projection(Projection p) @safe  nothrow
 	{
 		projection = p.matrix;
 	}
 
-	mat4 calculate_view() @safe @nogc nothrow
+	mat4 calculate_view() @safe  nothrow
 	{
 		vec3 f = forward();
 		vec3 r = right();
@@ -55,14 +55,14 @@ struct Camera
 		return view;
 	}
 
-	@property mat4 vp() @safe @nogc nothrow
+	@property mat4 vp() @safe  nothrow
 	{
 		mat4 res = projection;
 		res *= calculate_view();
 		return res;
 	}
 
-	@property vec3 forward() @safe @nogc nothrow
+	@property vec3 forward() @safe  nothrow
 	{
 		float rx = radians(rot.x);
 		float ry = radians(rot.y);
@@ -77,7 +77,7 @@ struct Camera
 		return right().cross(forward());
 	}
 
-	@property vec3 right() @safe @nogc nothrow
+	@property vec3 right() @safe  nothrow
 	{
 		double rx = radians(rot.x);
 		double ry = radians(rot.y);

@@ -18,7 +18,7 @@ struct Projection
 	float nearPlane;
 	float farPlane;
 
-	this(float p_aspectRatio, float p_fov, float p_nearPlane, float p_farPlane) @nogc @safe nothrow
+	this(float p_aspectRatio, float p_fov, float p_nearPlane, float p_farPlane)  @safe nothrow
 	{
 		aspectRatio = p_aspectRatio;
 		fov = p_fov;
@@ -28,7 +28,7 @@ struct Projection
 		compute_matrix();
 	}
 
-	void compute_matrix() @nogc @safe nothrow
+	void compute_matrix()  @safe nothrow
 	{
 		float t = tan(radians(fov)/2);
 		float ar = aspectRatio;
@@ -44,7 +44,7 @@ struct Projection
 		);
 	}
 
-	@property ref mat4 matrix() @nogc @safe nothrow
+	@property ref mat4 matrix()  @safe nothrow
 	{
 		compute_matrix();
 		return _matrix;

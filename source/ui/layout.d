@@ -48,13 +48,13 @@ public struct IntrinsicSize
 	Bounds width;
 	Bounds height;
 
-	public this(Bounds p_width, Bounds p_height) @nogc nothrow
+	public this(Bounds p_width, Bounds p_height)  nothrow
 	{
 		width = p_width;
 		height = p_height;
 	}
 
-	const public bool inBounds(int p_width, int p_height) @nogc nothrow
+	const public bool inBounds(int p_width, int p_height)  nothrow
 	{
 		return width.contains(p_width) && height.contains(p_height);
 	}
@@ -65,7 +65,7 @@ public struct Bounds
 	double min;
 	double max;
 
-	this(double p_min, double p_max = -double.infinity) @nogc nothrow
+	this(double p_min, double p_max = -double.infinity)  nothrow
 	{
 		if(p_max < p_min)
 		{
@@ -75,13 +75,13 @@ public struct Bounds
 		max = p_max;
 	}
 
-	this(Bounds p_copy) @nogc nothrow
+	this(Bounds p_copy)  nothrow
 	{
 		min = p_copy.min;
 		max = p_copy.max;
 	}
 
-	const public bool contains(double value) @nogc nothrow
+	const public bool contains(double value)  nothrow
 	{
 		return min <= value && max >= value;
 	}
@@ -99,19 +99,19 @@ public struct RealSize
 		height = p_size;
 	}
 	
-	public this(int p_width, int p_height) @nogc nothrow
+	public this(int p_width, int p_height)  nothrow
 	{
 		width = p_width;
 		height = p_height;
 	}
 
-	public this(ivec2 p_vector) @nogc nothrow
+	public this(ivec2 p_vector)  nothrow
 	{
 		width = p_vector.x;
 		height = p_vector.y;
 	}
 
-	public RealSize opBinary(string op)(RealSize rhs) @nogc nothrow
+	public RealSize opBinary(string op)(RealSize rhs)  nothrow
 	{
 		static if(op == "+")
 			return RealSize(width + rhs.width, height + rhs.height);
@@ -121,12 +121,12 @@ public struct RealSize
 			assert(false, "No operator '"~op~"' between RealSize objects");
 	}
 
-	bool opEquals(RealSize rhs) @nogc nothrow const
+	bool opEquals(RealSize rhs)  nothrow const
 	{
 		return width == rhs.width && height == rhs.height;
 	}
 
-	bool contains(RealSize rhs) @nogc nothrow const
+	bool contains(RealSize rhs)  nothrow const
 	{
 		return width >= rhs.width && height >= rhs.height;
 	}

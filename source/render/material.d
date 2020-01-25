@@ -11,7 +11,6 @@ debug
 }
 
 import lanlib.util.gl;
-import lanlib.util.memory:GpuResource;
 import lanlib.types;
 
 import render.lights;
@@ -35,7 +34,7 @@ struct LightUniforms
 	UniformId area_ceiling, area_span;
 	UniformId palette;
 
-	this(ref Material p_mat)
+	this(ref Material p_mat) 
 	{
 		direction = p_mat.getUniformId("light_direction");
 		bias = p_mat.getUniformId("light_bias");
@@ -44,7 +43,7 @@ struct LightUniforms
 		palette = p_mat.getUniformId("light_palette");
 	}
 
-	void set(ref Material p_mat, ref LightInfo p_info)
+	void set(ref Material p_mat, ref LightInfo p_info) 
 	{
 		p_mat.setUniform(direction, p_info.direction);
 		p_mat.setUniform(bias, p_info.bias);
@@ -73,25 +72,24 @@ Material loadMaterial(const string p_vertFile, const string p_fragFile)
 		return Material(MaterialId(matId));
 }
 
-@GpuResource
 struct Material 
 {
 	MaterialId matId;
 
-	this(MaterialId p_matId) @safe @nogc nothrow
+	this(MaterialId p_matId) @safe  nothrow
 	{
 		matId = p_matId;
 	}
 
 	// Move constructors
 
-	this(Material p_rhs) @safe @nogc nothrow
+	this(ref Material p_rhs) @safe  nothrow
 	{
 		matId = p_rhs.matId;
 		p_rhs.matId = MaterialId(0u);
 	}
 
-	~this() @trusted @nogc nothrow
+	~this() @trusted  nothrow
 	{
 		debug printf("Destroying Material: %u\n", matId);
 		if(matId)
@@ -101,13 +99,13 @@ struct Material
 	}
 
 	// Move assignment
-	void OpAssign(ref Material p_rhs) @nogc @safe nothrow
+	void OpAssign(ref Material p_rhs)  @safe nothrow
 	{
 		matId = p_rhs.matId;
 		p_rhs.matId = MaterialId(0u);
 	}
 
-	const void enable() @nogc nothrow
+	const void enable()  nothrow
 	{
 		debug 
 		{
@@ -119,7 +117,7 @@ struct Material
 		matId.glUseProgram();
 	}
 
-	const bool canRender() @nogc
+	const bool canRender() 
 	{
 		scope(exit) glcheck;
 
@@ -149,7 +147,7 @@ struct Material
 		}
 	}
 
-	UniformId getUniformId(string p_name) @nogc const
+	UniformId getUniformId(string p_name)  const
 	{
 		scope(exit)
 		{
@@ -163,7 +161,7 @@ struct Material
 
 	}
 
-	bool setUniform(T)(const UniformId p_uniform, auto ref T p_value) @nogc
+	bool setUniform(T)(const UniformId p_uniform, auto ref T p_value) 
 	{
 		if(p_uniform == -1)
 		{
@@ -190,7 +188,7 @@ struct Material
 			}
 		}
 	}
-	AttribId getAttribId(const string p_attrib) @nogc const
+	AttribId getAttribId(const string p_attrib)  const
 	{
 		scope(exit) glcheck();
 
@@ -199,7 +197,7 @@ struct Material
 		return val;
 	}
 
-	void setAttribId(const string p_attrib, AttribId p_id) @nogc
+	void setAttribId(const string p_attrib, AttribId p_id) 
 	{
 		scope(exit) glcheck();
 		

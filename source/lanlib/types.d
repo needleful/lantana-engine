@@ -16,17 +16,17 @@ alias AlphaColor = Vector!(ubyte, 4);
 /// so this is a function that does exactly that.
 /// Otherwise, svec2 requires casting when constructing, like
 /// `svec2(cast(short)0, cast(short)1);`
-public svec2 svec(int x, int y) @nogc nothrow
+public svec2 svec(int x, int y)  nothrow
 {
 	return svec2(cast(short) x, cast(short) y);
 }
 
-public svec2 svec(ivec2 v) @nogc nothrow
+public svec2 svec(ivec2 v)  nothrow
 {
 	return svec2(cast(short) v.x, cast(short) v.y);
 }
 
-public svec2 add(svec2 lhs, svec2 rhs) @nogc nothrow pure
+public svec2 add(svec2 lhs, svec2 rhs)  nothrow pure
 {
 	svec2 ret;
 	ret.x = cast(short)(lhs.x + rhs.x);
@@ -80,17 +80,17 @@ mixin template StrictAlias(T)
 
 	@disable this(U)(U u);
 
-	this(T data) @nogc @safe nothrow
+	this(T data)  @safe nothrow
 	{
 		_handle = data;
 	}
 
-	T handle() const nothrow @nogc @safe pure
+	T handle() const nothrow  @safe pure
 	{
 		return _handle;
 	}
 
-	T* ptr() nothrow @nogc pure
+	T* ptr() nothrow  pure
 	{
 		return &_handle;
 	}

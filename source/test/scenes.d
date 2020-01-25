@@ -12,6 +12,8 @@ import logic.grid;
 import logic.player;
 import logic.scenes;
 
+import render.camera;
+
 SceneLoader testScene()
 {
 	SceneLoader s;
@@ -60,6 +62,8 @@ SceneLoader testScene()
 
 	s.player = Player(&s.grid, GridPos(1,0,0));
 	s.playerMeshInstance = 1;
+
+	s.camera = Camera(vec3(-3, -9, -3), 720.0/512, 60);
 
 	return s;
 }

@@ -21,7 +21,7 @@ enum GLBComponentType
 	FLOAT = 5126,
 }
 
-string toString(GLBComponentType p_type)
+string toString(GLBComponentType p_type)  nothrow
 {
 	switch(p_type)
 	{
@@ -32,19 +32,19 @@ string toString(GLBComponentType p_type)
 		case GLBComponentType.UNSIGNED_INT: return "UNSIGNED_INT";
 		case GLBComponentType.FLOAT: return "FLOAT";
 		default: 
-			debug
-			{
-				import std.format;
-				return format("UNKNOWN[%d]", p_type);
-			}
-			else
-			{
+			//debug
+			//{
+			//	import std.format;
+			//	return format("UNKNOWN[%d]", p_type);
+			//}
+			//else
+			//{
 				return "UNKNOWN";
-			}
+			//}
 	}
 }
 
-bool isCompatible(T)(GLBComponentType p_type)
+bool isCompatible(T)(GLBComponentType p_type)  nothrow
 {
 	static if(isTemplateType!(Vector, T))
 	{
@@ -81,7 +81,7 @@ bool isCompatible(T)(GLBComponentType p_type)
 	}
 }
 
-uint size(GLBComponentType p_type)
+uint size(GLBComponentType p_type)  nothrow
 {
 	switch(p_type)
 	{
@@ -92,8 +92,9 @@ uint size(GLBComponentType p_type)
 		case GLBComponentType.UNSIGNED_BYTE:  return 1;
 		case GLBComponentType.UNSIGNED_SHORT: return 2;
 		default: 
-			debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
-			else return -1;
+			//debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
+			//else
+				return -1;
 	}
 }
 
@@ -109,7 +110,7 @@ enum GLBDataType
 	UNKNOWN
 }
 
-bool isCompatible(T)(GLBDataType p_type)
+bool isCompatible(T)(GLBDataType p_type)  nothrow
 {
 	static if(isTemplateType!(Vector, T))
 	{
@@ -150,7 +151,7 @@ bool isCompatible(T)(GLBDataType p_type)
 	}
 }
 
-GLBDataType typeFromString(string p_type)
+GLBDataType typeFromString(string p_type) 
 {
 	switch(p_type)
 	{
@@ -162,12 +163,13 @@ GLBDataType typeFromString(string p_type)
 		case "MAT3"  : return GLBDataType.MAT3;
 		case "MAT4"  : return GLBDataType.MAT4;
 		default: 
-			debug throw new Exception("Invalid GLBDataType name: "~p_type);
-			else return GLBDataType.UNKNOWN;
+			//debug throw new Exception("Invalid GLBDataType name: "~p_type);
+			//else 
+				return GLBDataType.UNKNOWN;
 	}
 }
 
-string toString(GLBDataType p_type)
+string toString(GLBDataType p_type) 
 {
 	switch(p_type)
 	{
@@ -179,19 +181,19 @@ string toString(GLBDataType p_type)
 		case GLBDataType.MAT3   : return "MAT3";
 		case GLBDataType.MAT4   : return "MAT4";
 		default: 
-			debug
-			{
-				import std.format;
-				return format("UNKNOWN[%d]", p_type);
-			}
-			else
-			{
+			//debug
+			//{
+			//	import std.format;
+			//	return format("UNKNOWN[%d]", p_type);
+			//}
+			//else
+			//{
 				return "UNKNOWN";
-			}
+			//}
 	}
 }
 
-uint componentCount(GLBDataType p_type)
+uint componentCount(GLBDataType p_type)  nothrow
 {
 	switch(p_type)
 	{
@@ -203,8 +205,8 @@ uint componentCount(GLBDataType p_type)
 		case GLBDataType.MAT3: return 9;
 		case GLBDataType.MAT4: return 16;
 		default:
-			debug throw new Exception(format("Unknown GLBDataType: %u", p_type));
-			else return 0;
+			debug printf("Unknown GLBDataType: %u", p_type);
+			return 0;
 	}
 }
 
@@ -218,13 +220,13 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	const immutable(T[]) asArray(T)(ubyte[] p_buffer)
+	const immutable(T[]) asArray(T)(ubyte[] p_buffer) 
 	{
 		debug import std.format;
-		assert(dataType.isCompatible!T(), format("Incompatible dataType: %s!%s versus %s", 
+		debug assert(dataType.isCompatible!T(), format("Incompatible dataType: %s!%s versus %s", 
 			dataType.toString(), componentType.toString(), T.stringof));
 
-		assert(componentType.isCompatible!T(), format("Incompatible componentType: %s!%s versus %s", 
+		debug assert(componentType.isCompatible!T(), format("Incompatible componentType: %s!%s versus %s", 
 			dataType.toString(), componentType.toString(), T.stringof));
 
 		auto len = byteLength/
@@ -232,7 +234,7 @@ struct GLBBufferView
 		return cast(immutable(T[])) (cast(T*)(&p_buffer[byteOffset]))[0..len];
 	}
 
-	const bool isCompatible(T)()
+	const bool isCompatible(T)()  nothrow
 	{
 		return dataType.isCompatible!T() && componentType.isCompatible!T();
 	} 
@@ -337,7 +339,7 @@ struct GLBNode
 	// -1 means it has no parent
 	byte parent;
 
-	mat4 computeMatrix()
+	mat4 computeMatrix() 
 	{
 		mat4 result = mat4(
 			vec4(scale.x, 0.0f,     0.0f,     0),

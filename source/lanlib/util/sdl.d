@@ -20,7 +20,7 @@ import logic.input;
 import lanlib.util.gl;
 import ui.layout: RealSize;
 
-static Input.Action from_scancode(SDL_Scancode code) @nogc @safe nothrow
+static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow
 {
 	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
 	{
@@ -166,7 +166,7 @@ struct Window
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	~this() @nogc nothrow
+	~this()  nothrow
 	{
 		SDL_DestroyWindow(window);
 		SDL_GL_DeleteContext(glContext);
@@ -178,7 +178,7 @@ struct Window
 		SDL_SetRelativeMouseMode(grabbed? SDL_TRUE : SDL_FALSE);
 	}
 
-	void poll_events(ref Input input) @nogc nothrow
+	void pollEvents(Input* input)  nothrow
 	{
 		state.clear();
 		
@@ -257,19 +257,19 @@ struct Window
 		return [w, h];
 	}
 
-	void begin_frame() @nogc
+	void begin_frame() 
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	void end_frame() @nogc
+	void end_frame() 
 	{
 		SDL_GL_SwapWindow(window);
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	float delta_ms() @nogc nothrow
+	float delta_ms()  nothrow
 	{
 		float ms = time.peek.total!"usecs"/1000.0;
 		time.reset();

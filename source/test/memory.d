@@ -101,7 +101,7 @@ struct Level
 int testMemory()
 {
 	writeln("Beginning memory test");
-	Region mm = new Region(4096, new SysMemManager());
+	BaseRegion mm = BaseRegion(4096);
 
 	ubyte[] bytes1 = mm.testData!ubyte(27);
 	ubyte[] bytes2 = mm.testData!ubyte(48);
@@ -145,7 +145,7 @@ int testMemory()
 	return 0;
 }
 
-Type[] testData(Type)(ILanAllocator p_alloc, uint p_length)
+Type[] testData(Type)(ref Region p_alloc, uint p_length)
 {
 	Type[] data = p_alloc.makeList!Type(p_length);
 	foreach(int i; 0..p_length)

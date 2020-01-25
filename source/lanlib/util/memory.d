@@ -13,66 +13,191 @@ debug
 	import std.stdio;
 }
 
-/++
-  Anything with the @GpuResource attribute must have its destructor called
-  once its no longer valid.  As a result, no GpuResource types can be put on 
-  a Region.  They must be managed through some other method.
- +/
-enum GpuResource;
-
-/++
-  An interface for allocating data.
-+/
-interface ILanAllocator
+struct OwnedRef(Type)
 {
-	void* make(ulong bytes);
+	Type* data;
 
-	bool remove(void* data);
-}
-
-/+
- +  User-friendly methods for allocators 
- +/
-
-T[] makeList(T)(ILanAllocator alloc, ulong count)
-{
-	//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
-	return (cast(T*)alloc.make(T.sizeof * count))[0..count];
-}
-
-T *create(T, A...)(ILanAllocator alloc, auto ref A args)
-{
-	//debug printf("MEM: Creating instnace of %s\n", T.stringof.ptr);
-	T *ptr = cast(T*) alloc.make(T.sizeof);
-	assert(ptr != null, "Failed to allocate memory");
-	emplace!(T, A)(ptr, args);
-	return ptr;
-}
-
-bool remove_list(T)(ILanAllocator alloc, T[] data)
-{
-	return alloc.remove(cast(void*) data.ptr);
-}
-
-/++
- Manager for system memory.  Wraps malloc() and free()
- +/
-class SysMemManager : ILanAllocator
-{
-
-	import core.stdc.stdlib : malloc, free;
-
-	override void* make(ulong bytes) @nogc
+	this(Type* p_data) 
 	{
-		void* res = malloc(bytes);
-		GC.addRange(cast(ubyte*)res, bytes);
-		return res;
+		data = p_data;
 	}
-	override bool remove(void* data) @nogc
+
+	~this() 
 	{
-		free(data);
-		GC.removeRange(cast(ubyte*)data);
-		return true;
+		if(data)
+			destroy(data);
+	}
+
+	void opAssign(Type* p_val)
+	{
+		destroy(data);
+		data = p_val;
+	}
+
+	Type* borrow()
+	{
+		return data;
+	}
+
+	alias data this;
+}
+
+struct OwnedList(Type)
+{
+	private Type* m_ptr;
+	private ushort m_length;
+	private ushort m_capacity;
+
+	this(Type* p_ptr, ushort p_cap) 
+	{
+		m_ptr = p_ptr;
+		m_capacity = p_cap;
+		m_length = 0;
+	}
+
+	~this()
+	{
+		foreach(uint i; 0..m_length)
+		{
+			destroy!false(m_ptr[i]);
+		}
+	}
+
+	@property const(Type*) ptr()  nothrow const @safe
+	{
+		return m_ptr;
+	}
+
+	@property ushort length()  nothrow const @safe
+	{
+		return m_length;
+	}
+
+	@property ushort capacity()  nothrow const @safe
+	{
+		return m_capacity;
+	}
+
+	ref Type opIndex(int p_index) 
+	{
+		debug assert(p_index >= 0 && p_index < m_length, "Out of range");
+
+		return m_ptr[p_index];
+	}
+
+	int opApply(int delegate(ref Type) p_op) 
+	{
+		int result;
+		foreach(int i; 0..m_length)
+		{
+			result = p_op(m_ptr[i]);
+			if(result)
+			{
+				break;
+			}
+		}
+		return result;
+	}
+
+	void opOpAssign(string op)(auto ref Type rhs)
+		if(op == "~")
+	{
+		assert(m_length + 1 <= m_capacity, "Capacity exceeded");
+
+		m_ptr[m_length] = rhs;
+		m_length += 1;
+	}
+
+	void place(A...)(auto ref A args)
+	{
+		assert(m_length + 1 <= m_capacity, "Capacity exceeded");
+		emplace!(Type, A)(&m_ptr[m_length], args);
+		m_length += 1;
+	}
+
+	@property int opDollar()  const nothrow @safe
+	{
+		return m_length;
+	}
+
+	Type[] borrow() 
+	{
+		return m_ptr[0..m_length];
+	}
+
+	int find(ref Type toFind)
+	{
+		foreach(i; 0..m_length)
+		{
+			if(m_ptr[i] == toFind)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+}
+
+struct BaseRegion
+{
+	import std.experimental.allocator.mmap_allocator;
+	Region region;
+
+	this(size_t p_capacity) @nogc
+	{
+		ubyte* data = cast(ubyte*) MmapAllocator.instance.allocate(p_capacity).ptr;
+		GC.addRange(data, p_capacity);
+
+		assert(data != null, "Failed to get memory for region");
+		region = Region(data, p_capacity);
+	}
+
+	~this() @nogc
+	{
+		size_t used = region.spaceUsed();
+		size_t cap = region.capacity();
+		region.disable();
+
+		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
+		GC.removeRange(region.data);
+		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
+	}
+
+	SubRegion provideRemainder() 
+	{
+		size_t spaceRemaining = region.capacity() - region.spaceUsed();
+		return SubRegion(spaceRemaining, this);
+	}
+
+	alias region this;
+
+	Region* ptr() @nogc nothrow
+	{
+		return &region;
+	}
+}
+
+struct SubRegion
+{
+	Region region;
+
+	this(size_t p_capacity, ref BaseRegion p_parent) @nogc
+	{
+		ubyte* data = p_parent.makeList!ubyte(p_capacity).ptr;
+		assert(data != null, "Failed to get memory for region");
+		region = Region(data, p_capacity);
+	}
+
+	~this()
+	{
+		region.disable();
+	}
+
+	alias region this;
+
+	Region* ptr() @nogc nothrow
+	{
+		return &region;
 	}
 }
 
@@ -81,59 +206,58 @@ class SysMemManager : ILanAllocator
    It is the responsibility of the calling code to call destroy()
    on any objects that manage other resources.
 +/
-class Region : ILanAllocator
+struct Region
 {
-	enum minimumSize = ulong.sizeof*2;
+	enum minimumSize = size_t.sizeof*2;
 
-	ILanAllocator parent;
-	ubyte *data;
+	ubyte* data;
 
-	this(ulong p_capacity, ILanAllocator p_parent)
+	this(ubyte* p_data, size_t p_capacity) @nogc
 	{
-		parent = p_parent;
 		assert(p_capacity > minimumSize);
-		data = parent.makeList!ubyte(p_capacity).ptr;
-
-		assert(data != null, "Failed to get memory for region");
-
+		data = p_data;
 		setCapacity(p_capacity);
-		setSpaceUsed(2*ulong.sizeof);
+		setSpaceUsed(2*size_t.sizeof);
 
-		debug printf("Creating Region with %u bytes\n", p_capacity);
+		debug printf("Creating Region with %u bytes\n", capacity());
 	}
 
-	~this()
+	void disable() @nogc
 	{
-		ulong used = spaceUsed();
-		ulong cap = capacity();
 		setCapacity(0);
 		setSpaceUsed(0);
 		data = null;
-		parent.remove(cast(void*)data);
-		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
-	override void* make(ulong bytes)
+	/+
+	 +  User-friendly methods for allocation 
+	 +/
+	T[] makeList(T)(size_t count)
 	{
-		if(bytes + spaceUsed > capacity)
+		//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
+		return (cast(T*)alloc(T.sizeof * count))[0..count];
+	}
+
+	OwnedList!T makeOwnedList(T)(ushort p_size) 
+	{
+		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);
+	}
+
+	auto make(T, A...)(auto ref A args)
+	{
+		//debug printf("MEM: Creating instnace of %s\n", T.stringof.ptr);
+		static if(is(T == class))
 		{
-			debug
-				assert(false, "Out of memory");
-			else
-				return null;
+			void[] buffer = alloc(T.sizeof)[0..T.sizeof];
+			assert(buffer.ptr != null, "Failed to allocate memory");
+			return emplace!(T, A)(buffer, args);
 		}
-		void* result = cast(void*)(&data[spaceUsed]);
-		setSpaceUsed(spaceUsed + bytes);
-
-		//debug printf("MEM: Allocating %u bytes, total: %u\n", bytes, spaceUsed);
-
-		return result;
-	}
-
-	override bool remove(void* data)
-	{
-		// Regions don't remove things
-		return false;
+		else
+		{
+			T *ptr = cast(T*) alloc(T.sizeof);
+			assert(ptr != null, "Failed to allocate memory");
+			return emplace!(T, A)(ptr, args);
+		}
 	}
 
 	/// Wipe all data from the stack
@@ -142,39 +266,60 @@ class Region : ILanAllocator
 		setSpaceUsed(minimumSize);
 	}
 
-	@property ulong capacity() @nogc const nothrow
+	private void* alloc(size_t bytes) @nogc
 	{
-		return (cast(ulong*)data)[0];
+		if((bytes + spaceUsed()) > capacity())
+		{
+			printf("Exceeded memory limits: %u > %u\n", bytes + spaceUsed(), capacity());
+			debug
+				assert(false, "Out of memory");
+			else
+				return null;
+		}
+		void* result = cast(void*)(&data[spaceUsed]);
+		setSpaceUsed(spaceUsed + bytes);
+
+		return result;
 	}
 
-	@property ulong spaceUsed() @nogc const nothrow
+	private bool remove(void* data) @nogc nothrow
 	{
-		return (cast(ulong*)data)[1];
-	}
-
-	private void setCapacity(ulong val) @nogc nothrow
-	{
-		(cast(ulong*)data)[0] = val;
-	}
-
-	private void setSpaceUsed(ulong val) @nogc nothrow
-	{
-		(cast(ulong *) data)[1] = val;
-		assert(spaceUsed() == val);
-	}
-}
-
-class LanGCAllocator: ILanAllocator
-{
-	void* make(ulong bytes)
-	{
-		import std.experimental.allocator.gc_allocator;
-		return GCAllocator.instance.allocate(bytes).ptr;
-	}
-
-	bool remove (void* data)
-	{
-		// Automatic
+		// Regions don't remove things
 		return false;
 	}
+
+	size_t capacity() @nogc const nothrow
+	{
+		return (cast(size_t*)data)[0];
+	}
+
+	size_t spaceUsed() @nogc const nothrow
+	{
+		return (cast(size_t*)data)[1];
+	}
+
+	private void setCapacity(size_t val) @nogc nothrow
+	{
+		(cast(size_t*)data)[0] = val;
+	}
+
+	private void setSpaceUsed(size_t val) @nogc nothrow
+	{
+		(cast(size_t *) data)[1] = val;
+	}
 }
+
+//class LanGCAllocator: ref Region
+//{
+//	void* make(ulong bytes)
+//	{
+//		import std.experimental.allocator.gc_allocator;
+//		return GCAllocator.instance.allocate(bytes).ptr;
+//	}
+
+//	bool remove (void* data)
+//	{
+//		// Automatic
+//		return false;
+//	}
+//}

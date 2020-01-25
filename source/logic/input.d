@@ -38,7 +38,7 @@ struct Input
 	// Status of all buttons
 	Status[Action.ACTION_COUNT] status;
 
-	void press(Action a) @nogc @safe nothrow
+	void press(Action a)  @safe nothrow
 	{
 		if(status[a] == Status.JUST_PRESSED || status[a] == Status.DOWN)
 		{
@@ -52,7 +52,7 @@ struct Input
 		}
 	}
 
-	void release(Action a) @nogc @safe nothrow
+	void release(Action a)  @safe nothrow
 	{
 		if(status[a] == Status.JUST_RELEASED || status[a] == Status.UP)
 		{
@@ -65,7 +65,7 @@ struct Input
 	}
 
 	// Reset input, for example when re-entering the window
-	void clear() @nogc @safe nothrow
+	void clear()  @safe nothrow
 	{
 		analog_left = vec2(0,0);
 		analog_right = vec2(0,0);
@@ -76,15 +76,15 @@ struct Input
 		}
 	}
 
-	const bool is_pressed(Action a) @nogc @safe nothrow
+	const bool is_pressed(Action a)  @safe nothrow
 	{
 		return status[a] == Status.DOWN || status[a]  == Status.JUST_PRESSED;
 	}
-	const bool is_just_pressed(Action a) @nogc @safe nothrow
+	const bool is_just_pressed(Action a)  @safe nothrow
 	{
 		return status[a] == Status.JUST_PRESSED;
 	}
-	const bool is_just_released(Action a) @nogc @safe nothrow
+	const bool is_just_released(Action a)  @safe nothrow
 	{
 		return status[a] == Status.JUST_RELEASED;
 	}

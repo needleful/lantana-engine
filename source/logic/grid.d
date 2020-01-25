@@ -16,7 +16,7 @@ enum GridDirection
 	RIGHT,
 }
 
-float getRealRotation(GridDirection p_dir) @nogc @safe nothrow
+float getRealRotation(GridDirection p_dir)  @safe nothrow
 {
 	switch(p_dir)
 	{
@@ -37,42 +37,42 @@ struct GridPos
 {
 	alias vt = Vector!(short, 3);
 	vt pos;
-	this(short x, short y, short z) @nogc nothrow @safe
+	this(short x, short y, short z)  nothrow @safe
 	{
 		pos = vt(x, y, z);
 	}
 
-	public bool opEquals(GridPos rhs) @nogc @safe nothrow
+	public bool opEquals(GridPos rhs)  @safe nothrow
 	{
 		return rhs.pos == pos;
 	}
 
-	ref @property short x() @nogc nothrow @safe
+	ref @property short x()  nothrow @safe
 	{
 		return pos.x;
 	}
 
-	ref @property short y() @nogc nothrow @safe
+	ref @property short y()  nothrow @safe
 	{
 		return pos.y;
 	}
 
-	ref @property short z() @nogc nothrow @safe
+	ref @property short z()  nothrow @safe
 	{
 		return pos.z;
 	}
 
-	const @property short x() @nogc nothrow @safe
+	const @property short x()  nothrow @safe
 	{
 		return pos.x;
 	}
 
-	const @property short y() @nogc nothrow @safe
+	const @property short y()  nothrow @safe
 	{
 		return pos.y;
 	}
 
-	const @property short z() @nogc nothrow @safe
+	const @property short z()  nothrow @safe
 	{
 		return pos.z;
 	}
@@ -115,14 +115,14 @@ struct Grid
 	float timer_move = 0;
 	bool active = false;
 
-	public this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0)) @nogc @safe nothrow
+	public this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0))  @safe nothrow
 	{
 		this.lowBounds = lowBounds;
 		this.highBounds = highBounds;
 		this.position = position;
 	}
 
-	public void update(float p_delta) @nogc @safe nothrow
+	public void update(float p_delta)  @safe nothrow
 	{
 		if(!active) return;
 
@@ -138,7 +138,7 @@ struct Grid
 		}
 	}
 
-	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push, ref bool p_pushed) @nogc @safe nothrow
+	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push, ref bool p_pushed)  @safe nothrow
 	{
 		active = true;
 
@@ -196,14 +196,14 @@ struct Grid
 		return to;
 	}
 
-	public bool inBounds(GridPos gp) @nogc @safe nothrow const
+	public bool inBounds(GridPos gp)  @safe nothrow const
 	{
 		return gp.x >= lowBounds.x && gp.x <= highBounds.x
 			&& gp.y >= lowBounds.y && gp.y <= highBounds.y
 			&& gp.z >= lowBounds.z && gp.z <= highBounds.z;
 	}
 
-	public vec3 getRealPosition(GridPos p_current, GridPos p_target) @nogc @safe nothrow const
+	public vec3 getRealPosition(GridPos p_current, GridPos p_target)  @safe nothrow const
 	{
 		assert(inBounds(p_current));
 		assert(inBounds(p_target));
