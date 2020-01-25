@@ -56,7 +56,7 @@ bool isCompatible(T)(GLBComponentType p_type)
 	}
 	else static if(isTemplateType!(Quaternion, T))
 	{
-		alias ValueType = Q.qt;
+		alias ValueType = T.qt;
 	}
 	else
 	{
@@ -107,6 +107,47 @@ enum GLBDataType
 	MAT3,
 	MAT4,
 	UNKNOWN
+}
+
+bool isCompatible(T)(GLBDataType p_type)
+{
+	static if(isTemplateType!(Vector, T))
+	{
+		switch(p_type)
+		{
+			case GLBDataType.VEC2:
+				return T.dimension == 2;
+			case GLBDataType.VEC3:
+				return T.dimension == 3;
+			case GLBDataType.VEC4:
+				return T.dimension == 4;
+			default:
+				return false;
+		}
+	}
+	else static if(isTemplateType!(Matrix, T))
+	{
+		case GLBDataType.MAT2:
+			return T.rows == 2 && T.columns == 2;
+		case GLBDataType.MAT3:
+			return T.rows == 3 && T.columns == 3;
+		case GLBDataType.MAT4:
+			return T.rows == 4 && T.columns == 4;
+		default:
+			return false;
+
+	}
+	else
+	{
+		if(p_type == GLBDataType.SCALAR)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
 
 GLBDataType typeFromString(string p_type)
@@ -177,16 +218,24 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	immutable(T[]) asArray(T)(immutable(ubyte[]) p_buffer) const
+	const immutable(T[]) asArray(T)(ubyte[] p_buffer)
 	{
 		debug import std.format;
-		assert(componentType.isCompatible!T(), format("Incompatible buffers: %s!%s versus %s", 
+		assert(dataType.isCompatible!T(), format("Incompatible dataType: %s!%s versus %s", 
+			dataType.toString(), componentType.toString(), T.stringof));
+
+		assert(componentType.isCompatible!T(), format("Incompatible componentType: %s!%s versus %s", 
 			dataType.toString(), componentType.toString(), T.stringof));
 
 		auto len = byteLength/
 			(dataType.componentCount()*componentType.size());
-		return cast(immutable(T[]))(cast(T*)(&p_buffer[byteOffset]))[0..len];
+		return cast(immutable(T[])) (cast(T*)(&p_buffer[byteOffset]))[0..len];
 	}
+
+	const bool isCompatible(T)()
+	{
+		return dataType.isCompatible!T() && componentType.isCompatible!T();
+	} 
 }
 
 enum ImageType

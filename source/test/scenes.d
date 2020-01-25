@@ -25,8 +25,8 @@ SceneLoader testScene()
 	);
 
 	s.files_staticMesh = [
+		"data/test/meshes/tree_temperate01.glb",
 		"data/test/meshes/funny-cube.glb",
-		"data/test/meshes/tree_temperate01.glb"
 	];
 
 	s.files_animMesh = [
@@ -35,11 +35,11 @@ SceneLoader testScene()
 	];
 
 	s.meshInstances = [
-		MeshInstanceLoader(0, Transform(4, vec3(0, 5, 0))),
-		MeshInstanceLoader(0, Transform(4, vec3(8, 0, 8))),
-		MeshInstanceLoader(0, Transform(1)),
-		MeshInstanceLoader(0, Transform(1)),
-		MeshInstanceLoader(1, Transform(1, vec3(5, 0, 0)))
+		MeshInstanceLoader(0, Transform(1, vec3(5, 0, 0))),
+		MeshInstanceLoader(1, Transform(4, vec3(0, 5, 0))),
+		MeshInstanceLoader(1, Transform(4, vec3(8, 0, 8))),
+		MeshInstanceLoader(1, Transform(1)),
+		MeshInstanceLoader(1, Transform(1)),
 	];
 
 	s.animatedInstances = [
@@ -47,9 +47,8 @@ SceneLoader testScene()
 		AnimatedInstanceLoader(1, Transform(1), "FreeIdle")
 	];
 
-
 	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
-	s.blockInstancesOffset = 2;
+	s.blockInstancesOffset = 3;
 	s.grid.blocks = [
 		GridBlock(GridPos(2, 0, 2)),
 		GridBlock(GridPos(3, 0, 3))

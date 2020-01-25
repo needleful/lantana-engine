@@ -25,22 +25,22 @@ enum GpuResource;
 +/
 interface ILanAllocator
 {
-	void* make(ulong bytes) @nogc;
+	void* make(ulong bytes);
 
-	bool remove(void* data) @nogc;
+	bool remove(void* data);
 }
 
 /+
  +  User-friendly methods for allocators 
  +/
 
-T[] makeList(T)(ILanAllocator alloc, ulong count) @nogc
+T[] makeList(T)(ILanAllocator alloc, ulong count)
 {
 	//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
 	return (cast(T*)alloc.make(T.sizeof * count))[0..count];
 }
 
-T *create(T, A...)(ILanAllocator alloc, auto ref A args) @nogc 
+T *create(T, A...)(ILanAllocator alloc, auto ref A args)
 {
 	//debug printf("MEM: Creating instnace of %s\n", T.stringof.ptr);
 	T *ptr = cast(T*) alloc.make(T.sizeof);
@@ -49,7 +49,7 @@ T *create(T, A...)(ILanAllocator alloc, auto ref A args) @nogc
 	return ptr;
 }
 
-bool remove_list(T)(ILanAllocator alloc, T[] data) @nogc
+bool remove_list(T)(ILanAllocator alloc, T[] data)
 {
 	return alloc.remove(cast(void*) data.ptr);
 }
@@ -88,7 +88,7 @@ class Region : ILanAllocator
 	ILanAllocator parent;
 	ubyte *data;
 
-	this(ulong p_capacity, ILanAllocator p_parent) @nogc
+	this(ulong p_capacity, ILanAllocator p_parent)
 	{
 		parent = p_parent;
 		assert(p_capacity > minimumSize);
@@ -102,7 +102,7 @@ class Region : ILanAllocator
 		debug printf("Creating Region with %u bytes\n", p_capacity);
 	}
 
-	~this() @nogc
+	~this()
 	{
 		ulong used = spaceUsed();
 		ulong cap = capacity();
@@ -113,7 +113,7 @@ class Region : ILanAllocator
 		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
-	override void* make(ulong bytes) @nogc 
+	override void* make(ulong bytes)
 	{
 		if(bytes + spaceUsed > capacity)
 		{
@@ -161,5 +161,20 @@ class Region : ILanAllocator
 	{
 		(cast(ulong *) data)[1] = val;
 		assert(spaceUsed() == val);
+	}
+}
+
+class LanGCAllocator: ILanAllocator
+{
+	void* make(ulong bytes)
+	{
+		import std.experimental.allocator.gc_allocator;
+		return GCAllocator.instance.allocate(bytes).ptr;
+	}
+
+	bool remove (void* data)
+	{
+		// Automatic
+		return false;
 	}
 }

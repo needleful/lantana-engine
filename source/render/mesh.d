@@ -236,7 +236,8 @@ struct AnimatedMeshSystem
 	AnimatedMesh* load_mesh(string p_filename, ILanAllocator p_allocator)
 	{
 		auto loaded = glbLoad!true(p_filename, p_allocator);
-		meshes ~= AnimatedMesh(this, loaded.accessors[0], loaded, p_allocator);
+		meshes.length += 1;
+		meshes[$-1] = AnimatedMesh(this, loaded.accessors[0], loaded, p_allocator);
 		return &meshes[$-1];
 	}
 
@@ -321,19 +322,9 @@ struct AnimatedMeshSystem
 	/// Only supports linear interpolation
 	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst)
 	{
-		debug scope(failure) 
-		{
-			import std.stdio;
-			writeln("Dumping mesh contents:");
-			foreach(ubyte b; inst.mesh.data)
-			{
-				writef("%02X", b);
-			}
-			writeln();
-		}
 		inst.time += p_delta;
-		const(GLBAnimation)* anim = &inst.currentAnimation;
-		foreach(const ref channel; anim.channels)
+		const(GLBAnimation*) anim = &inst.currentAnimation;
+		foreach(ref channel; anim.channels)
 		{
 			auto keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
 			ulong frame = 0;
@@ -440,12 +431,12 @@ struct AnimatedMeshSystem
 
 struct AnimatedMesh
 {
-	immutable(GLBNode[]) bones;
-	immutable(mat4[]) inverseBindMatrices;
-	immutable(ubyte[]) data;
-	immutable(GLBAnimation[]) animations;
-	immutable(GLBAnimatedAccessor) accessor;
-	immutable(Texture!Color) tex_albedo;
+	GLBNode[] bones;
+	mat4[] inverseBindMatrices;
+	ubyte[] data;
+	GLBAnimation[] animations;
+	GLBAnimatedAccessor accessor;
+	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
 	this(ref AnimatedMeshSystem p_system, GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded, ILanAllocator p_alloc)
