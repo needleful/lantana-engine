@@ -337,6 +337,10 @@ struct AnimatedMeshSystem
 	/// Only supports linear interpolation
 	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst) 
 	{
+		//debug scope(failure)
+		//{
+		//	writefln("Failed in mesh %s, animation %s", inst.mesh.accessor.name, inst.currentAnimation.name);
+		//}
 		inst.time += p_delta;
 		const(GLBAnimation)* anim = inst.currentAnimation;
 		foreach(ref channel; anim.channels)

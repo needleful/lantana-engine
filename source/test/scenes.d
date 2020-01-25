@@ -32,8 +32,8 @@ SceneLoader testScene()
 	];
 
 	s.files_animMesh = [
+		"data/test/meshes/kitty-test.glb",
 		"data/test/meshes/anim_test.glb",
-		"data/test/meshes/kitty-test.glb"
 	];
 
 	s.meshInstances = [
@@ -45,8 +45,8 @@ SceneLoader testScene()
 	];
 
 	s.animatedInstances = [
-		AnimatedInstanceLoader(0, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
-		AnimatedInstanceLoader(1, Transform(1), "FreeIdle")
+		AnimatedInstanceLoader(0, Transform(1), "FreeIdle"),
+		AnimatedInstanceLoader(1, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
 	];
 
 	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
@@ -61,7 +61,7 @@ SceneLoader testScene()
 	];
 
 	s.player = Player(&s.grid, GridPos(1,0,0));
-	s.playerMeshInstance = 1;
+	s.playerMeshInstance = 0;
 
 	s.camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
 
