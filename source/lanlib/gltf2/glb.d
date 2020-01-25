@@ -51,7 +51,7 @@ struct GLBAnimatedLoadResults
 auto glbLoad(bool animated = false)(string p_file, ref Region p_alloc)
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
-	debug scope(failure) writeln("Could not load "~p_file);
+	//debug scope(failure) writeln("Could not load "~p_file);
 
 	auto input = File(p_file, "rb");
 	uint[3] header;
@@ -104,14 +104,14 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		uint idx = 0;
 		foreach(animation; anims)
 		{
-			result.animations[idx++] = animationFromJSON(animation, bufferViews, access);
+			result.animations.place(idx++, animation, bufferViews, access);
 		}
 
 		auto nodes = scn["nodes"].array();
 		auto skin = scn["skins"].array()[0];
 
 		auto ibm_index = skin["inverseBindMatrices"].integer();
-		result.inverseBindMatrices = bufferFromJSON(access[ibm_index], bufferViews);
+		result.inverseBindMatrices = GLBBufferView(access[ibm_index], bufferViews);
 		auto joints = skin["joints"].array();
 		result.bones = p_alloc.makeList!GLBNode(joints.length);
 
@@ -121,7 +121,7 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 			long node_idx = joint.integer();
 			auto node = nodes[node_idx];
 
-			result.bones[idx++] = nodeFromJSON(node);
+			result.bones[idx++] = GLBNode(node);
 
 			auto result_bone = &result.bones[idx-1];
 			// slow, naive parent retrieval but I don't give a shit
@@ -156,13 +156,13 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 			}
 		}
 		// Convert animations bone indeces to skin indeces
-		foreach(anim; result.animations)
+		foreach(ref anim; result.animations)
 		{
 			foreach(ref chan; anim.channels)
 			{
 				auto targetBone = chan.targetBone;
 				ubyte jointIndex = 0;
-				foreach(j; joints)
+				foreach(ref j; joints)
 				{
 					if(j.integer() == targetBone)
 					{
@@ -208,16 +208,16 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 
 		with(accessor)
 		{
-			indices = bufferFromJSON(access[ac_indeces], bufferViews);
+			indices = GLBBufferView(access[ac_indeces], bufferViews);
 			p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
 
-			positions = bufferFromJSON(access[ac_position], bufferViews);
+			positions = GLBBufferView(access[ac_position], bufferViews);
 			p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
 
-			normals = bufferFromJSON(access[ac_normal], bufferViews);
+			normals = GLBBufferView(access[ac_normal], bufferViews);
 			p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
 
-			uv = bufferFromJSON(access[ac_uv], bufferViews);
+			uv = GLBBufferView(access[ac_uv], bufferViews);
 			p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
 			
 			auto material = scn["materials"][primitives["material"].integer()];
@@ -235,126 +235,15 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 			{
 				auto ac_weights = atr["WEIGHTS_0"].integer();
 				auto ac_joints = atr["JOINTS_0"].integer();
-				bone_weight = bufferFromJSON(access[ac_weights], bufferViews);
+				bone_weight = GLBBufferView(access[ac_weights], bufferViews);
 				p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
 
-				bone_idx = bufferFromJSON(access[ac_joints], bufferViews);
+				bone_idx = GLBBufferView(access[ac_joints], bufferViews);
 				p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
 			}
 		}
 	}
 	return result;
-}
-
-GLBBufferView bufferFromJSON(JSONValue p_access, JSONValue[] p_views)
-{
-	uint idx_buffer = cast(uint)p_access["bufferView"].integer();
-	auto b = p_views[idx_buffer];
-
-	GLBBufferView view;
-	view.componentType = cast(GLBComponentType) p_access["componentType"].integer();
-	view.dataType = typeFromString(p_access["type"].str());
-	view.byteOffset = cast(uint) b["byteOffset"].integer();
-	view.byteLength = cast(uint) b["byteLength"].integer();
-	return view;
-}
-
-
-GLBNode nodeFromJSON(JSONValue p_node)
-{
-	GLBNode bone;
-	bone.translation = vec3(0);
-	bone.scale = vec3(1);
-	bone.rotation = quat.identity();
-	
-	if("translation" in p_node)
-	{
-		auto tr = p_node["translation"].array();
-		bone.translation = vec3(
-			tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
-			tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
-			tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
-	}
-
-	if("rotation" in p_node)
-	{
-		auto rot = p_node["rotation"].array();
-
-		bone.rotation = quat(
-			rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer(),
-			rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
-			rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
-			rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer());
-	}
-
-	if("scale" in p_node)
-	{
-		auto scl = p_node["scale"].array();
-
-		bone.scale = vec3(
-			scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
-			scl[1].type == JSONType.float_ ? scl[1].floating(): scl[1].integer(),
-			scl[2].type == JSONType.float_ ? scl[2].floating(): scl[2].integer());
-	}
-	bone.parent = -1;
-	return bone;
-}
-
-GLBAnimation animationFromJSON(JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
-{
-	GLBAnimation a;
-	a.name = p_anim["name"].str();
-	auto channels = p_anim["channels"].array();
-	a.channels.reserve(channels.length);
-
-	auto samplers = p_anim["samplers"].array();
-	// heuristic guess for bufferViews length
-	a.bufferViews.reserve(samplers.length + 3);
-
-	// Have to keep track of previously allocated buffers
-	ubyte[] inputBuffers;
-	ubyte[] outputBuffers;
-	inputBuffers.reserve(samplers.length);
-	outputBuffers.reserve(samplers.length);
-
-	foreach(channel; channels)
-	{
-		a.channels.length += 1;
-		auto chan = &a.channels[$-1];
-
-		auto target = channel["target"];
-		chan.targetBone = cast(ubyte) target["node"].integer();
-		chan.path = pathFromString(target["path"].str());
-
-		auto sourceSampler = channel["sampler"].integer();
-		auto sampler = samplers[sourceSampler];
-
-		chan.interpolation = interpolationFromString(sampler["interpolation"].str());
-
-		auto input = cast(ubyte) sampler["input"].integer();
-		auto output = cast(ubyte) sampler["output"].integer();
-
-		auto input_index = inputBuffers.indexOf(input);
-		if(input_index < 0)
-		{
-			inputBuffers ~= input;
-			auto in_access = access[input];
-			a.bufferViews ~= bufferFromJSON(in_access, p_views);
-			ubyte index = cast(ubyte) (a.bufferViews.length - 1);
-			chan.timeBuffer = index;
-		}
-
-		auto output_index = outputBuffers.indexOf(output);
-		if(output_index < 0)
-		{
-			outputBuffers ~= output;
-			auto in_access = access[output];
-			a.bufferViews ~= bufferFromJSON(in_access, p_views);
-			ubyte index = cast(ubyte) (a.bufferViews.length - 1);
-			chan.valueBuffer = index;
-		}
-	}
-	return a;
 }
 
 void glbPrint(ref GLBAnimatedLoadResults p_loaded)

@@ -154,13 +154,11 @@ struct BaseRegion
 
 	~this() @nogc
 	{
-		size_t used = region.spaceUsed();
-		size_t cap = region.capacity();
+		ulong cap = region.capacity();
 		region.disable();
 
 		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
 		GC.removeRange(region.data);
-		debug printf("Deleted Region with %u/%u bytes allocated\n", used, cap);
 	}
 
 	SubRegion provideRemainder() 
@@ -224,6 +222,7 @@ struct Region
 
 	void disable() @nogc
 	{
+		debug printf("Deleting Region with %u/%u bytes allocated\n", spaceUsed(), capacity());
 		setCapacity(0);
 		setSpaceUsed(0);
 		data = null;

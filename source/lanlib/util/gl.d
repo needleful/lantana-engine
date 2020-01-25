@@ -23,13 +23,31 @@ debug
 	import std.format;
 }
 
-void glcheck()  @safe
+void glcheck() @safe
 {
+	string errorString(GLint err)
+	{
+		switch(err)
+		{
+			case GL_NO_ERROR:
+				return "No Error";
+			case GL_INVALID_ENUM:
+				return "Invalid Enum";
+			case GL_INVALID_VALUE:
+				return "Invalid Value";
+			case GL_INVALID_FRAMEBUFFER_OPERATION:
+				return "Invalid Framebuffer Operation";
+			case GL_OUT_OF_MEMORY:
+				return "Out of Memory";
+			default:
+				return "Unknown Error";
+		}
+	}
 	debug
 	{
 		GLint err = glGetError();
 		assert(err == GL_NO_ERROR, 
-			format("OpenGL had an error: %u (%X)", err, err));
+			format("OpenGL had an error: %u (%X), %s", err, err, errorString(err)));
 	}
 }
 

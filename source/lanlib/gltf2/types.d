@@ -4,12 +4,18 @@
 
 module lanlib.gltf2.types;
 
+import std.file;
 debug import std.format;
+import std.json;
 import std.stdio;
+import std.typecons: tuple;
 
 import gl3n.linalg;
-
+import lanlib.gltf2.types;
+import lanlib.math.func;
 import lanlib.types;
+import lanlib.util.memory;
+import lanlib.util.array;
 
 enum GLBComponentType
 {
@@ -21,7 +27,7 @@ enum GLBComponentType
 	FLOAT = 5126,
 }
 
-string toString(GLBComponentType p_type)  nothrow
+string toString(GLBComponentType p_type)
 {
 	switch(p_type)
 	{
@@ -32,19 +38,19 @@ string toString(GLBComponentType p_type)  nothrow
 		case GLBComponentType.UNSIGNED_INT: return "UNSIGNED_INT";
 		case GLBComponentType.FLOAT: return "FLOAT";
 		default: 
-			//debug
-			//{
-			//	import std.format;
-			//	return format("UNKNOWN[%d]", p_type);
-			//}
-			//else
-			//{
+			debug
+			{
+				import std.format;
+				return format("UNKNOWN[%d]", p_type);
+			}
+			else
+			{
 				return "UNKNOWN";
-			//}
+			}
 	}
 }
 
-bool isCompatible(T)(GLBComponentType p_type)  nothrow
+bool isCompatible(T)(GLBComponentType p_type) @nogc nothrow
 {
 	static if(isTemplateType!(Vector, T))
 	{
@@ -81,7 +87,7 @@ bool isCompatible(T)(GLBComponentType p_type)  nothrow
 	}
 }
 
-uint size(GLBComponentType p_type)  nothrow
+uint size(GLBComponentType p_type)
 {
 	switch(p_type)
 	{
@@ -92,8 +98,8 @@ uint size(GLBComponentType p_type)  nothrow
 		case GLBComponentType.UNSIGNED_BYTE:  return 1;
 		case GLBComponentType.UNSIGNED_SHORT: return 2;
 		default: 
-			//debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
-			//else
+			debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
+			else
 				return -1;
 	}
 }
@@ -163,8 +169,8 @@ GLBDataType typeFromString(string p_type)
 		case "MAT3"  : return GLBDataType.MAT3;
 		case "MAT4"  : return GLBDataType.MAT4;
 		default: 
-			//debug throw new Exception("Invalid GLBDataType name: "~p_type);
-			//else 
+			debug throw new Exception("Invalid GLBDataType name: "~p_type);
+			else 
 				return GLBDataType.UNKNOWN;
 	}
 }
@@ -181,15 +187,15 @@ string toString(GLBDataType p_type)
 		case GLBDataType.MAT3   : return "MAT3";
 		case GLBDataType.MAT4   : return "MAT4";
 		default: 
-			//debug
-			//{
-			//	import std.format;
-			//	return format("UNKNOWN[%d]", p_type);
-			//}
-			//else
-			//{
+			debug
+			{
+				import std.format;
+				return format("UNKNOWN[%d]", p_type);
+			}
+			else
+			{
 				return "UNKNOWN";
-			//}
+			}
 	}
 }
 
@@ -220,7 +226,7 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	const immutable(T[]) asArray(T)(ubyte[] p_buffer) 
+	const immutable(T[]) asArray(T)(ubyte[] p_buffer)
 	{
 		debug import std.format;
 		debug assert(dataType.isCompatible!T(), format("Incompatible dataType: %s!%s versus %s", 
@@ -234,10 +240,21 @@ struct GLBBufferView
 		return cast(immutable(T[])) (cast(T*)(&p_buffer[byteOffset]))[0..len];
 	}
 
+	this(JSONValue p_access, JSONValue[] p_views)
+	{
+		uint idx_buffer = cast(uint)p_access["bufferView"].integer();
+		auto b = p_views[idx_buffer];
+
+		this.componentType = cast(GLBComponentType) p_access["componentType"].integer();
+		this.dataType = typeFromString(p_access["type"].str());
+		this.byteOffset = cast(uint) b["byteOffset"].integer();
+		this.byteLength = cast(uint) b["byteLength"].integer();
+	}
+
 	const bool isCompatible(T)()  nothrow
 	{
 		return dataType.isCompatible!T() && componentType.isCompatible!T();
-	} 
+	}
 }
 
 enum ImageType
@@ -354,6 +371,44 @@ struct GLBNode
 
 		return result;
 	}
+
+	this (JSONValue p_node)
+	{
+		this.translation = vec3(0);
+		this.scale = vec3(1);
+		this.rotation = quat.identity();
+		
+		if("translation" in p_node)
+		{
+			auto tr = p_node["translation"].array();
+			this.translation = vec3(
+				tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
+				tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
+				tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
+		}
+
+		if("rotation" in p_node)
+		{
+			auto rot = p_node["rotation"].array();
+
+			this.rotation = quat(
+				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer(),
+				rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
+				rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
+				rot[2].type == JSONType.float_ ? rot[2].floating(): rot[2].integer());
+		}
+
+		if("scale" in p_node)
+		{
+			auto scl = p_node["scale"].array();
+
+			this.scale = vec3(
+				scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
+				scl[1].type == JSONType.float_ ? scl[1].floating(): scl[1].integer(),
+				scl[2].type == JSONType.float_ ? scl[2].floating(): scl[2].integer());
+		}
+		this.parent = -1;
+	}
 }
 
 struct GLBAnimation
@@ -366,6 +421,61 @@ struct GLBAnimation
 	{
 		return format("%s [%u channels, %u buffers]", 
 			name, channels.length, bufferViews.length);
+	}
+
+	this (JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
+	{
+		name = p_anim["name"].str();
+		auto jchan = p_anim["channels"].array();
+		channels.reserve(jchan.length);
+
+		auto samplers = p_anim["samplers"].array();
+		// heuristic guess for bufferViews length
+		bufferViews.reserve(samplers.length + 3);
+
+		// Have to keep track of previously allocated buffers
+		ubyte[] inputBuffers;
+		ubyte[] outputBuffers;
+		inputBuffers.reserve(samplers.length);
+		outputBuffers.reserve(samplers.length);
+
+		foreach(channel; jchan)
+		{
+			channels.length += 1;
+			auto chan = &channels[$-1];
+
+			auto target = channel["target"];
+			chan.targetBone = cast(ubyte) target["node"].integer();
+			chan.path = pathFromString(target["path"].str());
+
+			auto sourceSampler = channel["sampler"].integer();
+			auto sampler = samplers[sourceSampler];
+
+			chan.interpolation = interpolationFromString(sampler["interpolation"].str());
+
+			auto input = cast(ubyte) sampler["input"].integer();
+			auto output = cast(ubyte) sampler["output"].integer();
+
+			auto input_index = inputBuffers.indexOf(input);
+			if(input_index < 0)
+			{
+				inputBuffers ~= input;
+				auto in_access = access[input];
+				bufferViews ~= GLBBufferView(in_access, p_views);
+				ubyte index = cast(ubyte) (bufferViews.length - 1);
+				chan.timeBuffer = index;
+			}
+
+			auto output_index = outputBuffers.indexOf(output);
+			if(output_index < 0)
+			{
+				outputBuffers ~= output;
+				auto in_access = access[output];
+				bufferViews ~= GLBBufferView(in_access, p_views);
+				ubyte index = cast(ubyte) (bufferViews.length - 1);
+				chan.valueBuffer = index;
+			}
+		}
 	}
 }
 

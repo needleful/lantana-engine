@@ -120,7 +120,7 @@ struct StaticMesh
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref StaticMeshSystem p_parent, GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ref Region p_alloc) 
+	this(ref StaticMeshSystem p_parent, ref GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ref Region p_alloc) 
 	{
 		data = p_data;
 		accessor = p_accessor;
@@ -255,6 +255,7 @@ struct AnimatedMeshSystem
 
 	void update(float p_delta, AnimatedMeshInstance[] p_instances) 
 	{
+		glcheck();
 		debug uint inst_id = 0;
 		foreach(ref inst; p_instances)
 		{
@@ -266,7 +267,7 @@ struct AnimatedMeshSystem
 			{
 				updateAnimation(p_delta, inst);
 			}
-			mat4 applyParentTransform(GLBNode node, ref GLBNode[] nodes) 
+			mat4 applyParentTransform(ref GLBNode node, ref GLBNode[] nodes) 
 			{
 				if(node.parent >= 0)
 				{
@@ -284,6 +285,7 @@ struct AnimatedMeshSystem
 					* inst.mesh.inverseBindMatrices[i].transposed();
 			}
 		}
+		glcheck();
 	}
 
 	void render(mat4 projection, ref LightInfo p_lights, AnimatedMeshInstance[] p_instances) 
@@ -307,6 +309,7 @@ struct AnimatedMeshSystem
 		AnimatedMesh* current_mesh = null;
 		foreach(ref inst; p_instances)
 		{
+			glcheck();
 			inst.transform.computeMatrix();
 			mat.setUniform(un.transform, inst.transform.matrix);
 			mat.setUniform(un.bones, inst.boneMatrices);
@@ -335,7 +338,7 @@ struct AnimatedMeshSystem
 	private void updateAnimation(float p_delta, ref AnimatedMeshInstance inst) 
 	{
 		inst.time += p_delta;
-		const(GLBAnimation*) anim = &inst.currentAnimation;
+		const(GLBAnimation)* anim = inst.currentAnimation;
 		foreach(ref channel; anim.channels)
 		{
 			auto keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(inst.mesh.data);
@@ -380,7 +383,7 @@ struct AnimatedMeshSystem
 					inst.is_playing = false;
 			}
 
-			auto valueBuffer = anim.bufferViews[channel.valueBuffer];
+			auto valueBuffer = &anim.bufferViews[channel.valueBuffer];
 			switch(channel.path)
 			{
 				case GLBAnimationPath.TRANSLATION:
@@ -457,7 +460,7 @@ struct AnimatedMesh
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem p_system, GLBAnimatedAccessor p_accessor, GLBAnimatedLoadResults p_loaded, ref Region p_alloc) 
+	this(ref AnimatedMeshSystem p_system, ref GLBAnimatedAccessor p_accessor, ref GLBAnimatedLoadResults p_loaded, ref Region p_alloc) 
 	{
 		data = p_loaded.data;
 		bones = p_loaded.bones;
@@ -569,7 +572,7 @@ struct AnimatedMeshInstance
 	GLBNode[] bones;
 	mat4[] boneMatrices;
 	AnimatedMesh* mesh;
-	GLBAnimation currentAnimation;
+	const(GLBAnimation)* currentAnimation;
 	Transform transform;
 	float time;
 	bool is_updated;
@@ -604,11 +607,11 @@ struct AnimatedMeshInstance
 	bool playAnimation(string p_name, bool p_looping = false) 
 	{
 		is_updated = false;
-		foreach(anim; mesh.animations)
+		foreach(ref anim; mesh.animations)
 		{
 			if(anim.name == p_name)
 			{
-				currentAnimation = anim;
+				currentAnimation = &anim;
 				time = 0;
 				is_playing = true;
 				looping = p_looping;
@@ -620,7 +623,7 @@ struct AnimatedMeshInstance
 		return false;
 	}
 
-	void pause() 
+	void pause()
 	{
 		is_playing = false;
 	}
