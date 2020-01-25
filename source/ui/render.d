@@ -346,7 +346,7 @@ public class UIRenderer
 		// TODO: text color should be configurable
 		matText.setUniform(uniText.color, vec3(1, 0.7, 1));
 		
-		foreach(tm; textMeshes)
+		foreach(ref tm; textMeshes)
 		{
 			matText.setUniform(uniText.translation, tm.translation);
 			glDrawElements(

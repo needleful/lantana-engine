@@ -144,7 +144,7 @@ struct Texture(TextureDataType)
 
 	this(RealSize p_size, bool p_filter, tex* p_buffer) 
 	{
-		size - p_size;
+		size = p_size;
 		buffer = p_buffer;
 
 		initialize(p_filter);

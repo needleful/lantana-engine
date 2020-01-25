@@ -28,7 +28,7 @@ SceneLoader testScene()
 
 	s.files_staticMesh = [
 		"data/test/meshes/funny-cube.glb",
-		//"data/test/meshes/tree_temperate01.glb",
+		"data/test/meshes/tree_temperate01.glb",
 	];
 
 	s.files_animMesh = [
@@ -41,7 +41,7 @@ SceneLoader testScene()
 		MeshInstanceLoader(0, Transform(4, vec3(8, 0, 8))),
 		MeshInstanceLoader(0, Transform(1)),
 		MeshInstanceLoader(0, Transform(1)),
-		//MeshInstanceLoader(1, Transform(1, vec3(5, 0, 0))),
+		MeshInstanceLoader(1, Transform(1, vec3(5, 0, 0))),
 	];
 
 	s.animatedInstances = [
@@ -63,7 +63,7 @@ SceneLoader testScene()
 	s.player = Player(&s.grid, GridPos(1,0,0));
 	s.playerMeshInstance = 1;
 
-	s.camera = Camera(vec3(-3, -9, -3), 720.0/512, 60);
+	s.camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
 
 	return s;
 }
