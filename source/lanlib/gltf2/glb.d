@@ -104,7 +104,7 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		uint idx = 0;
 		foreach(animation; anims)
 		{
-			result.animations.place(idx++, animation, bufferViews, access);
+			result.animations ~= animationFromJSON(p_alloc, animation, bufferViews, access);
 		}
 
 		auto nodes = scn["nodes"].array();
@@ -121,7 +121,7 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 			long node_idx = joint.integer();
 			auto node = nodes[node_idx];
 
-			result.bones[idx++] = GLBNode(node);
+			result.bones.place(idx++, node);
 
 			auto result_bone = &result.bones[idx-1];
 			// slow, naive parent retrieval but I don't give a shit
@@ -288,7 +288,7 @@ void glbPrintBuffer(ref GLBBufferView p_view, ubyte[] p_bytes)
 			break;
 	}
 }
-void printThis(Type)(GLBBufferView p_view, ubyte[] p_bytes)
+void printThis(Type)(ref GLBBufferView p_view, ubyte[] p_bytes)
 {
 	switch(p_view.dataType)
 	{
@@ -320,7 +320,7 @@ void printThis(Type)(GLBBufferView p_view, ubyte[] p_bytes)
 	}
 }
 
-void printThisStuff(Type)(GLBBufferView p_view, ubyte[] p_data)
+void printThisStuff(Type)(ref GLBBufferView p_view, ubyte[] p_data)
 {
 	uint length = p_view.byteLength/Type.sizeof;
 	Type[] values = (cast(Type*)(&p_data[p_view.byteOffset]))[0..length];
@@ -329,4 +329,65 @@ void printThisStuff(Type)(GLBBufferView p_view, ubyte[] p_data)
 		write("\t->");
 		writeln(value);
 	}
+}
+
+GLBAnimation animationFromJSON(ref Region p_alloc, JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
+{
+	auto jchan = p_anim["channels"].array();
+	auto samplers = p_anim["samplers"].array();
+
+	// Indices into the bufferViews array
+	ushort[] buffers;
+	foreach(ref sampler; samplers)
+	{
+		auto input = cast(ushort) sampler["input"].integer();
+		auto output = cast(ushort) sampler["output"].integer();
+
+		if(buffers.indexOf(input) < 0)
+		{
+			buffers ~= input;
+		}
+		if(buffers.indexOf(output) < 0)
+		{
+			buffers ~= output;
+		}
+	}
+
+	GLBAnimation anim;
+	anim.name = p_anim["name"].str();
+	anim.channels = p_alloc.makeList!GLBAnimationChannel(jchan.length);
+	anim.bufferViews = p_alloc.makeList!GLBBufferView(buffers.length);
+
+	foreach(animIndex, bufferIndex; buffers)
+	{
+		anim.bufferViews.place(cast(uint) animIndex, access[bufferIndex], p_views);
+	}
+
+	foreach(index, ref channel; jchan)
+	{
+		auto sourceSampler = channel["sampler"].integer();
+		auto sampler = samplers[sourceSampler];
+		auto target = channel["target"];
+
+
+		auto chan = &anim.channels[index];
+		chan.targetBone = cast(ubyte) target["node"].integer();
+		chan.path = pathFromString(target["path"].str());
+
+		chan.interpolation = interpolationFromString(sampler["interpolation"].str());
+
+		auto input = cast(ushort) sampler["input"].integer();
+		auto output = cast(ushort) sampler["output"].integer();
+
+		auto timeIdx = buffers.indexOf(input);
+		auto valIdx = buffers.indexOf(output);
+
+		assert(timeIdx >= 0);
+		assert(valIdx >= 0);
+
+		chan.timeBuffer = cast(ushort) timeIdx;
+		chan.valueBuffer = cast(ushort) valIdx;
+	}
+
+	return anim;
 }

@@ -269,6 +269,7 @@ struct Region
 	{
 		if((bytes + spaceUsed()) > capacity())
 		{
+			import std.stdio;
 			printf("Exceeded memory limits: %u > %u\n", bytes + spaceUsed(), capacity());
 			debug
 				assert(false, "Out of memory");

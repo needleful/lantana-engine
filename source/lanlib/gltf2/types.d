@@ -341,9 +341,9 @@ struct GLBAnimationChannel
 	/// The property to animate
 	GLBAnimationPath path;
 	/// Index of BufferView for keyframe times
-	ubyte timeBuffer;
+	ushort timeBuffer;
 	/// Index of the BufferView for keyframe values
-	ubyte valueBuffer;
+	ushort valueBuffer;
 	/// Index of the bone being animated
 	ubyte targetBone;
 }
@@ -423,59 +423,11 @@ struct GLBAnimation
 			name, channels.length, bufferViews.length);
 	}
 
-	this (JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
+	this(string p_name, GLBAnimationChannel[] p_channels, GLBBufferView[] p_bufferViews) @nogc
 	{
-		name = p_anim["name"].str();
-		auto jchan = p_anim["channels"].array();
-		channels.reserve(jchan.length);
-
-		auto samplers = p_anim["samplers"].array();
-		// heuristic guess for bufferViews length
-		bufferViews.reserve(samplers.length + 3);
-
-		// Have to keep track of previously allocated buffers
-		ubyte[] inputBuffers;
-		ubyte[] outputBuffers;
-		inputBuffers.reserve(samplers.length);
-		outputBuffers.reserve(samplers.length);
-
-		foreach(channel; jchan)
-		{
-			channels.length += 1;
-			auto chan = &channels[$-1];
-
-			auto target = channel["target"];
-			chan.targetBone = cast(ubyte) target["node"].integer();
-			chan.path = pathFromString(target["path"].str());
-
-			auto sourceSampler = channel["sampler"].integer();
-			auto sampler = samplers[sourceSampler];
-
-			chan.interpolation = interpolationFromString(sampler["interpolation"].str());
-
-			auto input = cast(ubyte) sampler["input"].integer();
-			auto output = cast(ubyte) sampler["output"].integer();
-
-			auto input_index = inputBuffers.indexOf(input);
-			if(input_index < 0)
-			{
-				inputBuffers ~= input;
-				auto in_access = access[input];
-				bufferViews ~= GLBBufferView(in_access, p_views);
-				ubyte index = cast(ubyte) (bufferViews.length - 1);
-				chan.timeBuffer = index;
-			}
-
-			auto output_index = outputBuffers.indexOf(output);
-			if(output_index < 0)
-			{
-				outputBuffers ~= output;
-				auto in_access = access[output];
-				bufferViews ~= GLBBufferView(in_access, p_views);
-				ubyte index = cast(ubyte) (bufferViews.length - 1);
-				chan.valueBuffer = index;
-			}
-		}
+		name = p_name;
+		channels = p_channels;
+		bufferViews = p_bufferViews;
 	}
 }
 
