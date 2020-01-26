@@ -16,6 +16,8 @@ void main()
 {
 	float light = dot(normalize(light_direction), normalize(vert_normal)) + light_bias;
 
+	light = smoothstep(0.3, 0.7, light);
+
 	vec3 albedo = texture(tex_albedo, vec2(vert_uv.x, -vert_uv.y)).rgb;
 	vec3 light_mult = texture(light_palette, vec2(light, area_gradient)).rgb;
 
