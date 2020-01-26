@@ -13,3 +13,4 @@ logs
 *-devin-pc*
 *.blend[0-9]
 *.*~
+*.log
