@@ -10,6 +10,7 @@ import lanlib.gltf2;
 import lanlib.math.projection;
 import lanlib.math.transform;
 import lanlib.types;
+import lanlib.util.files;
 import lanlib.util.memory;
 import lanlib.util.sdl;
 
@@ -71,10 +72,15 @@ struct GameManager
 
 int main()
 {
+	// Loader test
+	storeBinary("data/scenes/test1.lnt", testScene());
+	storeBinary("data/scenes/test2.lnt", testScene2());
+	// Testing done.
+
 	Window window = Window(720, 512, "Axe manor");
 	GameManager game = GameManager(MAX_MEMORY);
 	// Testing SceneLoader format
-	game.loadScene(testScene());
+	game.loadScene(loadBinary!SceneLoader("data/scenes/test1.lnt"));
 	debug writeln("Running Axe Manor in debug mode!");
 
 	UIRenderer ui = new UIRenderer(window.getSize());
@@ -145,10 +151,17 @@ int main()
 		}
 		if(game.input.is_just_pressed(Input.Action.DEBUG_LOADLEVEL))
 		{
-			game.loadScene(testScene2());
-			game.scene.camera.set_projection(
-				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
-			);
+			if(game.scene.nextScene != "")
+			{
+				game.loadScene(loadBinary!SceneLoader(game.scene.nextScene));
+				game.scene.camera.set_projection(
+					Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+				);
+			}
+			else
+			{
+				writeln("No scene to go to!");
+			}
 		}
 
 		if(!paused)

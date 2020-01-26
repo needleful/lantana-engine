@@ -68,8 +68,8 @@ struct LevelState
 
 struct SceneLoader
 {
-	/// Filename of the gridset GLB file
-	string file_gridset;
+	/// Filename of the next scene
+	string file_nextScene;
 	/// List of static mesh GLBs
 	string[] files_staticMesh;
 	/// List of animated mesh GLBs

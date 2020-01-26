@@ -35,8 +35,9 @@ int main()
 
 	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
-	ref Region mm = new Region(1024*1024*16, new SysMemManager());
-	UIRenderer ui = new UIRenderer(ww.getSize(), mm);
+	auto mm = BaseRegion(1024*1024*16);
+
+	UIRenderer ui = new UIRenderer(ww.getSize());
 
 	ww.grab_mouse(false);
 
@@ -77,7 +78,7 @@ int main()
 	ui.update(0.016f);
 	while(!ww.state[WindowState.CLOSED])
 	{
-		ww.pollEvents(ii);
+		ww.pollEvents(&ii);
 
 		if(ww.state[WindowState.RESIZED])
 		{

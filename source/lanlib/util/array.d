@@ -19,7 +19,7 @@ long indexOf(Type)(Type[] list, auto ref Type toFind)
 	return -1;
 }
 
-void place(Type, A...)(Type[] list, uint index, auto ref A args)
+void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);
 }

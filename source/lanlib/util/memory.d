@@ -263,7 +263,7 @@ struct Region
 	}
 
 	T copy(T)(T p_string)
-		if(isNarrowString!T)
+		if(isSomeString!T)
 	{
 		return cast(T) copyList(p_string);
 	}

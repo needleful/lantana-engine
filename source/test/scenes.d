@@ -18,6 +18,8 @@ SceneLoader testScene()
 {
 	SceneLoader s;
 
+	s.file_nextScene = "data/scenes/test2.lnt";
+
 	s.lights = LightLoader(
 		vec3(-0.2, -1, 0.1), // Direction
 		0.3, // Bias
@@ -74,6 +76,7 @@ SceneLoader testScene2()
 
 	with(scene)
 	{
+		file_nextScene = "data/scenes/test1.lnt";
 		lights = LightLoader(
 			vec3(0.2, -1, 0.1),
 			0.2, -6, 8,

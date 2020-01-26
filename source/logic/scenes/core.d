@@ -18,6 +18,7 @@ struct Scene
 {
 	StaticMeshInstance[] staticMeshes;
 	AnimatedMeshInstance[] animMeshes;
+	string nextScene;
 	LightInfo worldLight;
 	Grid grid;
 	Player player;
@@ -75,6 +76,8 @@ struct Scene
 		worldLight.areaSpan = p_load.lights.areaSpan;
 
 		camera = p_load.camera;
+
+		nextScene = p_alloc.copy(p_load.file_nextScene);
 	}
 
 	void update(Input* p_input, float p_delta)

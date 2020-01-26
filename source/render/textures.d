@@ -24,6 +24,8 @@ struct Bitmap(TextureDataType)
 	public this(string p_filename) 
 	{
 		auto format = FreeImage_GetFileType(p_filename.ptr);
+		assert(format != FIF_UNKNOWN);
+
 		_bits = FreeImage_Load(format, p_filename.ptr);
 
 		assert(_bits != null, p_filename);
@@ -32,8 +34,9 @@ struct Bitmap(TextureDataType)
 		buffer = cast(TextureDataType*)FreeImage_GetBits(_bits);
 	}
 
-	public ~this()  nothrow
+	public ~this()
 	{
+		writeln("Deleting Bitmap");
 		FreeImage_Unload(_bits);
 	}
 }
@@ -83,6 +86,7 @@ struct Texture(TextureDataType)
 		}
 
 		FIMEMORY* mem = FreeImage_OpenMemory(p_data.ptr, cast(uint)p_data.length);
+		scope(exit) FreeImage_CloseMemory(mem);
 		FIBITMAP* bitmap = FreeImage_LoadFromMemory(format, mem);
 		size = RealSize(FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap));
 
@@ -90,6 +94,7 @@ struct Texture(TextureDataType)
 		buffer = p_alloc.makeList!tex(length).ptr;
 
 		buffer[0..length] = (cast(tex*)FreeImage_GetBits(bitmap))[0..length];
+		FreeImage_Unload(bitmap);
 
 		glGenTextures(1, &id);
 		glBindTexture(GL_TEXTURE_2D, id);
