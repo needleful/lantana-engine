@@ -146,6 +146,9 @@ int main()
 		if(game.input.is_just_pressed(Input.Action.DEBUG_LOADLEVEL))
 		{
 			game.loadScene(testScene2());
+			game.scene.camera.set_projection(
+				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+			);
 		}
 
 		if(!paused)

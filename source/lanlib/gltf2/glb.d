@@ -199,7 +199,7 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 
 		if("name" in m)
 		{
-			accessor.name = m["name"].str();
+			accessor.name = p_alloc.copy(m["name"].str());
 		}
 		auto ac_indeces = primitives["indices"].integer();
 		auto ac_position = atr["POSITION"].integer();
