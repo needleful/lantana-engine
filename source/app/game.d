@@ -59,14 +59,23 @@ struct GameManager
 		sceneMem = mainMem.provideRemainder();
 	}
 
-	void loadScene(SceneLoader p_scene)
+	void loadScene(SceneLoader p_scene, bool p_preserveCamRotation = false)
 	{
 		staticSystem.clearMeshes();
 		animSystem.clearMeshes();
 
 		sceneMem.wipe();
 
-		scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
+		if(p_preserveCamRotation)
+		{
+			vec2 rotation = scene.camera.rot;
+			scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
+			scene.camera.rot = rotation;
+		}
+		else
+		{
+			scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
+		}
 	}
 }
 
@@ -153,7 +162,7 @@ int main()
 		{
 			if(game.scene.nextScene != "")
 			{
-				game.loadScene(loadBinary!SceneLoader(game.scene.nextScene));
+				game.loadScene(loadBinary!SceneLoader(game.scene.nextScene), true);
 				game.scene.camera.set_projection(
 					Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 				);

@@ -23,6 +23,7 @@ struct Bitmap(TextureDataType)
 
 	public this(string p_filename) 
 	{
+		debug scope(failure) writeln("Failed to load bitmap: ", p_filename);
 		auto format = FreeImage_GetFileType(p_filename.ptr);
 		assert(format != FIF_UNKNOWN);
 
@@ -36,7 +37,6 @@ struct Bitmap(TextureDataType)
 
 	public ~this()
 	{
-		writeln("Deleting Bitmap");
 		FreeImage_Unload(_bits);
 	}
 }
