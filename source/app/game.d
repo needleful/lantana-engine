@@ -60,7 +60,11 @@ struct GameManager
 
 	void loadScene(SceneLoader p_scene)
 	{
+		staticSystem.clearMeshes();
+		animSystem.clearMeshes();
+
 		sceneMem.wipe();
+
 		scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
 	}
 }
@@ -138,6 +142,10 @@ int main()
 		{
 			paused = !paused;
 			window.grab_mouse(!paused);
+		}
+		if(game.input.is_just_pressed(Input.Action.DEBUG_LOADLEVEL))
+		{
+			game.loadScene(testScene2());
 		}
 
 		if(!paused)

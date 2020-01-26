@@ -30,9 +30,6 @@ struct Scene
 		AnimatedMeshSystem* p_anim,
 		ref Region p_alloc)
 	{
-		p_static.clearMeshes();
-		p_anim.clearMeshes();
-
 		p_static.meshes = p_alloc.makeOwnedList!StaticMesh(cast(ushort)p_load.files_staticMesh.length);
 		p_anim.meshes = p_alloc.makeOwnedList!AnimatedMesh(cast(ushort)p_load.files_animMesh.length);
 

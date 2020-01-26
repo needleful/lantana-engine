@@ -104,7 +104,7 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		uint idx = 0;
 		foreach(animation; anims)
 		{
-			result.animations ~= animationFromJSON(p_alloc, animation, bufferViews, access);
+			result.animations[idx++] = animationFromJSON(p_alloc, animation, bufferViews, access);
 		}
 
 		auto nodes = scn["nodes"].array();
@@ -354,7 +354,7 @@ GLBAnimation animationFromJSON(ref Region p_alloc, JSONValue p_anim, JSONValue[]
 	}
 
 	GLBAnimation anim;
-	anim.name = p_anim["name"].str();
+	anim.name = p_alloc.copy(p_anim["name"].str());
 	anim.channels = p_alloc.makeList!GLBAnimationChannel(jchan.length);
 	anim.bufferViews = p_alloc.makeList!GLBBufferView(buffers.length);
 

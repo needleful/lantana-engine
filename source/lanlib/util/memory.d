@@ -5,7 +5,7 @@
 module lanlib.util.memory;
 
 import std.conv : emplace;
-import std.traits : hasUDA;
+import std.traits;
 import core.memory;
 
 debug
@@ -57,6 +57,9 @@ struct OwnedList(Type)
 
 	~this()
 	{
+		m_ptr = null;
+		m_capacity = 0;
+		m_length = 0;
 		foreach(uint i; 0..m_length)
 		{
 			destroy!false(m_ptr[i]);
@@ -257,6 +260,19 @@ struct Region
 			assert(ptr != null, "Failed to allocate memory");
 			return emplace!(T, A)(ptr, args);
 		}
+	}
+
+	T copy(T)(T p_string)
+		if(isNarrowString!T)
+	{
+		return cast(T) copyList(p_string);
+	}
+
+	private T[] copyList(T)(immutable(T)[] p_list)
+	{
+		auto newList = makeList!T(p_list.length);
+		newList[0..$] = p_list[0..$];
+		return newList;
 	}
 
 	/// Wipe all data from the stack

@@ -18,11 +18,11 @@ struct Transform
 	vec3 _position;
 	vec3 _scale;
 
-	this(const float scale, const vec3 position = vec3(0))  @safe nothrow
+	this(const float scale, const vec3 position = vec3(0), const vec3 rotation = vec3(180, 0, 0))  @safe nothrow
 	{
 		_scale = vec3(scale);
 		_position = position;
-		_rotation = vec3(180,0,0);
+		_rotation = rotation;
 		computeMatrix();
 	}
 

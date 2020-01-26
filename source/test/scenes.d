@@ -67,3 +67,46 @@ SceneLoader testScene()
 
 	return s;
 }
+
+SceneLoader testScene2()
+{
+	SceneLoader scene;
+
+	with(scene)
+	{
+		lights = LightLoader(
+			vec3(0.2, -1, 0.1),
+			0.2, -6, 8,
+			"data/palettes/test3.png");
+
+		files_staticMesh = [
+			"data/meshes/architecture/tower_wall01.glb",
+			"data/test/meshes/tree_temperate01.glb",
+			"data/test/meshes/funny-cube.glb"
+		];
+
+		files_animMesh = [
+			"data/test/meshes/kitty-test.glb"
+		];
+
+		meshInstances = [
+			MeshInstanceLoader(0, Transform(1, vec3(0, 0, 6.7), vec3(180, 90, 0))),
+			MeshInstanceLoader(1, Transform(1, vec3(-5, 0, 2)))
+		];
+
+		animatedInstances = [
+			AnimatedInstanceLoader(0, Transform(1), "FreeIdle")
+		];
+
+		grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
+		grid.unmovable = [GridPos(-5, 0, 2)];
+
+		player = Player(&grid, GridPos(0,0,0));
+		playerMeshInstance = 0;
+
+		camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
+
+	}
+
+	return scene;
+}

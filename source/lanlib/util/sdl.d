@@ -46,6 +46,10 @@ static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow
 	{
 		return Input.Action.PAUSE;
 	}
+	else if(code == SDL_SCANCODE_F1)
+	{
+		return Input.Action.DEBUG_LOADLEVEL;
+	}
 	else
 	{
 		return Input.Action.UNKNOWN;

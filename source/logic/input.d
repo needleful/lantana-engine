@@ -21,8 +21,9 @@ struct Input
 		LEFT,
 		JUMP,
 		PAUSE,
+		DEBUG_LOADLEVEL,
+		UNKNOWN,
 		ACTION_COUNT,
-		UNKNOWN
 	}
 	enum Status
 	{
