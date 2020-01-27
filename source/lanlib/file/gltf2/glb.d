@@ -26,8 +26,8 @@ enum GLBChunkType : uint
 
 struct GLBStaticLoadResults
 {
-	GLBMeshAccessor[] accessors;
 	ubyte[] data;
+	GLBMeshAccessor accessor;
 	/// `data[0..bufferSize]` is what's put in the vertex buffer.
 	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
 	/// without requiring the buffer to be chopped up and copied around.
@@ -36,10 +36,10 @@ struct GLBStaticLoadResults
 
 struct GLBAnimatedLoadResults
 {
-	GLBAnimatedAccessor[] accessors;
 	GLBAnimation[] animations;
 	GLBNode[] bones;
 	ubyte[] data;
+	GLBAnimatedAccessor accessor;
 	GLBBufferView inverseBindMatrices;
 	/// `data[0..bufferSize]` is what's put in the vertex buffer.
 	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
@@ -178,69 +178,65 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		GLBStaticLoadResults result;
 	}
 
-	result.accessors.reserve(jMeshes.length);
-	
-	foreach(ref m; jMeshes)
+	assert(jMeshes.length == 1, "Cannot process GLB files with multiple meshes");
+
+	auto m = jMeshes[0];
+
+	JSONValue primitives, atr;
 	{
-		result.accessors.length += 1;
-		auto accessor = &result.accessors[$-1];
+		auto prim_json = m["primitives"];
+		assert(prim_json.type == JSONType.array);
+		auto prim = prim_json.array();
+		assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
+		primitives = prim[0];
 
-		JSONValue primitives, atr;
+		atr = primitives["attributes"];
+		assert(atr.type == JSONType.object);
+	}
+
+	if("name" in m)
+	{
+		result.accessor.name = p_alloc.copy(m["name"].str());
+	}
+	auto ac_indeces = primitives["indices"].integer();
+	auto ac_position = atr["POSITION"].integer();
+	auto ac_normal = atr["NORMAL"].integer();
+	auto ac_uv = atr["TEXCOORD_0"].integer();
+
+	with(result.accessor)
+	{
+		indices = GLBBufferView(access[ac_indeces], bufferViews);
+		p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
+
+		positions = GLBBufferView(access[ac_position], bufferViews);
+		p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
+
+		normals = GLBBufferView(access[ac_normal], bufferViews);
+		p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
+
+		uv = GLBBufferView(access[ac_uv], bufferViews);
+		p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
+		
+		auto material = scn["materials"][primitives["material"].integer()];
+		auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+		auto img_albedo = scn["images"][
+			scn["textures"][idx_texture]["source"].integer()
+		];
+		// Not used in VBO, so no change to p_bufferMax
+		tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+		auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+		tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+		tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+
+		static if(animated)
 		{
-			auto prim_json = m["primitives"];
-			assert(prim_json.type == JSONType.array);
-			auto prim = prim_json.array();
-			assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
-			primitives = prim[0];
+			auto ac_weights = atr["WEIGHTS_0"].integer();
+			auto ac_joints = atr["JOINTS_0"].integer();
+			bone_weight = GLBBufferView(access[ac_weights], bufferViews);
+			p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
 
-			atr = primitives["attributes"];
-			assert(atr.type == JSONType.object);
-		}
-
-		if("name" in m)
-		{
-			accessor.name = p_alloc.copy(m["name"].str());
-		}
-		auto ac_indeces = primitives["indices"].integer();
-		auto ac_position = atr["POSITION"].integer();
-		auto ac_normal = atr["NORMAL"].integer();
-		auto ac_uv = atr["TEXCOORD_0"].integer();
-
-		with(accessor)
-		{
-			indices = GLBBufferView(access[ac_indeces], bufferViews);
-			p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
-
-			positions = GLBBufferView(access[ac_position], bufferViews);
-			p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
-
-			normals = GLBBufferView(access[ac_normal], bufferViews);
-			p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
-
-			uv = GLBBufferView(access[ac_uv], bufferViews);
-			p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
-			
-			auto material = scn["materials"][primitives["material"].integer()];
-			auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
-			auto img_albedo = scn["images"][
-				scn["textures"][idx_texture]["source"].integer()
-			];
-			// Not used in VBO, so no change to p_bufferMax
-			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
-			auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
-			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
-			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
-
-			static if(animated)
-			{
-				auto ac_weights = atr["WEIGHTS_0"].integer();
-				auto ac_joints = atr["JOINTS_0"].integer();
-				bone_weight = GLBBufferView(access[ac_weights], bufferViews);
-				p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
-
-				bone_idx = GLBBufferView(access[ac_joints], bufferViews);
-				p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
-			}
+			bone_idx = GLBBufferView(access[ac_joints], bufferViews);
+			p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
 		}
 	}
 	return result;
@@ -248,14 +244,11 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 
 void glbPrint(ref GLBAnimatedLoadResults p_loaded)
 {
-	foreach(access; p_loaded.accessors)
-	{
-		writeln(access.name);
-		writeln("Bone indeces");
-		glbPrintBuffer(access.bone_idx, p_loaded.data);
-		writeln("Bone weights");
-		glbPrintBuffer(access.bone_weight, p_loaded.data);
-	}
+	writeln(p_loaded.accessor.name);
+	writeln("Bone indeces");
+	glbPrintBuffer(p_loaded.accessor.bone_idx, p_loaded.data);
+	writeln("Bone weights");
+	glbPrintBuffer(p_loaded.accessor.bone_weight, p_loaded.data);
 }
 
 void glbPrintBuffer(ref GLBBufferView p_view, ubyte[] p_bytes)

@@ -1,0 +1,5 @@
+static	data/meshes/architecture/tower_wall01.glb	data/meshes/tower_wall01.lnb
+static	data/test/meshes/funny-cube.glb	data/meshes/funny-cube.lnb
+static	data/test/meshes/tree_temperate01.glb	data/meshes/tree_temperate01.lnb
+anim	data/test/meshes/anim_test.glb	data/meshes/anim_test.lnb
+anim	data/test/meshes/kitty-test.glb	data/meshes/kitty-test.lnb

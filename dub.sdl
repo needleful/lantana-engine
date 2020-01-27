@@ -16,11 +16,17 @@ libs "sdl2" "freetype" platform="posix"
 configuration "game" {
 	targetType "executable"
 	targetName "game"
-	excludedSourceFiles "source/app/editor.d"
+	excludedSourceFiles "source/app/editor.d" "source/app/model_util.d"
 }
 
 configuration "editor" {
 	targetType "executable"
 	targetName "editor"
-	excludedSourceFiles "source/app/game.d"
+	excludedSourceFiles "source/app/game.d" "source/app/model_util.d"
+}
+
+configuration "model-util" {
+	targetType "executable"
+	targetName "model-util"
+	excludedSourceFiles "source/app/editor.d" "source/app/game.d"
 }

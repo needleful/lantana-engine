@@ -62,14 +62,14 @@ struct StaticMeshSystem
 	StaticMesh* loadMeshLNT(string p_filename, ref Region p_alloc)
 	{
 		auto loaded = lnbLoad!GLBStaticLoadResults(p_filename, p_alloc);
-		meshes.place(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_alloc);
+		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_alloc);
 		return &meshes[$-1];
 	}
 
 	StaticMesh* loadMesh(string p_filename, ref Region p_allocator)
 	{
 		auto loaded = glbLoad(p_filename, p_allocator);
-		meshes.place(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_allocator);
+		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_allocator);
 		return &meshes[$-1];
 	}
 	
@@ -266,7 +266,7 @@ struct AnimatedMeshSystem
 	AnimatedMesh* loadMesh(string p_filename, ref Region p_allocator)
 	{
 		auto loaded = glbLoad!true(p_filename, p_allocator);
-		meshes.place(this, loaded.accessors[0], loaded, p_allocator);
+		meshes.place(this, loaded.accessor, loaded, p_allocator);
 		return &meshes[$-1];
 	}
 
