@@ -2,9 +2,9 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.gltf2.loaded;
+module lanlib.file.gltf2.loaded;
 
-import lanlib.gltf2.types;
+import lanlib.file.gltf2.types;
 
 struct StaticMeshView
 {

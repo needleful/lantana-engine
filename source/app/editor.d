@@ -11,9 +11,9 @@ import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
-import lanlib.gltf2;
+import lanlib.file.gltf2;
 import lanlib.types;
-import lanlib.util.files;
+import lanlib.file.lnt;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.util.sdl;

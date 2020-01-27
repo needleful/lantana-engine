@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.gltf2.types;
+module lanlib.file.gltf2.types;
 
 import std.file;
 debug import std.format;
@@ -11,7 +11,7 @@ import std.stdio;
 import std.typecons: tuple;
 
 import gl3n.linalg;
-import lanlib.gltf2.types;
+import lanlib.file.gltf2.types;
 import lanlib.math.func;
 import lanlib.types;
 import lanlib.util.memory;

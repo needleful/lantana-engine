@@ -11,8 +11,8 @@ import gl3n.interpolate;
 import gl3n.linalg;
 
 import lanlib.math.transform;
-import lanlib.gltf2;
-import lanlib.util.files;
+import lanlib.file.gltf2;
+import lanlib.file.lnt;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.types;
@@ -61,7 +61,7 @@ struct StaticMeshSystem
 
 	StaticMesh* loadMeshLNT(string p_filename, ref Region p_alloc)
 	{
-		auto loaded = loadBinary!GLBStaticLoadResults(p_filename, p_alloc);
+		auto loaded = lntLoad!GLBStaticLoadResults(p_filename, p_alloc);
 		meshes.place(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_alloc);
 		return &meshes[$-1];
 	}

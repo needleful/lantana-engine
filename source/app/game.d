@@ -7,10 +7,10 @@ import std.format;
 import std.math;
 import std.stdio;
 
-import lanlib.gltf2;
+import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
-import lanlib.util.files;
+import lanlib.file.lnt;
 import lanlib.util.memory;
 import lanlib.util.sdl;
 
@@ -29,8 +29,8 @@ float g_timescale = 1;
 int main()
 {
 	// Loader test
-	storeBinary("data/scenes/test1.lnt", testScene());
-	storeBinary("data/scenes/test2.lnt", testScene2());
+	lntStore("data/scenes/test1.lnt", testScene());
+	lntStore("data/scenes/test2.lnt", testScene2());
 	// Testing done.
 
 	Window window = Window(720, 512, "Axe manor");

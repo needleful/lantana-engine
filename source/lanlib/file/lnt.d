@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.util.files;
+module lanlib.file.lnt;
 
 import std.conv : emplace;
 import std.file;
@@ -14,7 +14,7 @@ import gl3n.linalg;
 
 import lanlib.util.memory;
 import logic;
-import lanlib.gltf2;
+import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
 import lanlib.util.array;
@@ -284,7 +284,7 @@ private struct BinHeader
 	uint typeSize;
 }
 
-T* loadBinary(T)(string p_file, ref Region p_alloc)
+T* lntLoad(T)(string p_file, ref Region p_alloc)
 {
 	alias BinType = BinaryDescriptor!T;
 	auto file = File(p_file, "rb");
@@ -310,7 +310,7 @@ T* loadBinary(T)(string p_file, ref Region p_alloc)
 	return p_alloc.make!T(data.getData(buffer, p_alloc));
 }
 
-T loadBinary(T)(string p_file)
+T lntLoad(T)(string p_file)
 {
 	alias BinType = BinaryDescriptor!T;
 
@@ -341,7 +341,7 @@ T loadBinary(T)(string p_file)
 	return value;
 }
 
-void storeBinary(T)(string p_file, auto ref T p_data)
+void lntStore(T)(string p_file, auto ref T p_data)
 {
 	alias BinType = BinaryDescriptor!T;
 

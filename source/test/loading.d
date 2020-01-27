@@ -9,7 +9,7 @@ import std.stdio;
 
 import gl3n.linalg;
 
-import lanlib.util.files;
+import lanlib.file.lnt;
 import lanlib.util.memory;
 import logic;
 import render;
@@ -22,8 +22,8 @@ void testLoading(bool testSaving=false)()
 	SceneLoader test1 = testScene();
 	SceneLoader test2 = testScene2();
 
-	storeBinary!SceneLoader("data/scenes/test1.lnt", test1);
-	storeBinary!SceneLoader("data/scenes/test2.lnt", test2);
+	lntStore!SceneLoader("data/scenes/test1.lnt", test1);
+	lntStore!SceneLoader("data/scenes/test2.lnt", test2);
 
 	GameManager game = GameManager(MAX_MEMORY, "data/scenes/test1.lnt");
 	
@@ -44,8 +44,8 @@ void testLoading(bool testSaving=false)()
 
 		static if(testSaving)
 		{
-			storeBinary!SceneLoader("data/scenes/test1.lnt", loaded1);
-			storeBinary!SceneLoader("data/scenes/test2.lnt", loaded2);
+			lntStore!SceneLoader("data/scenes/test1.lnt", loaded1);
+			lntStore!SceneLoader("data/scenes/test2.lnt", loaded2);
 		}
 	}
 
@@ -55,7 +55,7 @@ void testLoadingBlank()
 {
 	SceneLoader test = testSceneBlank();
 
-	storeBinary!SceneLoader("data/scenes/testBlank.lnt", test);
+	lntStore!SceneLoader("data/scenes/testBlank.lnt", test);
 
 	GameManager game = GameManager(MAX_MEMORY, "data/scenes/testBlank.lnt");
 

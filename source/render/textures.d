@@ -10,7 +10,7 @@ import std.string;
 import deimos.freeimage;
 import gl3n.linalg: vec2, vec3, Vector;
 
-import lanlib.gltf2.types : ImageType;
+import lanlib.file.gltf2.types : ImageType;
 import lanlib.types;
 import lanlib.util.gl;
 import lanlib.util.memory;
