@@ -11,7 +11,9 @@ import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
+import lanlib.gltf2;
 import lanlib.types;
+import lanlib.util.files;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.util.sdl;
@@ -38,71 +40,72 @@ int main()
 	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
 
-	testLoadingGLB("data/meshes/architecture/tower_wall01.glb", 1027);
+	//testLoadingGLB("data/meshes/architecture/tower_wall01.glb", 1027);
+	//testLoadingLNT("data/test/mesh.lnt", 1027);
 	
-	//auto mm = BaseRegion(MAX_MEMORY);
+	auto mm = BaseRegion(MAX_MEMORY);
 
-	//UIRenderer ui = new UIRenderer(ww.getSize());
+	UIRenderer ui = new UIRenderer(ww.getSize());
 
-	//ww.grab_mouse(false);
+	ww.grab_mouse(false);
 
-	//SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	//SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
+	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	//FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 24);
-	//TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
+	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 24);
+	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
 
-	//ui.setRootWidget(new HodgePodge([
-	//	// various tests for Anchor, ImageBox, and TextBox
-	//	new Anchor(
-	//		new ImageBox(ui, upclickSprite),
-	//		vec2(0.5,0.6),
-	//		vec2(0.5,0)
-	//	),
-	//	new Anchor(
-	//		new ImageBox(ui, needlefulPNG),
-	//		vec2(0, 0.9),
-	//		vec2(0, 1)
-	//	),
-	//	new Anchor(
-	//		new ImageBox(ui, upclickSprite),
-	//		vec2(1,1), vec2(1,1)
-	//	),
-	//	new Anchor(
-	//		new ImageBox(ui, needlefulPNG),
-	//		vec2(0.027, 0.048),
-	//		vec2(0, 0)
-	//	),
-	//	new Anchor(
-	//		frameTime,
-	//		vec2(0.27, 1-0.048),
-	//		vec2(0, 1)
-	//	)
-	//]));
+	ui.setRootWidget(new HodgePodge([
+		// various tests for Anchor, ImageBox, and TextBox
+		new Anchor(
+			new ImageBox(ui, upclickSprite),
+			vec2(0.5,0.6),
+			vec2(0.5,0)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0, 0.9),
+			vec2(0, 1)
+		),
+		new Anchor(
+			new ImageBox(ui, upclickSprite),
+			vec2(1,1), vec2(1,1)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0.027, 0.048),
+			vec2(0, 0)
+		),
+		new Anchor(
+			frameTime,
+			vec2(0.27, 1-0.048),
+			vec2(0, 1)
+		)
+	]));
 
-	//ui.update(0.016f);
-	//while(!ww.state[WindowState.CLOSED])
-	//{
-	//	ww.pollEvents(&ii);
+	ui.update(0.016f);
+	while(!ww.state[WindowState.CLOSED])
+	{
+		ww.pollEvents(&ii);
 
-	//	if(ww.state[WindowState.RESIZED])
-	//	{
-	//		ui.setSize(ww.getSize());
-	//	}
-	//	static if(atlasTest)
-	//	{
-	//		ww.begin_frame();
-	//		ui.debugRender();
-	//		ww.end_frame();
-	//	}
-	//	else
-	//	{
-	//		ui.update(0.016f);
-	//		ww.begin_frame();
-	//		ui.render();
-	//		ww.end_frame();
-	//	}
-	//}
+		if(ww.state[WindowState.RESIZED])
+		{
+			ui.setSize(ww.getSize());
+		}
+		static if(atlasTest)
+		{
+			ww.begin_frame();
+			ui.debugRender();
+			ww.end_frame();
+		}
+		else
+		{
+			ui.update(0.016f);
+			ww.begin_frame();
+			ui.render();
+			ww.end_frame();
+		}
+	}
 	
 	return 0;
 }

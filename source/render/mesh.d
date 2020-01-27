@@ -12,6 +12,7 @@ import gl3n.linalg;
 
 import lanlib.math.transform;
 import lanlib.gltf2;
+import lanlib.util.files;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.types;
@@ -56,6 +57,13 @@ struct StaticMeshSystem
 
 		glcheck();
 		assert(mat.canRender());
+	}
+
+	StaticMesh* loadMeshLNT(string p_filename, ref Region p_alloc)
+	{
+		auto loaded = loadBinary!GLBStaticLoadResults(p_filename, p_alloc);
+		meshes.place(this, loaded.accessors[0], loaded.data, loaded.bufferSize, p_alloc);
+		return &meshes[$-1];
 	}
 
 	StaticMesh* loadMesh(string p_filename, ref Region p_allocator)
@@ -107,9 +115,13 @@ struct StaticMeshSystem
 		glBindVertexArray(0);
 	}
 
-	void clearMeshes()
+	void clearMeshes() @nogc
 	{
-		meshes.clear();
+		foreach(i; 0..meshes.length)
+		{
+			meshes[i].clear();
+		}
+		meshes.clearNoGC();
 	}
 }
 
@@ -177,7 +189,7 @@ struct StaticMesh
 		glcheck();
 	}
 
-	this(ref StaticMesh rhs)
+	this(ref StaticMesh rhs) @nogc nothrow
 	{
 		data = rhs.data;
 		accessor = rhs.accessor;
@@ -190,9 +202,14 @@ struct StaticMesh
 		rhs.vbo = 0;
 	}
 
-	~this() 
+	~this() @nogc
 	{
-		debug printf("Deleting StaticMesh (vao %d)\n", vao);
+		clear();
+	}
+
+	void clear() @nogc
+	{
+		//debug printf("Deleting StaticMesh (vao %d)\n", vao);
 		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();
@@ -448,9 +465,13 @@ struct AnimatedMeshSystem
 		}
 	}
 
-	void clearMeshes() 
+	void clearMeshes() @nogc
 	{
-		meshes.clear();
+		foreach(i; 0..meshes.length)
+		{
+			meshes[i].clear();
+		}
+		meshes.clearNoGC();
 	}
 }
 
@@ -561,10 +582,15 @@ struct AnimatedMesh
 
 	}
 
-	~this() 
+	~this() @nogc
 	{
-		if(vao == 0) assert(false, "This should be a fuckin blit!");
-		debug printf("Deleting AnimatedMesh (vao %d)\n", vao);
+		clear();
+	}
+
+	void clear() @nogc
+	{
+		//if(vao == 0) assert(false, "This should be a fuckin blit!");
+		//debug printf("Deleting AnimatedMesh (vao %d)\n", vao);
 		glDeleteBuffers(1, &vbo);
 		glDeleteVertexArrays(1, &vao);
 		glcheck();

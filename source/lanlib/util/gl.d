@@ -23,9 +23,9 @@ debug
 	import std.format;
 }
 
-void glcheck() @safe
+void glcheck() @safe @nogc
 {
-	string errorString(GLint err)
+	string errorString(GLint err) @safe @nogc
 	{
 		switch(err)
 		{

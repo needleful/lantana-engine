@@ -14,6 +14,7 @@ import gl3n.linalg;
 
 import lanlib.util.memory;
 import logic;
+import lanlib.gltf2;
 import lanlib.math;
 import lanlib.types;
 import lanlib.util.array;
@@ -35,6 +36,11 @@ private struct BinaryDescriptor(Type)
 	}
 
 	Type getData(ref ubyte[] p_buffer)
+	{
+		return cast(Type) base;
+	}
+
+	Type getData(ref ubyte[] p_buffer, ref Region _)
 	{
 		return cast(Type) base;
 	}
@@ -75,6 +81,20 @@ private struct BinaryDescriptor(Type)
 		{
 			BinType* data = cast(BinType*)&p_buffer[byteOffset];
 			return &data.getData();
+		}
+	}
+
+	Type getData(ref ubyte[] p_buffer, ref Region p_alloc)
+	{
+		// Assumes that the buffer will be put on p_alloc
+		static if(isDumbData!SubType)
+		{
+			return cast(Type)(&p_buffer[byteOffset]);
+		}
+		else
+		{
+			BinType* data = cast(BinType*)&p_buffer[byteOffset];
+			return cast(Type) p_alloc.make!SubType(data.getData());
 		}
 	}
 }
@@ -140,6 +160,29 @@ private struct BinaryDescriptor(Type)
 			return cast(Type) array;
 		}
 	}
+
+	Type getData(ref ubyte[] p_buffer, ref Region p_alloc)
+	{
+		if(count == 0)
+		{
+			return cast(Type) [];
+		}
+		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
+
+		static if(isDumbData!SubType)
+		{
+			return cast(Type) binArray;
+		}
+		else
+		{
+			SubType[] array = p_alloc.makeList!SubType(count);
+			foreach(i, ref bin; binArray)
+			{
+				array[i] = binArray[i].getData(p_buffer);
+			}
+			return cast(Type) array;
+		}
+	}
 }
 
 private template Declare(Type, string name)
@@ -163,6 +206,18 @@ private template BaseAssign(Type, string base, string field)
 	else
 	{
 		enum BaseAssign = base~"."~field~" = "~field~".getData(p_buffer);";
+	}
+}
+
+private template BaseAssignAlloc(Type, string base, string field)
+{
+	static if(isDumbData!Type)
+	{
+		enum BaseAssignAlloc = base~"."~field~" = "~field~";\n";
+	}
+	else
+	{
+		enum BaseAssignAlloc = base~"."~field~" = "~field~".getData(p_buffer, p_alloc);";
 	}
 }
 
@@ -209,6 +264,17 @@ private struct BinaryDescriptor(Type)
 		}
 		return val;
 	}
+
+	Type getData(ref ubyte[] p_buffer, ref Region p_alloc)
+	{
+		Type val;
+		static foreach(i, type; Fields!Type)
+		{
+			//pragma(msg, BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+			mixin(BaseAssignAlloc!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+		}
+		return val;
+	}
 }
 
 private struct BinHeader
@@ -218,7 +284,7 @@ private struct BinHeader
 	uint typeSize;
 }
 
-T loadBinary(T)(string p_file, ref Region p_alloc)
+T* loadBinary(T)(string p_file, ref Region p_alloc)
 {
 	alias BinType = BinaryDescriptor!T;
 	auto file = File(p_file, "rb");
@@ -241,8 +307,7 @@ T loadBinary(T)(string p_file, ref Region p_alloc)
 		file.rawRead(buffer);
 	}
 	
-	T value = data.getData(buffer);
-	return value;
+	return p_alloc.make!T(data.getData(buffer, p_alloc));
 }
 
 T loadBinary(T)(string p_file)

@@ -50,7 +50,7 @@ struct OwnedList(Type)
 	private ushort m_length;
 	private ushort m_capacity;
 
-	this(Type* p_ptr, ushort p_cap) 
+	this(Type* p_ptr, ushort p_cap) @nogc nothrow @safe
 	{
 		m_ptr = p_ptr;
 		m_capacity = p_cap;
@@ -73,6 +73,11 @@ struct OwnedList(Type)
 		}
 	}
 
+	void clearNoGC() @nogc nothrow @safe
+	{
+		m_length = 0;
+	}
+
 	@property const(Type*) ptr()  nothrow const @safe
 	{
 		return m_ptr;
@@ -88,14 +93,14 @@ struct OwnedList(Type)
 		return m_capacity;
 	}
 
-	ref Type opIndex(int p_index) 
+	ref Type opIndex(int p_index) @nogc nothrow
 	{
 		debug assert(p_index >= 0 && p_index < m_length, "Out of range");
 
 		return m_ptr[p_index];
 	}
 
-	int opApply(int delegate(ref Type) p_op) 
+	int opApply(int delegate(ref Type) p_op)
 	{
 		int result;
 		foreach(int i; 0..m_length)
@@ -109,7 +114,7 @@ struct OwnedList(Type)
 		return result;
 	}
 
-	void opOpAssign(string op)(auto ref Type rhs)
+	void opOpAssign(string op)(auto ref Type rhs) @nogc nothrow
 		if(op == "~")
 	{
 		assert(m_length + 1 <= m_capacity, "Capacity exceeded");
