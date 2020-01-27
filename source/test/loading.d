@@ -65,7 +65,7 @@ void testLoadingBlank()
 	}
 }
 
-void testLoadingGLB(string p_file, uint p_loads)
+void testLoading(string p_file, uint p_loads)
 {
 	auto region = BaseRegion(MAX_MEMORY);
 	assert(region.data != null);
@@ -86,28 +86,4 @@ void testLoadingGLB(string p_file, uint p_loads)
 
 		smesh.loadMesh(p_file, subRegion);
 	}
-}
-
-void testLoadingLNT(string p_file, uint p_loads)
-{
-	auto region = BaseRegion(MAX_MEMORY);
-	assert(region.data != null);
-	auto smesh = region.make!StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
-	smesh.meshes = region.makeOwnedList!StaticMesh(4);
-
-	auto subRegion = region.provideRemainder();
-	assert(subRegion.data != null);
-
-	for(uint loadcount = 0; loadcount < p_loads; loadcount++)
-	{
-		//scope(failure)
-		//{
-		//	writefln("Allocated %u times", loadcount);
-		//}
-		smesh.clearMeshes();
-		subRegion.wipe();
-
-		smesh.loadMeshLNT(p_file, subRegion);
-	}
-
 }

@@ -102,14 +102,22 @@ private struct BinaryDescriptor(Type)
 private struct BinaryDescriptor(Type)
 	if(isDynamicArray!Type)
 {
-	alias SubType = Unqual!(ForeachType!Type);
+	alias SubType = ForeachType!Type;
+
+	pragma(msg, "\nSerializing ", Type, ":");
 	static if(isDumbData!SubType)
 	{
-		alias BinType = SubType;
+		pragma(msg, "\tDumb data type: ", SubType);
+		alias BinType = Unqual!SubType;
 	}
 	else
 	{
+		pragma(msg, "\tComplex data type: ", SubType);
 		alias BinType = BinaryDescriptor!SubType;
+	}
+	static if(isArray!SubType)
+	{
+		pragma(msg, "\tNested array: ", Type);
 	}
 	uint count;
 	uint byteOffset;
@@ -128,7 +136,7 @@ private struct BinaryDescriptor(Type)
 		p_buffer.length += count*BinType.sizeof;
 		static if(isDumbData!SubType)
 		{
-			SubType* data = cast(SubType*)(&p_buffer[byteOffset]);
+			BinType* data = cast(BinType*)(&p_buffer[byteOffset]);
 			data[0..count] = p_array[0..count];
 		}
 		else foreach(i; 0..count)
@@ -183,17 +191,18 @@ private struct BinaryDescriptor(Type)
 			return cast(Type) array;
 		}
 	}
+	pragma(msg, "--- End ", Type);
 }
 
 private template Declare(Type, string name)
 {
 	static if(isDumbData!Type)
 	{
-		enum Declare = Type.stringof~" "~name~";\n";
+		enum Declare = Type.stringof~" "~name~";";
 	}
 	else
 	{
-		enum Declare = "BinaryDescriptor!("~Type.stringof~") "~name~";\n";
+		enum Declare = "BinaryDescriptor!("~Type.stringof~") "~name~";";
 	}
 }
 
@@ -201,7 +210,7 @@ private template BaseAssign(Type, string base, string field)
 {
 	static if(isDumbData!Type)
 	{
-		enum BaseAssign = base~"."~field~" = "~field~";\n";
+		enum BaseAssign = base~"."~field~" = "~field~";";
 	}
 	else
 	{
@@ -213,7 +222,7 @@ private template BaseAssignAlloc(Type, string base, string field)
 {
 	static if(isDumbData!Type)
 	{
-		enum BaseAssignAlloc = base~"."~field~" = "~field~";\n";
+		enum BaseAssignAlloc = base~"."~field~" = "~field~";";
 	}
 	else
 	{
@@ -227,7 +236,7 @@ private template FieldAssign(Type, string field)
 	{
 		enum FieldAssign = field~"= p_base."~field~";";
 	}
-	else
+	else 
 	{
 		enum FieldAssign = field~" = BinaryDescriptor!("~Type.stringof~")(p_base."~field~", p_buffer);";
 	}
@@ -237,11 +246,12 @@ private template FieldAssign(Type, string field)
 private struct BinaryDescriptor(Type)
 	if(is(Type == struct) && !isDumbData!Type)
 {
+	//pragma(msg, "\nSerializing ", Type, ":");
 	enum fieldNames = FieldNameTuple!Type;
 
 	static foreach(i, type; Fields!Type)
 	{
-		//pragma(msg, Declare!(type, fieldNames[i].stringof[1..$-1]));
+		//pragma(msg, "\t", Declare!(type, fieldNames[i].stringof[1..$-1]));
 		mixin(Declare!(type, fieldNames[i].stringof[1..$-1]));
 	}
 
@@ -249,7 +259,7 @@ private struct BinaryDescriptor(Type)
 	{
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
+			//pragma(msg, "\t", FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 		}
 	}
@@ -259,7 +269,7 @@ private struct BinaryDescriptor(Type)
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+			//pragma(msg, "\t", BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 			mixin(BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
@@ -270,11 +280,12 @@ private struct BinaryDescriptor(Type)
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+			//pragma(msg, "\t", BaseAssignAlloc!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 			mixin(BaseAssignAlloc!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
 	}
+	//pragma(msg, "--- End ", Type);
 }
 
 private struct BinHeader
@@ -284,30 +295,44 @@ private struct BinHeader
 	uint typeSize;
 }
 
-T* lnbLoad(T)(string p_file, ref Region p_alloc)
+T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
 {
-	alias BinType = BinaryDescriptor!T;
-	auto file = File(p_file, "rb");
+	void readValue(Type)(FILE* p_file, Type* p_ptr, size_t p_count = 1) @nogc
+	{
+		auto size = fread(cast(void*) p_ptr, Type.sizeof, p_count, p_file);
+		assert(size == p_count);
+	}
 
-	BinHeader[] headerBuffer = p_alloc.makeList!BinHeader(1);
-	file.rawRead(headerBuffer);
-	auto header = headerBuffer[0];
+	alias BinType = BinaryDescriptor!T;
+
+	// creating a z-terminated string in the region
+	string fileZ = p_alloc.copy(p_file);
+	p_alloc.make!char('\0');
+
+	FILE* file = fopen(fileZ.ptr, "rb");
+	scope(exit) fclose(file);
+	int fsize;
+	fseek(file, 0, SEEK_END);
+	fsize = ftell(file);
+	rewind(file);
+
+	BinHeader header;
+	readValue!BinHeader(file, &header);
 
 	assert(header.magic == "LNB_", header.magic);
 	assert(header.typeSize == BinType.sizeof);
-	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
+	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == fsize);
 
-	BinType[] dataBuffer = p_alloc.makeList!BinType(1);
-	file.rawRead(dataBuffer);
-	auto data = dataBuffer[0];
+	BinType data;
+	readValue!BinType(file, &data);
 
 	ubyte[] buffer = p_alloc.makeList!ubyte(header.bufferSize);
 	if(buffer.length > 0)
 	{
-		file.rawRead(buffer);
+		readValue!ubyte(file, buffer.ptr, buffer.length);
 	}
 	
-	return p_alloc.make!T(data.getData(buffer, p_alloc));
+	return data.getData(buffer, p_alloc);
 }
 
 T lnbLoad(T)(string p_file)
@@ -362,6 +387,7 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 	}
 
 	// Text for debug
-	//writeln(header);
-	//writeln(data);
+//	writeln("--", p_file);
+//	writeln(header);
+//	writeln(data);
 }

@@ -4,6 +4,7 @@
 
 module render.mesh;
 
+import std.algorithm: endsWith;
 debug import std.stdio;
 debug import std.format;
 
@@ -59,17 +60,18 @@ struct StaticMeshSystem
 		assert(mat.canRender());
 	}
 
-	StaticMesh* loadMeshLNT(string p_filename, ref Region p_alloc)
+	StaticMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
-		auto loaded = lnbLoad!GLBStaticLoadResults(p_filename, p_alloc);
+		GLBStaticLoadResults loaded;
+		if(p_filename.endsWith(".lnb"))
+		{
+			loaded = lnbLoad!GLBStaticLoadResults(p_filename, p_alloc);
+		}
+		else
+		{
+			loaded = glbLoad(p_filename, p_alloc);
+		}
 		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_alloc);
-		return &meshes[$-1];
-	}
-
-	StaticMesh* loadMesh(string p_filename, ref Region p_allocator)
-	{
-		auto loaded = glbLoad(p_filename, p_allocator);
-		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_allocator);
 		return &meshes[$-1];
 	}
 	
@@ -263,10 +265,18 @@ struct AnimatedMeshSystem
 		glcheck();
 	}
 
-	AnimatedMesh* loadMesh(string p_filename, ref Region p_allocator)
+	AnimatedMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
-		auto loaded = glbLoad!true(p_filename, p_allocator);
-		meshes.place(this, loaded.accessor, loaded, p_allocator);
+		GLBAnimatedLoadResults loaded;
+		if(p_filename.endsWith(".lnb"))
+		{
+			loaded = lnbLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
+		}
+		else
+		{
+			loaded = glbLoad!true(p_filename, p_alloc);
+		}
+		meshes.place(this, loaded.accessor, loaded, p_alloc);
 		return &meshes[$-1];
 	}
 

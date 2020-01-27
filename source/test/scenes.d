@@ -29,13 +29,13 @@ SceneLoader testScene()
 	);
 
 	s.files_staticMesh = [
-		"data/test/meshes/funny-cube.glb",
-		"data/test/meshes/tree_temperate01.glb",
+		"data/meshes/funny-cube.lnb",
+		"data/meshes/tree_temperate01.lnb",
 	];
 
 	s.files_animMesh = [
-		"data/test/meshes/kitty-test.glb",
-		"data/test/meshes/anim_test.glb",
+		"data/meshes/kitty-test.lnb",
+		"data/meshes/anim_test.lnb",
 	];
 
 	s.meshInstances = [
@@ -82,13 +82,13 @@ SceneLoader testScene2()
 			"data/palettes/test3.png");
 
 		files_staticMesh = [
-			"data/meshes/architecture/tower_wall01.glb",
-			"data/test/meshes/tree_temperate01.glb",
-			"data/test/meshes/funny-cube.glb"
+			"data/meshes/tower_wall01.lnb",
+			"data/meshes/tree_temperate01.lnb",
+			"data/meshes/funny-cube.lnb"
 		];
 
 		files_animMesh = [
-			"data/test/meshes/kitty-test.glb"
+			"data/meshes/kitty-test.lnb"
 		];
 
 		meshInstances = [
@@ -105,7 +105,6 @@ SceneLoader testScene2()
 		playerMeshInstance = 0;
 
 		camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
-
 	}
 
 	return scene;

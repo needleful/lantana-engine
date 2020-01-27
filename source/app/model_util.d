@@ -44,11 +44,37 @@ int main(string[] args)
 		{
 			GLBAnimatedLoadResults results = glbLoad!true(inFile, mem);
 			lnbStore!GLBAnimatedLoadResults(outFile, results);
+			debug
+			{
+				GLBAnimatedLoadResults validate = lnbLoad!GLBAnimatedLoadResults(outFile, mem);
+				if(validate != results)
+				{
+					File errLog = File("model_error.log", "a");
+					errLog.writeln("======\nFALURE: validation returned differences for ", inFile);
+					errLog.writeln("GLB FILE: \n", results);
+					errLog.writeln("LNB FILE: \n", validate);
+					writeln("--FALURE: validation returned differences for ", inFile);
+					continue;
+				}
+			}
 		}
 		else if(type == "static")
 		{
 			GLBStaticLoadResults results = glbLoad!false(inFile, mem);
 			lnbStore!GLBStaticLoadResults(outFile, results);
+			debug
+			{
+				GLBStaticLoadResults validate = lnbLoad!GLBStaticLoadResults(outFile, mem);
+				if(validate != results)
+				{
+					File errLog = File("model_error.log", "a");
+					errLog.writeln("FALURE: validation returned differences for ", inFile);
+					errLog.writeln("GLB FILE: \n", results);
+					errLog.writeln("LNB FILE: \n", validate);
+					writeln("--FALURE: validation returned differences for ", inFile);
+					continue;
+				}
+			}
 		}
 		writefln("--CONVERT %8s: %s => %s", type, inFile, outFile);
 		mem.wipe();
