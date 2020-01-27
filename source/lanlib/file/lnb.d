@@ -104,20 +104,20 @@ private struct BinaryDescriptor(Type)
 {
 	alias SubType = ForeachType!Type;
 
-	pragma(msg, "\nSerializing ", Type, ":");
+	//pragma(msg, "\nSerializing ", Type, ":");
 	static if(isDumbData!SubType)
 	{
-		pragma(msg, "\tDumb data type: ", SubType);
+		//pragma(msg, "\tDumb data type: ", SubType);
 		alias BinType = Unqual!SubType;
 	}
 	else
 	{
-		pragma(msg, "\tComplex data type: ", SubType);
+		//pragma(msg, "\tComplex data type: ", SubType);
 		alias BinType = BinaryDescriptor!SubType;
 	}
 	static if(isArray!SubType)
 	{
-		pragma(msg, "\tNested array: ", Type);
+		//pragma(msg, "\tNested array: ", Type);
 	}
 	uint count;
 	uint byteOffset;
@@ -191,7 +191,7 @@ private struct BinaryDescriptor(Type)
 			return cast(Type) array;
 		}
 	}
-	pragma(msg, "--- End ", Type);
+	//pragma(msg, "--- End ", Type);
 }
 
 private template Declare(Type, string name)

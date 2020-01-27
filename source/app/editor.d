@@ -12,6 +12,7 @@ import derelict.sdl2.sdl;
 import gl3n.linalg;
 
 import lanlib.file.gltf2;
+import lanlib.gpu;
 import lanlib.types;
 import lanlib.file.lnb;
 import lanlib.util.gl;
@@ -42,6 +43,8 @@ int main()
 
 	//testLoadingGLB("data/meshes/architecture/tower_wall01.glb", 1027);
 	//testLoadingLNT("data/test/mesh.lnb", 1027);
+
+	//testGpuManager();
 	
 	auto mm = BaseRegion(MAX_MEMORY);
 
