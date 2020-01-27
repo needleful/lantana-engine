@@ -22,7 +22,8 @@ import render;
 
 
 enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
-enum isDumbData(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
+enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
+enum isDumbData(Type) = isSimpleStruct!Type || allSatisfy!(isSimpleStruct, Fields!Type);
 
 private struct BinaryDescriptor(Type)
 	if(isDumbData!Type)
@@ -33,10 +34,12 @@ private struct BinaryDescriptor(Type)
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
 		base = cast(BinType) p_base;
+		writefln("D\t", Type.stringof, " <= ", p_base);
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
+		writeln(Type.stringof, " ", base);
 		return cast(Type) base;
 	}
 
@@ -69,17 +72,21 @@ private struct BinaryDescriptor(Type)
 			auto ptr = cast(BinType*) &p_buffer[byteOffset];
 			emplace!BinType(ptr, *p_base, p_buffer);
 		}
+		writefln("Store %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof);
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
 		static if(isDumbData!SubType)
 		{
-			return cast(Type)(&p_buffer[byteOffset]);
+			auto ptr = cast(Type)(&p_buffer[byteOffset]);
+			writeln(Type.stringof, ": ", ptr);
+			return ptr;
 		}
 		else
 		{
 			BinType* data = cast(BinType*)&p_buffer[byteOffset];
+			write(Type.stringof, ": \n\t");
 			return &data.getData();
 		}
 	}
@@ -124,38 +131,60 @@ private struct BinaryDescriptor(Type)
 
 	this(Type p_array, ref ubyte[] p_buffer)
 	{
-		//writeln("Dynamic array: ", p_array);
+		//writeln("Dynamic array: ", Type.stringof);
 		count = cast(uint)p_array.length;
 		byteOffset = cast(uint)p_buffer.length;
 
+		writefln("Store %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + SubType.sizeof*count);
 		if(p_array.length == 0)
 		{
+			writeln(Type.stringof,"~~empty");
 			return;
 		}
 
 		p_buffer.length += count*BinType.sizeof;
 		static if(isDumbData!SubType)
 		{
-			BinType* data = cast(BinType*)(&p_buffer[byteOffset]);
+			auto data = cast(BinType*)(&p_buffer[byteOffset]);
 			data[0..count] = p_array[0..count];
+
+			debug writefln("--\t %u elements [%u bytes per elem]", count, SubType.sizeof);
 		}
 		else foreach(i; 0..count)
 		{
 			auto ptr = cast(BinType*)&p_buffer[byteOffset + i*BinType.sizeof];
-			emplace!BinType(ptr, p_array[i], p_buffer);
+			*ptr = BinType(p_array[i], p_buffer);
+
+			debug 
+			{
+				auto byteStart = byteOffset+i*BinType.sizeof;
+				auto byteEnd = byteStart + BinType.sizeof;
+
+				writeln("--\t", p_array[i], "\n\t = ", *ptr, "\n");
+				
+				foreach(attempt; 0..2)
+				{
+					writeln("\t = ", p_buffer[byteStart..byteEnd]);
+					(cast(BinType*)&p_buffer[byteStart]).emplace!BinType(p_array[i], p_buffer);
+				}
+			}
 		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
+		writefln("\nLoad %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
+		//debug writeln(Type.stringof);
 		if(count == 0)
 		{
+			writeln("\t empty.");
 			return cast(Type) [];
 		}
 		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
 
 		static if(isDumbData!SubType)
 		{
+			writeln("\t", count, " elements");
 			return cast(Type) binArray;
 		}
 		else 
@@ -164,6 +193,11 @@ private struct BinaryDescriptor(Type)
 			foreach(i, ref bin; binArray)
 			{
 				array[i] = binArray[i].getData(p_buffer);
+				debug 
+				{
+					writeln("\t ", binArray[i]);
+					writeln("\t=", array[i]);
+				}
 			}
 			return cast(Type) array;
 		}
@@ -187,6 +221,7 @@ private struct BinaryDescriptor(Type)
 			foreach(i, ref bin; binArray)
 			{
 				array[i] = binArray[i].getData(p_buffer);
+				//debug writeln("\t", array[i], " = ", binArray[i]);
 			}
 			return cast(Type) array;
 		}
@@ -257,10 +292,12 @@ private struct BinaryDescriptor(Type)
 
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
+		writeln(Type.stringof);
 		static foreach(i, type; Fields!Type)
 		{
 			//pragma(msg, "\t", FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
+			writeln(" ::\t", fieldNames[i], " = ", mixin(fieldNames[i]));
 		}
 	}
 
@@ -270,6 +307,7 @@ private struct BinaryDescriptor(Type)
 		static foreach(i, type; Fields!Type)
 		{
 			//pragma(msg, "\t", BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+			//writeln("\t", fieldNames[i].stringof[1..$-1], " = ", mixin(fieldNames[i]));
 			mixin(BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
@@ -295,7 +333,7 @@ private struct BinHeader
 	uint typeSize;
 }
 
-T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
+T lnbLoad(T)(string p_file, ref Region p_alloc)// @nogc
 {
 	void readValue(Type)(FILE* p_file, Type* p_ptr, size_t p_count = 1) @nogc
 	{
@@ -386,8 +424,9 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 		file.rawWrite(buffer);
 	}
 
-	// Text for debug
-//	writeln("--", p_file);
-//	writeln(header);
-//	writeln(data);
+	//debug
+	//{
+	//	auto val = data.getData(buffer);
+	//	assert(p_data == val);
+	//}
 }
