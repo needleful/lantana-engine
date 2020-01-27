@@ -13,6 +13,8 @@ debug
 	import std.stdio;
 }
 
+enum MAX_MEMORY = 1024*1024*16;
+
 struct OwnedRef(Type)
 {
 	Type* data;
@@ -57,8 +59,13 @@ struct OwnedList(Type)
 
 	~this()
 	{
+		clear();
 		m_ptr = null;
 		m_capacity = 0;
+	}
+
+	void clear()
+	{
 		m_length = 0;
 		foreach(uint i; 0..m_length)
 		{
@@ -240,7 +247,7 @@ struct Region
 		return (cast(T*)alloc(T.sizeof * count))[0..count];
 	}
 
-	OwnedList!T makeOwnedList(T)(ushort p_size) 
+	OwnedList!T makeOwnedList(T)(ushort p_size)
 	{
 		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);
 	}

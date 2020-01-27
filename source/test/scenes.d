@@ -110,3 +110,14 @@ SceneLoader testScene2()
 
 	return scene;
 }
+
+SceneLoader testSceneBlank()
+{
+	SceneLoader sc;
+	with(sc)
+	{
+		file_nextScene = "data/scenes/testBlank.lnt";
+		lights = LightLoader(vec3.init, 0, 0, 0, "data/palettes/test.png");
+	}
+	return sc;
+}

@@ -8,8 +8,7 @@ import std.math;
 import std.stdio;
 
 import lanlib.gltf2;
-import lanlib.math.projection;
-import lanlib.math.transform;
+import lanlib.math;
 import lanlib.types;
 import lanlib.util.files;
 import lanlib.util.memory;
@@ -17,68 +16,15 @@ import lanlib.util.sdl;
 
 import gl3n.linalg;
 
-import logic.grid;
-import logic.input;
-import logic.player;
-import logic.scenes;
-
-import render.camera;
-import render.lights;
-import render.material;
-import render.mesh;
-import render.textures;
+import logic;
+import render;
 import test.scenes;
 
 import ui;
 
-enum MAX_MEMORY = 1024*1024*16;
-
 enum cam_speed = 8;
 
 float g_timescale = 1;
-
-struct GameManager
-{
-	private BaseRegion mainMem;
-	private SubRegion sceneMem;
-	OwnedRef!Input input;
-	OwnedRef!StaticMeshSystem staticSystem;
-	OwnedRef!AnimatedMeshSystem animSystem;
-	OwnedRef!Scene scene;
-
-	@disable this();
-
-	this(size_t p_memCapacity)
-	{
-		mainMem = BaseRegion(p_memCapacity);
-
-		input = mainMem.make!Input();
-
-		staticSystem = mainMem.make!StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
-		animSystem = mainMem.make!AnimatedMeshSystem(loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag"));
-
-		sceneMem = mainMem.provideRemainder();
-	}
-
-	void loadScene(SceneLoader p_scene, bool p_preserveCamRotation = false)
-	{
-		staticSystem.clearMeshes();
-		animSystem.clearMeshes();
-
-		sceneMem.wipe();
-
-		if(p_preserveCamRotation)
-		{
-			vec2 rotation = scene.camera.rot;
-			scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
-			scene.camera.rot = rotation;
-		}
-		else
-		{
-			scene = sceneMem.make!Scene(p_scene, staticSystem, animSystem, sceneMem);
-		}
-	}
-}
 
 int main()
 {
@@ -88,9 +34,8 @@ int main()
 	// Testing done.
 
 	Window window = Window(720, 512, "Axe manor");
-	GameManager game = GameManager(MAX_MEMORY);
+	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lnt");
 	// Testing SceneLoader format
-	game.loadScene(loadBinary!SceneLoader("data/scenes/test1.lnt"));
 	debug writeln("Running Axe Manor in debug mode!");
 
 	UIRenderer ui = new UIRenderer(window.getSize());
@@ -167,7 +112,7 @@ int main()
 		{
 			if(game.scene.nextScene != "")
 			{
-				game.loadScene(loadBinary!SceneLoader(game.scene.nextScene), true);
+				game.loadScene(game.scene.nextScene, false);
 				game.scene.camera.set_projection(
 					Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 				);

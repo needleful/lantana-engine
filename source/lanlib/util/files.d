@@ -44,7 +44,8 @@ private struct BinaryDescriptor(Type)
 private struct BinaryDescriptor(Type)
 	if(isPointer!Type)
 {
-	alias BinType = BinaryDescriptor!(PointerTarget!Type);
+	alias SubType = PointerTarget!Type;
+	alias BinType = BinaryDescriptor!(SubType);
 
 	ulong byteOffset;
 	this(Type p_base, ref ubyte[] p_buffer)
@@ -52,13 +53,29 @@ private struct BinaryDescriptor(Type)
 		byteOffset = p_buffer.length;
 		p_buffer.length += BinType.sizeof;
 
-		BinType* ptr = cast(BinType*) &p_buffer[byteOffset];
-		emplace!BinType(ptr, *p_base, p_buffer);
+		static if(isDumbData!SubType)
+		{
+			auto ptr = cast(SubType*)(&p_buffer[byteOffset]);
+			emplace!SubType(ptr, *p_base);
+		}
+		else
+		{
+			auto ptr = cast(BinType*) &p_buffer[byteOffset];
+			emplace!BinType(ptr, *p_base, p_buffer);
+		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		return cast(Type)(&p_buffer[byteOffset]);
+		static if(isDumbData!SubType)
+		{
+			return cast(Type)(&p_buffer[byteOffset]);
+		}
+		else
+		{
+			BinType* data = cast(BinType*)&p_buffer[byteOffset];
+			return &data.getData();
+		}
 	}
 }
 
@@ -103,18 +120,25 @@ private struct BinaryDescriptor(Type)
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		SubType[] array = new SubType[count];
+		if(count == 0)
+		{
+			return cast(Type) [];
+		}
 		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
 
 		static if(isDumbData!SubType)
 		{
-			array[0..count] = binArray[0..count];
+			return cast(Type) binArray;
 		}
-		else foreach(i, ref bin; binArray)
+		else 
 		{
-			array[i] = binArray[i].getData(p_buffer);
+			SubType[] array = new SubType[count];
+			foreach(i, ref bin; binArray)
+			{
+				array[i] = binArray[i].getData(p_buffer);
+			}
+			return cast(Type) array;
 		}
-		return cast(Type) array;
 	}
 }
 
@@ -192,6 +216,33 @@ private struct BinHeader
 	char[4] magic = "LNT_";
 	uint bufferSize;
 	uint typeSize;
+}
+
+T loadBinary(T)(string p_file, ref Region p_alloc)
+{
+	alias BinType = BinaryDescriptor!T;
+	auto file = File(p_file, "rb");
+
+	BinHeader[] headerBuffer = p_alloc.makeList!BinHeader(1);
+	file.rawRead(headerBuffer);
+	auto header = headerBuffer[0];
+
+	assert(header.magic == "LNT_", header.magic);
+	assert(header.typeSize == BinType.sizeof);
+	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
+
+	BinType[] dataBuffer = p_alloc.makeList!BinType(1);
+	file.rawRead(dataBuffer);
+	auto data = dataBuffer[0];
+
+	ubyte[] buffer = p_alloc.makeList!ubyte(header.bufferSize);
+	if(buffer.length > 0)
+	{
+		file.rawRead(buffer);
+	}
+	
+	T value = data.getData(buffer);
+	return value;
 }
 
 T loadBinary(T)(string p_file)

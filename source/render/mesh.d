@@ -109,7 +109,7 @@ struct StaticMeshSystem
 
 	void clearMeshes()
 	{
-		destroy(meshes);
+		meshes.clear();
 	}
 }
 
@@ -450,7 +450,7 @@ struct AnimatedMeshSystem
 
 	void clearMeshes() 
 	{
-		destroy(meshes);
+		meshes.clear();
 	}
 }
 
