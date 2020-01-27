@@ -13,7 +13,7 @@ import gl3n.linalg;
 
 import lanlib.file.gltf2;
 import lanlib.types;
-import lanlib.file.lnt;
+import lanlib.file.lnb;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.util.sdl;
@@ -41,7 +41,7 @@ int main()
 	Input ii = Input();
 
 	//testLoadingGLB("data/meshes/architecture/tower_wall01.glb", 1027);
-	//testLoadingLNT("data/test/mesh.lnt", 1027);
+	//testLoadingLNT("data/test/mesh.lnb", 1027);
 	
 	auto mm = BaseRegion(MAX_MEMORY);
 

@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.file.lnt;
+module lanlib.file.lnb;
 
 import std.conv : emplace;
 import std.file;
@@ -279,12 +279,12 @@ private struct BinaryDescriptor(Type)
 
 private struct BinHeader
 {
-	char[4] magic = "LNT_";
+	char[4] magic = "LNB_";
 	uint bufferSize;
 	uint typeSize;
 }
 
-T* lntLoad(T)(string p_file, ref Region p_alloc)
+T* lnbLoad(T)(string p_file, ref Region p_alloc)
 {
 	alias BinType = BinaryDescriptor!T;
 	auto file = File(p_file, "rb");
@@ -293,7 +293,7 @@ T* lntLoad(T)(string p_file, ref Region p_alloc)
 	file.rawRead(headerBuffer);
 	auto header = headerBuffer[0];
 
-	assert(header.magic == "LNT_", header.magic);
+	assert(header.magic == "LNB_", header.magic);
 	assert(header.typeSize == BinType.sizeof);
 	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
 
@@ -310,7 +310,7 @@ T* lntLoad(T)(string p_file, ref Region p_alloc)
 	return p_alloc.make!T(data.getData(buffer, p_alloc));
 }
 
-T lntLoad(T)(string p_file)
+T lnbLoad(T)(string p_file)
 {
 	alias BinType = BinaryDescriptor!T;
 
@@ -323,7 +323,7 @@ T lntLoad(T)(string p_file)
 
 	BinHeader header = headerBuffer[0]; 
 
-	assert(header.magic == "LNT_", header.magic);
+	assert(header.magic == "LNB_", header.magic);
 	assert(header.typeSize == BinType.sizeof);
 	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
 
@@ -341,7 +341,7 @@ T lntLoad(T)(string p_file)
 	return value;
 }
 
-void lntStore(T)(string p_file, auto ref T p_data)
+void lnbStore(T)(string p_file, auto ref T p_data)
 {
 	alias BinType = BinaryDescriptor!T;
 

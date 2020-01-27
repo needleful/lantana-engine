@@ -9,7 +9,7 @@ import std.stdio;
 
 import gl3n.linalg;
 
-import lanlib.file.lnt;
+import lanlib.file.lnb;
 import lanlib.util.memory;
 import logic;
 import render;
@@ -22,10 +22,10 @@ void testLoading(bool testSaving=false)()
 	SceneLoader test1 = testScene();
 	SceneLoader test2 = testScene2();
 
-	lntStore!SceneLoader("data/scenes/test1.lnt", test1);
-	lntStore!SceneLoader("data/scenes/test2.lnt", test2);
+	lnbStore!SceneLoader("data/scenes/test1.lnb", test1);
+	lnbStore!SceneLoader("data/scenes/test2.lnb", test2);
 
-	GameManager game = GameManager(MAX_MEMORY, "data/scenes/test1.lnt");
+	GameManager game = GameManager(MAX_MEMORY, "data/scenes/test1.lnb");
 	
 	uint loadcount1 = 0, loadcount2 = 0;
 
@@ -36,16 +36,16 @@ void testLoading(bool testSaving=false)()
 
 	for(int i = 0; i < 100; i++)
 	{
-		game.loadScene("data/scenes/test1.lnt");
+		game.loadScene("data/scenes/test1.lnb");
 		loadcount1++;
 
-		game.loadScene("data/scenes/test2.lnt");
+		game.loadScene("data/scenes/test2.lnb");
 		loadcount2++;
 
 		static if(testSaving)
 		{
-			lntStore!SceneLoader("data/scenes/test1.lnt", loaded1);
-			lntStore!SceneLoader("data/scenes/test2.lnt", loaded2);
+			lnbStore!SceneLoader("data/scenes/test1.lnb", loaded1);
+			lnbStore!SceneLoader("data/scenes/test2.lnb", loaded2);
 		}
 	}
 
@@ -55,13 +55,13 @@ void testLoadingBlank()
 {
 	SceneLoader test = testSceneBlank();
 
-	lntStore!SceneLoader("data/scenes/testBlank.lnt", test);
+	lnbStore!SceneLoader("data/scenes/testBlank.lnb", test);
 
-	GameManager game = GameManager(MAX_MEMORY, "data/scenes/testBlank.lnt");
+	GameManager game = GameManager(MAX_MEMORY, "data/scenes/testBlank.lnb");
 
 	for(uint loadcount = 0; loadcount < 200; loadcount++)
 	{
-		game.loadScene("data/scenes/testBlank.lnt");
+		game.loadScene("data/scenes/testBlank.lnb");
 	}
 }
 

@@ -6,7 +6,7 @@ module logic.manager;
 
 import gl3n.linalg;
 
-import lanlib.file.lnt;
+import lanlib.file.lnb;
 import lanlib.util.memory;
 import logic;
 import render;
@@ -46,7 +46,7 @@ struct GameManager
 		animSystem.clearMeshes();
 
 		sceneMem.wipe();
-		auto loader = lntLoad!SceneLoader(p_file);
+		auto loader = lnbLoad!SceneLoader(p_file);
 		scene = sceneMem.make!Scene(loader, staticSystem, animSystem, sceneMem);
 
 		if(p_preserveCamRotation)

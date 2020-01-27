@@ -18,7 +18,7 @@ SceneLoader testScene()
 {
 	SceneLoader s;
 
-	s.file_nextScene = "data/scenes/test2.lnt";
+	s.file_nextScene = "data/scenes/test2.lnb";
 
 	s.lights = LightLoader(
 		vec3(-0.2, -1, 0.1), // Direction
@@ -75,7 +75,7 @@ SceneLoader testScene2()
 
 	with(scene)
 	{
-		file_nextScene = "data/scenes/test1.lnt";
+		file_nextScene = "data/scenes/test1.lnb";
 		lights = LightLoader(
 			vec3(0.2, -1, 0.1),
 			0.2, -6, 8,
@@ -116,7 +116,7 @@ SceneLoader testSceneBlank()
 	SceneLoader sc;
 	with(sc)
 	{
-		file_nextScene = "data/scenes/testBlank.lnt";
+		file_nextScene = "data/scenes/testBlank.lnb";
 		lights = LightLoader(vec3.init, 0, 0, 0, "data/palettes/test.png");
 	}
 	return sc;
