@@ -21,6 +21,8 @@ import logic.input;
 import render.material;
 import render.mesh;
 
+import test.loading;
+
 import ui;
 
 enum atlasTest = false;
@@ -35,6 +37,9 @@ int main()
 
 	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
+
+	testLoading();
+	
 	auto mm = BaseRegion(1024*1024*16);
 
 	UIRenderer ui = new UIRenderer(ww.getSize());

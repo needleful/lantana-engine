@@ -4,7 +4,9 @@
 
 module render.textures;
 
+import std.format;
 debug import std.stdio;
+import std.string;
 import deimos.freeimage;
 import gl3n.linalg: vec2, vec3, Vector;
 
@@ -23,11 +25,12 @@ struct Bitmap(TextureDataType)
 
 	public this(string p_filename) 
 	{
-		debug scope(failure) writeln("Failed to load bitmap: ", p_filename);
-		auto format = FreeImage_GetFileType(p_filename.ptr);
-		assert(format != FIF_UNKNOWN);
+		auto sz_filename = toStringz(p_filename);
+		auto type = FreeImage_GetFileType(sz_filename);
 
-		_bits = FreeImage_Load(format, p_filename.ptr);
+		assert(type != FIF_UNKNOWN, format("Bitmap with unknown format: '%s'", p_filename));
+
+		_bits = FreeImage_Load(type, sz_filename);
 
 		assert(_bits != null, p_filename);
 

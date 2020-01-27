@@ -5,10 +5,7 @@
 module logic.scenes.core;
 
 import lanlib.util.memory;
-import logic.grid;
-import logic.input;
-import logic.player;
-import logic.scenes.load;
+import logic;
 
 import render.camera;
 import render.mesh;
@@ -21,7 +18,6 @@ struct Scene
 	string nextScene;
 	LightInfo worldLight;
 	Grid grid;
-	Player player;
 	ushort playerMesh, blockMesh;
 	Camera camera;
 
@@ -64,8 +60,7 @@ struct Scene
 		}
 
 		grid = p_load.grid;
-		player = p_load.player;
-		player.grid = &grid;
+		grid.player = p_load.player;
 		playerMesh = p_load.playerMeshInstance;
 		blockMesh = p_load.blockInstancesOffset;
 
@@ -82,17 +77,17 @@ struct Scene
 
 	void update(Input* p_input, float p_delta)
 	{
-		player.update(p_input, p_delta);
+		grid.update(p_input, p_delta);
 
-		animMeshes[playerMesh].transform._position = grid.getRealPosition(player.pos, player.pos_target);
-		animMeshes[playerMesh].transform._rotation.y = player.dir.getRealRotation();
-		if(player.previousState != player.state)
+		animMeshes[playerMesh].transform._position = grid.getRealPosition(grid.player.pos, grid.player.pos_target);
+		animMeshes[playerMesh].transform._rotation.y = grid.player.dir.getRealRotation();
+		if(grid.player.previousState != grid.player.state)
 		{
-			animMeshes[playerMesh].playAnimation(player.getAnimation());
+			animMeshes[playerMesh].playAnimation(grid.player.getAnimation());
 		}
 		else
 		{
-			animMeshes[playerMesh].queueAnimation(player.getAnimation());
+			animMeshes[playerMesh].queueAnimation(grid.player.getAnimation());
 		}
 
 		foreach(i; 0..grid.blocks.length)

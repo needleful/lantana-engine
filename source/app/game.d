@@ -2,6 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
+import core.memory;
 import std.format;
 import std.math;
 import std.stdio;
@@ -124,7 +125,6 @@ int main()
 	float runningFrame = 0;
 	bool paused;
 
-	float gcDebug_accum;
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
@@ -139,6 +139,11 @@ int main()
 			frameTime.setText(format(debugFormat, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
 			runningFrame = 1;
 			accumDelta_ms = 0;
+			if(paused)
+			{	
+				// Try garbage collecting while paused
+				GC.collect();
+			}
 		}
 		runningFrame ++;
 	
@@ -197,22 +202,7 @@ int main()
 		window.end_frame();
 		frame ++;
 
-		// GC testing
-		{
-			float[][] numberMatrix;
-			foreach(count; 0..25)
-			{
-				float[] list = new float[count];
-				foreach(i; 0..count)
-				{
-					list[i] = i/10.0;
-				}
-				numberMatrix~= list;
-			}
-			gcDebug_accum += numberMatrix[24][4];
-		}
 	}
-	writef("%.2f, ", gcDebug_accum);
 	debug writeln("Game closing");
 	return 0;
 }

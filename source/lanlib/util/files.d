@@ -19,14 +19,12 @@ import lanlib.types;
 import lanlib.util.array;
 import render;
 
-enum IsDumbData(Type) = 
-	isBasicType!Type 
-	|| isStaticArray!Type 
-	|| isTemplateType!(Vector, Type) 
-	|| isTemplateType!(Matrix, Type);
+
+enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
+enum isDumbData(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
 
 private struct BinaryDescriptor(Type)
-	if(IsDumbData!Type)
+	if(isDumbData!Type)
 {
 	alias BinType = Unqual!Type;
 	BinType base;
@@ -67,7 +65,15 @@ private struct BinaryDescriptor(Type)
 private struct BinaryDescriptor(Type)
 	if(isDynamicArray!Type)
 {
-	alias BinType = BinaryDescriptor!(ForeachType!Type);
+	alias SubType = Unqual!(ForeachType!Type);
+	static if(isDumbData!SubType)
+	{
+		alias BinType = SubType;
+	}
+	else
+	{
+		alias BinType = BinaryDescriptor!SubType;
+	}
 	uint count;
 	uint byteOffset;
 
@@ -77,25 +83,34 @@ private struct BinaryDescriptor(Type)
 		count = cast(uint)p_array.length;
 		byteOffset = cast(uint)p_buffer.length;
 
-		if(p_array.length != 0)
+		if(p_array.length == 0)
 		{
-			p_buffer.length += count*BinType.sizeof;
-			foreach(i; 0..count)
-			{
-				auto ptr = cast(BinType*)&p_buffer[byteOffset + i*BinType.sizeof];
-				assert(cast(void*)ptr >= cast(void*)p_buffer.ptr && cast(void*)ptr <= cast(void*)(p_buffer.ptr + p_buffer.length));
-				emplace!BinType(ptr, p_array[i], p_buffer);
-			}
+			return;
+		}
+
+		p_buffer.length += count*BinType.sizeof;
+		static if(isDumbData!SubType)
+		{
+			SubType* data = cast(SubType*)(&p_buffer[byteOffset]);
+			data[0..count] = p_array[0..count];
+		}
+		else foreach(i; 0..count)
+		{
+			auto ptr = cast(BinType*)&p_buffer[byteOffset + i*BinType.sizeof];
+			emplace!BinType(ptr, p_array[i], p_buffer);
 		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		alias TempType = Unqual!(ForeachType!Type);
-		TempType[] array = new TempType[count];
-
+		SubType[] array = new SubType[count];
 		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
-		foreach(i, ref bin; binArray)
+
+		static if(isDumbData!SubType)
+		{
+			array[0..count] = binArray[0..count];
+		}
+		else foreach(i, ref bin; binArray)
 		{
 			array[i] = binArray[i].getData(p_buffer);
 		}
@@ -103,49 +118,70 @@ private struct BinaryDescriptor(Type)
 	}
 }
 
-private template Declare(string type, string name)
+private template Declare(Type, string name)
 {
-	enum Declare = "BinaryDescriptor!("~type~") "~name~";\n";
+	static if(isDumbData!Type)
+	{
+		enum Declare = Type.stringof~" "~name~";\n";
+	}
+	else
+	{
+		enum Declare = "BinaryDescriptor!("~Type.stringof~") "~name~";\n";
+	}
 }
 
-private template BaseAssign(string base, string field)
+private template BaseAssign(Type, string base, string field)
 {
-	enum BaseAssign = base~"."~field~" = "~field~".getData(p_buffer);";
+	static if(isDumbData!Type)
+	{
+		enum BaseAssign = base~"."~field~" = "~field~";\n";
+	}
+	else
+	{
+		enum BaseAssign = base~"."~field~" = "~field~".getData(p_buffer);";
+	}
 }
 
-private template FieldAssign(string type, string field)
+private template FieldAssign(Type, string field)
 {
-	enum FieldAssign = field ~" = BinaryDescriptor!("~type~")(p_base."~field~", p_buffer);";
+	static if(isDumbData!Type)
+	{
+		enum FieldAssign = field~"= p_base."~field~";";
+	}
+	else
+	{
+		enum FieldAssign = field~" = BinaryDescriptor!("~Type.stringof~")(p_base."~field~", p_buffer);";
+	}
 }
 
 // Struct for loading and storing complex data from a byte buffers without pointers
 private struct BinaryDescriptor(Type)
-	if(is(Type == struct) && !IsDumbData!Type)
+	if(is(Type == struct) && !isDumbData!Type)
 {
 	enum fieldNames = FieldNameTuple!Type;
 
 	static foreach(i, type; Fields!Type)
 	{
-		//pragma(msg, Type, ": ", type, " ", fieldNames[i]);
-		mixin(Declare!(type.stringof, fieldNames[i].stringof[1..$-1]));
+		//pragma(msg, Declare!(type, fieldNames[i].stringof[1..$-1]));
+		mixin(Declare!(type, fieldNames[i].stringof[1..$-1]));
 	}
 
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, Type, ": Assign ", fieldNames[i]);
-			mixin(FieldAssign!(type.stringof, fieldNames[i].stringof[1..$-1]));
+			//pragma(msg, FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
+			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
 		Type val;
-		static foreach(field; fieldNames)
+		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, val.stringof, ".", field, " = ", field);
-			mixin(BaseAssign!(val.stringof, (field.stringof)[1..$-1]));
+			//pragma(msg, BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
+			mixin(BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
 	}

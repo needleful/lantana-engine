@@ -8,6 +8,8 @@ module logic.grid;
 import gl3n.interpolate;
 import gl3n.linalg;
 
+import logic;
+
 enum GridDirection
 {
 	UP,
@@ -111,31 +113,37 @@ struct Grid
 	GridPos lowBounds, highBounds;
 	// Position of lower bounds corner (-x, -y, -z)
 	vec3 position;
+	// The current player
+	Player player;
 	// Timer for movement
 	float timer_move = 0;
 	bool active = false;
 
-	public this(GridPos lowBounds, GridPos highBounds, vec3 position = vec3(0,0,0))  @safe nothrow
+	public this(GridPos lowBounds, GridPos highBounds, Player player, vec3 position = vec3(0,0,0))  @safe nothrow
 	{
 		this.lowBounds = lowBounds;
 		this.highBounds = highBounds;
 		this.position = position;
+		this.player = player;
 	}
 
-	public void update(float p_delta)  @safe nothrow
+	public void update(Input* p_input, float p_delta)  @safe nothrow
 	{
-		if(!active) return;
-
-		timer_move += p_delta;
-		if(timer_move >= TIME_MOVE)
+		if(active)
 		{
-			timer_move = 0;
-			active = false;
-			foreach(ref block; blocks)
+			timer_move += p_delta;
+			if(timer_move >= TIME_MOVE)
 			{
-				block.position = block.pos_target;
+				timer_move = 0;
+				active = false;
+				foreach(ref block; blocks)
+				{
+					block.position = block.pos_target;
+				}
 			}
 		}
+		
+		player.update(this, p_input, p_delta);
 	}
 
 	public GridPos move(GridPos p_from, GridDirection p_dir, bool p_can_push, ref bool p_pushed)  @safe nothrow

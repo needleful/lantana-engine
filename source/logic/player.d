@@ -28,7 +28,6 @@ enum PlayerMode
 }
 struct Player
 {
-	Grid* grid;
 	GridPos pos, pos_target;
 
 	GridDirection dir;
@@ -38,9 +37,8 @@ struct Player
 	PlayerState previousTurnState;
 	PlayerMode mode;
 
-	this(Grid* p_grid, GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, PlayerState p_state = PlayerState.IDLE)  @safe nothrow
+	this(GridPos p_gridPos, GridDirection p_dir = GridDirection.UP, PlayerState p_state = PlayerState.IDLE)  @safe nothrow
 	{
-		grid = p_grid;
 		pos = p_gridPos;
 		state = p_state;
 		pos_target = pos;
@@ -48,10 +46,8 @@ struct Player
 		dir = p_dir;
 	}
 
-	void update(const(Input*) input, const float delta)   @safe nothrow
+	void update(ref Grid grid, const(Input*) input, const float delta)   @safe nothrow
 	{
-		grid.update(delta);
-
 		// Calculate new state
 
 		// While free, turning only lasts for one frame
@@ -158,7 +154,7 @@ struct Player
 		}
 	}
 
-	vec3 realPosition()  @safe nothrow
+	vec3 realPosition(ref Grid grid)  @safe nothrow
 	{
 		return grid.getRealPosition(pos, pos_target);
 	}

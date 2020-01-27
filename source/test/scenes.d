@@ -51,7 +51,7 @@ SceneLoader testScene()
 		AnimatedInstanceLoader(1, Transform(1, vec3(-6, 0, 6)), "TestAnim", true),
 	];
 
-	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
+	s.grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), Player(GridPos(1,0,0)));
 	s.blockInstancesOffset = 2;
 	s.grid.blocks = [
 		GridBlock(GridPos(2, 0, 2)),
@@ -62,7 +62,6 @@ SceneLoader testScene()
 		GridPos(5, 0, 0)
 	];
 
-	s.player = Player(&s.grid, GridPos(1,0,0));
 	s.playerMeshInstance = 0;
 
 	s.camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
@@ -101,10 +100,8 @@ SceneLoader testScene2()
 			AnimatedInstanceLoader(0, Transform(1), "FreeIdle")
 		];
 
-		grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), vec3(0,0,0));
+		grid = Grid(GridPos(-5, 0, -5), GridPos(5, 0, 5), Player(GridPos(0,0,0)));
 		grid.unmovable = [GridPos(-5, 0, 2)];
-
-		player = Player(&grid, GridPos(0,0,0));
 		playerMeshInstance = 0;
 
 		camera = Camera(vec3(0, -7, -6), 720.0/512, 60);
