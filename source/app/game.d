@@ -112,7 +112,7 @@ int main()
 		{
 			if(game.scene.nextScene != "")
 			{
-				game.loadScene(game.scene.nextScene, false);
+				game.loadScene(game.scene.nextScene, true);
 				game.scene.camera.set_projection(
 					Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 				);

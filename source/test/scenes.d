@@ -88,7 +88,7 @@ SceneLoader testScene2()
 		];
 
 		files_animMesh = [
-			"data/meshes/kitty-test.lnb"
+			"data/test/meshes/kitty-test.glb"
 		];
 
 		meshInstances = [
