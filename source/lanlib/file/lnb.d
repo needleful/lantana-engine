@@ -112,7 +112,6 @@ struct LNBDescriptor(Type)
 		else
 		{
 			BinType* data = cast(BinType*)&p_buffer[byteOffset];
-			write(Type.stringof, ": \n\t");
 			return &data.getData(p_buffer);
 		}
 	}
@@ -168,7 +167,7 @@ struct LNBDescriptor(Type)
 		}
 		else 
 		{
-			// Just assigning or emplacing the data doesn't work, so we have to do some wild bit-twidling
+			// Just assigning or emplacing the data doesn't work, so we have to do some wild bit-twiddling
 			BinType[] temp_buffer;
 			temp_buffer.reserve(count);
 			foreach(elem; p_array)
@@ -298,7 +297,6 @@ struct LNBDescriptor(Type)
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		debug writeln("Struct ", Type.stringof);
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
@@ -340,7 +338,15 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 	p_alloc.make!char('\0');
 
 	FILE* file = fopen(fileZ.ptr, "rb");
+	if(file == null)
+	{
+		printf("Missing file: %s\n", fileZ.ptr);
+		debug assert(false, p_file);
+		else return T.init;
+	}
+
 	scope(exit) fclose(file);
+
 	int fsize;
 	fseek(file, 0, SEEK_END);
 	fsize = ftell(file);
@@ -370,6 +376,13 @@ T lnbLoad(T)(string p_file)
 	alias BinType = LNBDescriptor!T;
 
 	//pragma(msg, FieldNameTuple!BinType);
+
+	if(!p_file.exists())
+	{
+		writeln("File does not exist: ", p_file);
+		debug assert(false, p_file);
+		else return T.init;
+	}
 
 	auto file = File(p_file, "rb");
 
