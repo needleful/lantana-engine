@@ -135,7 +135,6 @@ struct LNBDescriptor(Type)
 	if(isDynamicArray!Type)
 {
 	alias SubType = ForeachType!Type;
-	mixin Import!SubType;
 
 	static if(isDumbData!SubType)
 	{
