@@ -23,9 +23,9 @@ struct Friend
 
 struct Boy
 {
-	string name;
-	Friend[] friends;
 	string[] favoriteFoods;
+	Friend[] friends;
+	string name;
 	int age;
 }
 

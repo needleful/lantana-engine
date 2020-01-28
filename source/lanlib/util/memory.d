@@ -31,6 +31,11 @@ template Alignment(Type)
 	}
 }
 
+T* offset(T)(ref ubyte[] p_bytes, ulong p_offset)
+{
+	return cast(T*) (&p_bytes[p_offset]);
+}
+
 T[] addSpace(T)(ref ubyte[] p_bytes, ulong p_count, ref ulong p_start)
 {
 	/// Aligns data to size_t
@@ -40,7 +45,8 @@ T[] addSpace(T)(ref ubyte[] p_bytes, ulong p_count, ref ulong p_start)
 	//p_bytes.length += size+shiftAlign;
 	p_start = p_bytes.length;
 	p_bytes.length += p_count*T.sizeof;
-	return (cast(T*)(&p_bytes[p_start]))[0..p_count]; 
+
+	return p_bytes.offset!T(p_start)[0..p_count]; 
 }
 
 void readData(T, U)(ref T p_dest, ref U p_source)
@@ -59,7 +65,7 @@ T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
 	ulong byteEnd = p_byteOffset + p_count*T.sizeof;
 	assert(byteEnd <= p_bytes.length);
 
-	return (cast(T*)(&p_bytes[p_byteOffset]))[0..p_count];
+	return p_bytes.offset!T(p_byteOffset)[0..p_count];
 }
 
 struct OwnedRef(Type)

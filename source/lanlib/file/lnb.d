@@ -36,7 +36,6 @@ template StripType(T)
 
 mixin template Import(Type)
 {
-	//pragma(msg, "\tTrying to import ", Type);
 	alias absType = StripType!Type;
 
 	static if(__traits(compiles, moduleName!absType))
@@ -52,7 +51,6 @@ mixin template Import(Type)
 		}
 		alias pkg = moduleName!toImport;
 		mixin("import "~pkg~": "~toImport.stringof.split("(")[0]~";\n");
-		//pragma(msg, "\timport "~pkg~": "~toImport.stringof.split("(")[0]~";");
 	}
 }
 
@@ -63,19 +61,16 @@ struct LNBDescriptor(Type)
 	{
 		mixin Import!subType;
 	}
-	alias valType = Type;
 	alias BinType = Unqual!Type;
 	BinType base;
 
 	this(Type p_base, ref ubyte[] _)
 	{
 		base = cast(BinType) p_base;
-		debug writefln("D\t", Type.stringof, " <= ", p_base);
 	}
 
 	Type getData(ref ubyte[] _)
 	{
-		debug writeln(Type.stringof, " ", base);
 		return cast(Type) base;
 	}
 
@@ -89,10 +84,8 @@ struct LNBDescriptor(Type)
 struct LNBDescriptor(Type)
 	if(isPointer!Type)
 {
-	alias valType = Type;
 	alias SubType = PointerTarget!Type;
 	alias BinType = LNBDescriptor!(Unqual!SubType);
-	mixin Import!SubType;
 
 	ulong byteOffset;
 	this(Type p_base, ref ubyte[] p_buffer)
@@ -107,7 +100,6 @@ struct LNBDescriptor(Type)
 			BinType[] data = p_buffer.addSpace!BinType(1, byteOffset);
 			emplace!BinType(data.ptr, *p_base, p_buffer);
 		}
-		//writefln("Store %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof);
 	}
 
 	Type getData(ref ubyte[] p_buffer)
@@ -115,7 +107,6 @@ struct LNBDescriptor(Type)
 		static if(isDumbData!SubType)
 		{
 			auto ptr = cast(Type)(&p_buffer[byteOffset]);
-			//writeln(Type.stringof, ": ", ptr);
 			return ptr;
 		}
 		else
@@ -144,7 +135,6 @@ struct LNBDescriptor(Type)
 struct LNBDescriptor(Type)
 	if(isDynamicArray!Type)
 {
-	alias valType = Type;
 	alias SubType = ForeachType!Type;
 	mixin Import!SubType;
 
@@ -157,50 +147,47 @@ struct LNBDescriptor(Type)
 		alias BinType = LNBDescriptor!SubType;
 	}
 
-	ulong count;
-	ulong byteOffset;
+	uint count;
+	uint byteOffset;
 
 	this(Type p_array, ref ubyte[] p_buffer)
 	{
-		BinType[] buffer = p_buffer.addSpace!BinType(p_array.length, byteOffset);
-		count = buffer.length;
-
 		if(p_array.length == 0)
 		{
 			return;
 		}
+
+		count = cast(uint) p_array.length;
+		ulong off;
+		BinType[] buffer = p_buffer.addSpace!BinType(p_array.length, off);
+		byteOffset = cast(uint) off;
 
 		static if(isDumbData!SubType)
 		{
 			buffer.readData(p_array);
 		}
 		else 
-		foreach(i; 0..count)
 		{
-			emplace!BinType(&buffer[i], p_array[i], p_buffer);
-			debug 
+			// Just assigning or emplacing the data doesn't work, so we have to do some wild bit-twidling
+			BinType[] temp_buffer;
+			temp_buffer.reserve(count);
+			foreach(elem; p_array)
 			{
-				auto byteStart = byteOffset + i*BinType.sizeof;
-				auto byteEnd = byteOffset + (i+1)*BinType.sizeof;
+				temp_buffer ~= BinType(elem, p_buffer);
 			}
+			auto byteSize = count*BinType.sizeof;
+			auto byteEnd = byteOffset + byteSize;
+			p_buffer[byteOffset..byteEnd] = (cast(ubyte*)temp_buffer.ptr)[0..byteSize];
 		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		writefln("\nLoad %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
-		//debug writeln(Type.stringof);
-		if(count == 0)
-		{
-			writeln("~\t empty.");
-			return cast(Type) [];
-		}
 		BinType[] binArray = p_buffer.readArray!BinType(byteOffset, count);
 
 		static if(isDumbData!SubType)
 		{
-			writeln("d\t", count, " elements ", binArray);
-			return cast(Type) binArray;
+			return cast(Type) binArray.dup();
 		}
 		else 
 		{
@@ -208,11 +195,6 @@ struct LNBDescriptor(Type)
 			foreach(i, bin; binArray)
 			{
 				array[i] = binArray[i].getData(p_buffer);
-				debug 
-				{
-					writeln(">\t ", binArray[i]);
-					writeln("\t=", array[i]);
-				}
 			}
 			return cast(Type) array;
 		}
@@ -220,7 +202,6 @@ struct LNBDescriptor(Type)
 
 	Type getData(ref ubyte[] p_buffer, ref Region p_alloc)
 	{
-		writefln("\nLoad (nogc) %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
 		if(count == 0)
 		{
 			return cast(Type) [];
@@ -232,15 +213,6 @@ struct LNBDescriptor(Type)
 		{
 			auto array = p_alloc.makeList!BinType(count);
 			array.readData(binArray);
-			debug
-			{
-				writeln("d\t", count, " elements ");
-				if(array.length < 100) 
-				{
-					foreach(item; array) writeln("\t", item);
-					//writeln("\t", p_buffer[0..count*BinType.sizeof]);
-				}
-			}
 			return cast(Type) array;
 		}
 		else
@@ -249,17 +221,10 @@ struct LNBDescriptor(Type)
 			foreach(i, ref bin; binArray)
 			{
 				array[i] = binArray[i].getData(p_buffer, p_alloc);
-				debug 
-				{
-					writeln(">\t ", binArray[i]);
-					writeln("\t=", array[i]);
-					writeln("\t=", p_buffer[0..count*BinType.sizeof]);
-				}
 			}
 			return cast(Type) array;
 		}
 	}
-	//pragma(msg, "--- End ", Type);
 }
 
 template Declare(Type, string name)
@@ -315,24 +280,19 @@ struct LNBDescriptor(Type)
 	if(is(Type == struct) && !isDumbData!Type)
 {
 	alias valType = Type;
-	//pragma(msg, "\nSerializing ", Type, ":");
 	enum fieldNames = FieldNameTuple!Type;
 
 	static foreach(i, type; Fields!Type)
 	{
 		mixin Import!type;
 		mixin(Declare!(type, fieldNames[i].stringof[1..$-1]));
-		//pragma(msg, "->>", Declare!(type, fieldNames[i].stringof[1..$-1]));
 	}
 
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
-		//debug writeln(Type.stringof);
 		static foreach(i, type; Fields!Type)
 		{
 			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
-			//writeln(" ::\t", fieldNames[i], " = ", mixin(fieldNames[i]));
-			//pragma(msg, "\t", FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 		}
 	}
 
@@ -342,8 +302,6 @@ struct LNBDescriptor(Type)
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, "\t", BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
-			writeln("*\t", fieldNames[i].stringof[1..$-1], " = ", mixin(fieldNames[i]));
 			mixin(BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
@@ -354,12 +312,10 @@ struct LNBDescriptor(Type)
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, "\t", BaseAssignAlloc!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 			mixin(BaseAssignAlloc!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
 	}
-	//pragma(msg, "--- End ", Type);
 }
 
 struct LNBHeader
@@ -394,8 +350,8 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 	readValue!LNBHeader(file, &header);
 
 	assert(header.magic == "LNB_", header.magic);
-	assert(header.typeSize == BinType.sizeof);
-	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == fsize);
+	assert(header.typeSize == BinType.sizeof, p_file);
+	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == fsize, p_file);
 
 	BinType data;
 	readValue!BinType(file, &data);
@@ -423,8 +379,8 @@ T lnbLoad(T)(string p_file)
 	LNBHeader header = headerBuffer[0]; 
 
 	assert(header.magic == "LNB_", header.magic);
-	assert(header.typeSize == BinType.sizeof);
-	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
+	assert(header.typeSize == BinType.sizeof, p_file);
+	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == file.size, p_file);
 
 	BinType[] dataBuffer = new BinType[1];
 	file.rawRead(dataBuffer);
@@ -461,12 +417,12 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 		file.rawWrite(buffer);
 	}
 
-	debug
-	{
-		auto text = File(p_file ~".txt", "w");
-		text.writeln(p_file);
-		text.writeln(header);
-		text.writeln(data);
-		text.writeln(buffer);
-	}
+	//debug
+	//{
+	//	auto text = File(p_file ~".log", "w");
+	//	text.writeln(p_file);
+	//	text.writeln(header);
+	//	text.writeln(data);
+	//	text.writeln(buffer);
+	//}
 }
