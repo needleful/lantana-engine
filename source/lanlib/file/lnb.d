@@ -8,26 +8,62 @@ import std.conv : emplace;
 import std.file;
 import std.meta;
 import std.stdio;
+import std.string;
 import std.traits;
 
-import gl3n.linalg;
-
 import lanlib.util.memory;
-import logic;
-import lanlib.file.gltf2;
-import lanlib.math;
-import lanlib.types;
-import lanlib.util.array;
-import render;
 
+private enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
+private enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
+private enum isDumbData(Type) = isSimpleStruct!Type || allSatisfy!(isSimpleStruct, Fields!Type);
 
-enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
-enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
-enum isDumbData(Type) = isSimpleStruct!Type || allSatisfy!(isSimpleStruct, Fields!Type);
+private template StripType(T)
+{
+	static if(isArray!T)
+	{
+		alias subType = ForeachType!T;
+	}
+	else static if(isPointer!T)
+	{
+		alias subType = PointerTarget!T;
+	}
+	else
+	{
+		alias subType = T;
+	}
+	alias StripType = Unqual!subType;
+}
 
-private struct BinaryDescriptor(Type)
+private mixin template Import(Type)
+{
+	//pragma(msg, "\tTrying to import ", Type);
+	alias absType = StripType!Type;
+
+	static if(__traits(compiles, moduleName!absType))
+	{
+		alias templateName = TemplateOf!absType;
+		static if(is(templateName == void))
+		{
+			alias toImport = absType;
+		}
+		else
+		{
+			alias toImport = templateName;
+		}
+		alias pkg = moduleName!toImport;
+		mixin("import "~pkg~": "~toImport.stringof.split("(")[0]~";\n");
+		//pragma(msg, "\timport "~pkg~": "~toImport.stringof.split("(")[0]~";");
+	}
+}
+
+private struct LNBDescriptor(Type)
 	if(isDumbData!Type)
 {
+	static foreach(subType; Fields!Type)
+	{
+		mixin Import!subType;
+	}
+	alias valType = Type;
 	alias BinType = Unqual!Type;
 	BinType base;
 
@@ -50,11 +86,13 @@ private struct BinaryDescriptor(Type)
 
 }
 
-private struct BinaryDescriptor(Type)
+private struct LNBDescriptor(Type)
 	if(isPointer!Type)
 {
+	alias valType = Type;
 	alias SubType = PointerTarget!Type;
-	alias BinType = BinaryDescriptor!(SubType);
+	alias BinType = LNBDescriptor!(SubType);
+	mixin Import!SubType;
 
 	ulong byteOffset;
 	this(Type p_base, ref ubyte[] p_buffer)
@@ -106,10 +144,12 @@ private struct BinaryDescriptor(Type)
 	}
 }
 
-private struct BinaryDescriptor(Type)
+private struct LNBDescriptor(Type)
 	if(isDynamicArray!Type)
 {
+	alias valType = Type;
 	alias SubType = ForeachType!Type;
+	mixin Import!SubType;
 
 	//pragma(msg, "\nSerializing ", Type, ":");
 	static if(isDumbData!SubType)
@@ -120,7 +160,7 @@ private struct BinaryDescriptor(Type)
 	else
 	{
 		//pragma(msg, "\tComplex data type: ", SubType);
-		alias BinType = BinaryDescriptor!SubType;
+		alias BinType = LNBDescriptor!SubType;
 	}
 	static if(isArray!SubType)
 	{
@@ -233,7 +273,7 @@ private template Declare(Type, string name)
 	}
 	else
 	{
-		enum Declare = "BinaryDescriptor!("~Type.stringof~") "~name~";";
+		enum Declare = "LNBDescriptor!("~Type.stringof~") "~name~";";
 	}
 }
 
@@ -269,21 +309,23 @@ private template FieldAssign(Type, string field)
 	}
 	else 
 	{
-		enum FieldAssign = field~" = BinaryDescriptor!("~Type.stringof~")(p_base."~field~", p_buffer);";
+		enum FieldAssign = field~" = LNBDescriptor!("~Type.stringof~")(p_base."~field~", p_buffer);";
 	}
 }
 
 // Struct for loading and storing complex data from a byte buffers without pointers
-private struct BinaryDescriptor(Type)
+private struct LNBDescriptor(Type)
 	if(is(Type == struct) && !isDumbData!Type)
 {
+	alias valType = Type;
 	//pragma(msg, "\nSerializing ", Type, ":");
 	enum fieldNames = FieldNameTuple!Type;
 
 	static foreach(i, type; Fields!Type)
 	{
-		//pragma(msg, "\t", Declare!(type, fieldNames[i].stringof[1..$-1]));
+		mixin Import!type;
 		mixin(Declare!(type, fieldNames[i].stringof[1..$-1]));
+		//pragma(msg, "->>", Declare!(type, fieldNames[i].stringof[1..$-1]));
 	}
 
 	this(Type p_base, ref ubyte[] p_buffer)
@@ -291,9 +333,9 @@ private struct BinaryDescriptor(Type)
 		debug writeln(Type.stringof);
 		static foreach(i, type; Fields!Type)
 		{
-			//pragma(msg, "\t", FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 			//writeln(" ::\t", fieldNames[i], " = ", mixin(fieldNames[i]));
+			//pragma(msg, "\t", FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
 		}
 	}
 
@@ -322,7 +364,7 @@ private struct BinaryDescriptor(Type)
 	//pragma(msg, "--- End ", Type);
 }
 
-private struct BinHeader
+struct LNBHeader
 {
 	char[4] magic = "LNB_";
 	uint bufferSize;
@@ -337,7 +379,7 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
 		assert(size == p_count);
 	}
 
-	alias BinType = BinaryDescriptor!T;
+	alias BinType = LNBDescriptor!T;
 
 	// creating a z-terminated string in the region
 	string fileZ = p_alloc.copy(p_file);
@@ -350,12 +392,12 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
 	fsize = ftell(file);
 	rewind(file);
 
-	BinHeader header;
-	readValue!BinHeader(file, &header);
+	LNBHeader header;
+	readValue!LNBHeader(file, &header);
 
 	assert(header.magic == "LNB_", header.magic);
 	assert(header.typeSize == BinType.sizeof);
-	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == fsize);
+	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == fsize);
 
 	BinType data;
 	readValue!BinType(file, &data);
@@ -371,20 +413,20 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
 
 T lnbLoad(T)(string p_file)
 {
-	alias BinType = BinaryDescriptor!T;
+	alias BinType = LNBDescriptor!T;
 
 	//pragma(msg, FieldNameTuple!BinType);
 
 	auto file = File(p_file, "rb");
 
-	BinHeader[] headerBuffer = new BinHeader[1];
+	LNBHeader[] headerBuffer = new LNBHeader[1];
 	file.rawRead(headerBuffer);
 
-	BinHeader header = headerBuffer[0]; 
+	LNBHeader header = headerBuffer[0]; 
 
 	assert(header.magic == "LNB_", header.magic);
 	assert(header.typeSize == BinType.sizeof);
-	assert(BinHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
+	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == file.size);
 
 	BinType[] dataBuffer = new BinType[1];
 	file.rawRead(dataBuffer);
@@ -402,12 +444,12 @@ T lnbLoad(T)(string p_file)
 
 void lnbStore(T)(string p_file, auto ref T p_data)
 {
-	alias BinType = BinaryDescriptor!T;
+	alias BinType = LNBDescriptor!T;
 
 	ubyte[] buffer;
 	BinType data = BinType(p_data, buffer);
 
-	BinHeader header = BinHeader();
+	LNBHeader header = LNBHeader();
 	header.typeSize = BinType.sizeof;
 	header.bufferSize = cast(uint)buffer.length;
 
