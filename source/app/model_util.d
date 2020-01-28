@@ -9,6 +9,25 @@ import lanlib.file.gltf2;
 import lanlib.file.lnb;
 import lanlib.util.memory;
 
+struct Friend
+{
+	string name;
+	int age;
+
+	this(string p_name, int p_age)
+	{
+		name = p_name;
+		age = p_age;
+	}
+}
+
+struct Boy
+{
+	string name;
+	Friend[] friends;
+	string[] favoriteFoods;
+	int age;
+}
 
 int main(string[] args)
 {
@@ -17,18 +36,74 @@ int main(string[] args)
 		writeln("Need one argument: file containing tab-separated input and output files");
 	}
 
+	//basic tests of the memory functions
+	{
+		ubyte[] data;
+		ulong start;
+		uint[] ints = data.addSpace!uint(24, start);
+		ints[0] = 4;
+
+		assert(data.length == uint.sizeof*24);
+		assert(data[0] == 4);
+		assert(start == 0);
+
+		string h = "Hello, world";
+		char[] charming = data.addSpace!char(h.length, start);
+
+		charming.readData(h);
+
+		assert(start == uint.sizeof*24);
+		assert(charming == "Hello, world");
+	}
+
+	// More advanced tests of LNBDescriptor
+	{
+		Boy boy;
+		with(boy)
+		{
+			age = 14;
+			name = "Steven";
+			friends = [
+				Friend("Garnet", 5700),
+				Friend("Pearl", 4400),
+				Friend("Amethyst", 120),
+				Friend("Connie", 12)
+			];
+			favoriteFoods = [
+				"pizza",
+				"burgers",
+				"seafood"
+			];
+		}
+
+		ubyte[] data;
+		auto serialBoy = LNBDescriptor!Boy(boy, data);
+
+		auto deserialBoy = serialBoy.getData(data);
+		if(boy != deserialBoy)
+		{
+			writeln("EXPECTED: ", boy);
+			writeln("ACTUAL: ", deserialBoy);
+			writeln("SERIALIZED: ", serialBoy);
+			writeln("BUFFER: ", data);
+
+			return -1;
+		}
+	}
+
 	string path = args[1];
 	writeln("Opening: ", path);
 
 	BaseRegion mem = BaseRegion(MAX_MEMORY/4);
 
+	File errLog = File("model_error.log", "w");
 	auto lines = File(path, "r").byLine();
 	foreach(ref line; lines) 
 	{
 		if(line.length == 0 || line[0] == '#')
 		{
 			// A comment or empty, ignore
-			break;
+			continue;
 		}
 		string[] fields = cast(string[]) line.split("\t");
 
@@ -49,7 +124,6 @@ int main(string[] args)
 				GLBAnimatedLoadResults validate = lnbLoad!GLBAnimatedLoadResults(outFile, mem);
 				if(validate != results)
 				{
-					File errLog = File("model_error.log", "a");
 					errLog.writeln("======\nFALURE: validation returned differences for ", inFile);
 					errLog.writeln("GLB FILE: \n", results);
 					errLog.writeln("LNB FILE: \n", validate);
@@ -67,7 +141,6 @@ int main(string[] args)
 				GLBStaticLoadResults validate = lnbLoad!GLBStaticLoadResults(outFile, mem);
 				if(validate != results)
 				{
-					File errLog = File("model_error.log", "a");
 					errLog.writeln("FALURE: validation returned differences for ", inFile);
 					errLog.writeln("GLB FILE: \n", results);
 					errLog.writeln("LNB FILE: \n", validate);

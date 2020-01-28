@@ -15,6 +15,53 @@ debug
 
 enum MAX_MEMORY = 1024*1024*16;
 
+template Alignment(Type)
+{
+	static if(Type.sizeof <= ushort.sizeof)
+	{
+		enum Alignment = ushort.sizeof;
+	}
+	else static if(Type.sizeof <= uint.sizeof)
+	{
+		enum Alignment = uint.sizeof;
+	}
+	else
+	{
+		enum Alignment = size_t.sizeof;
+	}
+}
+
+T[] addSpace(T)(ref ubyte[] p_bytes, ulong p_count, ref ulong p_start)
+{
+	/// Aligns data to size_t
+	//ushort shiftAlign = (cast(size_t)p_start) % Alignment!T;
+	//ulong size = T.sizeof*p_count+shiftAlign;
+	//p_start = p_bytes.length+shiftAlign;
+	//p_bytes.length += size+shiftAlign;
+	p_start = p_bytes.length;
+	p_bytes.length += p_count*T.sizeof;
+	return (cast(T*)(&p_bytes[p_start]))[0..p_count]; 
+}
+
+void readData(T, U)(ref T p_dest, ref U p_source)
+	if(isArray!T && isArray!U && is(Unqual!(ForeachType!T) == Unqual!(ForeachType!U)))
+{
+	assert(p_dest.length == p_source.length);
+
+	p_dest[0..p_source.length] = p_source[0..p_source.length];
+
+	//import core.stdc.string: memcpy;
+	//memcpy(cast(void*)p_dest.ptr, cast(void*)p_source.ptr, T.sizeof*p_source.length);
+}
+
+T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
+{
+	ulong byteEnd = p_byteOffset + p_count*T.sizeof;
+	assert(byteEnd <= p_bytes.length);
+
+	return (cast(T*)(&p_bytes[p_byteOffset]))[0..p_count];
+}
+
 struct OwnedRef(Type)
 {
 	Type* data;
@@ -249,25 +296,29 @@ struct Region
 	T[] makeList(T)(size_t count)
 	{
 		//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
-		return (cast(T*)alloc(T.sizeof * count))[0..count];
+		//return (cast(T*)allocAligned!(Alignment!T)(T.sizeof * count))[0..count];
+		return (cast(T*)alloc(T.sizeof*count))[0..count];
 	}
 
 	OwnedList!T makeOwnedList(T)(ushort p_size)
 	{
+		//return OwnedList!T((cast(T*)allocAligned!(Alignment!T)(T.sizeof * p_size)), p_size);
 		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);
 	}
 
 	auto make(T, A...)(auto ref A args)
 	{
-		//debug printf("MEM: Creating instnace of %s\n", T.stringof.ptr);
+		//debug printf("MEM: Creating instance of %s\n", T.stringof.ptr);
 		static if(is(T == class))
 		{
-			void[] buffer = alloc(T.sizeof)[0..T.sizeof];
+			//void[] buffer = allocAligned!(Alignment!T)(T.sizeof)[0..T.sizeof];
+			void[] buffer = cast(void[]) alloc(T.sizeof)[0..T.sizeof];
 			assert(buffer.ptr != null, "Failed to allocate memory");
 			return emplace!(T, A)(buffer, args);
 		}
 		else
 		{
+			//T *ptr = cast(T*) allocAligned!(Alignment!T)(T.sizeof);
 			T *ptr = cast(T*) alloc(T.sizeof);
 			assert(ptr != null, "Failed to allocate memory");
 			return emplace!(T, A)(ptr, args);
@@ -283,7 +334,7 @@ struct Region
 	private T[] copyList(T)(immutable(T)[] p_list)
 	{
 		auto newList = makeList!T(p_list.length);
-		newList[0..$] = p_list[0..$];
+		newList.readData(p_list);
 		return newList;
 	}
 
@@ -308,6 +359,20 @@ struct Region
 		setSpaceUsed(spaceUsed + bytes);
 
 		return result;
+	}
+
+	private void* allocAligned(uint alignment)(size_t bytes) @nogc
+	{
+		ulong address = ((cast(ulong)data)+spaceUsed());
+		auto alignShift = address % alignment;
+		alignShift = (alignment - alignShift) % alignment;
+
+		assert((address + alignShift) % alignment == 0);
+		assert(alignShift <= alignment);
+
+		void* ptr = alloc(bytes + alignShift);
+
+		return &ptr[alignShift];
 	}
 
 	private bool remove(void* data) @nogc nothrow
@@ -336,18 +401,3 @@ struct Region
 		(cast(size_t *) data)[1] = val;
 	}
 }
-
-//class LanGCAllocator: ref Region
-//{
-//	void* make(ulong bytes)
-//	{
-//		import std.experimental.allocator.gc_allocator;
-//		return GCAllocator.instance.allocate(bytes).ptr;
-//	}
-
-//	bool remove (void* data)
-//	{
-//		// Automatic
-//		return false;
-//	}
-//}

@@ -417,11 +417,11 @@ struct GLBAnimation
 	GLBAnimationChannel[] channels;
 	GLBBufferView[] bufferViews;
 
-	debug const string toString()
-	{
-		return format("%s [%u channels, %u buffers]", 
-			name, channels.length, bufferViews.length);
-	}
+	//debug const string toString()
+	//{
+	//	return format("%s [%u channels, %u buffers]", 
+	//		name, channels.length, bufferViews.length);
+	//}
 
 	this(string p_name, GLBAnimationChannel[] p_channels, GLBBufferView[] p_bufferViews) @nogc
 	{

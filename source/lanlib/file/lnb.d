@@ -13,11 +13,11 @@ import std.traits;
 
 import lanlib.util.memory;
 
-private enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
-private enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
-private enum isDumbData(Type) = isSimpleStruct!Type || allSatisfy!(isSimpleStruct, Fields!Type);
+enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
+enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
+enum isDumbData(Type) = isSimpleStruct!Type || allSatisfy!(isSimpleStruct, Fields!Type);
 
-private template StripType(T)
+template StripType(T)
 {
 	static if(isArray!T)
 	{
@@ -34,7 +34,7 @@ private template StripType(T)
 	alias StripType = Unqual!subType;
 }
 
-private mixin template Import(Type)
+mixin template Import(Type)
 {
 	//pragma(msg, "\tTrying to import ", Type);
 	alias absType = StripType!Type;
@@ -56,7 +56,7 @@ private mixin template Import(Type)
 	}
 }
 
-private struct LNBDescriptor(Type)
+struct LNBDescriptor(Type)
 	if(isDumbData!Type)
 {
 	static foreach(subType; Fields!Type)
@@ -67,48 +67,45 @@ private struct LNBDescriptor(Type)
 	alias BinType = Unqual!Type;
 	BinType base;
 
-	this(Type p_base, ref ubyte[] p_buffer)
+	this(Type p_base, ref ubyte[] _)
 	{
 		base = cast(BinType) p_base;
 		debug writefln("D\t", Type.stringof, " <= ", p_base);
 	}
 
-	Type getData(ref ubyte[] p_buffer)
+	Type getData(ref ubyte[] _)
 	{
 		debug writeln(Type.stringof, " ", base);
 		return cast(Type) base;
 	}
 
-	Type getData(ref ubyte[] p_buffer, ref Region _)
+	Type getData(ref ubyte[] _, ref Region _)
 	{
 		return cast(Type) base;
 	}
 
 }
 
-private struct LNBDescriptor(Type)
+struct LNBDescriptor(Type)
 	if(isPointer!Type)
 {
 	alias valType = Type;
 	alias SubType = PointerTarget!Type;
-	alias BinType = LNBDescriptor!(SubType);
+	alias BinType = LNBDescriptor!(Unqual!SubType);
 	mixin Import!SubType;
 
 	ulong byteOffset;
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
-		byteOffset = p_buffer.length;
-		p_buffer.length += BinType.sizeof;
-
 		static if(isDumbData!SubType)
 		{
-			auto ptr = cast(SubType*)(&p_buffer[byteOffset]);
-			emplace!SubType(ptr, *p_base);
+			SubType[] data = p_buffer.addSpace!SubType(1, byteOffset);
+			emplace!SubType(data.ptr, *p_base);
 		}
 		else
 		{
-			auto ptr = cast(BinType*) &p_buffer[byteOffset];
-			emplace!BinType(ptr, *p_base, p_buffer);
+			BinType[] data = p_buffer.addSpace!BinType(1, byteOffset);
+			emplace!BinType(data.ptr, *p_base, p_buffer);
 		}
 		//writefln("Store %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof);
 	}
@@ -125,7 +122,7 @@ private struct LNBDescriptor(Type)
 		{
 			BinType* data = cast(BinType*)&p_buffer[byteOffset];
 			write(Type.stringof, ": \n\t");
-			return &data.getData();
+			return &data.getData(p_buffer);
 		}
 	}
 
@@ -139,99 +136,81 @@ private struct LNBDescriptor(Type)
 		else
 		{
 			BinType* data = cast(BinType*)&p_buffer[byteOffset];
-			return cast(Type) p_alloc.make!SubType(data.getData());
+			return cast(Type) p_alloc.make!SubType(data.getData(p_buffer, p_alloc));
 		}
 	}
 }
 
-private struct LNBDescriptor(Type)
+struct LNBDescriptor(Type)
 	if(isDynamicArray!Type)
 {
 	alias valType = Type;
 	alias SubType = ForeachType!Type;
 	mixin Import!SubType;
 
-	//pragma(msg, "\nSerializing ", Type, ":");
 	static if(isDumbData!SubType)
 	{
-		//pragma(msg, "\tDumb data type: ", SubType);
 		alias BinType = Unqual!SubType;
 	}
 	else
 	{
-		//pragma(msg, "\tComplex data type: ", SubType);
 		alias BinType = LNBDescriptor!SubType;
 	}
-	static if(isArray!SubType)
-	{
-		//pragma(msg, "\tNested array: ", Type);
-	}
-	uint count;
-	uint byteOffset;
+
+	ulong count;
+	ulong byteOffset;
 
 	this(Type p_array, ref ubyte[] p_buffer)
 	{
-		//writeln("Dynamic array: ", Type.stringof);
-		count = cast(uint)p_array.length;
-		byteOffset = cast(uint)p_buffer.length;
+		BinType[] buffer = p_buffer.addSpace!BinType(p_array.length, byteOffset);
+		count = buffer.length;
 
-		debug writefln("Store %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + SubType.sizeof*count);
 		if(p_array.length == 0)
 		{
-			debug writeln(Type.stringof,"~~empty");
 			return;
 		}
 
-		p_buffer.length += count*BinType.sizeof;
 		static if(isDumbData!SubType)
 		{
-			auto data = cast(BinType*)(&p_buffer[byteOffset]);
-			data[0..count] = p_array[0..count];
-
-			debug writefln("--\t %u elements [%u bytes per elem]", count, SubType.sizeof);
+			buffer.readData(p_array);
 		}
-		else foreach(i; 0..count)
+		else 
+		foreach(i; 0..count)
 		{
-			debug writeln("--\t", p_array[i]);
-
-			auto byteStart = byteOffset+i*BinType.sizeof;
-			auto byteEnd = byteStart + BinType.sizeof;
-
-			foreach(attempt; 0..4)
+			emplace!BinType(&buffer[i], p_array[i], p_buffer);
+			debug 
 			{
-				debug writeln("\t = ", p_buffer[byteStart..byteEnd]);
-				(cast(BinType*)&p_buffer[byteStart]).emplace!BinType(p_array[i], p_buffer);
+				auto byteStart = byteOffset + i*BinType.sizeof;
+				auto byteEnd = byteOffset + (i+1)*BinType.sizeof;
 			}
-
-			debug writeln("\t = ", *(cast(BinType*)&p_buffer[byteStart]));
 		}
 	}
 
 	Type getData(ref ubyte[] p_buffer)
 	{
-		//writefln("\nLoad %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
+		writefln("\nLoad %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
 		//debug writeln(Type.stringof);
 		if(count == 0)
 		{
-			//writeln("\t empty.");
+			writeln("~\t empty.");
 			return cast(Type) [];
 		}
-		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
+		BinType[] binArray = p_buffer.readArray!BinType(byteOffset, count);
 
 		static if(isDumbData!SubType)
 		{
-			//writeln("\t", count, " elements");
+			writeln("d\t", count, " elements ", binArray);
 			return cast(Type) binArray;
 		}
 		else 
 		{
 			SubType[] array = new SubType[count];
-			foreach(i, ref bin; binArray)
+			foreach(i, bin; binArray)
 			{
 				array[i] = binArray[i].getData(p_buffer);
 				debug 
 				{
-					writeln("\t ", binArray[i]);
+					writeln(">\t ", binArray[i]);
 					writeln("\t=", array[i]);
 				}
 			}
@@ -241,23 +220,41 @@ private struct LNBDescriptor(Type)
 
 	Type getData(ref ubyte[] p_buffer, ref Region p_alloc)
 	{
+		writefln("\nLoad (nogc) %s: [%u..%u]", Type.stringof, byteOffset, byteOffset + Type.sizeof*count);
 		if(count == 0)
 		{
 			return cast(Type) [];
 		}
-		BinType[] binArray = (cast(BinType*)&p_buffer[byteOffset])[0..count];
+
+		auto binArray = p_buffer.readArray!BinType(byteOffset, count);
 
 		static if(isDumbData!SubType)
 		{
-			return cast(Type) binArray;
+			auto array = p_alloc.makeList!BinType(count);
+			array.readData(binArray);
+			debug
+			{
+				writeln("d\t", count, " elements ");
+				if(array.length < 100) 
+				{
+					foreach(item; array) writeln("\t", item);
+					//writeln("\t", p_buffer[0..count*BinType.sizeof]);
+				}
+			}
+			return cast(Type) array;
 		}
 		else
 		{
-			SubType[] array = p_alloc.makeList!SubType(count);
+			auto array = p_alloc.makeList!SubType(count);
 			foreach(i, ref bin; binArray)
 			{
-				array[i] = binArray[i].getData(p_buffer);
-				//debug writeln("\t", array[i], " = ", binArray[i]);
+				array[i] = binArray[i].getData(p_buffer, p_alloc);
+				debug 
+				{
+					writeln(">\t ", binArray[i]);
+					writeln("\t=", array[i]);
+					writeln("\t=", p_buffer[0..count*BinType.sizeof]);
+				}
 			}
 			return cast(Type) array;
 		}
@@ -265,7 +262,7 @@ private struct LNBDescriptor(Type)
 	//pragma(msg, "--- End ", Type);
 }
 
-private template Declare(Type, string name)
+template Declare(Type, string name)
 {
 	static if(isDumbData!Type)
 	{
@@ -277,7 +274,7 @@ private template Declare(Type, string name)
 	}
 }
 
-private template BaseAssign(Type, string base, string field)
+template BaseAssign(Type, string base, string field)
 {
 	static if(isDumbData!Type)
 	{
@@ -289,7 +286,7 @@ private template BaseAssign(Type, string base, string field)
 	}
 }
 
-private template BaseAssignAlloc(Type, string base, string field)
+template BaseAssignAlloc(Type, string base, string field)
 {
 	static if(isDumbData!Type)
 	{
@@ -301,7 +298,7 @@ private template BaseAssignAlloc(Type, string base, string field)
 	}
 }
 
-private template FieldAssign(Type, string field)
+template FieldAssign(Type, string field)
 {
 	static if(isDumbData!Type)
 	{
@@ -314,7 +311,7 @@ private template FieldAssign(Type, string field)
 }
 
 // Struct for loading and storing complex data from a byte buffers without pointers
-private struct LNBDescriptor(Type)
+struct LNBDescriptor(Type)
 	if(is(Type == struct) && !isDumbData!Type)
 {
 	alias valType = Type;
@@ -330,7 +327,7 @@ private struct LNBDescriptor(Type)
 
 	this(Type p_base, ref ubyte[] p_buffer)
 	{
-		debug writeln(Type.stringof);
+		//debug writeln(Type.stringof);
 		static foreach(i, type; Fields!Type)
 		{
 			mixin(FieldAssign!(type, fieldNames[i].stringof[1..$-1]));
@@ -341,11 +338,12 @@ private struct LNBDescriptor(Type)
 
 	Type getData(ref ubyte[] p_buffer)
 	{
+		debug writeln("Struct ", Type.stringof);
 		Type val;
 		static foreach(i, type; Fields!Type)
 		{
 			//pragma(msg, "\t", BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
-			//writeln("\t", fieldNames[i].stringof[1..$-1], " = ", mixin(fieldNames[i]));
+			writeln("*\t", fieldNames[i].stringof[1..$-1], " = ", mixin(fieldNames[i]));
 			mixin(BaseAssign!(type, val.stringof, fieldNames[i].stringof[1..$-1]));
 		}
 		return val;
@@ -371,7 +369,7 @@ struct LNBHeader
 	uint typeSize;
 }
 
-T lnbLoad(T)(string p_file, ref Region p_alloc) @nogc
+T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 {
 	void readValue(Type)(FILE* p_file, Type* p_ptr, size_t p_count = 1) @nogc
 	{
@@ -447,6 +445,7 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 	alias BinType = LNBDescriptor!T;
 
 	ubyte[] buffer;
+	buffer.reserve(ushort.max);
 	BinType data = BinType(p_data, buffer);
 
 	LNBHeader header = LNBHeader();
@@ -462,9 +461,12 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 		file.rawWrite(buffer);
 	}
 
-	//debug
-	//{
-	//	auto val = data.getData(buffer);
-	//	assert(p_data == val);
-	//}
+	debug
+	{
+		auto text = File(p_file ~".txt", "w");
+		text.writeln(p_file);
+		text.writeln(header);
+		text.writeln(data);
+		text.writeln(buffer);
+	}
 }
