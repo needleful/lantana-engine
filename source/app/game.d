@@ -40,7 +40,7 @@ int main()
 	UIRenderer ui = new UIRenderer(window.getSize());
 
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
-	FontId debugFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 20);
+	FontId debugFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 
 	TextBox frameTime = new TextBox(ui, debugFont, debugFormat, true);

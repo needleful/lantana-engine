@@ -1,0 +1,27 @@
+// Testing SDL files
+
+fonts {
+	default "data/ui/fonts/averia/Averia-Regular.ttf" 24
+}
+
+sprites {
+	needleful "data/test/needleful.png"
+}
+
+root {
+	hodge-podge {
+		anchor {
+			image file="data/test/ui_sprites/upclick.png"
+			parent 0.99 0.99
+			child 1 1
+		}
+		anchor {
+			hbox spacing=10 {
+				image sprite="needleful"
+				text font="default" "Lantana Editor"
+			}
+			parent 0.027 0.048
+			child 0 0
+		}
+	}
+}

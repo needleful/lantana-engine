@@ -14,6 +14,7 @@ import gl3n.linalg;
 import lanlib.types;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
+import lanlib.file.uidl;
 import lanlib.util.memory;
 
 import logic.input;
@@ -46,30 +47,30 @@ int main()
 
 	ww.grab_mouse(false);
 
-	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+	//SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
+	//SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 24);
-	TextBox frameTime = new TextBox(ui, testFont, "Lantana Editor");
+	//FontId testFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
 
-	ui.setRootWidget(new HodgePodge([
-		new Anchor(
-			new ImageBox(ui, upclickSprite),
-			vec2(1,1), vec2(1,1)
-		),
-		new Anchor(
-			new ImageBox(ui, needlefulPNG),
-			vec2(0.027, 0.048),
-			vec2(0, 0)
-		),
-		new Anchor(
-			frameTime,
-			vec2(0.27, 1-0.048),
-			vec2(0, 1)
-		)
-	]));
+	//ui.setRootWidget(new HodgePodge([
+	//	new Anchor(
+	//		new ImageBox(ui, upclickSprite),
+	//		vec2(1,1), vec2(1,1)
+	//	),
+	//	new Anchor(
+	//		new ImageBox(ui, needlefulPNG),
+	//		vec2(0.027, 0.048),
+	//		vec2(0, 0)
+	//	),
+	//	new Anchor(
+	//		new TextBox(ui, testFont, "Lantana Editor"),
+	//		vec2(0.27, 1-0.048),
+	//		vec2(0, 1)
+	//	)
+	//]));
 
-	ui.update(0.016f);
+	ui.loadFile("data/ui/editor.sdl");
+
 	while(!ww.state[WindowState.CLOSED])
 	{
 		ww.pollEvents(&ii);

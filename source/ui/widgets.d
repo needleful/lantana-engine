@@ -9,6 +9,7 @@ debug import std.stdio;
 
 import gl3n.linalg: vec2;
 
+import lanlib.file.uidl;
 import lanlib.types;
 import ui.layout;
 import ui.render;
@@ -32,12 +33,13 @@ public abstract class LeafWidget : Widget
 }
 
 /// Provides no layout hints.  All widgets are laid out in the same space and position
+@WidgetName("hodge-podge")
 public class HodgePodge : Widget
 {
 	public Widget[] children;
 
 
-	public this(Widget[] p_children) nothrow
+	public this(@ParamList Widget[] p_children) nothrow
 	{
 		children = p_children;
 	}
@@ -65,6 +67,7 @@ public class HodgePodge : Widget
 }
 
 /// Anchor the widget to a specific point
+@WidgetName("anchor")
 public class Anchor: SingularContainer
 {
 	// Normalized coordinates, (0,0) is bottom left of the container
@@ -72,7 +75,10 @@ public class Anchor: SingularContainer
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
 	vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) nothrow
+	public this(
+		@Param(0) Widget p_child,
+		@Param("parent") vec2 p_anchor,
+		@Optional @Param("child") vec2 p_childAnchor = vec2(0,0)) nothrow
 	{
 		child = p_child;
 		child.position = ivec2(0,0);
@@ -214,12 +220,13 @@ public class Anchor: SingularContainer
 	}
 }
 
+@WidgetName("padded")
 public class Padding : SingularContainer
 {
 	// Padding, in pixels
 	int top, bottom, left, right;
 
-	public this(Widget p_child, int p_padding) nothrow
+	public this(@Param(0) Widget p_child, int p_padding) nothrow
 	{
 		child = p_child;
 
@@ -229,7 +236,7 @@ public class Padding : SingularContainer
 		right = p_padding;
 	}
 
-	public this(Widget p_child, int p_vertical, int p_horizontal) nothrow
+	public this(@Param(0) Widget p_child, int p_vertical, int p_horizontal) nothrow
 	{
 		child = p_child;
 
@@ -240,7 +247,7 @@ public class Padding : SingularContainer
 		right = p_horizontal;
 	}
 
-	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
+	public this(@Param(0) Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
 	{
 		child = p_child;
 
@@ -264,6 +271,7 @@ public class Padding : SingularContainer
 	}
 }
 
+@WidgetName("image")
 public class ImageBox : LeafWidget
 {
 	RealSize textureSize;
@@ -273,7 +281,7 @@ public class ImageBox : LeafWidget
 
 	/// Currently no way for the UIRenderer to check if an image is loaded,
 	/// so only use this if the image is going to be shown once on screen
-	public this(UIRenderer p_renderer, string filename)
+	public this(UIRenderer p_renderer, @Param(0) string filename)
 	{
 		spriteId = p_renderer.loadSprite(filename);
 		assert(spriteId != 0);
@@ -281,6 +289,7 @@ public class ImageBox : LeafWidget
 		init(p_renderer);
 	}
 
+	@Ignored
 	public this(UIRenderer p_renderer, SpriteId p_spriteId)
 	{
 		spriteId = p_spriteId;
@@ -310,6 +319,7 @@ public class ImageBox : LeafWidget
 }
 
 // TODO: implement sizing
+@WidgetName("text")
 public class TextBox: LeafWidget
 {
 	FontId font;
@@ -318,7 +328,11 @@ public class TextBox: LeafWidget
 	UIRenderer renderer;
 	bool textChanged;
 
-	public this(UIRenderer p_renderer, FontId p_font, string p_text, bool p_dynamicSize = false)
+	public this(
+		UIRenderer p_renderer,
+		@Param(0) FontId p_font,
+		@Param(1) string p_text,
+		@Ignored bool p_dynamicSize = false)
 	{
 		font = p_font;
 		text = p_text;
@@ -358,13 +372,16 @@ public class TextBox: LeafWidget
 	}
 }
 
+@WidgetName("hbox")
 class HBox: Widget
 {
 	Widget[] children;
 	// Space between children
 	int spacing;
 
-	this(Widget[] p_children, int p_spacing)
+	this(
+		@ParamList Widget[] p_children, 
+		@Optional @Attrib("spacing") int p_spacing = 0)
 	{
 		children = p_children;
 		spacing = p_spacing;
