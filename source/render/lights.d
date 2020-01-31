@@ -7,7 +7,7 @@ module render.lights;
 import gl3n.linalg: vec3;
 
 import lanlib.types;
-import lanlib.util.gl;
+import render.gl;
 import lanlib.util.memory;
 import render.textures;
 

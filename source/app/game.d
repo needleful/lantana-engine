@@ -12,7 +12,6 @@ import lanlib.math;
 import lanlib.types;
 import lanlib.file.lgbt;
 import lanlib.util.memory;
-import lanlib.util.sdl;
 
 import gl3n.linalg;
 

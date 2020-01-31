@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.util.sdl;
+module render.window;
 
 import std.datetime.stopwatch: StopWatch, AutoStart;
 import std.exception;
@@ -17,7 +17,7 @@ import gl3n.linalg;
 import lanlib.math.transform;
 import lanlib.types;
 import logic.input;
-import lanlib.util.gl;
+import render.gl;
 import ui.layout: RealSize;
 
 static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow

@@ -14,7 +14,7 @@ import gl3n.linalg;
 import lanlib.math.transform;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
-import lanlib.util.gl;
+import render.gl;
 import lanlib.util.memory;
 import lanlib.types;
 

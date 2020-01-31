@@ -10,7 +10,7 @@ debug
 	import std.stdio;
 }
 
-import lanlib.util.gl;
+import render.gl;
 import lanlib.types;
 
 import render.lights;

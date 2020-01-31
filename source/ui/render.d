@@ -13,7 +13,7 @@ import derelict.freetype;
 import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.array;
-import lanlib.util.gl;
+import render.gl;
 import lanlib.util.memory;
 import render.material;
 import render.textures;

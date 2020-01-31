@@ -11,18 +11,17 @@ import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
-import lanlib.file.gltf2;
-import lanlib.gpu;
 import lanlib.types;
+import lanlib.file.gltf2;
 import lanlib.file.lgbt;
-import lanlib.util.gl;
 import lanlib.util.memory;
-import lanlib.util.sdl;
 
 import logic.input;
 
+import render.gl;
 import render.material;
 import render.mesh;
+import render.window;
 
 import test.loading;
 
@@ -40,11 +39,6 @@ int main()
 
 	Window ww = Window(screen_w, screen_h, "Lantana Editor");
 	Input ii = Input();
-
-	//testLoadingGLB("data/meshes/architecture/tower_wall01.glb", 1027);
-	//testLoadingLNT("data/test/mesh.lnb", 1027);
-
-	//testGpuManager();
 	
 	auto mm = BaseRegion(MAX_MEMORY);
 
@@ -56,20 +50,9 @@ int main()
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	FontId testFont = ui.loadFont("data/fonts/averia/Averia-Regular.ttf", 24);
-	TextBox frameTime = new TextBox(ui, testFont, "Frame Time Goes Here");
+	TextBox frameTime = new TextBox(ui, testFont, "Lantana Editor");
 
 	ui.setRootWidget(new HodgePodge([
-		// various tests for Anchor, ImageBox, and TextBox
-		new Anchor(
-			new ImageBox(ui, upclickSprite),
-			vec2(0.5,0.6),
-			vec2(0.5,0)
-		),
-		new Anchor(
-			new ImageBox(ui, needlefulPNG),
-			vec2(0, 0.9),
-			vec2(0, 1)
-		),
 		new Anchor(
 			new ImageBox(ui, upclickSprite),
 			vec2(1,1), vec2(1,1)
