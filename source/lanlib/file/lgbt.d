@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module lanlib.file.lnb;
+module lanlib.file.lgbt;
 
 import std.conv : emplace;
 import std.file;
@@ -54,7 +54,7 @@ mixin template Import(Type)
 	}
 }
 
-struct LNBDescriptor(Type)
+struct GenericBinaryType(Type)
 	if(isDumbData!Type)
 {
 	static foreach(subType; Fields!Type)
@@ -81,11 +81,11 @@ struct LNBDescriptor(Type)
 
 }
 
-struct LNBDescriptor(Type)
+struct GenericBinaryType(Type)
 	if(isPointer!Type)
 {
 	alias SubType = PointerTarget!Type;
-	alias BinType = LNBDescriptor!(Unqual!SubType);
+	alias BinType = GenericBinaryType!(Unqual!SubType);
 
 	ulong byteOffset;
 	this(Type p_base, ref ubyte[] p_buffer)
@@ -131,7 +131,7 @@ struct LNBDescriptor(Type)
 	}
 }
 
-struct LNBDescriptor(Type)
+struct GenericBinaryType(Type)
 	if(isDynamicArray!Type)
 {
 	alias SubType = ForeachType!Type;
@@ -142,7 +142,7 @@ struct LNBDescriptor(Type)
 	}
 	else
 	{
-		alias BinType = LNBDescriptor!SubType;
+		alias BinType = GenericBinaryType!SubType;
 	}
 
 	uint count;
@@ -233,7 +233,7 @@ template Declare(Type, string name)
 	}
 	else
 	{
-		enum Declare = "LNBDescriptor!("~Type.stringof~") "~name~";";
+		enum Declare = "GenericBinaryType!("~Type.stringof~") "~name~";";
 	}
 }
 
@@ -269,12 +269,12 @@ template FieldAssign(Type, string field)
 	}
 	else 
 	{
-		enum FieldAssign = field~" = LNBDescriptor!("~Type.stringof~")(p_base."~field~", p_buffer);";
+		enum FieldAssign = field~" = GenericBinaryType!("~Type.stringof~")(p_base."~field~", p_buffer);";
 	}
 }
 
 // Struct for loading and storing complex data from a byte buffers without pointers
-struct LNBDescriptor(Type)
+struct GenericBinaryType(Type)
 	if(is(Type == struct) && !isDumbData!Type)
 {
 	alias valType = Type;
@@ -315,14 +315,14 @@ struct LNBDescriptor(Type)
 	}
 }
 
-struct LNBHeader
+struct BinaryHeader
 {
-	char[4] magic = "LNB_";
+	char[4] magic = "LGBT";
 	uint bufferSize;
 	uint typeSize;
 }
 
-T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
+T binaryLoad(T)(string p_file, ref Region p_alloc) @nogc
 {
 	void readValue(Type)(FILE* p_file, Type* p_ptr, size_t p_count = 1) @nogc
 	{
@@ -330,7 +330,7 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 		assert(size == p_count);
 	}
 
-	alias BinType = LNBDescriptor!T;
+	alias BinType = GenericBinaryType!T;
 
 	// creating a z-terminated string in the region
 	string fileZ = p_alloc.copy(p_file);
@@ -351,12 +351,12 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 	fsize = ftell(file);
 	rewind(file);
 
-	LNBHeader header;
-	readValue!LNBHeader(file, &header);
+	BinaryHeader header;
+	readValue!BinaryHeader(file, &header);
 
-	assert(header.magic == "LNB_", header.magic);
+	assert(header.magic == "LGBT", header.magic);
 	assert(header.typeSize == BinType.sizeof, p_file);
-	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == fsize, p_file);
+	assert(BinaryHeader.sizeof + BinType.sizeof + header.bufferSize == fsize, p_file);
 
 	BinType data;
 	readValue!BinType(file, &data);
@@ -370,9 +370,9 @@ T lnbLoad(T)(string p_file, ref Region p_alloc) //@nogc
 	return data.getData(buffer, p_alloc);
 }
 
-T lnbLoad(T)(string p_file)
+T binaryLoad(T)(string p_file)
 {
-	alias BinType = LNBDescriptor!T;
+	alias BinType = GenericBinaryType!T;
 
 	//pragma(msg, FieldNameTuple!BinType);
 
@@ -385,14 +385,14 @@ T lnbLoad(T)(string p_file)
 
 	auto file = File(p_file, "rb");
 
-	LNBHeader[] headerBuffer = new LNBHeader[1];
+	BinaryHeader[] headerBuffer = new BinaryHeader[1];
 	file.rawRead(headerBuffer);
 
-	LNBHeader header = headerBuffer[0]; 
+	BinaryHeader header = headerBuffer[0]; 
 
-	assert(header.magic == "LNB_", header.magic);
+	assert(header.magic == "LGBT", header.magic);
 	assert(header.typeSize == BinType.sizeof, p_file);
-	assert(LNBHeader.sizeof + BinType.sizeof + header.bufferSize == file.size, p_file);
+	assert(BinaryHeader.sizeof + BinType.sizeof + header.bufferSize == file.size, p_file);
 
 	BinType[] dataBuffer = new BinType[1];
 	file.rawRead(dataBuffer);
@@ -408,15 +408,15 @@ T lnbLoad(T)(string p_file)
 	return value;
 }
 
-void lnbStore(T)(string p_file, auto ref T p_data)
+void binaryStore(T)(string p_file, auto ref T p_data)
 {
-	alias BinType = LNBDescriptor!T;
+	alias BinType = GenericBinaryType!T;
 
 	ubyte[] buffer;
 	buffer.reserve(ushort.max);
 	BinType data = BinType(p_data, buffer);
 
-	LNBHeader header = LNBHeader();
+	BinaryHeader header = BinaryHeader();
 	header.typeSize = BinType.sizeof;
 	header.bufferSize = cast(uint)buffer.length;
 
@@ -428,13 +428,4 @@ void lnbStore(T)(string p_file, auto ref T p_data)
 	{
 		file.rawWrite(buffer);
 	}
-
-	//debug
-	//{
-	//	auto text = File(p_file ~".log", "w");
-	//	text.writeln(p_file);
-	//	text.writeln(header);
-	//	text.writeln(data);
-	//	text.writeln(buffer);
-	//}
 }

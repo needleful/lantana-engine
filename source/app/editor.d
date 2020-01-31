@@ -14,7 +14,7 @@ import gl3n.linalg;
 import lanlib.file.gltf2;
 import lanlib.gpu;
 import lanlib.types;
-import lanlib.file.lnb;
+import lanlib.file.lgbt;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.util.sdl;

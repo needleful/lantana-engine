@@ -9,7 +9,7 @@ import std.stdio;
 
 import gl3n.linalg;
 
-import lanlib.file.lnb;
+import lanlib.file.lgbt;
 import lanlib.util.memory;
 import logic;
 import render;
@@ -22,8 +22,8 @@ void testLoading(bool testSaving=false)()
 	SceneLoader test1 = testScene();
 	SceneLoader test2 = testScene2();
 
-	lnbStore!SceneLoader("data/scenes/test1.lnb", test1);
-	lnbStore!SceneLoader("data/scenes/test2.lnb", test2);
+	binaryStore!SceneLoader("data/scenes/test1.lnb", test1);
+	binaryStore!SceneLoader("data/scenes/test2.lnb", test2);
 
 	GameManager game = GameManager(MAX_MEMORY, "data/scenes/test1.lnb");
 	
@@ -44,8 +44,8 @@ void testLoading(bool testSaving=false)()
 
 		static if(testSaving)
 		{
-			lnbStore!SceneLoader("data/scenes/test1.lnb", loaded1);
-			lnbStore!SceneLoader("data/scenes/test2.lnb", loaded2);
+			binaryStore!SceneLoader("data/scenes/test1.lnb", loaded1);
+			binaryStore!SceneLoader("data/scenes/test2.lnb", loaded2);
 		}
 	}
 
@@ -55,7 +55,7 @@ void testLoadingBlank()
 {
 	SceneLoader test = testSceneBlank();
 
-	lnbStore!SceneLoader("data/scenes/testBlank.lnb", test);
+	binaryStore!SceneLoader("data/scenes/testBlank.lnb", test);
 
 	GameManager game = GameManager(MAX_MEMORY, "data/scenes/testBlank.lnb");
 

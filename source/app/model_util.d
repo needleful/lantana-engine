@@ -6,7 +6,7 @@ import std.stdio;
 import std.string;
 
 import lanlib.file.gltf2;
-import lanlib.file.lnb;
+import lanlib.file.lgbt;
 import lanlib.util.memory;
 
 struct Friend
@@ -56,7 +56,7 @@ int main(string[] args)
 		assert(charming == "Hello, world");
 	}
 
-	// More advanced tests of LNBDescriptor
+	// More advanced tests of GenericBinaryType
 	{
 		Boy boy;
 		with(boy)
@@ -77,7 +77,7 @@ int main(string[] args)
 		}
 
 		ubyte[] data;
-		auto serialBoy = LNBDescriptor!Boy(boy, data);
+		auto serialBoy = GenericBinaryType!Boy(boy, data);
 
 		auto deserialBoy = serialBoy.getData(data);
 		if(boy != deserialBoy)
@@ -118,10 +118,10 @@ int main(string[] args)
 		if(type == "anim")
 		{
 			GLBAnimatedLoadResults results = glbLoad!true(inFile, mem);
-			lnbStore!GLBAnimatedLoadResults(outFile, results);
+			binaryStore!GLBAnimatedLoadResults(outFile, results);
 			debug
 			{
-				GLBAnimatedLoadResults validate = lnbLoad!GLBAnimatedLoadResults(outFile, mem);
+				GLBAnimatedLoadResults validate = binaryLoad!GLBAnimatedLoadResults(outFile, mem);
 				if(validate != results)
 				{
 					errLog.writeln("======\nFALURE: validation returned differences for ", inFile);
@@ -135,10 +135,10 @@ int main(string[] args)
 		else if(type == "static")
 		{
 			GLBStaticLoadResults results = glbLoad!false(inFile, mem);
-			lnbStore!GLBStaticLoadResults(outFile, results);
+			binaryStore!GLBStaticLoadResults(outFile, results);
 			debug
 			{
-				GLBStaticLoadResults validate = lnbLoad!GLBStaticLoadResults(outFile, mem);
+				GLBStaticLoadResults validate = binaryLoad!GLBStaticLoadResults(outFile, mem);
 				if(validate != results)
 				{
 					errLog.writeln("FALURE: validation returned differences for ", inFile);

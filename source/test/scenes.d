@@ -18,7 +18,7 @@ SceneLoader testScene()
 {
 	SceneLoader s;
 
-	s.file_nextScene = "data/scenes/test2.lnb";
+	s.file_nextScene = "data/scenes/test2.lgbt";
 
 	s.lights = LightLoader(
 		vec3(-0.2, -1, 0.1), // Direction
@@ -29,13 +29,13 @@ SceneLoader testScene()
 	);
 
 	s.files_staticMesh = [
-		"data/meshes/funny-cube.lnb",
-		"data/meshes/tree_temperate01.lnb",
+		"data/meshes/funny-cube.lgbt",
+		"data/meshes/tree_temperate01.lgbt",
 	];
 
 	s.files_animMesh = [
-		"data/meshes/kitty-test.lnb",
-		"data/meshes/anim_test.lnb",
+		"data/meshes/kitty-test.lgbt",
+		"data/meshes/anim_test.lgbt",
 	];
 
 	s.meshInstances = [
@@ -75,20 +75,20 @@ SceneLoader testScene2()
 
 	with(scene)
 	{
-		file_nextScene = "data/scenes/test1.lnb";
+		file_nextScene = "data/scenes/test1.lgbt";
 		lights = LightLoader(
 			vec3(0.2, -1, 0.1),
 			0.2, -6, 8,
 			"data/palettes/test3.png");
 
 		files_staticMesh = [
-			"data/meshes/tower_wall01.lnb",
-			"data/meshes/tree_temperate01.lnb",
-			"data/meshes/funny-cube.lnb"
+			"data/meshes/tower_wall01.lgbt",
+			"data/meshes/tree_temperate01.lgbt",
+			"data/meshes/funny-cube.lgbt"
 		];
 
 		files_animMesh = [
-			"data/meshes/kitty-test.lnb"
+			"data/meshes/kitty-test.lgbt"
 		];
 
 		meshInstances = [
@@ -115,7 +115,7 @@ SceneLoader testSceneBlank()
 	SceneLoader sc;
 	with(sc)
 	{
-		file_nextScene = "data/scenes/testBlank.lnb";
+		file_nextScene = "data/scenes/testBlank.lgbt";
 		lights = LightLoader(vec3.init, 0, 0, 0, "data/palettes/test.png");
 	}
 	return sc;

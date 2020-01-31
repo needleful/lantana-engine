@@ -13,7 +13,7 @@ import gl3n.linalg;
 
 import lanlib.math.transform;
 import lanlib.file.gltf2;
-import lanlib.file.lnb;
+import lanlib.file.lgbt;
 import lanlib.util.gl;
 import lanlib.util.memory;
 import lanlib.types;
@@ -63,13 +63,13 @@ struct StaticMeshSystem
 	StaticMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
 		GLBStaticLoadResults loaded;
-		if(p_filename.endsWith(".lnb"))
+		if(p_filename.endsWith(".glb"))
 		{
-			loaded = lnbLoad!GLBStaticLoadResults(p_filename, p_alloc);
+			loaded = glbLoad(p_filename, p_alloc);
 		}
 		else
 		{
-			loaded = glbLoad(p_filename, p_alloc);
+			loaded = binaryLoad!GLBStaticLoadResults(p_filename, p_alloc);
 		}
 		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_alloc);
 		return &meshes[$-1];
@@ -268,13 +268,13 @@ struct AnimatedMeshSystem
 	AnimatedMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
 		GLBAnimatedLoadResults loaded;
-		if(p_filename.endsWith(".lnb"))
+		if(p_filename.endsWith(".glb"))
 		{
-			loaded = lnbLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
+			loaded = glbLoad!true(p_filename, p_alloc);
 		}
 		else
 		{
-			loaded = glbLoad!true(p_filename, p_alloc);
+			loaded = binaryLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
 		}
 		meshes.place(this, loaded.accessor, loaded, p_alloc);
 		return &meshes[$-1];

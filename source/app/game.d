@@ -10,7 +10,7 @@ import std.stdio;
 import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
-import lanlib.file.lnb;
+import lanlib.file.lgbt;
 import lanlib.util.memory;
 import lanlib.util.sdl;
 
@@ -29,12 +29,12 @@ float g_timescale = 1;
 int main()
 {
 	// Loader test
-	lnbStore("data/scenes/test1.lnb", testScene());
-	lnbStore("data/scenes/test2.lnb", testScene2());
+	binaryStore("data/scenes/test1.lgbt", testScene());
+	binaryStore("data/scenes/test2.lgbt", testScene2());
 	// Testing done.
 
 	Window window = Window(720, 512, "Axe manor");
-	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lnb");
+	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lgbt");
 	// Testing SceneLoader format
 	debug writeln("Running Axe Manor in debug mode!");
 
