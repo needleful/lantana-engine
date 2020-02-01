@@ -13,11 +13,13 @@ import derelict.freetype;
 import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.array;
-import render.gl;
 import lanlib.util.memory;
+import logic.input;
+import render.gl;
 import render.material;
 import render.textures;
 
+import ui.interaction;
 import ui.layout;
 
 struct SpriteId
@@ -33,6 +35,11 @@ struct FontId
 	mixin StrictAlias!ubyte;
 }
 
+struct InteractibleId
+{
+	mixin StrictAlias!ubyte;
+}
+
 struct GlyphId
 {
 	// Can be changed later for ligatures.
@@ -44,18 +51,6 @@ struct GlyphId
 	{
 		glyph = p_glyph;
 		font = p_fontId;
-	}
-}
-
-struct Rect
-{
-	ivec2 pos;
-	RealSize size;
-
-	this(ivec2 p_pos, RealSize p_size)
-	{
-		pos = p_pos;
-		size = p_size;
 	}
 }
 
@@ -151,6 +146,15 @@ public class UIRenderer
 
 	/// The size of the UI window
 	private RealSize size;
+
+	/// Interactible rectangles
+	private Rect[] interactAreas;
+
+	/// Corresponding interactive objects
+	private Interactible[] interactibles;
+
+	/// The index of the focused interactive widget
+	private InteractibleId focused;
 
 	/++++++++++++++++++++++++++++++++++++++
 		FreeType data
@@ -277,7 +281,7 @@ public class UIRenderer
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	public void update(float delta)
+	public void update(float p_delta, Input* p_input)
 	{
 		if(invalidated[UIData.Layout])
 		{
@@ -321,6 +325,35 @@ public class UIRenderer
 		spriteInvalid.clear();
 		posInvalid.clear();
 		uvInvalid.clear();
+
+		// Get interaction
+		if(interactAreas.length > 0)
+		{
+			bool intersect = false;
+			foreach(i, const ref Rect r; interactAreas)
+			{
+				if(r.contains(p_input.mouse_position))
+				{
+					intersect = true;
+					if(interactibles[focused])
+					{
+						interactibles[focused].unfocus();
+					}
+					focused = InteractibleId(cast(ubyte)i);
+					interactibles[focused].focus();
+					break;
+				}
+			}
+
+			if(!intersect && interactibles[focused])
+			{
+				interactibles[focused].unfocus();
+			}
+			else if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+			{
+				interactibles[focused].interact();
+			}
+		}
 	}
 
 	public void render() 
@@ -770,6 +803,31 @@ public class UIRenderer
 	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
 	{
 		p_text.translation = p_translation;
+	}
+
+	/++++++++++++++++++++++++++++++++++++++
+		public methods -- interactive objects
+	+++++++++++++++++++++++++++++++++++++++/
+
+	public InteractibleId addInteractible(Interactible p_source) nothrow
+	{
+		assert(interactAreas.length == interactibles.length);
+		ubyte id = cast(ubyte) interactAreas.length;
+
+		interactAreas ~= Rect.init;
+		interactibles ~= p_source;
+
+		return InteractibleId(id);
+	}
+
+	public void setInteractSize(InteractibleId p_id, RealSize p_size) nothrow
+	{
+		interactAreas[p_id].size = p_size;
+	}
+
+	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) nothrow
+	{
+		interactAreas[p_id].pos = p_position;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++

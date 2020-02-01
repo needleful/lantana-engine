@@ -135,7 +135,7 @@ int main()
 
 			game.animSystem.update(delta, game.scene.animMeshes);
 		}
-		ui.update(delta);
+		ui.update(delta, game.input);
 
 		window.begin_frame();
 		mat4 vp = game.scene.camera.vp();

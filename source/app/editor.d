@@ -73,7 +73,10 @@ int main()
 		new Anchor (
 			new Button(
 				ui,
-				new TextBox(ui, testFont, "Press Me!"),
+				new Padding(
+					new TextBox(ui, testFont, "Press Me!"),
+					12, 18
+				),
 				ui.loadSprite("data/test/ui_sprites/test-9patch.png"),
 				(Widget source) 
 				{
@@ -109,7 +112,7 @@ int main()
 		}
 		else
 		{
-			ui.update(0.016f);
+			ui.update(0.016f, &ii);
 			ww.begin_frame();
 			ui.render();
 			ww.end_frame();

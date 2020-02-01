@@ -136,3 +136,22 @@ public struct RealSize
 		return width >= rhs.width && height >= rhs.height;
 	}
 }
+
+struct Rect
+{
+	ivec2 pos;
+	RealSize size;
+
+	this(ivec2 p_pos, RealSize p_size) nothrow @nogc
+	{
+		pos = p_pos;
+		size = p_size;
+	}
+
+	bool contains(ivec2 p_point) const nothrow @nogc
+	{
+		ivec2 p = p_point - pos;
+
+		return (p.x >= 0 && p.x <= size.width) && (p.y >= 0 && p.y <= size.height);
+	}
+}

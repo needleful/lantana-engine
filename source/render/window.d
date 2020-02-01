@@ -20,42 +20,6 @@ import logic.input;
 import render.gl;
 import ui.layout: RealSize;
 
-static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow
-{
-	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
-	{
-		return Input.Action.FORWARD;
-	}
-	else if(code == SDL_SCANCODE_DOWN || code == SDL_SCANCODE_S)
-	{
-		return Input.Action.BACK;
-	}
-	else if(code == SDL_SCANCODE_LEFT || code == SDL_SCANCODE_A)
-	{
-		return Input.Action.LEFT;
-	}
-	else if(code == SDL_SCANCODE_RIGHT || code == SDL_SCANCODE_D)
-	{
-		return Input.Action.RIGHT;
-	}
-	else if(code == SDL_SCANCODE_SPACE)
-	{
-		return Input.Action.JUMP;
-	}
-	else if(code == SDL_SCANCODE_ESCAPE)
-	{
-		return Input.Action.PAUSE;
-	}
-	else if(code == SDL_SCANCODE_F1)
-	{
-		return Input.Action.DEBUG_LOADLEVEL;
-	}
-	else
-	{
-		return Input.Action.UNKNOWN;
-	}
-}
-
 enum WindowState
 {
 	NONE,
@@ -187,6 +151,7 @@ struct Window
 		state.clear();
 		
 		input.mouse_movement = vec2(0,0);
+
 		foreach(ref Input.Status status; input.status)
 		{
 			if(status == Input.Status.JUST_RELEASED)
@@ -245,9 +210,22 @@ struct Window
 					break;
 			}
 		}
+
+		int mouse = SDL_GetMouseState(&(input.mouse_position.x()), &(input.mouse_position.y()));
+		// SDL has flipped coordinates for y-axis
+		input.mouse_position.y = getSize().height - input.mouse_position.y;
+
+		if(mouse & SDL_BUTTON(SDL_BUTTON_LEFT))
+		{
+			input.press(Input.Action.UI_INTERACT);
+		}
+		else if(input.is_pressed(Input.Action.UI_INTERACT))
+		{
+			input.release(Input.Action.UI_INTERACT);
+		}
 	}
 
-	public RealSize getSize()
+	public RealSize getSize() nothrow
 	{
 		int w, h;
 		window.SDL_GetWindowSize(&w, &h);

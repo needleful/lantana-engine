@@ -11,10 +11,9 @@ import gl3n.linalg: vec2;
 
 import lanlib.file.uidl;
 import lanlib.types;
+import ui.interaction;
 import ui.layout;
 import ui.render;
-
-alias ActivationCallback = void delegate(Widget source);
 
 public abstract class SingularContainer: Widget
 {
@@ -313,8 +312,75 @@ public class ImageBox : LeafWidget
 
 	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
-		// TODO: respect the intrinsics
-		RealSize result = textureSize;
+		RealSize size = textureSize;
+
+		// The goal is to keep textures as close to their original size as possible, to avoid any stretching
+		// Failing that, it tries to keep the aspect ratio of the image
+		// TODO: currently does not do much to save aspect ratio
+
+		double wrMax = p_request.width.max / size.width;
+		double wrMin = p_request.width.min / size.width;
+		double wrIdeal = 1;
+
+		if(wrIdeal < wrMin)
+		{
+			wrIdeal = wrMin;
+		}
+		else if(wrIdeal > wrMax)
+		{
+			wrIdeal = wrMax;
+		}
+
+		double hrMax = p_request.height.max / size.height;
+		double hrMin = p_request.height.min / size.height;
+		double hrIdeal = 1;
+
+		if(hrIdeal < hrMin)
+		{
+			hrIdeal = hrMin;
+		}
+		else if(hrIdeal > hrMax)
+		{
+			hrIdeal = hrMax;
+		}
+
+		double hDiff = abs(1.0 - hrIdeal);
+		double wDiff = abs(1.0 - wrIdeal);
+
+		if(hDiff < wDiff)
+		{
+			// Height ratio is better at preserving size, try to match width
+			if(hrIdeal < wrMin)
+			{
+				wrIdeal = wrMin;
+			}
+			else if(hrIdeal > wrMax)
+			{
+				wrIdeal = wrMax;
+			}
+			else
+			{
+				wrIdeal = hrIdeal;
+			}
+		}
+		else
+		{
+			if(wrIdeal < hrMin)
+			{
+				hrIdeal = hrMin;
+			}
+			else if(wrIdeal > hrMax)
+			{
+				hrIdeal = hrMax;
+			}
+			else
+			{
+				hrIdeal = wrIdeal;
+			}
+		}
+
+		RealSize result = RealSize(cast(int)(size.width * wrIdeal), cast(int)(size.height * hrIdeal));
+
 		p_renderer.setQuadSize(vertices, result);
 		return result;
 	}
@@ -381,19 +447,13 @@ public class TextBox: LeafWidget
 }
 
 @WidgetName("button")
-class Button: Container
+class Button: Container, Interactible
 {
-	enum State
-	{
-		Default,
-		Disabled,
-		Focused,
-		Pressed,
-		Active,
-	}
-	ActivationCallback onPressed;
+	Interactible.Callback onPressed;
+	InteractibleId id;
+	//Interactible.State state;
 
-	public this(UIRenderer p_renderer, Widget p_child, SpriteId p_patchRect, ActivationCallback p_onPressed)
+	public this(UIRenderer p_renderer, Widget p_child, SpriteId p_patchRect, Interactible.Callback p_onPressed)
 	{
 		children.reserve(2);
 		children ~= p_child;
@@ -402,13 +462,39 @@ class Button: Container
 
 		children[0].position = ivec2(0,0);
 		children[1].position = ivec2(0,0);
+
+		id = p_renderer.addInteractible(this);
 	}
 
 	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		RealSize childSize = children[0].layout(p_renderer, p_request);
 		children[1].layout(p_renderer, SizeRequest(childSize));
+		p_renderer.setInteractSize(id, childSize);
 		return childSize;
+	}
+
+	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
+	{
+		p_renderer.setInteractPosition(id, p_pen);
+		super.prepareRender(p_renderer, p_pen);
+	}
+
+	/// Interactible methods
+	public void focus()
+	{
+		// TODO: implement
+		return;
+	}
+
+	public void unfocus()
+	{
+		// TODO: implement
+	}
+
+	public void interact()
+	{
+		onPressed(this);
 	}
 }
 

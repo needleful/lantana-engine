@@ -4,12 +4,12 @@
 
 module logic.input;
 
-debug
-{
-	import std.stdio;
-}
+debug import std.stdio;
 
+import derelict.sdl2.sdl;
 import gl3n.linalg;
+
+import lanlib.types: ivec2;
 
 struct Input
 {
@@ -19,8 +19,9 @@ struct Input
 		BACK,
 		RIGHT,
 		LEFT,
-		JUMP,
 		PAUSE,
+		GAME_INTERACT,
+		UI_INTERACT,
 		DEBUG_LOADLEVEL,
 		UNKNOWN,
 		ACTION_COUNT,
@@ -36,6 +37,8 @@ struct Input
 	vec2 analog_left, analog_right;
 	// Relative mouse movement since last frame
 	vec2 mouse_movement;
+	// Absolute position of the mouse
+	ivec2 mouse_position;
 	// Status of all buttons
 	Status[Action.ACTION_COUNT] status;
 
@@ -120,3 +123,38 @@ struct Input
 	}
 }
 
+static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow
+{
+	if(code == SDL_SCANCODE_UP || code == SDL_SCANCODE_W)
+	{
+		return Input.Action.FORWARD;
+	}
+	else if(code == SDL_SCANCODE_DOWN || code == SDL_SCANCODE_S)
+	{
+		return Input.Action.BACK;
+	}
+	else if(code == SDL_SCANCODE_LEFT || code == SDL_SCANCODE_A)
+	{
+		return Input.Action.LEFT;
+	}
+	else if(code == SDL_SCANCODE_RIGHT || code == SDL_SCANCODE_D)
+	{
+		return Input.Action.RIGHT;
+	}
+	else if(code == SDL_SCANCODE_RETURN || code == SDL_SCANCODE_E)
+	{
+		return Input.Action.GAME_INTERACT;
+	}
+	else if(code == SDL_SCANCODE_ESCAPE)
+	{
+		return Input.Action.PAUSE;
+	}
+	else if(code == SDL_SCANCODE_F1)
+	{
+		return Input.Action.DEBUG_LOADLEVEL;
+	}
+	else
+	{
+		return Input.Action.UNKNOWN;
+	}
+}
