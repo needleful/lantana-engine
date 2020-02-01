@@ -77,7 +77,7 @@ int main()
 					new TextBox(ui, testFont, "Press Me!"),
 					12, 18
 				),
-				ui.loadSprite("data/test/ui_sprites/test-9patch.png"),
+				ui.loadSprite("data/test/blankRGBA.png"),
 				(Widget source) 
 				{
 					pressed = !pressed;
@@ -91,7 +91,7 @@ int main()
 					}
 				},
 			),
-			vec2(0, 0.9),
+			vec2(0.01, 0.9),
 			vec2(0, 1)
 		),
 	]));
