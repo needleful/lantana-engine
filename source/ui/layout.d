@@ -12,12 +12,8 @@ import ui.render;
 // Construct a tree.
 //		From root to leaves, apply constraints
 //		from leaves to root, calculate sizes
-// Cartesian coordinates (width/height)
-//		Intrinsic sizes (max/min dimensions)
-//		Intrinsics (min and max) determined by the parent
-//		Paradigms: Fixed size; Width-In, Height-Out; Height-in, Width-Out; 
-//		Child knows size, parent knows position
-//		This means the child's size cannot depend on its position
+//	Child knows size, parent knows position
+//	This means the child's size cannot depend on its position
 
 /// Base UI class.  All UI elements are Widgets
 public abstract class Widget
@@ -26,9 +22,9 @@ public abstract class Widget
 	/// As a rule, the position should ONLY be read by the parent
 	public ivec2 position;
 
-	/// First phase of layout, taking some IntrinsicSize (bounds), and providing the real size of the object
+	/// First phase of layout, taking some SizeRequest (bounds), and providing the real size of the object
 	/// Parents calculate the position of their children
-	public abstract RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow;
+	public abstract RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow;
 
 	/// Second phase of layout: this is 
 	public void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
@@ -43,7 +39,7 @@ public abstract class Widget
 }
 
 /// Bounds for laying out UI elements
-public struct IntrinsicSize
+public struct SizeRequest
 {
 	Bounds width;
 	Bounds height;
@@ -52,6 +48,15 @@ public struct IntrinsicSize
 	{
 		width = p_width;
 		height = p_height;
+	}
+
+	public this(RealSize p_size) nothrow
+	{
+		width.min = p_size.width;
+		width.max = p_size.width;
+
+		height.min = p_size.height;
+		height.max = p_size.height;
 	}
 
 	const public bool inBounds(int p_width, int p_height)  nothrow

@@ -14,6 +14,8 @@ import lanlib.types;
 import ui.layout;
 import ui.render;
 
+alias ActivationCallback = void delegate(Widget source);
+
 public abstract class SingularContainer: Widget
 {
 	Widget child;
@@ -21,6 +23,21 @@ public abstract class SingularContainer: Widget
 	public override Widget[] getChildren() nothrow
 	{
 		return (&child)[0..1];
+	}
+
+	public const(Widget) getChild() nothrow
+	{
+		return child;
+	}
+}
+
+public abstract class Container : Widget
+{
+	Widget[] children;
+
+	public override Widget[] getChildren() nothrow
+	{
+		return children;
 	}
 }
 
@@ -34,35 +51,27 @@ public abstract class LeafWidget : Widget
 
 /// Provides no layout hints.  All widgets are laid out in the same space and position
 @WidgetName("hodge-podge")
-public class HodgePodge : Widget
+public class HodgePodge : Container
 {
-	public Widget[] children;
-
-
 	public this(@ParamList Widget[] p_children) nothrow
 	{
 		children = p_children;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		ivec2 top_right;
 
 		foreach(child; children)
 		{
 			child.position = ivec2(0,0);
-			RealSize csize = child.layout(p_renderer, p_intrinsic);
+			RealSize csize = child.layout(p_renderer, p_request);
 
 			// Calculating the bounding box for the hodgepodge
 			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
 		}
 
 		return RealSize(top_right.x, top_right.y);
-	}
-
-	public override Widget[] getChildren() nothrow
-	{
-		return children;
 	}
 }
 
@@ -87,18 +96,18 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
 		// I'm sure I could break this down into something presentable with more work.
 
-		IntrinsicSize childIntrinsic;
+		SizeRequest childIntrinsic;
 		// Child can be as small as it wants to be
 		childIntrinsic.width.min = 0;
 		childIntrinsic.height.min = 0;
 
 		// The bounds for the anchor
-		double parentWidth = p_intrinsic.width.max;
+		double parentWidth = p_request.width.max;
 
 		// calculate the distances from the parent anchor to the edges
 		double anchorToLeft = parentWidth * anchor.x;
@@ -155,7 +164,7 @@ public class Anchor: SingularContainer
 		}
 
 		// We do the same process as above on the y axis
-		double parentHeight = p_intrinsic.height.max;
+		double parentHeight = p_request.height.max;
 
 		double anchorToBottom = parentHeight * anchor.y;
 		double anchorToTop = parentHeight*(1-anchor.y);
@@ -257,13 +266,13 @@ public class Padding : SingularContainer
 		right = p_right;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
-		double maxWidth = p_intrinsic.width.max - (left + right);
-		double maxHeight = p_intrinsic.height.max - (top + bottom);
+		double maxWidth = p_request.width.max - (left + right);
+		double maxHeight = p_request.height.max - (top + bottom);
 
 		// Constrain child to the full box (or infinity)
-		IntrinsicSize childIntrinsic = IntrinsicSize(Bounds(maxWidth, maxWidth), Bounds(maxHeight, maxHeight));
+		SizeRequest childIntrinsic = SizeRequest(Bounds(maxWidth, maxWidth), Bounds(maxHeight, maxHeight));
 		RealSize csize = child.layout(p_renderer, childIntrinsic);
 		child.position = ivec2(left, bottom);
 
@@ -289,7 +298,6 @@ public class ImageBox : LeafWidget
 		init(p_renderer);
 	}
 
-	@Ignored
 	public this(UIRenderer p_renderer, SpriteId p_spriteId)
 	{
 		spriteId = p_spriteId;
@@ -303,7 +311,7 @@ public class ImageBox : LeafWidget
 		assert(vertices.length == 6);
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		// TODO: respect the intrinsics
 		RealSize result = textureSize;
@@ -341,7 +349,7 @@ public class TextBox: LeafWidget
 		renderer = p_renderer;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		// TODO: layout text to fit bounds
 		return mesh.boundingSize;
@@ -372,10 +380,41 @@ public class TextBox: LeafWidget
 	}
 }
 
-@WidgetName("hbox")
-class HBox: Widget
+@WidgetName("button")
+class Button: Container
 {
-	Widget[] children;
+	enum State
+	{
+		Default,
+		Disabled,
+		Focused,
+		Pressed,
+		Active,
+	}
+	ActivationCallback onPressed;
+
+	public this(UIRenderer p_renderer, Widget p_child, SpriteId p_patchRect, ActivationCallback p_onPressed)
+	{
+		children.reserve(2);
+		children ~= p_child;
+		children ~= new ImageBox(p_renderer, p_patchRect);
+		onPressed = p_onPressed;
+
+		children[0].position = ivec2(0,0);
+		children[1].position = ivec2(0,0);
+	}
+
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	{
+		RealSize childSize = children[0].layout(p_renderer, p_request);
+		children[1].layout(p_renderer, SizeRequest(childSize));
+		return childSize;
+	}
+}
+
+@WidgetName("hbox")
+class HBox: Container
+{
 	// Space between children
 	int spacing;
 
@@ -387,14 +426,14 @@ class HBox: Widget
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, IntrinsicSize p_intrinsic) nothrow
+	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
 	{
 		//TODO: respect intrinsics properly
 		RealSize size;
 		ivec2 pen = ivec2(0,0);
 		foreach(child; children)
 		{
-			RealSize childSize = child.layout(p_renderer, p_intrinsic);
+			RealSize childSize = child.layout(p_renderer, p_request);
 			child.position.x = pen.x;
 			child.position.y = -childSize.height/2;
 
@@ -410,10 +449,5 @@ class HBox: Widget
 		}
 
 		return size;
-	}
-
-	public override Widget[] getChildren() nothrow
-	{
-		return children;
 	}
 }

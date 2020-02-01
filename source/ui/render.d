@@ -47,6 +47,18 @@ struct GlyphId
 	}
 }
 
+struct Rect
+{
+	ivec2 pos;
+	RealSize size;
+
+	this(ivec2 p_pos, RealSize p_size)
+	{
+		pos = p_pos;
+		size = p_size;
+	}
+}
+
 // Text is rendered in a weird way.
 // I gave up on doing it all in one draw call for various reasons.
 // Instead, each text box is drawn with the same EBO and VBO, but at
@@ -66,37 +78,6 @@ public struct TextMeshRef
 	ushort length;
 	// Amount of quads allocated
 	ushort capacity;
-}
-
-/// Describes a range in a buffer like `Buffer[start..end]`
-/// Like the rest of D, this goes up to and excluding index `end`
-struct BufferRange
-{
-	uint start;
-	uint end;
-
-	this(int p_start, int p_end) nothrow  @safe
-	{
-		start = p_start;
-		end = p_end;
-	}
-
-	void clear() nothrow  @safe
-	{
-		start = uint.max;
-		end = uint.min;
-	}
-
-	void apply(BufferRange rhs) nothrow  @safe
-	{
-		apply(rhs.start, rhs.end);
-	}
-
-	void apply(uint p_start, uint p_end) nothrow  @safe
-	{
-		start = start < p_start? start : p_start;
-		end = end > p_end? end : p_end;
-	}
 }
 
 /// The Grand Poobah of UI.
@@ -131,6 +112,37 @@ public class UIRenderer
 	}
 	private Bitfield!UIData invalidated;
 
+	/// Describes part of an array, marking the start and end
+	/// This is used to describe the bounds of buffers that need to be reloaded.
+	struct BufferRange
+	{
+		uint start;
+		uint end;
+
+		this(int p_start, int p_end) nothrow  @safe
+		{
+			start = p_start;
+			end = p_end;
+		}
+
+		void clear() nothrow  @safe
+		{
+			start = uint.max;
+			end = uint.min;
+		}
+
+		void apply(BufferRange rhs) nothrow  @safe
+		{
+			apply(rhs.start, rhs.end);
+		}
+
+		void apply(uint p_start, uint p_end) nothrow  @safe
+		{
+			start = start < p_start? start : p_start;
+			end = end > p_end? end : p_end;
+		}
+	}
+
 	/// A buffer is altered at max once per frame by checking these ranges.
 	private BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
@@ -152,9 +164,6 @@ public class UIRenderer
 
 	// How many founts are loaded
 	private FontId.dt fontCount;
-
-	// All text is rendered by iterating this list
-	private TextMeshRef[] textMeshes;
 
 	/++++++++++++++++++++++++++++++++++++++
 		OpenGL data
@@ -215,6 +224,9 @@ public class UIRenderer
 
 	private SpriteId.dt spriteCount;
 
+	// All text is rendered by iterating this list
+	private TextMeshRef[] textMeshes;
+
 	/++++++++++++++++++++++++++++++++++++++
 		public methods -- basic
 	+++++++++++++++++++++++++++++++++++++++/
@@ -269,7 +281,7 @@ public class UIRenderer
 	{
 		if(invalidated[UIData.Layout])
 		{
-			IntrinsicSize intrinsics = IntrinsicSize(Bounds(size.width), Bounds(size.height)); 
+			SizeRequest intrinsics = SizeRequest(Bounds(size.width), Bounds(size.height)); 
 			root.layout(this, intrinsics);
 			root.prepareRender(this, root.position);
 		}

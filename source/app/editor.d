@@ -47,29 +47,51 @@ int main()
 
 	ww.grab_mouse(false);
 
-	//SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	//SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
+	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	//FontId testFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
+	FontId testFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
 
-	//ui.setRootWidget(new HodgePodge([
-	//	new Anchor(
-	//		new ImageBox(ui, upclickSprite),
-	//		vec2(1,1), vec2(1,1)
-	//	),
-	//	new Anchor(
-	//		new ImageBox(ui, needlefulPNG),
-	//		vec2(0.027, 0.048),
-	//		vec2(0, 0)
-	//	),
-	//	new Anchor(
-	//		new TextBox(ui, testFont, "Lantana Editor"),
-	//		vec2(0.27, 1-0.048),
-	//		vec2(0, 1)
-	//	)
-	//]));
+	auto title = new TextBox(ui, testFont, "Lantana Editor", true);
+	bool pressed = false;
 
-	ui.loadFile("data/ui/editor.sdl");
+	ui.setRootWidget(new HodgePodge([
+		new Anchor(
+			new ImageBox(ui, upclickSprite),
+			vec2(1,1), vec2(1,1)
+		),
+		new Anchor(
+			new ImageBox(ui, needlefulPNG),
+			vec2(0.027, 0.048),
+			vec2(0, 0)
+		),
+		new Anchor(
+			title,
+			vec2(0.27, 1-0.048),
+			vec2(0, 1)
+		),
+		new Anchor (
+			new Button(
+				ui,
+				new TextBox(ui, testFont, "Press Me!"),
+				ui.loadSprite("data/test/ui_sprites/test-9patch.png"),
+				(Widget source) 
+				{
+					pressed = !pressed;
+					if(pressed)
+					{
+						title.setText("Pressed the button!");
+					}
+					else
+					{
+						title.setText("Lantana Editor");
+					}
+				},
+			),
+			vec2(0, 0.9),
+			vec2(0, 1)
+		),
+	]));
 
 	while(!ww.state[WindowState.CLOSED])
 	{
