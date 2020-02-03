@@ -14,6 +14,11 @@ dependency "sdlang-d" version="~>0.10.5"
 
 libs "sdl2" "freetype" platform="posix"
 
+buildType "release-ultra" {
+	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "verbose" "stackStomping"
+	dflags "-O3"
+}
+
 configuration "game" {
 	targetType "executable"
 	targetName "game"

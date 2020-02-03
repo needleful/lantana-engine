@@ -38,7 +38,7 @@
 			[
 				"dub",
 				"build",
-				"--build=release",
+				"--build=release-ultra",
 				"--combined",
 				"--config=game",
 				"--arch=x86_64"
