@@ -22,17 +22,17 @@ buildType "release-ultra" {
 configuration "game" {
 	targetType "executable"
 	targetName "game"
-	excludedSourceFiles "source/app/editor.d" "source/app/model_util.d"
+	excludedSourceFiles "source/app/editor.d" "source/app/converter.d"
 }
 
 configuration "editor" {
 	targetType "executable"
 	targetName "editor"
-	excludedSourceFiles "source/app/game.d" "source/app/model_util.d"
+	excludedSourceFiles "source/app/game.d" "source/app/converter.d"
 }
 
-configuration "model-util" {
+configuration "converter" {
 	targetType "executable"
-	targetName "model-util"
+	targetName "converter"
 	excludedSourceFiles "source/app/editor.d" "source/app/game.d"
 }

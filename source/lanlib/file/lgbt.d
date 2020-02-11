@@ -419,7 +419,7 @@ void binaryStore(T)(string p_file, auto ref T p_data)
 	BinaryHeader header = BinaryHeader();
 	header.typeSize = BinType.sizeof;
 	header.bufferSize = cast(uint)buffer.length;
-
+	
 	auto file = File(p_file, "wb");
 	file.rawWrite((&header)[0..1]);
 	file.rawWrite((&data)[0..1]);

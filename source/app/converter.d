@@ -5,90 +5,16 @@
 import std.stdio;
 import std.string;
 
+import logic.scenes;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
 import lanlib.util.memory;
-
-struct Friend
-{
-	string name;
-	int age;
-
-	this(string p_name, int p_age)
-	{
-		name = p_name;
-		age = p_age;
-	}
-}
-
-struct Boy
-{
-	string[] favoriteFoods;
-	Friend[] friends;
-	string name;
-	int age;
-}
 
 int main(string[] args)
 {
 	if(args.length != 2)
 	{
 		writeln("Need one argument: file containing tab-separated input and output files");
-	}
-
-	//basic tests of the memory functions
-	{
-		ubyte[] data;
-		ulong start;
-		uint[] ints = data.addSpace!uint(24, start);
-		ints[0] = 4;
-
-		assert(data.length == uint.sizeof*24);
-		assert(data[0] == 4);
-		assert(start == 0);
-
-		string h = "Hello, world";
-		char[] charming = data.addSpace!char(h.length, start);
-
-		charming.readData(h);
-
-		assert(start == uint.sizeof*24);
-		assert(charming == "Hello, world");
-	}
-
-	// More advanced tests of GenericBinaryType
-	{
-		Boy boy;
-		with(boy)
-		{
-			age = 14;
-			name = "Steven";
-			friends = [
-				Friend("Garnet", 5700),
-				Friend("Pearl", 4400),
-				Friend("Amethyst", 120),
-				Friend("Connie", 12)
-			];
-			favoriteFoods = [
-				"pizza",
-				"burgers",
-				"seafood"
-			];
-		}
-
-		ubyte[] data;
-		auto serialBoy = GenericBinaryType!Boy(boy, data);
-
-		auto deserialBoy = serialBoy.getData(data);
-		if(boy != deserialBoy)
-		{
-			writeln("EXPECTED: ", boy);
-			writeln("ACTUAL: ", deserialBoy);
-			writeln("SERIALIZED: ", serialBoy);
-			writeln("BUFFER: ", data);
-
-			return -1;
-		}
 	}
 
 	string path = args[1];
@@ -100,6 +26,7 @@ int main(string[] args)
 	auto lines = File(path, "r").byLine();
 	foreach(ref line; lines) 
 	{
+		mem.wipe();
 		if(line.length == 0 || line[0] == '#')
 		{
 			// A comment or empty, ignore
@@ -118,7 +45,7 @@ int main(string[] args)
 		if(type == "anim")
 		{
 			GLBAnimatedLoadResults results = glbLoad!true(inFile, mem);
-			binaryStore!GLBAnimatedLoadResults(outFile, results);
+			binaryStore(outFile, results);
 			debug
 			{
 				GLBAnimatedLoadResults validate = binaryLoad!GLBAnimatedLoadResults(outFile, mem);
@@ -135,13 +62,13 @@ int main(string[] args)
 		else if(type == "static")
 		{
 			GLBStaticLoadResults results = glbLoad!false(inFile, mem);
-			binaryStore!GLBStaticLoadResults(outFile, results);
+			binaryStore(outFile, results);
 			debug
 			{
 				GLBStaticLoadResults validate = binaryLoad!GLBStaticLoadResults(outFile, mem);
 				if(validate != results)
 				{
-					errLog.writeln("FALURE: validation returned differences for ", inFile);
+					errLog.writeln("======\nFALURE: validation returned differences for ", inFile);
 					errLog.writeln("GLB FILE: \n", results);
 					errLog.writeln("LNB FILE: \n", validate);
 					writeln("--FALURE: validation returned differences for ", inFile);
@@ -150,7 +77,6 @@ int main(string[] args)
 			}
 		}
 		writefln("--CONVERT %8s: %s => %s", type, inFile, outFile);
-		mem.wipe();
 	}
 
 	return 0;
