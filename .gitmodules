@@ -1,6 +1,6 @@
 [submodule "thirdparty/FreeImage"]
-	path = thirdparty/FreeImage
+	path = modules/FreeImage/FreeImage
 	url = https://github.com/D-Programming-Deimos/FreeImage.git
 [submodule "thirdparty/bindbc-openal"]
-	path = thirdparty/bindbc-openal
+	path = modules/bindbc-openal/bindbc-openal
 	url = https://github.com/needleful/bindbc-openal.git
