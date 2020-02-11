@@ -74,7 +74,10 @@ int main()
 			new Button(
 				ui,
 				new Padding(
-					new TextBox(ui, testFont, "Press Me!"),
+					new HBox([
+						new ImageBox(ui, upclickSprite),
+						//new TextBox(ui, testFont, "Press Me!"),
+					], 12),
 					12, 18
 				),
 				ui.loadSprite("data/test/blankRGBA.png"),

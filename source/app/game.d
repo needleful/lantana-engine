@@ -7,6 +7,7 @@ import std.format;
 import std.math;
 import std.stdio;
 
+import audio;
 import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
@@ -34,6 +35,7 @@ int main()
 
 	Window window = Window(720, 512, "Axe manor");
 	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lgbt");
+	AudioManager audio = AudioManager.initialize();
 	// Testing SceneLoader format
 	debug writeln("Running Axe Manor in debug mode!");
 
