@@ -1,6 +1,3 @@
 [submodule "modules/FreeImage"]
 	path = modules/FreeImage/FreeImage
 	url = https://github.com/D-Programming-Deimos/FreeImage.git
-[submodule "modules/bindbc-openal"]
-	path = modules/bindbc-openal/bindbc-openal
-	url = https://github.com/needleful/bindbc-openal.git
