@@ -28,10 +28,9 @@ float g_timescale = 1;
 
 int main()
 {
-	// Loader test
+	// Store test scenes
 	binaryStore("data/scenes/test1.lgbt", testScene());
 	binaryStore("data/scenes/test2.lgbt", testScene2());
-	// Testing done.
 
 	Window window = Window(720, 512, "Axe manor");
 	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lgbt");
@@ -49,7 +48,6 @@ int main()
 	ui.setRootWidget(new HodgePodge([
 	new Anchor(
 		new HBox([
-				new ImageBox(ui, upclickSprite),
 				new TextBox(ui, debugFont, "Frame Time\nMax\nAverage"), 
 				frameTime
 			], 5),

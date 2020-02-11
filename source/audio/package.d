@@ -21,6 +21,14 @@ struct AudioManager
 
 	static AudioManager initialize()
 	{
-		return AudioManager(spawn(&runAudio));
+		Tid auTid = spawn(&runAudio);
+
+		auto status = receiveOnly!AudioInitStatus();
+		if(status == AudioInitStatus.Failure)
+		{
+			throw new Exception("Failed to initialize audio");
+		}
+
+		return AudioManager(auTid);
 	}
 }
