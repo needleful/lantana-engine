@@ -4,81 +4,61 @@
 
 module audio.driver;
 
-import std.concurrency : ownerTid, send, receive;
+import core.thread: Thread;
+import core.time: dur;
+import std.concurrency;
 
-import bindbc.openal;
+import bindbc.sdl.mixer;
 
-enum AudioInitStatus
+
+struct AudioManager
 {
-	Failure,
-	Success
-}
+	// Only one music channel for now
+	Mix_Music* music;
 
-private enum AudioSource
-{
-	Music = 0,
-}
+	// Between 0 and 128
+	private ubyte musicVolume;
 
-ALCdevice* g_device;
-ALCcontext* g_context;
-ALuint[] g_buffers;
-ALuint[] g_sources;
-
-private AudioInitStatus initialize()
-{
-	ALSupport ret = loadOpenAL();
-
-	if(ret != ALSupport.al11)
+	this(ubyte p_musicVolume)
 	{
-		return AudioInitStatus.Failure;
+		SDLMixerSupport support = loadSDLMixer();
+
+		assert(support != SDLMixerSupport.noLibrary && support != SDLMixerSupport.badLibrary);
+
+		int mixInit = MIX_INIT_OGG;
+		assert((Mix_Init(mixInit) & mixInit) == mixInit);
+
+		assert(Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0 );
+
+		Mix_VolumeMusic(p_musicVolume);
+		musicVolume = p_musicVolume;
 	}
 
-	g_device = alcOpenDevice(null);
-	if(g_device == null)
+	public bool startMusic(string p_file, int p_fadeInMs = 0)
 	{
-		return AudioInitStatus.Failure;
+		if(music)
+		{
+			Mix_FreeMusic(music);
+		}
+
+		music = Mix_LoadMUS(p_file.ptr);
+		int res = Mix_FadeInMusic(music, -1, p_fadeInMs);
+
+		return res == 0;
 	}
 
-	g_context =  alcCreateContext(g_device, null);
-	if(g_context == null)
+	public void setMusicVolume(ubyte p_volume)
 	{
-		return AudioInitStatus.Failure;
+		musicVolume = p_volume;
+		Mix_VolumeMusic(p_volume);
 	}
 
-	alcMakeContextCurrent(g_context);
-
-	g_buffers.length = 1;
-	alGenBuffers(cast(int)g_buffers.length, g_buffers.ptr);
-
-	g_sources.length = 1;
-	alGenSources(cast(int)g_sources.length, g_sources.ptr);
-
-	alSourcei(g_sources[AudioSource.Music], AL_BUFFER, g_buffers[AudioSource.Music]);
-	alSourcei(g_sources[AudioSource.Music], AL_LOOPING, AL_TRUE);
-
-	if(alGetError() != AL_NO_ERROR)
+	~this()
 	{
-		return AudioInitStatus.Failure;
-	}
-
-	return AudioInitStatus.Success;
-}
-
-void runAudio()
-{
-	auto status = initialize();
-	ownerTid.send(status);
-	if(status != AudioInitStatus.Success)
-	{
-		// Cannot go on
-		return;
-	}
-	scope(exit)
-	{
-		alcMakeContextCurrent(null);
-		alDeleteSources(cast(int)g_sources.length, g_sources.ptr);
-		alDeleteBuffers(cast(int)g_buffers.length, g_buffers.ptr);
-		alcDestroyContext(g_context);
-		alcCloseDevice(g_device);
+		if(music)
+		{
+			Mix_FreeMusic(music);
+		}
+		Mix_Quit();
 	}
 }

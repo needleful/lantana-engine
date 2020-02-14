@@ -6,7 +6,7 @@ module logic.input;
 
 debug import std.stdio;
 
-import derelict.sdl2.sdl;
+import bindbc.sdl;
 import gl3n.linalg;
 
 import lanlib.types: ivec2;

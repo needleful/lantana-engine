@@ -34,7 +34,10 @@ int main()
 
 	Window window = Window(720, 512, "Axe manor");
 	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lgbt");
-	AudioManager audio = AudioManager.initialize();
+
+	AudioManager audio = AudioManager(32);
+	audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
+
 	// Testing SceneLoader format
 	debug writeln("Running Axe Manor in debug mode!");
 

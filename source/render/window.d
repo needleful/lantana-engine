@@ -9,8 +9,8 @@ import std.exception;
 import std.format;
 import std.stdio;
 
+import bindbc.sdl;
 import derelict.freetype;
-import derelict.sdl2.sdl;
 
 import gl3n.linalg;
 
@@ -54,12 +54,15 @@ struct Window
 				throw e;
 			}
 		}
-		DerelictSDL2.load();
+		
+		SDLSupport sdlresult = loadSDL();
+		assert(sdlresult == sdlSupport, "Could not load SDL2");
+
 		DerelictGL3.load();
 
 		state.clear();
 
-		if(SDL_Init(SDL_INIT_VIDEO) < 0){
+		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
 			throw new Exception(format("Failed to initialize SDL: %s", SDL_GetError()));
 		}
 		scope(failure)
@@ -215,7 +218,7 @@ struct Window
 		// SDL has flipped coordinates for y-axis
 		input.mouse_position.y = getSize().height - input.mouse_position.y;
 
-		if(mouse & SDL_BUTTON(SDL_BUTTON_LEFT))
+		if(mouse & SDL_BUTTON_LMASK)
 		{
 			input.press(Input.Action.UI_INTERACT);
 		}

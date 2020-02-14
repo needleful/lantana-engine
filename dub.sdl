@@ -3,14 +3,15 @@ description "The Lantana Game Engine"
 authors "Devin Hastings"
 license "GPL-3.0"
 
+dependency "bindbc-sdl" version=">=0.13.0"
+versions "BindSDL_Mixer"
+
 dependency "derelict-ft" version=">=2.0.0-beta.5 <2.1.0-0"
-dependency "derelict-sdl2" version=">=3.0.0-beta <3.1.0-0"
 dependency "derelict-gl3" version=">=2.0.0-beta <2.1.0-0"
 versions "DerelictGL3_CustomFreeFuncs"
 
-dependency "bindbc-openal" version="~>0.3.0"
-dependency "gl3n" version="~>1.3.1"
 dependency "freeimage" path="modules/FreeImage"
+dependency "gl3n" version="~>1.3.1"
 dependency "sdlang-d" version="~>0.10.5"
 
 libs "sdl2" "freetype" platform="posix"
@@ -22,18 +23,21 @@ buildType "release-ultra" {
 
 configuration "game" {
 	targetType "executable"
+	targetPath "bin"
 	targetName "game"
 	excludedSourceFiles "source/app/editor.d" "source/app/converter.d"
 }
 
 configuration "editor" {
 	targetType "executable"
+	targetPath "bin"
 	targetName "editor"
 	excludedSourceFiles "source/app/game.d" "source/app/converter.d"
 }
 
 configuration "converter" {
 	targetType "executable"
+	targetPath "bin"
 	targetName "converter"
 	excludedSourceFiles "source/app/editor.d" "source/app/game.d"
 }

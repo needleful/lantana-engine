@@ -5,10 +5,9 @@
 import std.format;
 import std.stdio;
 
+import bindbc.sdl;
 import deimos.freeimage;
 import derelict.freetype;
-import derelict.sdl2.sdl;
-
 import gl3n.linalg;
 
 import lanlib.types;
@@ -16,16 +15,12 @@ import lanlib.file.gltf2;
 import lanlib.file.lgbt;
 import lanlib.file.uidl;
 import lanlib.util.memory;
-
 import logic.input;
-
 import render.gl;
 import render.material;
 import render.mesh;
 import render.window;
-
 import test.loading;
-
 import ui;
 
 enum atlasTest = false;
@@ -74,10 +69,7 @@ int main()
 			new Button(
 				ui,
 				new Padding(
-					new HBox([
-						new ImageBox(ui, upclickSprite),
-						//new TextBox(ui, testFont, "Press Me!"),
-					], 12),
+					new TextBox(ui, testFont, "Press Me!"),
 					12, 18
 				),
 				ui.loadSprite("data/test/blankRGBA.png"),
