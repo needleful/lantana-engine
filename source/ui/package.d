@@ -4,7 +4,8 @@
 
 module ui;
 
+public import ui.containers;
 public import ui.interaction;
 public import ui.layout;
-public import ui.widgets;
 public import ui.render;
+public import ui.widgets;

@@ -423,7 +423,7 @@ public class UIRenderer
 	+++++++++++++++++++++++++++++++++++++++/
 
 	/// Add a sprite to be rendered
-	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer)
+	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer, bool p_swapRB = true)
 	{
 		assert(spriteCount < SpriteId.dt.max, "Sprite limit exceeded.");
 
@@ -437,7 +437,7 @@ public class UIRenderer
 			else return SpriteId(0);
 		}
 
-		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer, true);
+		bool success = atlasSprite.texture.blit(node.size, node.position, p_buffer, p_swapRB);
 		if(!success)
 		{
 			debug assert(0, "Failed to blit sprite");
@@ -447,6 +447,12 @@ public class UIRenderer
 		invalidated[UIData.SpriteAtlas] = true;
 
 		return id;
+	}
+
+	/// Add a single-pixel texture for color rectangles
+	public SpriteId addSinglePixel(AlphaColor p_color)
+	{
+		return addSprite(RealSize(1), &p_color, false);
 	}
 
 	/// Load a sprite from a file and add it

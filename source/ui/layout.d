@@ -4,6 +4,8 @@
 
 module ui.layout;
 
+import std.stdio;
+
 import lanlib.types;
 import ui.render;
 
@@ -22,9 +24,16 @@ public abstract class Widget
 	/// As a rule, the position should ONLY be read by the parent
 	public ivec2 position;
 
+	/// Force the Widget to be within these bounds.  Overrides the parent request.
+	/// This should be used sparingly!  It can break things!
+	protected Bounds absoluteWidth = Bounds.none;
+	protected Bounds absoluteHeight = Bounds.none;
+
 	/// First phase of layout, taking some SizeRequest (bounds), and providing the real size of the object
 	/// Parents calculate the position of their children
 	public abstract RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow;
+
+	public abstract Widget[] getChildren() nothrow;
 
 	/// Second phase of layout: this is 
 	public void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
@@ -35,7 +44,12 @@ public abstract class Widget
 		}
 	}
 
-	public abstract Widget[] getChildren() nothrow;
+	public Widget withBounds(Bounds p_width, Bounds p_height)
+	{
+		absoluteWidth = p_width;
+		absoluteHeight = p_height;
+		return this;
+	}
 }
 
 /// Bounds for laying out UI elements
@@ -44,10 +58,18 @@ public struct SizeRequest
 	Bounds width;
 	Bounds height;
 
-	public this(Bounds p_width, Bounds p_height)  nothrow
+	public static enum SizeRequest none = SizeRequest(Bounds.none);
+
+	public this(Bounds p_width, Bounds p_height) nothrow
 	{
 		width = p_width;
 		height = p_height;
+	}
+
+	public this(Bounds p_bounds) nothrow
+	{
+		width = p_bounds;
+		height = p_bounds;
 	}
 
 	public this(RealSize p_size) nothrow
@@ -57,6 +79,14 @@ public struct SizeRequest
 
 		height.min = p_size.height;
 		height.max = p_size.height;
+	}
+
+	public SizeRequest constrained(Bounds p_width, Bounds p_height) nothrow
+	{
+		return SizeRequest(
+			width.apply(p_width),
+			height.apply(p_height)
+		);
 	}
 
 	const public bool inBounds(int p_width, int p_height)  nothrow
@@ -70,14 +100,28 @@ public struct Bounds
 	double min;
 	double max;
 
-	this(double p_min, double p_max = -double.infinity)  nothrow
+	public static enum Bounds none = Bounds(-double.infinity, double.infinity);
+
+	this(double p_min, double p_max) nothrow
 	{
 		if(p_max < p_min)
 		{
+			debug 
+			{
+				printf("Bad size: ");
+				print();
+				puts("");
+			}
 			p_max = p_min;
 		}
 		min = p_min;
 		max = p_max;
+	}
+
+	this(double p_size) nothrow
+	{
+		min = p_size;
+		max = p_size;
 	}
 
 	this(Bounds p_copy)  nothrow
@@ -86,9 +130,22 @@ public struct Bounds
 		max = p_copy.max;
 	}
 
+	public Bounds apply(Bounds rhs) nothrow
+	{
+		float newMin = this.min > rhs.min ? this.min : rhs.min;
+		float newMax = this.max < rhs.max ? this.max : rhs.max;
+
+		return Bounds(newMin, newMax);
+	}
+
 	const public bool contains(double value)  nothrow
 	{
 		return min <= value && max >= value;
+	}
+
+	public void print() nothrow
+	{
+		printf("rs[%f, %f]", min, max);
 	}
 }
 
