@@ -54,7 +54,7 @@ struct Attrib
 	}
 }
 
-void loadFile(UIRenderer p_renderer, string p_file)
+void loadFile(UIManager p_renderer, string p_file)
 {
 	writeln("Loading file: ", p_file);
 	FontId[string] fonts;
