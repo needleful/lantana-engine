@@ -89,15 +89,15 @@ public class UIView
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	package void update()
+	public void updateLayout()
 	{
-		if(root && invalidated[ViewState.Layout])
-		{
-			SizeRequest intrinsics = SizeRequest(Bounds(size.width), Bounds(size.height)); 
-			root.layout(renderer, intrinsics);
-			root.prepareRender(renderer, root.position);
-		}
+		SizeRequest intrinsics = SizeRequest(Bounds(size.width), Bounds(size.height)); 
+		root.layout(renderer, intrinsics);
+		root.prepareRender(renderer, root.position);
+	}
 
+	package void updateBuffers()
+	{
 		// If a buffer is fully invalidated, there's no reason to partially update it
 		if(invalidated[ViewState.TextEBO])
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);

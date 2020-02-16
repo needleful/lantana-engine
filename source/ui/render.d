@@ -125,7 +125,7 @@ public class UIRenderer
 
 	Bitfield!AtlasState invalidated;
 
-	package UIView mesh;
+	package UIView view;
 
 	/// Interactible rectangles
 	package Rect[] interactAreas;
@@ -221,7 +221,7 @@ public class UIRenderer
 		}
 		invalidated.clear();
 
-		mesh = new UIView(this, p_windowSize);
+		view = new UIView(this, p_windowSize);
 	}
 
 	public ~this()
@@ -235,7 +235,11 @@ public class UIRenderer
 
 	public void update(float p_delta, Input* p_input)
 	{
-		mesh.update();
+		if(view.invalidated[ViewState.Layout])
+		{
+			view.updateLayout();
+		}
+		view.updateBuffers();
 
 		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
@@ -277,13 +281,13 @@ public class UIRenderer
 
 	public void render() 
 	{
-		mesh.render();
+		view.render();
 	}
 
 	public void setRootWidget(Widget p_root)
 	{
-		mesh.root = p_root;
-		mesh.invalidated[ViewState.Layout] = true;
+		view.root = p_root;
+		view.invalidated[ViewState.Layout] = true;
 	}
 
 	public void setRootWidgets(Widget[] p_widgets)
@@ -293,8 +297,8 @@ public class UIRenderer
 
 	public void setSize(RealSize p_size)
 	{
-		mesh.size = p_size;
-		mesh.invalidated[ViewState.Layout] = true;
+		view.size = p_size;
+		view.invalidated[ViewState.Layout] = true;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -369,18 +373,18 @@ public class UIRenderer
 		uv_off.x /= atlasSprite.texture.size.width;
 		uv_off.y /= atlasSprite.texture.size.height;
 
-		return mesh.addSpriteQuad(uv_pos, uv_off);
+		return view.addSpriteQuad(uv_pos, uv_off);
 	}
 
 	/// Set the size of the quad (while removing translation)
 	public void setQuadSize(ushort[] p_vertices, RealSize p_size)  nothrow
 	{
-		mesh.setQuadSize(p_vertices, p_size);
+		view.setQuadSize(p_vertices, p_size);
 	}
 
 	public void translateQuad(ushort[] p_vertices, svec2 p_translation)  nothrow
 	{
-		mesh.translateQuad(p_vertices, p_translation);	}
+		view.translateQuad(p_vertices, p_translation);	}
 
 	/++++++++++++++++++++++++++++++++++++++
 		public methods -- fonts and text
@@ -432,12 +436,12 @@ public class UIRenderer
 
 	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
 	{
-		return mesh.addTextMesh(p_font, p_text, p_dynamicSize);
+		return view.addTextMesh(p_font, p_text, p_dynamicSize);
 	}
 
 	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
 	{
-		return mesh.setTextMesh(p_mesh, p_font, p_text);
+		return view.setTextMesh(p_mesh, p_font, p_text);
 	}
 
 	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
@@ -481,10 +485,10 @@ public class UIRenderer
 	{
 		glcheck();
 		// We'll just render the atlases as quads
-		mesh.uvs.length = 8;
-		mesh.vertpos.length = 8;
+		view.uvs.length = 8;
+		view.vertpos.length = 8;
 
-		mesh.uvs[0..$] = [
+		view.uvs[0..$] = [
 			vec2(0,0),
 			vec2(0,1),
 			vec2(1,0),
@@ -496,7 +500,7 @@ public class UIRenderer
 			vec2(1,1)
 		];
 
-		mesh.vertpos[0..$] = [
+		view.vertpos[0..$] = [
 			svec(0, 0),
 			svec(0, 256),
 			svec(256, 0),
@@ -508,20 +512,20 @@ public class UIRenderer
 			svec(256+1024, 256+1024)
 		];
 
-		mesh.elemText.length = 6;
-		mesh.elemSprite.length = 6;
+		view.elemText.length = 6;
+		view.elemSprite.length = 6;
 
-		mesh.elemText[0..$] = [
+		view.elemText[0..$] = [
 			0, 2, 1,
 			1, 2, 3
 		];
 
-		mesh.elemSprite[0..$] = [
+		view.elemSprite[0..$] = [
 			4, 6, 5,
 			5, 6, 7
 		];
-		mesh.invalidated.setAll();
-		mesh.update();
+		view.invalidated.setAll();
+		view.updateBuffers();
 
 		glcheck();
 
