@@ -412,6 +412,11 @@ public class UIRenderer
 		invalidated[UIData.Layout] = true;
 	}
 
+	public void setRootWidgets(Widget[] p_widgets)
+	{
+		setRootWidget(new HodgePodge(p_widgets));
+	}
+
 	public void setSize(RealSize p_size)
 	{
 		size = p_size;

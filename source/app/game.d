@@ -35,19 +35,17 @@ int main()
 	RealSize ws = window.getSize();
 	UIRenderer ui = new UIRenderer(ws);
 
-	ui.setRootWidget(
-		new HodgePodge([
-			new AnchoredBox([
-					new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
-					new Positioned(
-						new ImageBox(ui, "data/test/needleful.png").withBounds(Bounds(ws.width/6), Bounds(ws.width/6)),
-						vec2(1, 0.5), vec2(0.33, 0.5)
-					)
-				],
-				vec2(0.02,0), vec2(0.2, 1)
-			).withBounds(Bounds(450, double.infinity), Bounds.none)
-		])
-	);
+	ui.setRootWidgets([
+		new AnchoredBox([
+				new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
+				new Positioned(
+					new ImageBox(ui, "data/test/needleful.png").withBounds(Bounds(ws.width/6), Bounds(ws.width/6)),
+					vec2(1, 0.5), vec2(0.33, 0.5)
+				)
+			],
+			vec2(0.02,0), vec2(0.2, 1)
+		).withBounds(Bounds(450, double.infinity), Bounds.none)
+	]);
 
 	Input input = Input();
 
