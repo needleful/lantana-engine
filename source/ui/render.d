@@ -235,7 +235,7 @@ public class UIRenderer
 
 	public void update(float p_delta, Input* p_input)
 	{
-		mesh.update(this);
+		mesh.update();
 
 		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
@@ -277,7 +277,7 @@ public class UIRenderer
 
 	public void render() 
 	{
-		mesh.render(this);
+		mesh.render();
 	}
 
 	public void setRootWidget(Widget p_root)
@@ -432,12 +432,12 @@ public class UIRenderer
 
 	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
 	{
-		return mesh.addTextMesh(this, p_font, p_text, p_dynamicSize);
+		return mesh.addTextMesh(p_font, p_text, p_dynamicSize);
 	}
 
 	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
 	{
-		return mesh.setTextMesh(this, p_mesh, p_font, p_text);
+		return mesh.setTextMesh(p_mesh, p_font, p_text);
 	}
 
 	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
@@ -521,7 +521,7 @@ public class UIRenderer
 			5, 6, 7
 		];
 		mesh.invalidated.setAll();
-		mesh.update(this);
+		mesh.update();
 
 		glcheck();
 

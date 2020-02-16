@@ -43,6 +43,7 @@ package enum ViewState
 
 public class UIView
 {
+	public UIRenderer renderer;
 	/// The base widget of the UI
 	package Widget root;
 
@@ -75,8 +76,9 @@ public class UIView
 
 	public this(UIRenderer p_renderer, RealSize p_size)
 	{
+		renderer = p_renderer;
 		size = p_size;
-		initBuffers(p_renderer);
+		initBuffers();
 		invalidated.setAll();
 		textMeshes.reserve(8);
 	}
@@ -87,13 +89,13 @@ public class UIView
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	package void update(UIRenderer p_renderer)
+	package void update()
 	{
 		if(root && invalidated[ViewState.Layout])
 		{
 			SizeRequest intrinsics = SizeRequest(Bounds(size.width), Bounds(size.height)); 
-			root.layout(p_renderer, intrinsics);
-			root.prepareRender(p_renderer, root.position);
+			root.layout(renderer, intrinsics);
+			root.prepareRender(renderer, root.position);
 		}
 
 		// If a buffer is fully invalidated, there's no reason to partially update it
@@ -118,21 +120,21 @@ public class UIView
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
 	}
 
-	package void render(UIRenderer p_r)
+	package void render()
 	{
 		uvec2 wsize = uvec2(size.width, size.height);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		// Render sprites
-		p_r.matSprite.enable();
+		renderer.matSprite.enable();
 		glBindVertexArray(vao[1]);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, p_r.atlasSprite.texture.id);
+		glBindTexture(GL_TEXTURE_2D, renderer.atlasSprite.texture.id);
 
-		p_r.matSprite.setUniform(p_r.uniSprite.in_tex, 0);
-		p_r.matSprite.setUniform(p_r.uniSprite.translation, ivec2(0));
-		p_r.matSprite.setUniform(p_r.uniSprite.cam_resolution, wsize);
+		renderer.matSprite.setUniform(renderer.uniSprite.in_tex, 0);
+		renderer.matSprite.setUniform(renderer.uniSprite.translation, ivec2(0));
+		renderer.matSprite.setUniform(renderer.uniSprite.cam_resolution, wsize);
 		
 		glDrawElements(
 			GL_TRIANGLES,
@@ -143,20 +145,20 @@ public class UIView
 		glcheck();
 
 		// Render text
-		p_r.matText.enable();
+		renderer.matText.enable();
 		glBindVertexArray(vao[0]);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, p_r.atlasText.texture.id);
+		glBindTexture(GL_TEXTURE_2D, renderer.atlasText.texture.id);
 
-		p_r.matText.setUniform(p_r.uniText.in_tex, 0);
-		p_r.matText.setUniform(p_r.uniText.cam_resolution, wsize);
+		renderer.matText.setUniform(renderer.uniText.in_tex, 0);
+		renderer.matText.setUniform(renderer.uniText.cam_resolution, wsize);
 		// TODO: text color should be configurable
-		p_r.matText.setUniform(p_r.uniText.color, vec3(1, 0.7, 1));
+		renderer.matText.setUniform(renderer.uniText.color, vec3(1, 0.7, 1));
 		
 		foreach(ref tm; textMeshes)
 		{
-			p_r.matText.setUniform(p_r.uniText.translation, tm.translation);
+			renderer.matText.setUniform(renderer.uniText.translation, tm.translation);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -246,7 +248,7 @@ public class UIView
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
-	public TextMeshRef* addTextMesh(UIRenderer p_renderer, FontId p_font, string p_text, bool p_dynamicSize) nothrow
+	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
 	{
 		import std.uni: isWhite;
 
@@ -278,7 +280,7 @@ public class UIView
 
 		assert(uvs.length == vertpos.length);
 
-		setTextMesh(p_renderer, tm, p_font, p_text);
+		setTextMesh(tm, p_font, p_text);
 
 		invalidated[ViewState.UVBuffer] = true;
 		invalidated[ViewState.PositionBuffer] = true;
@@ -287,7 +289,7 @@ public class UIView
 		return tm;
 	}
 
-	public void setTextMesh(UIRenderer p_renderer, TextMeshRef* p_tm, FontId p_font, string p_text) nothrow
+	public void setTextMesh(TextMeshRef* p_tm, FontId p_font, string p_text) nothrow
 	{
 		import std.uni: isWhite;
 
@@ -307,7 +309,7 @@ public class UIView
 		// Write the buffers
 		svec2 pen = svec(0,0);
 
-		FT_Face face = p_renderer.fonts[p_font];
+		FT_Face face = renderer.fonts[p_font];
 
 		// Bounds of the entire text box
 		ivec2 bottom_left = ivec2(int.max, int.max);
@@ -355,12 +357,12 @@ public class UIView
 			RealSize size = RealSize(ftGlyph.bitmap.pitch, ftGlyph.bitmap.rows);
 
 			bool newGlyph;
-			TextureNode* node = p_renderer.atlasText.getAtlasSpot(g, size, &newGlyph);
+			TextureNode* node = renderer.atlasText.getAtlasSpot(g, size, &newGlyph);
 			if(newGlyph)
 			{
 				FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
-				p_renderer.atlasText.texture.blit(node.size, node.position, ftGlyph.bitmap.buffer);
-				p_renderer.invalidated[AtlasState.Text] = true;
+				renderer.atlasText.texture.blit(node.size, node.position, ftGlyph.bitmap.buffer);
+				renderer.invalidated[AtlasState.Text] = true;
 			}
 
 			// 1-------3   /\ +y
@@ -391,14 +393,14 @@ public class UIView
 
 			// UV start, normalized
 			vec2 uv_pos = vec2(node.position.x, node.position.y);
-			uv_pos.x /= p_renderer.atlasText.texture.size.width;
-			uv_pos.y /= p_renderer.atlasText.texture.size.height;
+			uv_pos.x /= renderer.atlasText.texture.size.width;
+			uv_pos.y /= renderer.atlasText.texture.size.height;
 
 			// UV offset, normalized
 			vec2 uv_off = vec2(node.size.width, node.size.height);
 
-			uv_off.x /= p_renderer.atlasText.texture.size.width;
-			uv_off.y /= p_renderer.atlasText.texture.size.height;
+			uv_off.x /= renderer.atlasText.texture.size.width;
+			uv_off.y /= renderer.atlasText.texture.size.height;
 
 			// FreeType blits text upside-down relative to images
 			uvs[vertQuad..vertQuad+4] = [
@@ -438,7 +440,7 @@ public class UIView
 		p_tm.boundingSize = RealSize(top_right - bottom_left);
 	}
 
-	private void initBuffers(UIRenderer p_r)
+	private void initBuffers()
 	{
 		// Reserve space for 256 characters
 		enum textQuads = 256;
@@ -458,21 +460,21 @@ public class UIView
 		// Text Vertices
 		glBindVertexArray(vao[0]);
 
-		glEnableVertexAttribArray(p_r.atrText.uv);
-		glEnableVertexAttribArray(p_r.atrText.position);
+		glEnableVertexAttribArray(renderer.atrText.uv);
+		glEnableVertexAttribArray(renderer.atrText.position);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glVertexAttribIPointer(
-			p_r.atrText.position,
+			renderer.atrText.position,
 			2, GL_SHORT,
 			0, 
 			cast(void*) 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 		glVertexAttribPointer(
-			p_r.atrText.uv,
+			renderer.atrText.uv,
 			2, GL_FLOAT,
 			GL_FALSE,
 			0,
@@ -483,24 +485,24 @@ public class UIView
 		// Sprite Vertices
 		glBindVertexArray(vao[1]);
 
-		glDisableVertexAttribArray(p_r.atrText.uv);
-		glDisableVertexAttribArray(p_r.atrText.position);
+		glDisableVertexAttribArray(renderer.atrText.uv);
+		glDisableVertexAttribArray(renderer.atrText.position);
 
-		glEnableVertexAttribArray(p_r.atrSprite.uv);
-		glEnableVertexAttribArray(p_r.atrSprite.position);
+		glEnableVertexAttribArray(renderer.atrSprite.uv);
+		glEnableVertexAttribArray(renderer.atrSprite.position);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glVertexAttribIPointer(
-			p_r.atrSprite.position,
+			renderer.atrSprite.position,
 			2, GL_SHORT,
 			0, 
 			cast(void*) 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 		glVertexAttribPointer(
-			p_r.atrSprite.uv,
+			renderer.atrSprite.uv,
 			2, GL_FLOAT,
 			GL_FALSE,
 			0,
@@ -508,8 +510,8 @@ public class UIView
 
 		glBindVertexArray(0);
 
-		glDisableVertexAttribArray(p_r.atrSprite.uv);
-		glDisableVertexAttribArray(p_r.atrSprite.position);
+		glDisableVertexAttribArray(renderer.atrSprite.uv);
+		glDisableVertexAttribArray(renderer.atrSprite.position);
 	}
 
 	package void clearInvalidation() nothrow
