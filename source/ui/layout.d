@@ -111,6 +111,7 @@ public struct Bounds
 				printf("Bad size: ");
 				print();
 				puts("");
+				throw new Exception("bad SIze");
 			}
 			p_max = p_min;
 		}

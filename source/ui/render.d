@@ -127,14 +127,10 @@ public class UIRenderer
 
 	package UIView view;
 
-	/// Interactible rectangles
-	package Rect[] interactAreas;
-
-	/// Corresponding interactive objects
-	package Interactible[] interactibles;
+	package RealSize windowSize;
 
 	/// The index of the focused interactive widget
-	package InteractibleId focused;
+	package Interactible focused;
 
 	/++++++++++++++++++++++++++++++++++++++
 		FreeType data
@@ -199,6 +195,7 @@ public class UIRenderer
 
 	public this(RealSize p_windowSize)
 	{
+		windowSize = p_windowSize;
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// Reserving space for 5 fonts by default
 		// can go up to FontId.dt.max (probably 255)
@@ -221,7 +218,7 @@ public class UIRenderer
 		}
 		invalidated.clear();
 
-		view = new UIView(this, p_windowSize);
+		view = new UIView(this, Rect(ivec2(0), p_windowSize));
 	}
 
 	public ~this()
@@ -249,34 +246,26 @@ public class UIRenderer
 
 		invalidated.clear();
 
-		// Get interaction
-		if(interactAreas.length > 0)
+		if(view.rect.contains(p_input.mouse_position))
 		{
-			bool intersect = false;
-			foreach(i, const ref Rect r; interactAreas)
+			InteractibleId newFocus;
+
+			if(view.getFocusedObject(p_input, newFocus))
 			{
-				if(r.contains(p_input.mouse_position))
+				if(focused)
 				{
-					intersect = true;
-					if(interactibles[focused])
-					{
-						interactibles[focused].unfocus();
-					}
-					focused = InteractibleId(cast(ubyte)i);
-					interactibles[focused].focus();
-					break;
+					focused.unfocus();
+				}
+				
+				focused = view.interactibles[newFocus];
+
+				if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+				{
+					focused.interact();
 				}
 			}
-
-			if(!intersect && interactibles[focused])
-			{
-				interactibles[focused].unfocus();
-			}
-			else if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
-			{
-				interactibles[focused].interact();
-			}
 		}
+		
 	}
 
 	public void render() 
@@ -297,7 +286,8 @@ public class UIRenderer
 
 	public void setSize(RealSize p_size)
 	{
-		view.size = p_size;
+		windowSize = p_size;
+		view.rect.size = p_size;
 		view.invalidated[ViewState.Layout] = true;
 	}
 
@@ -455,23 +445,17 @@ public class UIRenderer
 
 	public InteractibleId addInteractible(Interactible p_source) nothrow
 	{
-		assert(interactAreas.length == interactibles.length);
-		ubyte id = cast(ubyte) interactAreas.length;
-
-		interactAreas ~= Rect.init;
-		interactibles ~= p_source;
-
-		return InteractibleId(id);
+		return view.addInteractible(p_source);
 	}
 
 	public void setInteractSize(InteractibleId p_id, RealSize p_size) nothrow
 	{
-		interactAreas[p_id].size = p_size;
+		return view.setInteractSize(p_id, p_size);
 	}
 
 	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) nothrow
 	{
-		interactAreas[p_id].pos = p_position;
+		return view.setInteractPosition(p_id, p_position);
 	}
 
 	/++++++++++++++++++++++++++++++++++++++

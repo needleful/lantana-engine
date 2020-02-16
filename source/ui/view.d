@@ -47,7 +47,7 @@ public class UIView
 	/// The base widget of the UI
 	package Widget root;
 
-	package RealSize size;
+	package Rect rect;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -55,6 +55,12 @@ public class UIView
 
 	// All text is rendered by iterating this list
 	package TextMeshRef[] textMeshes;
+
+	/// Interactible rectangles
+	package Rect[] interactAreas;
+
+	/// Corresponding interactive objects
+	package Interactible[] interactibles;
 
 	/// 0: text elements
 	/// 1: sprite elements
@@ -74,10 +80,10 @@ public class UIView
 	/// A buffer is altered at max once per frame by checking these ranges.
 	package BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
-	public this(UIRenderer p_renderer, RealSize p_size)
+	public this(UIRenderer p_renderer, Rect p_rect)
 	{
 		renderer = p_renderer;
-		size = p_size;
+		rect = p_rect;
 		initBuffers();
 		invalidated.setAll();
 		textMeshes.reserve(8);
@@ -91,7 +97,7 @@ public class UIView
 
 	public void updateLayout()
 	{
-		SizeRequest intrinsics = SizeRequest(Bounds(size.width), Bounds(size.height)); 
+		SizeRequest intrinsics = SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)); 
 		root.layout(renderer, intrinsics);
 		root.prepareRender(renderer, root.position);
 	}
@@ -122,7 +128,7 @@ public class UIView
 
 	package void render()
 	{
-		uvec2 wsize = uvec2(size.width, size.height);
+		uvec2 wsize = uvec2(rect.size.width, rect.size.height);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		// Render sprites
@@ -169,6 +175,48 @@ public class UIView
 		glBindVertexArray(0);
 
 		glcheck();
+	}
+
+	/++++++++++++++++++++++++++++++++++++++
+		public methods -- interactive objects
+	+++++++++++++++++++++++++++++++++++++++/
+
+	public InteractibleId addInteractible(Interactible p_source) nothrow
+	{
+		assert(interactAreas.length == interactibles.length);
+		ubyte id = cast(ubyte) interactAreas.length;
+
+		interactAreas ~= Rect.init;
+		interactibles ~= p_source;
+
+		return InteractibleId(id);
+	}
+
+	public void setInteractSize(InteractibleId p_id, RealSize p_size) nothrow
+	{
+		interactAreas[p_id].size = p_size;
+	}
+
+	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) nothrow
+	{
+		interactAreas[p_id].pos = p_position;
+	}
+
+	package bool getFocusedObject(Input* p_input, ref InteractibleId id)
+	{
+		// Get interaction
+		if(interactAreas.length > 0)
+		{
+			foreach(i, const ref Rect r; interactAreas)
+			{
+				if(r.contains(p_input.mouse_position))
+				{
+					id = InteractibleId(cast(ubyte)i);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	package ushort[] addSpriteQuad(vec2 uv_pos, vec2 uv_size) nothrow
