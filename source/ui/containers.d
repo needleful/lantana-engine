@@ -322,10 +322,13 @@ public class Padding : SingularContainer
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
 		double maxWidth = request.width.max - (left + right);
-		double maxHeight = request.height.max - (top + bottom);
+		double minWidth = request.width.min - (left + right);
 
+		double maxHeight = request.height.max - (top + bottom);
+		double minHeight = request.height.min - (top + bottom);
+		
 		// Constrain child to the full box (or infinity)
-		SizeRequest childIntrinsic = SizeRequest(Bounds(maxWidth, maxWidth), Bounds(maxHeight, maxHeight));
+		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
 		RealSize csize = child.layout(p_renderer, childIntrinsic);
 		child.position = ivec2(left, bottom);
 

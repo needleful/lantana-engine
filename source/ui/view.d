@@ -93,13 +93,20 @@ package struct BufferRange
 	}
 }
 
+/// Each UIView is responsible for rendering and processing its elements.
+/// A UIView can be the whole window, or contained within a widget such as Scrolled
 public final class UIView
 {
+	/// The parent renderer
 	public UIRenderer renderer;
+
 	/// The base widget of the UI
 	private Widget root;
 
+	/// The window rectangle to draw this within
 	package Rect rect;
+
+	public bool visible;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -193,8 +200,6 @@ public final class UIView
 	{
 		uvec2 wsize = uvec2(p_windowSize.width, p_windowSize.height);
 		glScissor(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height);
-		glEnable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
 		// Render sprites
 		renderer.matSprite.enable();
 		glBindVertexArray(vao[1]);

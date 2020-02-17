@@ -10,6 +10,7 @@ debug import std.stdio;
 import gl3n.linalg: vec2;
 
 import lanlib.types;
+import lanlib.util.printing;
 import ui.containers : Container;
 import ui.interaction;
 import ui.layout;
@@ -273,9 +274,10 @@ public class Scrolled : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
-		SizeRequest rq = SizeRequest(p_request.width. Bounds.none);
-
+		SizeRequest rq = SizeRequest(p_request.width. Bounds.none).constrained(absoluteWidth, absoluteHeight);
 		childSize = childView.updateLayout(rq).constrained(p_request);
+
+		printT("Scrolled Layout: % -> %\n", rq, childSize);
 		
 		return childSize;
 	}

@@ -41,21 +41,22 @@ int main()
 	ui.setRootWidgets([
 		new AnchoredBox([
 				new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
-				new Scrolled(
+				new Padding(
+					new Scrolled(
 					new VBox([
 						new TextBox(defaultFont, "Hello!"),
 						new ImageBox(ui, nful),
 						new ImageBox(ui, nful),
 						new ImageBox(ui, "data/test/ui_sprites/upclick.png"),
 						new ImageBox(ui, nful),
-					]),
-				),
+					])),
+				18),
 				new Positioned(
 					new ImageBox(ui, nful).withBounds(Bounds(ws.width/6), Bounds(ws.width/6)),
 					vec2(1, 0.5), vec2(0.33, 0.5)
 				),
 			],
-			vec2(0.02,0.25), vec2(0.2, .75)
+			vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none)
 	]);
 

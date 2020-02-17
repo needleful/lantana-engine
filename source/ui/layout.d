@@ -7,6 +7,7 @@ module ui.layout;
 import std.stdio;
 
 import lanlib.types;
+import lanlib.util.printing;
 import ui.render: UIRenderer;
 import ui.view : UIView;
 
@@ -107,6 +108,11 @@ public struct SizeRequest
 	{
 		return width.contains(p_width) && height.contains(p_height);
 	}
+
+	void print() @nogc nothrow
+	{
+		printT("req {% , %}", width, height);
+	}
 }
 
 public struct Bounds
@@ -152,7 +158,7 @@ public struct Bounds
 		return min <= value && max >= value;
 	}
 
-	public void print() nothrow
+	public void print() nothrow @nogc
 	{
 		printf("rs[%f, %f]", min, max);
 	}
@@ -221,6 +227,11 @@ public struct RealSize
 	RealSize constrained(SizeRequest req) nothrow const
 	{
 		return RealSize(req.width.inRange(width), req.height.inRange(height)); 
+	}
+
+	void print() @nogc nothrow
+	{
+		printf("rs[%d, %d]", width, height);
 	}
 }
 

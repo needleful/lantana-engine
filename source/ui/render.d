@@ -149,7 +149,7 @@ public final class UIRenderer
 		{
 			throw new Exception(format("FT failed to init library: %d", error));
 		}
-		
+
 		windowSize = p_windowSize;
 		fonts.reserve(5);
 
@@ -217,6 +217,9 @@ public final class UIRenderer
 
 	public void render() 
 	{
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_SCISSOR_TEST);
 		foreach(v; views)
 		{
@@ -238,8 +241,7 @@ public final class UIRenderer
 	public void setSize(RealSize p_size)
 	{
 		windowSize = p_size;
-		views[0].rect.size = p_size;
-		views[0].invalidated[ViewState.Layout] = true;
+		views[0].setRect(Rect(views[0].position, p_size));
 	}
 
 	public UIView addView(Rect p_rect) nothrow

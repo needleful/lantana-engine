@@ -23,9 +23,9 @@ debug
 	import std.format;
 }
 
-void glcheck() @safe @nogc
+void glcheck() @nogc
 {
-	string errorString(GLint err) @safe @nogc
+	string errorString(GLint err) @nogc
 	{
 		switch(err)
 		{
@@ -43,10 +43,12 @@ void glcheck() @safe @nogc
 				return "Unknown Error";
 		}
 	}
-	debug
+
+	GLint err = glGetError();
+	if(err != GL_NO_ERROR)
 	{
-		GLint err = glGetError();
-		assert(err == GL_NO_ERROR, 
+		printf("OpenGL had an error: %u (%X), %s\n", err, err, errorString(err).ptr);
+		debug assert(false, 
 			format("OpenGL had an error: %u (%X), %s", err, err, errorString(err)));
 	}
 }
