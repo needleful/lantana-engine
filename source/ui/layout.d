@@ -98,6 +98,11 @@ public struct SizeRequest
 		);
 	}
 
+	public bool contains(RealSize p_size) nothrow
+	{
+		return width.contains(p_size.width) && height.contains(p_size.height);
+	}
+
 	const public bool inBounds(int p_width, int p_height)  nothrow
 	{
 		return width.contains(p_width) && height.contains(p_height);
@@ -151,6 +156,22 @@ public struct Bounds
 	{
 		printf("rs[%f, %f]", min, max);
 	}
+
+	T inRange(T)(T val) const nothrow @nogc
+	{
+		if(val < min)
+		{
+			return cast(T) min;
+		}
+		else if(val > max)
+		{
+			return cast(T) max;
+		}
+		else
+		{
+			return val;
+		}
+	}
 }
 
 /// The actual size, in pixels, of a UI element
@@ -195,6 +216,11 @@ public struct RealSize
 	bool contains(RealSize rhs)  nothrow const
 	{
 		return width >= rhs.width && height >= rhs.height;
+	}
+
+	RealSize constrained(SizeRequest req) nothrow const
+	{
+		return RealSize(req.width.inRange(width), req.height.inRange(height)); 
 	}
 }
 

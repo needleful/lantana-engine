@@ -56,68 +56,17 @@ struct GlyphId
 	}
 }
 
-// Text is rendered in a weird way.
-// I gave up on doing it all in one draw call for various reasons.
-// Instead, each text box is drawn with the same EBO and VBO, but at
-// different starting points and with different lengths.
-// To clarify, the EBO isn't changed
-public struct TextMeshRef
-{
-	// The total bounding box
-	RealSize boundingSize;
-	// Translation of the mesh
-	ivec2 translation;
-	// (between 0 and 1) the proportion of characters visible.
-	float visiblePortion;
-	// Offset within the EBO
-	ushort offset;
-	// Number of quads to render
-	ushort length;
-	// Amount of quads allocated
-	ushort capacity;
-}
-
 package enum AtlasState
 {
 	Text,
 	Sprite,
 }
 
-/// Describes part of an array, marking the start and end
-/// This is used to describe the bounds of buffers that need to be reloaded.
-package struct BufferRange
-{
-	uint start;
-	uint end;
-
-	this(int p_start, int p_end) nothrow  @safe
-	{
-		start = p_start;
-		end = p_end;
-	}
-
-	void clear() nothrow  @safe
-	{
-		start = uint.max;
-		end = uint.min;
-	}
-
-	void apply(BufferRange rhs) nothrow  @safe
-	{
-		apply(rhs.start, rhs.end);
-	}
-
-	void apply(uint p_start, uint p_end) nothrow  @safe
-	{
-		start = start < p_start? start : p_start;
-		end = end > p_end? end : p_end;
-	}
-}
 
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
 /// There should be exactly one UIRenderer
-public class UIRenderer
+public final class UIRenderer
 {
 	/++++++++++++++++++++++++++++++++++++++
 		UI Objects and State
@@ -271,10 +220,12 @@ public class UIRenderer
 
 	public void render() 
 	{
+		glEnable(GL_SCISSOR_TEST);
 		foreach(v; views)
 		{
 			v.render(windowSize);
 		}
+		glDisable(GL_SCISSOR_TEST);
 	}
 
 	public void setRootWidget(Widget p_root)

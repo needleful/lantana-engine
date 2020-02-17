@@ -217,6 +217,7 @@ public class Button: Container, Interactible
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		id = p_view.addInteractible(this);
+		super.initialize(p_renderer, p_view);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
@@ -251,7 +252,8 @@ public class Button: Container, Interactible
 	}
 }
 
-/// Manages its child widget in a separate UIView
+/// Unlimited vertical space!
+/// Other dimensions are still constrained
 public class Scrolled : LeafWidget
 {
 	private UIView childView;
@@ -271,7 +273,10 @@ public class Scrolled : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
-		childSize = childView.updateLayout(p_request);
+		SizeRequest rq = SizeRequest(p_request.width. Bounds.none);
+
+		childSize = childView.updateLayout(rq).constrained(p_request);
+		
 		return childSize;
 	}
 

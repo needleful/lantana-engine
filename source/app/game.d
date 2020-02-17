@@ -55,7 +55,7 @@ int main()
 					vec2(1, 0.5), vec2(0.33, 0.5)
 				),
 			],
-			vec2(0.02,0.02), vec2(0.2, .98)
+			vec2(0.02,0.25), vec2(0.2, .75)
 		).withBounds(Bounds(450, double.infinity), Bounds.none)
 	]);
 

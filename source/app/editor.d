@@ -13,7 +13,6 @@ import gl3n.linalg;
 import lanlib.types;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
-import lanlib.file.uidl;
 import lanlib.util.memory;
 import logic.input;
 import render.gl;
@@ -47,10 +46,10 @@ int main()
 
 	FontId testFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
 
-	auto title = new TextBox(ui, testFont, "Lantana Editor", true);
+	auto title = new TextBox(testFont, "Lantana Editor", true);
 	bool pressed = false;
 
-	ui.setRootWidget(new HodgePodge([
+	ui.setRootWidgets([
 		new Anchor(
 			new ImageBox(ui, upclickSprite),
 			vec2(1,1), vec2(1,1)
@@ -69,7 +68,7 @@ int main()
 			new Button(
 				ui,
 				new Padding(
-					new TextBox(ui, testFont, "Press Me!"),
+					new TextBox(testFont, "Press Me!"),
 					12, 18
 				),
 				ui.loadSprite("data/test/blankRGBA.png"),
@@ -89,7 +88,7 @@ int main()
 			vec2(0.01, 0.9),
 			vec2(0, 1)
 		),
-	]));
+	]);
 
 	while(!ww.state[WindowState.CLOSED])
 	{

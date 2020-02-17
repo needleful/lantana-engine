@@ -24,6 +24,27 @@ import ui.interaction;
 import ui.layout;
 import ui.render;
 
+// Text is rendered in a weird way.
+// I gave up on doing it all in one draw call for various reasons.
+// Instead, each text box is drawn with the same EBO and VBO, but at
+// different starting points and with different lengths.
+// To clarify, the EBO isn't changed
+public struct TextMeshRef
+{
+	// The total bounding box
+	RealSize boundingSize;
+	// Translation of the mesh
+	ivec2 translation;
+	// (between 0 and 1) the proportion of characters visible.
+	float visiblePortion;
+	// Offset within the EBO
+	ushort offset;
+	// Number of quads to render
+	ushort length;
+	// Amount of quads allocated
+	ushort capacity;
+}
+
 package enum ViewState
 {
 	Layout,
@@ -41,7 +62,38 @@ package enum ViewState
 	UVBufferPartial,
 }
 
-public class UIView
+/// Describes part of an array, marking the start and end
+/// This is used to describe the bounds of buffers that need to be reloaded.
+package struct BufferRange
+{
+	uint start;
+	uint end;
+
+	this(int p_start, int p_end) nothrow  @safe
+	{
+		start = p_start;
+		end = p_end;
+	}
+
+	void clear() nothrow  @safe
+	{
+		start = uint.max;
+		end = uint.min;
+	}
+
+	void apply(BufferRange rhs) nothrow  @safe
+	{
+		apply(rhs.start, rhs.end);
+	}
+
+	void apply(uint p_start, uint p_end) nothrow  @safe
+	{
+		start = start < p_start? start : p_start;
+		end = end > p_end? end : p_end;
+	}
+}
+
+public final class UIView
 {
 	public UIRenderer renderer;
 	/// The base widget of the UI
@@ -140,6 +192,7 @@ public class UIView
 	package void render(RealSize p_windowSize)
 	{
 		uvec2 wsize = uvec2(p_windowSize.width, p_windowSize.height);
+		glScissor(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		// Render sprites
