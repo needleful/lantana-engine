@@ -197,7 +197,7 @@ public class TextBox: LeafWidget
 	}
 }
 
-class Button: Container, Interactible
+public class Button: Container, Interactible
 {
 	Interactible.Callback onPressed;
 	InteractibleId id;
@@ -247,3 +247,15 @@ class Button: Container, Interactible
 		onPressed(this);
 	}
 }
+
+/// Manages its child widget in a separate UIView
+//public class Scrolled : LeafWidget
+//{
+//	private UIView childView;
+//	private Widget child;
+
+//	public this(Widget p_child)
+//	{
+//		child = p_child;
+//	}
+//}

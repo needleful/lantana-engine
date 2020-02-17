@@ -35,15 +35,25 @@ int main()
 	RealSize ws = window.getSize();
 	UIRenderer ui = new UIRenderer(ws);
 
+	FontId defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
+	SpriteId nful = ui.loadSprite("data/test/needleful.png");
+
 	ui.setRootWidgets([
 		new AnchoredBox([
 				new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
+				new VBox([
+					new TextBox(defaultFont, "Hello!"),
+					new ImageBox(ui, nful),
+					new ImageBox(ui, nful),
+					new ImageBox(ui, "data/test/ui_sprites/upclick.png"),
+					new ImageBox(ui, nful),
+				]),
 				new Positioned(
-					new ImageBox(ui, "data/test/needleful.png").withBounds(Bounds(ws.width/6), Bounds(ws.width/6)),
+					new ImageBox(ui, nful).withBounds(Bounds(ws.width/6), Bounds(ws.width/6)),
 					vec2(1, 0.5), vec2(0.33, 0.5)
-				)
+				),
 			],
-			vec2(0.02,0), vec2(0.2, 1)
+			vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none)
 	]);
 

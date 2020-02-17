@@ -372,6 +372,7 @@ class HBox: Container
 	}
 }
 
+/// Goes from bottom to top
 class VBox: Container
 {
 	// Space between children
@@ -385,14 +386,16 @@ class VBox: Container
 
 	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
-		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
+		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
+		childRequest.height.min = 0;
+		childRequest.width.min = 0;
 
 		//TODO: respect intrinsics properly
 		RealSize size;
 		ivec2 pen = ivec2(0,0);
 		foreach(child; children)
 		{
-			RealSize childSize = child.layout(p_renderer, request);
+			RealSize childSize = child.layout(p_renderer, childRequest);
 			child.position.x = -childSize.width/2;
 			child.position.y = pen.y;
 
@@ -400,6 +403,15 @@ class VBox: Container
 			size.height = pen.y + childSize.height;
 
 			pen.y += childSize.height + spacing;
+		}
+
+		if(size.width > p_request.width.max)
+		{
+			size.width = cast(int) p_request.width.max;
+		}
+		if(size.width < p_request.width.min)
+		{
+			size.width = cast(int) p_request.width.min;
 		}
 
 		foreach(child; children)
