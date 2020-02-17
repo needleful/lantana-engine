@@ -15,6 +15,7 @@ import ui.containers : Container;
 import ui.interaction;
 import ui.layout;
 import ui.render;
+import ui.view;
 
 public abstract class LeafWidget : Widget
 {
@@ -37,33 +38,30 @@ public class ImageBox : LeafWidget
 	{
 		spriteId = p_renderer.addSinglePixel(p_color);
 		textureSize = p_size;
-		init(p_renderer);
 	}
 
 	/// Currently no way for the UIRenderer to check if an image is loaded,
 	/// so only use this if the image is going to be shown once on screen
-	public this(UIRenderer p_renderer, @Param(0) string filename)
+	public this(UIRenderer p_renderer, string filename)
 	{
 		spriteId = p_renderer.loadSprite(filename);
 		assert(spriteId != 0);
 		textureSize = p_renderer.getSpriteSize(spriteId);
-		init(p_renderer);
 	}
 
 	public this(UIRenderer p_renderer, SpriteId p_spriteId)
 	{
 		spriteId = p_spriteId;
 		textureSize = p_renderer.getSpriteSize(spriteId);
-		init(p_renderer);
 	}
 
-	private void init(UIRenderer p_renderer)
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		vertices = p_renderer.addSpriteQuad(spriteId);
+		vertices = p_view.addSpriteQuad(spriteId);
 		assert(vertices.length == 6);
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		RealSize size = textureSize;
@@ -135,14 +133,14 @@ public class ImageBox : LeafWidget
 
 		RealSize result = RealSize(cast(int)(size.width * wrIdeal), cast(int)(size.height * hrIdeal));
 
-		p_renderer.setQuadSize(vertices, result);
+		p_view.setQuadSize(vertices, result);
 		return result;
 	}
 
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
-		p_renderer.translateQuad(vertices, p);
+		p_view.translateQuad(vertices, p);
 	}
 }
 
@@ -153,29 +151,31 @@ public class TextBox: LeafWidget
 	FontId font;
 	string text;
 	TextMeshRef* mesh;
-	UIRenderer renderer;
+	UIView view;
 	bool textChanged;
+	bool dynamicSize;
 
-	public this(
-		UIRenderer p_renderer,
-		@Param(0) FontId p_font,
-		@Param(1) string p_text,
-		@Ignored bool p_dynamicSize = false)
+	public this(FontId p_font, string p_text, bool p_dynamicSize = false)
 	{
 		font = p_font;
 		text = p_text;
 
-		mesh = p_renderer.addTextMesh(font, text, p_dynamicSize);
-		renderer = p_renderer;
+		dynamicSize = p_dynamicSize;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
+	{
+		mesh = p_view.addTextMesh(font, text, dynamicSize);
+		view = p_view;
+	}
+
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		// TODO: layout text to fit bounds
 		return mesh.boundingSize;
 	}
 
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
 	{
 		p_renderer.translateTextMesh(mesh, p_pen);
 	}
@@ -184,7 +184,7 @@ public class TextBox: LeafWidget
 	{
 		if(text != p_text)
 		{
-			renderer.setTextMesh(mesh, font, p_text);
+			view.setTextMesh(mesh, font, p_text);
 		}
 		text = p_text;
 	}
@@ -220,7 +220,7 @@ class Button: Container, Interactible
 		id = p_renderer.addInteractible(this);
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		RealSize childSize = children[0].layout(p_renderer, p_request);
 		children[1].layout(p_renderer, SizeRequest(childSize));
@@ -228,7 +228,7 @@ class Button: Container, Interactible
 		return childSize;
 	}
 
-	public override void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
 	{
 		p_renderer.setInteractPosition(id, p_pen);
 		super.prepareRender(p_renderer, p_pen);

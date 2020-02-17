@@ -275,13 +275,12 @@ public class UIRenderer
 
 	public void setRootWidget(Widget p_root)
 	{
-		view.root = p_root;
-		view.invalidated[ViewState.Layout] = true;
+		view.setRootWidget(p_root);
 	}
 
 	public void setRootWidgets(Widget[] p_widgets)
 	{
-		setRootWidget(new HodgePodge(p_widgets));
+		view.setRootWidget(new HodgePodge(p_widgets));
 	}
 
 	public void setSize(RealSize p_size)
@@ -345,37 +344,6 @@ public class UIRenderer
 		return atlasSprite.map[p_id].size;
 	}
 
-	/// Add a quad for a sprite (not sized yet)
-	public ushort[] addSpriteQuad(SpriteId p_sprite)
-	{
-		assert(p_sprite in atlasSprite.map);
-
-		TextureNode* node = atlasSprite.map[p_sprite];
-
-		// UV start, normalized
-		vec2 uv_pos = vec2(node.position.x, node.position.y);
-		uv_pos.x /= atlasSprite.texture.size.width;
-		uv_pos.y /= atlasSprite.texture.size.height;
-
-		// UV offset, normalized
-		vec2 uv_off = vec2(node.size.width, node.size.height);
-
-		uv_off.x /= atlasSprite.texture.size.width;
-		uv_off.y /= atlasSprite.texture.size.height;
-
-		return view.addSpriteQuad(uv_pos, uv_off);
-	}
-
-	/// Set the size of the quad (while removing translation)
-	public void setQuadSize(ushort[] p_vertices, RealSize p_size)  nothrow
-	{
-		view.setQuadSize(p_vertices, p_size);
-	}
-
-	public void translateQuad(ushort[] p_vertices, svec2 p_translation)  nothrow
-	{
-		view.translateQuad(p_vertices, p_translation);	}
-
 	/++++++++++++++++++++++++++++++++++++++
 		public methods -- fonts and text
 	+++++++++++++++++++++++++++++++++++++++/
@@ -422,21 +390,6 @@ public class UIRenderer
 		fonts ~= p_face;
 		fontCount = cast(ubyte)(fonts.length - 1);
 		return FontId(fontCount);
-	}
-
-	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
-	{
-		return view.addTextMesh(p_font, p_text, p_dynamicSize);
-	}
-
-	public void setTextMesh(TextMeshRef* p_mesh, FontId p_font, string p_text) nothrow
-	{
-		return view.setTextMesh(p_mesh, p_font, p_text);
-	}
-
-	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
-	{
-		p_text.translation = p_translation;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++

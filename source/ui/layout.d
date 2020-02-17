@@ -7,7 +7,8 @@ module ui.layout;
 import std.stdio;
 
 import lanlib.types;
-import ui.render;
+import ui.render: UIRenderer;
+import ui.view : UIView;
 
 // The basic system is inspired by Flutter
 // Flutter data layout:
@@ -31,16 +32,24 @@ public abstract class Widget
 
 	/// First phase of layout, taking some SizeRequest (bounds), and providing the real size of the object
 	/// Parents calculate the position of their children
-	public abstract RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow;
+	public abstract RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow;
 
 	public abstract Widget[] getChildren() nothrow;
 
 	/// Second phase of layout: this is 
-	public void prepareRender(UIRenderer p_renderer, ivec2 p_pen) nothrow
+	public void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
 	{
 		foreach(child; getChildren())
 		{
 			child.prepareRender(p_renderer, child.position + p_pen);
+		}
+	}
+
+	public void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	{
+		foreach(child; getChildren())
+		{
+			child.initialize(p_renderer, p_view);
 		}
 	}
 
@@ -101,18 +110,12 @@ public struct Bounds
 	double max;
 
 	public static enum Bounds none = Bounds(-double.infinity, double.infinity);
+	public static enum Bounds init = Bounds.none;
 
 	this(double p_min, double p_max) nothrow
 	{
 		if(p_max < p_min)
 		{
-			debug 
-			{
-				printf("Bad size: ");
-				print();
-				puts("");
-				throw new Exception("bad SIze");
-			}
 			p_max = p_min;
 		}
 		min = p_min;

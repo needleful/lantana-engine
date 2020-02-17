@@ -14,6 +14,7 @@ import lanlib.types;
 import ui.interaction;
 import ui.layout;
 import ui.render;
+import ui.view;
 
 public abstract class SingularContainer: Widget
 {
@@ -50,7 +51,7 @@ public class HodgePodge : Container
 		children = p_children;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -83,7 +84,7 @@ public class Positioned: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request)
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request)
 	{
 		SizeRequest childRequest = SizeRequest(absoluteWidth, absoluteHeight);
 
@@ -120,7 +121,7 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
@@ -267,7 +268,7 @@ public class AnchoredBox : Container
 		topRight = p_tRight;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request)
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request)
 	{
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
@@ -325,7 +326,7 @@ public class Padding : SingularContainer
 		right = p_right;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -356,7 +357,7 @@ class HBox: Container
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIRenderer p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 

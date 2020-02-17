@@ -45,7 +45,7 @@ public class UIView
 {
 	public UIRenderer renderer;
 	/// The base widget of the UI
-	package Widget root;
+	private Widget root;
 
 	package Rect rect;
 
@@ -98,8 +98,8 @@ public class UIView
 	public void updateLayout()
 	{
 		SizeRequest intrinsics = SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)); 
-		root.layout(renderer, intrinsics);
-		root.prepareRender(renderer, root.position);
+		root.layout(this, intrinsics);
+		root.prepareRender(this, root.position);
 	}
 
 	package void updateBuffers()
@@ -177,6 +177,14 @@ public class UIView
 		glcheck();
 	}
 
+	public void setRootWidget(Widget p_root)
+	{
+		clearData();
+		root = p_root;
+		root.initialize(renderer, this);
+		invalidated[ViewState.Layout] = true;
+	}
+
 	/++++++++++++++++++++++++++++++++++++++
 		public methods -- interactive objects
 	+++++++++++++++++++++++++++++++++++++++/
@@ -219,8 +227,23 @@ public class UIView
 		return false;
 	}
 
-	package ushort[] addSpriteQuad(vec2 uv_pos, vec2 uv_size) nothrow
+	public ushort[] addSpriteQuad(SpriteId p_sprite) nothrow
 	{
+		assert(p_sprite in renderer.atlasSprite.map);
+
+		TextureNode* node = renderer.atlasSprite.map[p_sprite];
+
+		// UV start, normalized
+		vec2 uv_pos = vec2(node.position.x, node.position.y);
+		uv_pos.x /= renderer.atlasSprite.texture.size.width;
+		uv_pos.y /= renderer.atlasSprite.texture.size.height;
+
+		// UV offset, normalized
+		vec2 uv_size = vec2(node.size.width, node.size.height);
+
+		uv_size.x /= renderer.atlasSprite.texture.size.width;
+		uv_size.y /= renderer.atlasSprite.texture.size.height;
+
 		// The positions are set by other functions, 
 		// so they can stay (0,0) right now
 		ushort vertStart = cast(ushort)vertpos.length;
@@ -267,7 +290,7 @@ public class UIView
 		return elemSprite[elemStart..elemStart+6];
 	}
 
-	package void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
+	public void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
 	{
 		assert(p_vertices.length == 6);
 
@@ -282,7 +305,7 @@ public class UIView
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
-	package void translateQuad(ushort[] p_vertices, svec2 p_translation) nothrow
+	public void translateQuad(ushort[] p_vertices, svec2 p_translation) nothrow
 	{
 		assert(p_vertices.length == 6);
 		ushort quadStart = p_vertices[0];
@@ -487,6 +510,12 @@ public class UIView
 
 		p_tm.boundingSize = RealSize(top_right - bottom_left);
 	}
+	
+	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
+	{
+		p_text.translation = p_translation;
+	}
+
 
 	private void initBuffers()
 	{
@@ -591,5 +620,14 @@ public class UIView
 			p_range.start*T.sizeof,
 			(p_range.end - p_range.start)*T.sizeof,
 			&p_buffer[p_range.start]);
+	}
+
+	private void clearData()
+	{
+		textMeshes.clear();
+		elemSprite.clear();
+		elemText.clear();
+		vertpos.clear();
+		uvs.clear();
 	}
 }
