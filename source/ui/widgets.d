@@ -9,7 +9,6 @@ debug import std.stdio;
 
 import gl3n.linalg: vec2;
 
-import lanlib.file.uidl;
 import lanlib.types;
 import ui.containers : Container;
 import ui.interaction;
@@ -25,7 +24,6 @@ public abstract class LeafWidget : Widget
 	}
 }
 
-@WidgetName("image")
 public class ImageBox : LeafWidget
 {
 	RealSize textureSize;
@@ -144,8 +142,7 @@ public class ImageBox : LeafWidget
 	}
 }
 
-// TODO: implement sizing
-@WidgetName("text")
+// TODO: implement word wrap
 public class TextBox: LeafWidget
 {
 	FontId font;
@@ -200,7 +197,6 @@ public class TextBox: LeafWidget
 	}
 }
 
-@WidgetName("button")
 class Button: Container, Interactible
 {
 	Interactible.Callback onPressed;

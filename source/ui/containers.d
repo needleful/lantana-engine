@@ -9,7 +9,6 @@ debug import std.stdio;
 
 import gl3n.linalg: vec2;
 
-import lanlib.file.uidl;
 import lanlib.types;
 import ui.interaction;
 import ui.layout;
@@ -43,10 +42,9 @@ public abstract class Container : Widget
 
 
 /// Provides no layout hints.  All widgets are laid out in the same space and position
-@WidgetName("hodge-podge")
 public class HodgePodge : Container
 {
-	public this(@ParamList Widget[] p_children) nothrow
+	public this(Widget[] p_children) nothrow
 	{
 		children = p_children;
 	}
@@ -71,7 +69,6 @@ public class HodgePodge : Container
 }
 
 /// Relative positioning with no size constraints on object
-@WidgetName("positioned")
 public class Positioned: SingularContainer
 {
 	vec2 anchor;
@@ -101,7 +98,6 @@ public class Positioned: SingularContainer
 }
 
 /// Anchor the widget to a specific point
-@WidgetName("anchor")
 public class Anchor: SingularContainer
 {
 	// Normalized coordinates, (0,0) is bottom left of the container
@@ -109,10 +105,7 @@ public class Anchor: SingularContainer
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
 	vec2 childAnchor;
 
-	public this(
-		@Param(0) Widget p_child,
-		@Param("parent") vec2 p_anchor,
-		@Optional @Param("child") vec2 p_childAnchor = vec2(0,0)) nothrow
+	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) nothrow
 	{
 		child = p_child;
 		child.position = ivec2(0,0);
@@ -255,7 +248,6 @@ public class Anchor: SingularContainer
 	}
 }
 
-@WidgetName("anchored-box")
 public class AnchoredBox : Container
 {
 	vec2 bottomLeft;
@@ -289,13 +281,12 @@ public class AnchoredBox : Container
 	}
 }
 
-@WidgetName("padded")
 public class Padding : SingularContainer
 {
 	// Padding, in pixels
 	int top, bottom, left, right;
 
-	public this(@Param(0) Widget p_child, int p_padding) nothrow
+	public this(Widget p_child, int p_padding) nothrow
 	{
 		child = p_child;
 
@@ -305,7 +296,7 @@ public class Padding : SingularContainer
 		right = p_padding;
 	}
 
-	public this(@Param(0) Widget p_child, int p_vertical, int p_horizontal) nothrow
+	public this(Widget p_child, int p_vertical, int p_horizontal) nothrow
 	{
 		child = p_child;
 
@@ -316,7 +307,7 @@ public class Padding : SingularContainer
 		right = p_horizontal;
 	}
 
-	public this(@Param(0) Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
+	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
 	{
 		child = p_child;
 
@@ -342,16 +333,12 @@ public class Padding : SingularContainer
 	}
 }
 
-
-@WidgetName("hbox")
 class HBox: Container
 {
 	// Space between children
 	int spacing;
 
-	this(
-		@ParamList Widget[] p_children, 
-		@Optional @Attrib("spacing") int p_spacing = 0)
+	this(Widget[] p_children, int p_spacing = 0)
 	{
 		children = p_children;
 		spacing = p_spacing;
@@ -379,6 +366,45 @@ class HBox: Container
 		foreach(child; children)
 		{
 			child.position.y += size.height/2;
+		}
+
+		return size;
+	}
+}
+
+class VBox: Container
+{
+	// Space between children
+	int spacing;
+
+	this(Widget[] p_children, int p_spacing = 0)
+	{
+		children = p_children;
+		spacing = p_spacing;
+	}
+
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	{
+		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
+
+		//TODO: respect intrinsics properly
+		RealSize size;
+		ivec2 pen = ivec2(0,0);
+		foreach(child; children)
+		{
+			RealSize childSize = child.layout(p_renderer, request);
+			child.position.x = -childSize.width/2;
+			child.position.y = pen.y;
+
+			size.width = childSize.width > size.width? childSize.width: size.width;
+			size.height = pen.y + childSize.height;
+
+			pen.y += childSize.height + spacing;
+		}
+
+		foreach(child; children)
+		{
+			child.position.x += size.width/2;
 		}
 
 		return size;
