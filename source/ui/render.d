@@ -144,17 +144,14 @@ public final class UIRenderer
 
 	public this(RealSize p_windowSize)
 	{
-		windowSize = p_windowSize;
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		// Reserving space for 5 fonts by default
-		// can go up to FontId.dt.max (probably 255)
-		fonts.reserve(5);
-
 		FT_Error error = FT_Init_FreeType(&fontLibrary);
 		if(error)
 		{
 			throw new Exception(format("FT failed to init library: %d", error));
 		}
+		
+		windowSize = p_windowSize;
+		fonts.reserve(5);
 
 		initMaterials();
 
