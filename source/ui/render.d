@@ -125,7 +125,7 @@ public class UIRenderer
 
 	Bitfield!AtlasState invalidated;
 
-	package UIView view;
+	package UIView[] views;
 
 	package RealSize windowSize;
 
@@ -218,7 +218,7 @@ public class UIRenderer
 		}
 		invalidated.clear();
 
-		view = new UIView(this, Rect(ivec2(0), p_windowSize));
+		addView(Rect(ivec2(0), p_windowSize));
 	}
 
 	public ~this()
@@ -232,11 +232,12 @@ public class UIRenderer
 
 	public void update(float p_delta, Input* p_input)
 	{
-		if(view.invalidated[ViewState.Layout])
+		views[0].updateLayout();
+
+		foreach(view; views)
 		{
-			view.updateLayout();
+			view.updateBuffers();
 		}
-		view.updateBuffers();
 
 		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
@@ -246,18 +247,18 @@ public class UIRenderer
 
 		invalidated.clear();
 
-		if(view.rect.contains(p_input.mouse_position))
+		if(views[0].rect.contains(p_input.mouse_position))
 		{
 			InteractibleId newFocus;
 
-			if(view.getFocusedObject(p_input, newFocus))
+			if(views[0].getFocusedObject(p_input, newFocus))
 			{
 				if(focused)
 				{
 					focused.unfocus();
 				}
 				
-				focused = view.interactibles[newFocus];
+				focused = views[0].interactibles[newFocus];
 
 				if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
 				{
@@ -270,24 +271,34 @@ public class UIRenderer
 
 	public void render() 
 	{
-		view.render();
+		foreach(v; views)
+		{
+			v.render(windowSize);
+		}
 	}
 
 	public void setRootWidget(Widget p_root)
 	{
-		view.setRootWidget(p_root);
+		views[0].setRootWidget(p_root);
 	}
 
 	public void setRootWidgets(Widget[] p_widgets)
 	{
-		view.setRootWidget(new HodgePodge(p_widgets));
+		views[0].setRootWidget(new HodgePodge(p_widgets));
 	}
 
 	public void setSize(RealSize p_size)
 	{
 		windowSize = p_size;
-		view.rect.size = p_size;
-		view.invalidated[ViewState.Layout] = true;
+		views[0].rect.size = p_size;
+		views[0].invalidated[ViewState.Layout] = true;
+	}
+
+	public UIView addView(Rect p_rect) nothrow
+	{
+		UIView v = new UIView(this, p_rect);
+		views ~= v;
+		return v;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -393,25 +404,6 @@ public class UIRenderer
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
-		public methods -- interactive objects
-	+++++++++++++++++++++++++++++++++++++++/
-
-	public InteractibleId addInteractible(Interactible p_source) nothrow
-	{
-		return view.addInteractible(p_source);
-	}
-
-	public void setInteractSize(InteractibleId p_id, RealSize p_size) nothrow
-	{
-		return view.setInteractSize(p_id, p_size);
-	}
-
-	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) nothrow
-	{
-		return view.setInteractPosition(p_id, p_position);
-	}
-
-	/++++++++++++++++++++++++++++++++++++++
 		public methods -- debug
 	+++++++++++++++++++++++++++++++++++++++/
 
@@ -422,10 +414,10 @@ public class UIRenderer
 	{
 		glcheck();
 		// We'll just render the atlases as quads
-		view.uvs.length = 8;
-		view.vertpos.length = 8;
+		views[0].uvs.length = 8;
+		views[0].vertpos.length = 8;
 
-		view.uvs[0..$] = [
+		views[0].uvs[0..$] = [
 			vec2(0,0),
 			vec2(0,1),
 			vec2(1,0),
@@ -437,7 +429,7 @@ public class UIRenderer
 			vec2(1,1)
 		];
 
-		view.vertpos[0..$] = [
+		views[0].vertpos[0..$] = [
 			svec(0, 0),
 			svec(0, 256),
 			svec(256, 0),
@@ -449,20 +441,20 @@ public class UIRenderer
 			svec(256+1024, 256+1024)
 		];
 
-		view.elemText.length = 6;
-		view.elemSprite.length = 6;
+		views[0].elemText.length = 6;
+		views[0].elemSprite.length = 6;
 
-		view.elemText[0..$] = [
+		views[0].elemText[0..$] = [
 			0, 2, 1,
 			1, 2, 3
 		];
 
-		view.elemSprite[0..$] = [
+		views[0].elemSprite[0..$] = [
 			4, 6, 5,
 			5, 6, 7
 		];
-		view.invalidated.setAll();
-		view.updateBuffers();
+		views[0].invalidated.setAll();
+		views[0].updateBuffers();
 
 		glcheck();
 

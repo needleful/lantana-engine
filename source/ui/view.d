@@ -80,7 +80,7 @@ public class UIView
 	/// A buffer is altered at max once per frame by checking these ranges.
 	package BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
-	public this(UIRenderer p_renderer, Rect p_rect)
+	public this(UIRenderer p_renderer, Rect p_rect) nothrow
 	{
 		renderer = p_renderer;
 		rect = p_rect;
@@ -89,17 +89,28 @@ public class UIView
 		textMeshes.reserve(8);
 	}
 
-	public ~this()
+	public ~this() nothrow
 	{
 		glDeleteVertexArrays(vao.length, vao.ptr);
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	public void updateLayout()
+	public RealSize updateLayout() nothrow
 	{
-		SizeRequest intrinsics = SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)); 
-		root.layout(this, intrinsics);
-		root.prepareRender(this, root.position);
+		return updateLayout(SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)));
+	}
+
+	public RealSize updateLayout(SizeRequest p_request) nothrow
+	{
+		if(!invalidated[ViewState.Layout])
+			return rect.size;
+
+		RealSize cs = root.layout(this, p_request);
+		root.prepareRender(this, ivec2(0,0));
+
+		invalidated[ViewState.Layout] = false;
+
+		return cs;
 	}
 
 	package void updateBuffers()
@@ -126,9 +137,9 @@ public class UIView
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
 	}
 
-	package void render()
+	package void render(RealSize p_windowSize)
 	{
-		uvec2 wsize = uvec2(rect.size.width, rect.size.height);
+		uvec2 wsize = uvec2(p_windowSize.width, p_windowSize.height);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		// Render sprites
@@ -139,7 +150,7 @@ public class UIView
 		glBindTexture(GL_TEXTURE_2D, renderer.atlasSprite.texture.id);
 
 		renderer.matSprite.setUniform(renderer.uniSprite.in_tex, 0);
-		renderer.matSprite.setUniform(renderer.uniSprite.translation, ivec2(0));
+		renderer.matSprite.setUniform(renderer.uniSprite.translation, rect.pos);
 		renderer.matSprite.setUniform(renderer.uniSprite.cam_resolution, wsize);
 		
 		glDrawElements(
@@ -164,7 +175,7 @@ public class UIView
 		
 		foreach(ref tm; textMeshes)
 		{
-			renderer.matText.setUniform(renderer.uniText.translation, tm.translation);
+			renderer.matText.setUniform(renderer.uniText.translation, tm.translation+rect.pos);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -177,12 +188,32 @@ public class UIView
 		glcheck();
 	}
 
-	public void setRootWidget(Widget p_root)
+	public void setRootWidget(Widget p_root) nothrow
 	{
 		clearData();
 		root = p_root;
 		root.initialize(renderer, this);
 		invalidated[ViewState.Layout] = true;
+	}
+
+	public void setRect(Rect p_rect) nothrow
+	{
+		if(p_rect == rect)
+		{
+			return;
+		}
+		rect = p_rect;
+		invalidated[ViewState.Layout] = true;
+	}
+
+	public ivec2 position() nothrow
+	{
+		return rect.pos;
+	}
+
+	public RealSize size() nothrow
+	{
+		return rect.size;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -517,7 +548,7 @@ public class UIView
 	}
 
 
-	private void initBuffers()
+	private void initBuffers() nothrow
 	{
 		// Reserve space for 256 characters
 		enum textQuads = 256;
@@ -530,7 +561,6 @@ public class UIView
 		vertpos.reserve(4*(textQuads + spriteQuads));
 		uvs.reserve(4*(textQuads + spriteQuads));
 
-		glcheck();
 		glGenBuffers(vbo.length, vbo.ptr);
 		glGenVertexArrays(vao.length, vao.ptr);
 
@@ -556,8 +586,6 @@ public class UIView
 			GL_FALSE,
 			0,
 			cast(void*) 0);
-
-		glcheck();
 
 		// Sprite Vertices
 		glBindVertexArray(vao[1]);
@@ -622,7 +650,7 @@ public class UIView
 			&p_buffer[p_range.start]);
 	}
 
-	private void clearData()
+	private void clearData() nothrow
 	{
 		textMeshes.clear();
 		elemSprite.clear();

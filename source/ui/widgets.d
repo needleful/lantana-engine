@@ -212,22 +212,25 @@ public class Button: Container, Interactible
 
 		children[0].position = ivec2(0,0);
 		children[1].position = ivec2(0,0);
-
-		id = p_renderer.addInteractible(this);
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		RealSize childSize = children[0].layout(p_renderer, p_request);
-		children[1].layout(p_renderer, SizeRequest(childSize));
-		p_renderer.setInteractSize(id, childSize);
+		id = p_view.addInteractible(this);
+	}
+
+	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	{
+		RealSize childSize = children[0].layout(p_view, p_request);
+		children[1].layout(p_view, SizeRequest(childSize));
+		p_view.setInteractSize(id, childSize);
 		return childSize;
 	}
 
-	public override void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
-		p_renderer.setInteractPosition(id, p_pen);
-		super.prepareRender(p_renderer, p_pen);
+		p_view.setInteractPosition(id, p_pen);
+		super.prepareRender(p_view, p_pen);
 	}
 
 	/// Interactible methods
@@ -249,13 +252,31 @@ public class Button: Container, Interactible
 }
 
 /// Manages its child widget in a separate UIView
-//public class Scrolled : LeafWidget
-//{
-//	private UIView childView;
-//	private Widget child;
+public class Scrolled : LeafWidget
+{
+	private UIView childView;
+	private Widget child;
+	private RealSize childSize;
 
-//	public this(Widget p_child)
-//	{
-//		child = p_child;
-//	}
-//}
+	public this(Widget p_child) nothrow
+	{
+		child = p_child;
+	}
+
+	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	{
+		childView = p_renderer.addView(Rect.init);
+		childView.setRootWidget(child);
+	}
+
+	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	{
+		childSize = childView.updateLayout(p_request);
+		return childSize;
+	}
+
+	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	{
+		childView.setRect(Rect(p_pen, childSize));
+	}
+}
