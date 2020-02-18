@@ -208,7 +208,7 @@ public final class UIRenderer
 
 				if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
 				{
-					focused.interact();
+					focused.interact(p_input);
 				}
 			}
 		}
@@ -256,7 +256,7 @@ public final class UIRenderer
 	+++++++++++++++++++++++++++++++++++++++/
 
 	/// Add a sprite to be rendered
-	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer, bool p_swapRB = true)
+	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer, bool p_swapRB = true) nothrow
 	{
 		assert(spriteCount < SpriteId.dt.max, "Sprite limit exceeded.");
 
@@ -283,7 +283,7 @@ public final class UIRenderer
 	}
 
 	/// Add a single-pixel texture for color rectangles
-	public SpriteId addSinglePixel(AlphaColor p_color)
+	public SpriteId addSinglePixel(AlphaColor p_color) nothrow
 	{
 		return addSprite(RealSize(1), &p_color, false);
 	}

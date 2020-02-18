@@ -188,7 +188,7 @@ public struct RealSize
 	int width;
 	int height;
 
-	public this(int p_size)
+	public this(int p_size) nothrow @nogc
 	{
 		width = p_size;
 		height = p_size;

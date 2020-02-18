@@ -11,6 +11,7 @@ import gl3n.linalg: vec2;
 
 import lanlib.types;
 import lanlib.util.printing;
+import logic.input : Input;
 import ui.containers : Container;
 import ui.interaction;
 import ui.layout;
@@ -33,7 +34,7 @@ public class ImageBox : LeafWidget
 	ushort[] vertices;
 
 	// Instead of rendering a sprite, render a colored rectangle
-	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size)
+	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) nothrow
 	{
 		spriteId = p_renderer.addSinglePixel(p_color);
 		textureSize = p_size;
@@ -41,7 +42,7 @@ public class ImageBox : LeafWidget
 
 	/// Currently no way for the UIRenderer to check if an image is loaded,
 	/// so only use this if the image is going to be shown once on screen
-	public this(UIRenderer p_renderer, string filename)
+	public this(UIRenderer p_renderer, string filename) 
 	{
 		spriteId = p_renderer.loadSprite(filename);
 		assert(spriteId != 0);
@@ -236,20 +237,20 @@ public class Button: Container, Interactible
 	}
 
 	/// Interactible methods
-	public void focus()
+	public override void focus()
 	{
 		// TODO: implement
 		return;
 	}
 
-	public void unfocus()
+	public override void unfocus()
 	{
 		// TODO: implement
 	}
 
-	public void interact()
+	public override void interact(Input* p_input)
 	{
-		onPressed(this);
+		onPressed(this, p_input);
 	}
 }
 
@@ -261,6 +262,9 @@ public class Scrolled : LeafWidget
 	private Widget child;
 	private RealSize childSize;
 
+	private Widget scrollbar;
+	private Widget scrollbarHandle;
+
 	public this(Widget p_child) nothrow
 	{
 		child = p_child;
@@ -270,24 +274,62 @@ public class Scrolled : LeafWidget
 	{
 		childView = p_renderer.addView(Rect.init);
 		childView.setRootWidget(child);
+
+		scrollbar = new ImageBox(p_renderer, color(128, 128, 128, 255), RealSize(1));
+		scrollbarHandle = new ImageBox(p_renderer, color(255, 255, 255, 255), RealSize(1));
+
+		scrollbar.initialize(p_renderer, p_view);
+		scrollbarHandle.initialize(p_renderer, p_view);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
-		debug
+		int scrollbarWidth = 20;
+		SizeRequest childReq = SizeRequest(
+			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth), 
+			Bounds.none)
+		.constrained(absoluteWidth, absoluteHeight);
+
+		RealSize result = childView.updateLayout(childReq);
+
+		childSize = result.constrained(p_request);
+		childSize.width -= scrollbarWidth;
+
+		float scrollRatio = childSize.height / (cast(float) result.height);
+
+		printf("Ratio: %f\n", scrollRatio);
+
+		if(scrollRatio > 1)
 		{
-			auto p = p_request.width. Bounds.none;
-			printT("What the hell is this? %\n", p);
+			scrollRatio = 1;
+		}
+		if(scrollRatio < 0.1)
+		{
+			scrollRatio = 0.1;
 		}
 
-		SizeRequest rq = SizeRequest(p_request.width, Bounds.none).constrained(absoluteWidth, absoluteHeight);
-		childSize = childView.updateLayout(rq).constrained(p_request);
+		RealSize barsize = scrollbar.layout(p_view, SizeRequest(Bounds(scrollbarWidth), Bounds(childSize.height)));
 		
-		return childSize;
+		RealSize handleSize = scrollbarHandle.layout(
+			p_view,
+			SizeRequest(
+				Bounds(barsize.width), 
+				Bounds(cast(int)(barsize.height*scrollRatio))
+			)
+		);
+
+		printT("Request: % -> % Scrollbox: %  Scrollbar: %\n", p_request, childReq, result, barsize);
+
+		scrollbar.position = ivec2(childSize.width, 0);
+		scrollbarHandle.position = ivec2(childSize.width, 0);
+		
+		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
 		childView.setRect(Rect(p_pen, childSize));
+		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
+		scrollbarHandle.prepareRender(p_view, p_pen + scrollbarHandle.position);
 	}
 }
