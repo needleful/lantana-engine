@@ -10,6 +10,7 @@ debug import std.stdio;
 import gl3n.linalg: vec2;
 
 import lanlib.types;
+import lanlib.util.printing;
 import ui.interaction;
 import ui.layout;
 import ui.render;
@@ -326,9 +327,10 @@ public class Padding : SingularContainer
 
 		double maxHeight = request.height.max - (top + bottom);
 		double minHeight = request.height.min - (top + bottom);
-		
+
 		// Constrain child to the full box (or infinity)
 		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
+
 		RealSize csize = child.layout(p_renderer, childIntrinsic);
 		child.position = ivec2(left, bottom);
 

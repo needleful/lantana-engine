@@ -93,10 +93,12 @@ public struct SizeRequest
 
 	public SizeRequest constrained(Bounds p_width, Bounds p_height) nothrow
 	{
-		return SizeRequest(
+		auto sq = SizeRequest(
 			width.apply(p_width),
 			height.apply(p_height)
 		);
+
+		return sq;
 	}
 
 	public bool contains(RealSize p_size) nothrow
@@ -111,7 +113,7 @@ public struct SizeRequest
 
 	void print() @nogc nothrow
 	{
-		printT("req {% , %}", width, height);
+		printT("req{% , %}", width, height);
 	}
 }
 
@@ -160,7 +162,7 @@ public struct Bounds
 
 	public void print() nothrow @nogc
 	{
-		printf("rs[%f, %f]", min, max);
+		printf("(%.1f to %.1f)", min, max);
 	}
 
 	T inRange(T)(T val) const nothrow @nogc

@@ -274,10 +274,14 @@ public class Scrolled : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
-		SizeRequest rq = SizeRequest(p_request.width. Bounds.none).constrained(absoluteWidth, absoluteHeight);
-		childSize = childView.updateLayout(rq).constrained(p_request);
+		debug
+		{
+			auto p = p_request.width. Bounds.none;
+			printT("What the hell is this? %\n", p);
+		}
 
-		printT("Scrolled Layout: % -> %\n", rq, childSize);
+		SizeRequest rq = SizeRequest(p_request.width, Bounds.none).constrained(absoluteWidth, absoluteHeight);
+		childSize = childView.updateLayout(rq).constrained(p_request);
 		
 		return childSize;
 	}
