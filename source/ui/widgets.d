@@ -49,7 +49,7 @@ public class ImageBox : LeafWidget
 		textureSize = p_renderer.getSpriteSize(spriteId);
 	}
 
-	public this(UIRenderer p_renderer, SpriteId p_spriteId)
+	public this(UIRenderer p_renderer, SpriteId p_spriteId) nothrow
 	{
 		spriteId = p_spriteId;
 		textureSize = p_renderer.getSpriteSize(spriteId);
@@ -141,6 +141,11 @@ public class ImageBox : LeafWidget
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
 		p_view.translateQuad(vertices, p);
+	}
+
+	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
+	{
+		p_view.changeSprite(vertices, p_sprite);
 	}
 }
 
@@ -237,33 +242,35 @@ public class Button: Container, Interactible
 	}
 
 	/// Interactible methods
-	public override void focus()
-	{
-		// TODO: implement
-		return;
-	}
+	public override void focus() {}
 
-	public override void unfocus()
-	{
-		// TODO: implement
-	}
+	public override void unfocus() {}
 
-	public override void interact(Input* p_input)
+	public override void drag(ivec2 _) {}
+
+	public override void interact()
 	{
-		onPressed(this, p_input);
+		onPressed(this);
 	}
 }
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public class Scrolled : LeafWidget
+public class Scrolled : LeafWidget, Interactible
 {
+	private UIView parentView;
 	private UIView childView;
 	private Widget child;
 	private RealSize childSize;
 
 	private Widget scrollbar;
-	private Widget scrollbarHandle;
+	private ImageBox scrollbarHandle;
+	private SpriteId spriteNormal, spriteDragging;
+
+	private InteractibleId id;
+	private int scrollLocation = 0;
+	private int scrollSpan;
+	private float scrollRatio = 1;
 
 	public this(Widget p_child) nothrow
 	{
@@ -272,19 +279,26 @@ public class Scrolled : LeafWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
 	{
+		parentView = p_view;
 		childView = p_renderer.addView(Rect.init);
 		childView.setRootWidget(child);
 
-		scrollbar = new ImageBox(p_renderer, color(128, 128, 128, 255), RealSize(1));
-		scrollbarHandle = new ImageBox(p_renderer, color(255, 255, 255, 255), RealSize(1));
+		spriteNormal = p_renderer.addSinglePixel(color(100, 100, 200, 255));
+		spriteDragging = p_renderer.addSinglePixel(color(200, 200, 255, 255));
+
+		scrollbar = new ImageBox(p_renderer, color(0,0,0, 150), RealSize(1));
+		scrollbarHandle = new ImageBox(p_renderer, spriteNormal);
 
 		scrollbar.initialize(p_renderer, p_view);
 		scrollbarHandle.initialize(p_renderer, p_view);
+
+		id = p_view.addInteractible(this);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
 		int scrollbarWidth = 20;
+
 		SizeRequest childReq = SizeRequest(
 			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth), 
 			Bounds.none)
@@ -295,7 +309,7 @@ public class Scrolled : LeafWidget
 		childSize = result.constrained(p_request);
 		childSize.width -= scrollbarWidth;
 
-		float scrollRatio = childSize.height / (cast(float) result.height);
+		scrollRatio = childSize.height / (cast(float) result.height);
 
 		printf("Ratio: %f\n", scrollRatio);
 
@@ -320,16 +334,74 @@ public class Scrolled : LeafWidget
 
 		printT("Request: % -> % Scrollbox: %  Scrollbar: %\n", p_request, childReq, result, barsize);
 
+		// How far, in pixels, the user can scroll
+		scrollSpan = barsize.height - handleSize.height;
+		if(scrollSpan < 0) scrollSpan = 0;
+
 		scrollbar.position = ivec2(childSize.width, 0);
-		scrollbarHandle.position = ivec2(childSize.width, 0);
+		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
+
+		p_view.setInteractSize(id, barsize);
 		
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
-		childView.setRect(Rect(p_pen, childSize));
+		ivec2 viewPos = ivec2(p_pen.x, p_pen.y + scrollLocation);
+
+		scrollbarHandle.position = ivec2(scrollbar.position + p_pen + ivec2(0, scrollLocation));
+
+		childView.setRect(Rect(viewPos, childSize));
 		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
-		scrollbarHandle.prepareRender(p_view, p_pen + scrollbarHandle.position);
+		scrollbarHandle.prepareRender(p_view, scrollbarHandle.position);
+
+		p_view.setInteractPosition(id, scrollbar.position + p_pen);
 	}
+
+	public override void drag(ivec2 p_dragAmount) nothrow
+	{
+		scrollBy(cast(int) p_dragAmount.y);
+	}
+	
+	public override void interact() nothrow
+	{
+		scrollbarHandle.changeSprite(parentView, spriteDragging);
+	}
+	public override void unfocus() nothrow
+	{
+		scrollbarHandle.changeSprite(parentView, spriteNormal);
+	}
+
+	public void scrollBy(int pixels) nothrow
+	{
+		int newLoc = scrollLocation - pixels;
+
+		if(newLoc < 0 )
+		{
+			newLoc = 0;
+		}
+		else if(newLoc > scrollSpan)
+		{
+			newLoc = scrollSpan;
+		}
+
+		if(newLoc == scrollLocation)
+		{
+			return;
+		}
+
+		pixels = scrollLocation - newLoc;
+
+		scrollLocation = newLoc;
+
+		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
+
+		ivec2 pos = ivec2(0, -pixels);
+		scrollbarHandle.position += pos;
+		scrollbarHandle.prepareRender(parentView, pos);
+	}
+
+	/// Unimplemented Interactible methods
+	public override void focus() {}
 }

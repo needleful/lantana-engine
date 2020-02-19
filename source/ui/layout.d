@@ -54,7 +54,7 @@ public abstract class Widget
 		}
 	}
 
-	public Widget withBounds(Bounds p_width, Bounds p_height)
+	public Widget withBounds(Bounds p_width, Bounds p_height) nothrow
 	{
 		absoluteWidth = p_width;
 		absoluteHeight = p_height;

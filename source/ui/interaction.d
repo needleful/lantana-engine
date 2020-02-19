@@ -4,16 +4,19 @@
 
 module ui.interaction;
 
+import lanlib.types : ivec2;
 import logic.input;
 import ui.layout;
 
 public interface Interactible
 {
-	alias Callback = void delegate(Widget source, Input* input);
+	alias Callback = void delegate(Widget source);
 	
 	public void focus();
 
 	public void unfocus();
 
-	public void interact(Input* input);
+	public void interact();
+
+	public void drag(ivec2 p_dragAmount);
 }

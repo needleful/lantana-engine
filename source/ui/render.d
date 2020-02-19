@@ -193,26 +193,43 @@ public final class UIRenderer
 
 		invalidated.clear();
 
-		if(views[0].rect.contains(p_input.mouse_position))
+		foreach(view; views)
 		{
-			InteractibleId newFocus;
-
-			if(views[0].getFocusedObject(p_input, newFocus))
+			if(view.rect.contains(p_input.mouse_position))
 			{
+				InteractibleId newFocus;
+
+				if(view.getFocusedObject(p_input, newFocus))
+				{
+					Interactible newObject = view.interactibles[newFocus];
+					if(focused && newObject != focused)
+					{
+						focused.unfocus();
+					}
+					
+					focused = newObject;
+
+					if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+					{
+						focused.interact();
+					}
+				}
+				// Continue focusing on an object if we're dragging it
 				if(focused)
 				{
-					focused.unfocus();
-				}
-				
-				focused = views[0].interactibles[newFocus];
-
-				if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
-				{
-					focused.interact(p_input);
+					if(p_input.is_pressed(Input.Action.UI_INTERACT))
+					{
+						ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
+						focused.drag(drag);
+					}
+					else if(p_input.is_just_released(Input.Action.UI_INTERACT))
+					{
+						focused.unfocus();
+						focused = null;
+					}
 				}
 			}
 		}
-		
 	}
 
 	public void render() 
@@ -281,7 +298,7 @@ public final class UIRenderer
 
 		return id;
 	}
-
+	
 	/// Add a single-pixel texture for color rectangles
 	public SpriteId addSinglePixel(AlphaColor p_color) nothrow
 	{
@@ -299,9 +316,8 @@ public final class UIRenderer
 		return result;
 	}
 
-	public RealSize getSpriteSize(SpriteId p_id)
+	public RealSize getSpriteSize(SpriteId p_id) nothrow
 	{
-		assert(p_id in atlasSprite.map);
 		return atlasSprite.map[p_id].size;
 	}
 

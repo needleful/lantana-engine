@@ -106,6 +106,9 @@ public final class UIView
 	/// The window rectangle to draw this within
 	package Rect rect;
 
+	// Translate the root item against the rectangle
+	package ivec2 translation;
+
 	public bool visible;
 
 	/// What UI data was invalidated by a recent change
@@ -208,7 +211,7 @@ public final class UIView
 		glBindTexture(GL_TEXTURE_2D, renderer.atlasSprite.texture.id);
 
 		renderer.matSprite.setUniform(renderer.uniSprite.in_tex, 0);
-		renderer.matSprite.setUniform(renderer.uniSprite.translation, rect.pos);
+		renderer.matSprite.setUniform(renderer.uniSprite.translation, rect.pos + translation);
 		renderer.matSprite.setUniform(renderer.uniSprite.cam_resolution, wsize);
 		
 		glDrawElements(
@@ -233,7 +236,7 @@ public final class UIView
 		
 		foreach(ref tm; textMeshes)
 		{
-			renderer.matText.setUniform(renderer.uniText.translation, tm.translation+rect.pos);
+			renderer.matText.setUniform(renderer.uniText.translation, rect.pos+translation+tm.translation);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -272,6 +275,11 @@ public final class UIView
 	public RealSize size() nothrow
 	{
 		return rect.size;
+	}
+
+	public void translate(ivec2 mov) nothrow
+	{
+		translation += mov;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
@@ -322,17 +330,6 @@ public final class UIView
 
 		TextureNode* node = renderer.atlasSprite.map[p_sprite];
 
-		// UV start, normalized
-		vec2 uv_pos = vec2(node.position.x, node.position.y);
-		uv_pos.x /= renderer.atlasSprite.texture.size.width;
-		uv_pos.y /= renderer.atlasSprite.texture.size.height;
-
-		// UV offset, normalized
-		vec2 uv_size = vec2(node.size.width, node.size.height);
-
-		uv_size.x /= renderer.atlasSprite.texture.size.width;
-		uv_size.y /= renderer.atlasSprite.texture.size.height;
-
 		// The positions are set by other functions, 
 		// so they can stay (0,0) right now
 		ushort vertStart = cast(ushort)vertpos.length;
@@ -343,23 +340,7 @@ public final class UIView
 		assert(uvstart == vertStart);
 		uvs.length += 4;
 
-
-		// Quads are laid out in space like so:
-		// 1-------3   /\ +y
-		// |       |   |
-		// |       |   |
-		// 0-------2   |
-		// -------------> +x
-		// With vertex indeces in this order:
-		// 		{0, 2, 1}
-		// 		{1, 2, 3}
-		// This applies to both texture UV and screen position.
-		uvs[uvstart..uvstart+4] = [
-			uv_pos,
-			uv_pos + vec2(0, uv_size.y),
-			uv_pos + vec2(uv_size.x, 0),
-			uv_pos + uv_size
-		];
+		setQuadUV(uvstart, node);
 
 		ulong elemStart = elemSprite.length;
 		elemSprite.length += 6;
@@ -379,6 +360,37 @@ public final class UIView
 		return elemSprite[elemStart..elemStart+6];
 	}
 
+	private void setQuadUV(uint p_start, TextureNode* p_node) nothrow
+	{
+		// UV start, normalized
+		vec2 uv_pos = vec2(p_node.position.x, p_node.position.y);
+		uv_pos.x /= renderer.atlasSprite.texture.size.width;
+		uv_pos.y /= renderer.atlasSprite.texture.size.height;
+
+		// UV offset, normalized
+		vec2 uv_size = vec2(p_node.size.width, p_node.size.height);
+
+		uv_size.x /= renderer.atlasSprite.texture.size.width;
+		uv_size.y /= renderer.atlasSprite.texture.size.height;
+
+		// Quads are laid out in space like so:
+		// 1-------3   /\ +y
+		// |       |   |
+		// |       |   |
+		// 0-------2   |
+		// -------------> +x
+		// With vertex indeces in this order:
+		// 		{0, 2, 1}
+		// 		{1, 2, 3}
+		// This applies to both texture UV and screen position.
+		uvs[p_start..p_start+4] = [
+			uv_pos,
+			uv_pos + vec2(0, uv_size.y),
+			uv_pos + vec2(uv_size.x, 0),
+			uv_pos + uv_size
+		];
+	}
+
 	public void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
 	{
 		assert(p_vertices.length == 6);
@@ -392,6 +404,15 @@ public final class UIView
 
 		invalidated[ViewState.PositionBufferPartial] = true;
 		posInvalid.apply(quadStart, quadStart + 4);
+	}
+
+	public void changeSprite(ushort[] p_verts, SpriteId p_sprite) nothrow
+	{
+		assert(p_verts.length == 6);
+
+		TextureNode* node = renderer.atlasSprite.map[p_sprite];
+
+		setQuadUV(p_verts[0], node);
 	}
 
 	public void translateQuad(ushort[] p_vertices, svec2 p_translation) nothrow
