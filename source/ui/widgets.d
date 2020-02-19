@@ -334,25 +334,29 @@ public class Scrolled : LeafWidget, Interactible
 
 		printT("Request: % -> % Scrollbox: %  Scrollbar: %\n", p_request, childReq, result, barsize);
 
+		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
+
 		// How far, in pixels, the user can scroll
 		scrollSpan = barsize.height - handleSize.height;
 		if(scrollSpan < 0) scrollSpan = 0;
+
+		// Readjusting scroll to match old position as best as possible
+		scrollLocation = cast(int)(scrollSpan * oldScroll);
+		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
 
 		scrollbar.position = ivec2(childSize.width, 0);
 		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
 
 		p_view.setInteractSize(id, barsize);
-		
+
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
-		ivec2 viewPos = ivec2(p_pen.x, p_pen.y + scrollLocation);
-
 		scrollbarHandle.position = ivec2(scrollbar.position + p_pen + ivec2(0, scrollLocation));
 
-		childView.setRect(Rect(viewPos, childSize));
+		childView.setRect(Rect(p_pen, childSize));
 		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
 		scrollbarHandle.prepareRender(p_view, scrollbarHandle.position);
 
@@ -373,9 +377,9 @@ public class Scrolled : LeafWidget, Interactible
 		scrollbarHandle.changeSprite(parentView, spriteNormal);
 	}
 
-	public void scrollBy(int pixels) nothrow
+	public void scrollBy(int p_pixels) nothrow
 	{
-		int newLoc = scrollLocation - pixels;
+		int newLoc = scrollLocation - p_pixels;
 
 		if(newLoc < 0 )
 		{
@@ -391,7 +395,7 @@ public class Scrolled : LeafWidget, Interactible
 			return;
 		}
 
-		pixels = scrollLocation - newLoc;
+		int pixels = scrollLocation - newLoc;
 
 		scrollLocation = newLoc;
 
@@ -400,6 +404,23 @@ public class Scrolled : LeafWidget, Interactible
 		ivec2 pos = ivec2(0, -pixels);
 		scrollbarHandle.position += pos;
 		scrollbarHandle.prepareRender(parentView, pos);
+	}
+
+	public void scrollTo(float p_position) nothrow
+	{
+		float pos = p_position;
+		if(pos < 0)
+		{
+			pos = 0;
+		}
+		else if(pos > 1)
+		{
+			pos = 1;
+		}
+
+		int desiredLoc = cast(int)(scrollSpan * pos);
+
+		scrollBy(scrollLocation - desiredLoc);
 	}
 
 	/// Unimplemented Interactible methods

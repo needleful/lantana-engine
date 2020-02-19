@@ -16,9 +16,19 @@ import ui.layout;
 import ui.render;
 import ui.view;
 
+public abstract class Container : Widget
+{
+	protected Widget[] children;
+
+	public override Widget[] getChildren() nothrow
+	{
+		return children;
+	}
+}
+
 public abstract class SingularContainer: Widget
 {
-	Widget child;
+	protected Widget child;
 
 	public override Widget[] getChildren() nothrow
 	{
@@ -30,17 +40,6 @@ public abstract class SingularContainer: Widget
 		return child;
 	}
 }
-
-public abstract class Container : Widget
-{
-	Widget[] children;
-
-	public override Widget[] getChildren() nothrow
-	{
-		return children;
-	}
-}
-
 
 /// Provides no layout hints.  All widgets are laid out in the same space and position
 public class HodgePodge : Container
