@@ -164,7 +164,7 @@ public final class UIRenderer
 		}
 		invalidated.clear();
 
-		addView(Rect(ivec2(0), p_windowSize));
+		views ~= new UIView(this, Rect(ivec2(0), p_windowSize));
 	}
 
 	public ~this()
@@ -240,9 +240,17 @@ public final class UIRenderer
 		glEnable(GL_SCISSOR_TEST);
 		foreach(v; views)
 		{
-			v.render(windowSize);
+			if(v.isVisible())
+			{
+				v.render(windowSize);
+			}
 		}
 		glDisable(GL_SCISSOR_TEST);
+	}
+
+	public UIView rootView() @nogc nothrow
+	{
+		return views[0];
 	}
 
 	public void setRootWidget(Widget p_root)
@@ -255,17 +263,15 @@ public final class UIRenderer
 		views[0].setRootWidget(new HodgePodge(p_widgets));
 	}
 
-	public void setSize(RealSize p_size)
+	public void setSize(RealSize p_size) nothrow
 	{
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
 	}
 
-	public UIView addView(Rect p_rect) nothrow
+	public RealSize getSize() nothrow
 	{
-		UIView v = new UIView(this, p_rect);
-		views ~= v;
-		return v;
+		return windowSize;
 	}
 
 	/++++++++++++++++++++++++++++++++++++++

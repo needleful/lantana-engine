@@ -49,6 +49,11 @@ void print(string val) @nogc nothrow
 	}
 }
 
+void print(void* val) @nogc nothrow
+{
+	printf("%p", val);
+}
+
 void print(double val) @nogc nothrow
 {
 	printf("%f", val);

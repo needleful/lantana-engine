@@ -32,8 +32,13 @@ int main()
 	binaryStore("data/scenes/test1.lgbt", testScene());
 	binaryStore("data/scenes/test2.lgbt", testScene2());
 
-	Window window = Window(720, 512, "Axe manor");
+	Window window = Window(1280, 720, "Axe manor");
 	GameManager game = GameManager(MAX_MEMORY,"data/scenes/test1.lgbt");
+	RealSize ws = window.getSize();
+	
+	game.scene.camera.set_projection(
+		Projection(cast(float)ws.width/ws.height, 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+	);
 
 	AudioManager audio = AudioManager(32);
 	//audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
@@ -44,24 +49,50 @@ int main()
 	UIRenderer ui = new UIRenderer(window.getSize());
 
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
+	SpriteId nful = ui.loadSprite("data/test/needleful.png");
+
 	FontId debugFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 
 	TextBox frameTime = new TextBox(debugFont, debugFormat, true);
-	ui.setRootWidget(new HodgePodge([
-	new Anchor(
-		new HBox([
-				new TextBox(debugFont, "Frame Time\nMax\nAverage"), 
-				frameTime
-			], 5),
-			vec2(0.99, 0.99),
-			vec2(1, 1)
-		)
-	]));
 
+	Modal uiModal = new Modal([
+		new AnchoredBox([
+			new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
+			new Padding(
+				new Scrolled(
+				new VBox([
+					new TextBox(debugFont, "Hello!"),
+					new ImageBox(ui, nful),
+					new ImageBox(ui, nful),
+					new ImageBox(ui, "data/test/ui_sprites/upclick.png"),
+					new ImageBox(ui, nful),
+				]), 1),
+			18),
+			new Positioned(
+				new ImageBox(ui, nful).withBounds(Bounds(ws.width/8), Bounds(ws.width/8)),
+				vec2(1, 0.5), vec2(0.33, 0.5)
+		)],
+		vec2(0.02,0.02), vec2(0.2, .98)
+		).withBounds(Bounds(450, double.infinity), Bounds.none),
+
+		new HodgePodge([
+			new Anchor(
+				new HBox([
+					new TextBox(debugFont, "Frame Time\nMax\nAverage"), 
+					frameTime
+				], 5),
+				vec2(0.99, 0.99),
+				vec2(1, 1)
+			)
+		])
+	]);
+
+	ui.setRootWidget(uiModal);
+
+	uiModal.setMode(1);
 
 	uint frame = 0;
-	int[2] wsize = window.get_dimensions();
 
 	debug writeln("Beginning game loop");
 	stdout.flush();
@@ -98,9 +129,9 @@ int main()
 
 		if(window.state[WindowState.RESIZED])
 		{
-			wsize = window.get_dimensions();
+			ws = window.getSize();
 			game.scene.camera.set_projection(
-				Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+				Projection(cast(float)ws.width/ws.height, 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 			);
 			ui.setSize(window.getSize());
 		}
@@ -109,6 +140,14 @@ int main()
 		{
 			paused = !paused;
 			window.grab_mouse(!paused);
+			if(paused)
+			{
+				uiModal.setMode(0);
+			}
+			else
+			{
+				uiModal.setMode(1);
+			}
 		}
 		if(game.input.is_just_pressed(Input.Action.DEBUG_LOADLEVEL))
 		{
@@ -116,7 +155,7 @@ int main()
 			{
 				game.loadScene(game.scene.nextScene, true);
 				game.scene.camera.set_projection(
-					Projection(cast(float)wsize[0]/wsize[1], 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+					Projection(cast(float)ws.width/ws.height, 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
 				);
 			}
 			else

@@ -14,6 +14,7 @@ import gl3n.linalg: vec2, vec3, Vector;
 import lanlib.types;
 import lanlib.util.array;
 import lanlib.util.memory;
+import lanlib.util.printing;
 import logic.input;
 import render.gl;
 import render.material;
@@ -103,13 +104,17 @@ public final class UIView
 	/// The base widget of the UI
 	private Widget root;
 
-	/// The window rectangle to draw this within
+	/// Whether to show the view
+	private bool visible = true;
+
+	/// Children of the current view
+	private UIView[] children;
+
+	/// The rectangle for scissor clipping
 	package Rect rect;
 
 	// Translate the root item against the rectangle
 	package ivec2 translation;
-
-	public bool visible;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -171,6 +176,8 @@ public final class UIView
 		root.prepareRender(this, ivec2(0,0));
 
 		invalidated[ViewState.Layout] = false;
+
+		printT("Update layout of %\n", this);
 
 		return cs;
 	}
@@ -257,6 +264,14 @@ public final class UIView
 		invalidated[ViewState.Layout] = true;
 	}
 
+	public UIView addView(Rect p_rect) nothrow
+	{
+		UIView v = new UIView(renderer, p_rect);
+		renderer.views ~= v;
+		children ~= v;
+		return v;
+	}
+
 	public void setRect(Rect p_rect) nothrow
 	{
 		if(p_rect == rect)
@@ -280,6 +295,25 @@ public final class UIView
 	public void translate(ivec2 mov) nothrow
 	{
 		translation += mov;
+	}
+
+	public bool isVisible() nothrow @nogc const
+	{
+		return visible;
+	}
+
+	public void setVisible(bool p_vis) nothrow @nogc
+	{
+		visible = p_vis;
+		foreach(child; children)
+		{
+			child.setVisible(p_vis);
+		}
+	}
+
+	public void print() nothrow @nogc
+	{
+		printT("UIView % %", cast(void*)this, rect);
 	}
 
 	/++++++++++++++++++++++++++++++++++++++

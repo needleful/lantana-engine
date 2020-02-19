@@ -21,7 +21,7 @@ import ui.widgets;
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public class Scrolled : LeafWidget, Interactible
+public final class Scrolled : LeafWidget, Interactible
 {
 	private UIView parentView;
 	private UIView childView;
@@ -37,15 +37,18 @@ public class Scrolled : LeafWidget, Interactible
 	private int scrollSpan;
 	private float scrollRatio = 1;
 
-	public this(Widget p_child) nothrow
+	public this(Widget p_child, float p_scroll = 1) nothrow
 	{
 		child = p_child;
+		scrollSpan = 100;
+		scrollLocation = cast(int)(scrollSpan * p_scroll);
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
 	{
+		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
 		parentView = p_view;
-		childView = p_renderer.addView(Rect.init);
+		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
 
 		spriteNormal = p_renderer.addSinglePixel(color(100, 100, 200, 255));
@@ -58,10 +61,12 @@ public class Scrolled : LeafWidget, Interactible
 		scrollbarHandle.initialize(p_renderer, p_view);
 
 		id = p_view.addInteractible(this);
+		scrollTo(oldScroll);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
+		printf("Start scroll(%p) layout\n", this);
 		int scrollbarWidth = 20;
 
 		SizeRequest childReq = SizeRequest(
@@ -109,6 +114,8 @@ public class Scrolled : LeafWidget, Interactible
 		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
 
 		p_view.setInteractSize(id, barsize);
+
+		printT("End scroll % layout: % -> %\n", cast(void*) this, p_request, result);
 
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
@@ -186,4 +193,78 @@ public class Scrolled : LeafWidget, Interactible
 
 	/// Unimplemented Interactible methods
 	public override void focus() {}
+}
+
+public final class Modal : LeafWidget
+{
+	private UIView[] views;
+	private Widget[] widgets;
+
+	private uint currentMode;
+	private Rect childRect;
+
+	public this(Widget[] p_widgets) nothrow
+	{
+		widgets = p_widgets;
+		views.reserve(widgets.length);
+	}
+
+	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	{
+		foreach(w; widgets)
+		{
+			UIView v = p_view.addView(Rect(ivec2(0,0), p_renderer.getSize()));
+
+			v.setVisible(false);
+			v.setRootWidget(w);
+
+			views ~= v;
+		}
+
+		views[currentMode].setVisible(true);
+	}
+
+	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	{
+		foreach(view; views)
+		{
+			view.setRect(Rect(ivec2(0,0), p_view.renderer.getSize()));
+		}
+
+		UIView v = views[currentMode];
+
+		return widgets[currentMode].layout(v, p_request);
+	}
+
+	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	{
+		UIView v = views[currentMode];
+		Widget wi = widgets[currentMode];
+
+		wi.prepareRender(v, p_pen + wi.position);
+	}
+
+	public uint totalModes()
+	{
+		return cast(uint)views.length;
+	}
+
+	public uint getMode()
+	{
+		return currentMode;
+	}
+
+	public void setMode(uint p_mode)
+	{
+		if(p_mode == currentMode)
+		{
+			return;
+		}
+		views[currentMode].setVisible(false);
+
+		views[p_mode].setVisible(true);
+		views[p_mode].updateLayout();
+
+		currentMode = p_mode;
+	}
 }

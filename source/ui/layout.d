@@ -231,7 +231,7 @@ public struct RealSize
 		return RealSize(req.width.inRange(width), req.height.inRange(height)); 
 	}
 
-	void print() @nogc nothrow
+	void print() @nogc nothrow const
 	{
 		printf("rs[%d, %d]", width, height);
 	}
@@ -253,5 +253,10 @@ struct Rect
 		ivec2 p = p_point - pos;
 
 		return (p.x >= 0 && p.x <= size.width) && (p.y >= 0 && p.y <= size.height);
+	}
+
+	void print() const @nogc nothrow
+	{
+		printT("REC[ ivec(%, %), %]", pos.x, pos.y, size);
 	}
 }
