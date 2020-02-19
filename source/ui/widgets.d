@@ -311,8 +311,6 @@ public class Scrolled : LeafWidget, Interactible
 
 		scrollRatio = childSize.height / (cast(float) result.height);
 
-		printf("Ratio: %f\n", scrollRatio);
-
 		if(scrollRatio > 1)
 		{
 			scrollRatio = 1;
@@ -331,8 +329,6 @@ public class Scrolled : LeafWidget, Interactible
 				Bounds(cast(int)(barsize.height*scrollRatio))
 			)
 		);
-
-		printT("Request: % -> % Scrollbox: %  Scrollbar: %\n", p_request, childReq, result, barsize);
 
 		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
 
