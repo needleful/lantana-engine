@@ -28,3 +28,24 @@ void clear(Type)(Type[] list) nothrow @safe
 {
 	list.length = 0;
 }
+
+// In-place reversal
+T[] reverse(T)(T[] input)
+{
+	if(input.length <= 1)
+	{
+		return input;
+	}
+
+	ulong end = input.length - 1;
+	foreach(ulong i; 0..input.length/2)
+	{
+		ulong opp = end-i;
+
+		auto temp = input[i];
+		input[i] = input[opp];
+		input[opp] = temp;
+	}
+
+	return input;
+}

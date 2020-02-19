@@ -10,6 +10,7 @@ debug import std.stdio;
 import gl3n.linalg: vec2;
 
 import lanlib.types;
+import lanlib.util.array;
 import lanlib.util.printing;
 import ui.interaction;
 import ui.layout;
@@ -382,9 +383,11 @@ class VBox: Container
 	// Space between children
 	int spacing;
 
+	// Put children from top to bottom
+	// TODO: make adding new children put them on the bottom, too
 	this(Widget[] p_children, int p_spacing = 0)
 	{
-		children = p_children;
+		children = p_children.reverse();
 		spacing = p_spacing;
 	}
 

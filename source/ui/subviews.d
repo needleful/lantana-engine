@@ -40,6 +40,8 @@ public final class Scrolled : LeafWidget, Interactible
 	public this(Widget p_child, float p_scroll = 1) nothrow
 	{
 		child = p_child;
+
+		// A hack to set the scroll bar's position before anything's been laid out
 		scrollSpan = 100;
 		scrollLocation = cast(int)(scrollSpan * p_scroll);
 	}

@@ -57,6 +57,7 @@ int main()
 	TextBox frameTime = new TextBox(debugFont, debugFormat, true);
 
 	Modal uiModal = new Modal([
+		// Pause menu
 		new AnchoredBox([
 			new ImageBox(ui, color(200, 120, 60, 255), RealSize(2)),
 			new Padding(
@@ -76,16 +77,15 @@ int main()
 		vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
-		new HodgePodge([
-			new Anchor(
-				new HBox([
-					new TextBox(debugFont, "Frame Time\nMax\nAverage"), 
-					frameTime
-				], 5),
-				vec2(0.99, 0.99),
-				vec2(1, 1)
-			)
-		])
+		// Debug Text
+		new Anchor(
+			new HBox([
+				new TextBox(debugFont, "Frame Time\nMax\nAverage"), 
+				frameTime
+			], 5),
+			vec2(0.99, 0.99),
+			vec2(1, 1)
+		)
 	]);
 
 	ui.setRootWidget(uiModal);
