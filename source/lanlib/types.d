@@ -139,13 +139,13 @@ struct Bitfield(Enum)
 
 	private dt data;
 
-	public bool opIndex(Enum p_index)
+	public bool opIndex(Enum p_index) @nogc nothrow
 	{
 		dt mask = cast(dt)(1 << p_index);
 		return (data & mask) != 0;
 	}
 
-	public void opIndexAssign(bool p_value, Enum p_index)
+	public void opIndexAssign(bool p_value, Enum p_index) @nogc nothrow
 	{
 		// set the flag to zero
 		dt inverseMask = cast(dt)(~(1 << p_index));
@@ -157,15 +157,20 @@ struct Bitfield(Enum)
 		data |= mask;
 	}
 
-	public void setAll()
+	public void setAll() @nogc nothrow
 	{
 		dt newval = dt.max;
 		data = cast(dt) (newval >>> (bits - Enum.max));
 	}
 
-	public void clear()
+	public void clear() @nogc nothrow
 	{
 		data = 0;
+	}
+
+	public dt realValue() const @nogc nothrow
+	{
+		return data;
 	}
 }
 

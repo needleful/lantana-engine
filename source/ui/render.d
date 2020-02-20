@@ -162,7 +162,7 @@ public final class UIRenderer
 			atlasSprite.texture.blitgrid(color(255,255,0,255));
 			atlasText.texture.blitgrid(255);
 		}
-		invalidated.clear();
+		invalidated.setAll();
 
 		views ~= new UIView(this, Rect(ivec2(0), p_windowSize));
 	}
@@ -176,8 +176,14 @@ public final class UIRenderer
 		FT_Done_FreeType(fontLibrary);
 	}
 
+	public void requestUpdate() nothrow
+	{
+		views[0].invalidated[ViewState.Layout] = true;
+	}
+
 	public void update(float p_delta, Input* p_input)
 	{
+		// Widgets manage their own layouts, we just update the root layout
 		views[0].updateLayout();
 
 		foreach(view; views)
@@ -195,7 +201,7 @@ public final class UIRenderer
 
 		foreach(view; views)
 		{
-			if(view.rect.contains(p_input.mouse_position))
+			if(view.isVisible() && view.rect.contains(p_input.mouse_position))
 			{
 				InteractibleId newFocus;
 

@@ -203,7 +203,6 @@ public final class Modal : LeafWidget
 	private Widget[] widgets;
 
 	private uint currentMode;
-	private Rect childRect;
 
 	public this(Widget[] p_widgets) nothrow
 	{
@@ -233,9 +232,7 @@ public final class Modal : LeafWidget
 			view.setRect(Rect(ivec2(0,0), p_view.renderer.getSize()));
 		}
 
-		UIView v = views[currentMode];
-
-		return widgets[currentMode].layout(v, p_request);
+		return widgets[currentMode].layout(views[currentMode], p_request);
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
@@ -265,8 +262,8 @@ public final class Modal : LeafWidget
 		views[currentMode].setVisible(false);
 
 		views[p_mode].setVisible(true);
-		views[p_mode].updateLayout();
 
+		views[p_mode].renderer.requestUpdate();
 		currentMode = p_mode;
 	}
 }

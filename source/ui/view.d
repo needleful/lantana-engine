@@ -182,28 +182,57 @@ public final class UIView
 		return cs;
 	}
 
+	public Widget getRoot() const nothrow @nogc
+	{
+		return root;
+	}
+
 	package void updateBuffers()
 	{
+		if(invalidated.realValue() == 0)
+		{
+			// Nothing to update
+			return;
+		}
+
 		// If a buffer is fully invalidated, there's no reason to partially update it
 		if(invalidated[ViewState.TextEBO])
+		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
+		}
 		else if(invalidated[ViewState.TextEBOPartial])
+		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText, textInvalid);
+		}
 
 		if(invalidated[ViewState.SpriteEBO])
+		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite);
+		}
 		else if(invalidated[ViewState.SpriteEBOPartial])
+		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite, spriteInvalid);
+		}
 
 		if(invalidated[ViewState.PositionBuffer])
+		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos);
+		}
 		else if(invalidated[ViewState.PositionBufferPartial])
+		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos, posInvalid);
+		}
 
 		if(invalidated[ViewState.UVBuffer])
+		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[3], uvs);
+		}
 		else if(invalidated[ViewState.UVBufferPartial])
+		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
+		}
+
+		clearInvalidation();
 	}
 
 	package void render(RealSize p_windowSize)
@@ -305,6 +334,10 @@ public final class UIView
 	public void setVisible(bool p_vis) nothrow @nogc
 	{
 		visible = p_vis;
+		if(visible)
+		{
+			invalidated[ViewState.Layout] = true;
+		}
 		foreach(child; children)
 		{
 			child.setVisible(p_vis);
@@ -423,6 +456,9 @@ public final class UIView
 			uv_pos + vec2(uv_size.x, 0),
 			uv_pos + uv_size
 		];
+
+		invalidated[ViewState.UVBufferPartial] = true;
+		uvInvalid.apply(p_start, p_start + 4);
 	}
 
 	public void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
