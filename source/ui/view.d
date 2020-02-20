@@ -182,11 +182,6 @@ public final class UIView
 		return cs;
 	}
 
-	public Widget getRoot() const nothrow @nogc
-	{
-		return root;
-	}
-
 	package void updateBuffers()
 	{
 		if(invalidated.realValue() == 0)
@@ -232,7 +227,7 @@ public final class UIView
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
 		}
 
-		clearInvalidation();
+		clearBufferInvalidation();
 	}
 
 	package void render(RealSize p_windowSize)
@@ -768,9 +763,12 @@ public final class UIView
 		glDisableVertexAttribArray(renderer.atrSprite.position);
 	}
 
-	package void clearInvalidation() nothrow
+	package void clearBufferInvalidation() nothrow
 	{
+		bool layoutInvalid = invalidated[ViewState.Layout];
 		invalidated.clear();
+		invalidated[ViewState.Layout] = layoutInvalid;
+		
 		// Clearing invalidated buffer ranges
 		textInvalid.clear();
 		spriteInvalid.clear();
