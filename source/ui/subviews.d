@@ -29,7 +29,7 @@ public final class Scrolled : LeafWidget, Interactible
 	private RealSize childSize;
 
 	private Widget scrollbar;
-	private ImageBox scrollbarHandle;
+	private RectWidget scrollbarHandle;
 
 	private InteractibleId id;
 	private int scrollLocation = 0;
@@ -52,8 +52,8 @@ public final class Scrolled : LeafWidget, Interactible
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
 
-		scrollbar = new ImageBox(p_ui, p_ui.style.scrollbar.trough.sprite);
-		scrollbarHandle = new ImageBox(p_ui, p_ui.style.button.normal);
+		scrollbar = p_ui.style.scrollbar.trough.mesh.create(p_ui);
+		scrollbarHandle = p_ui.style.button.mesh.create(p_ui);
 
 		scrollbar.initialize(p_ui, p_view);
 		scrollbarHandle.initialize(p_ui, p_view);

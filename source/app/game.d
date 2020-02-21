@@ -74,7 +74,7 @@ int main()
 	Modal uiModal = new Modal([
 		// Pause menu
 		new AnchoredBox([
-			new ImageBox(ui, ui.style.panel.sprite),
+			ui.style.panel.mesh.create(ui),
 			new Padding(new Scrolled(dialog, 0), 18),
 		],
 		vec2(0.02,0.02), vec2(0.2, .98)

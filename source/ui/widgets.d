@@ -26,12 +26,12 @@ public abstract class LeafWidget : Widget
 	}
 }
 
-public interface SpriteRect
+public abstract class RectWidget : LeafWidget
 {
 	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow;
 }
 
-public class ImageBox : LeafWidget, SpriteRect
+public class ImageBox : RectWidget
 {
 	RealSize textureSize;
 	SpriteId spriteId;
@@ -145,7 +145,7 @@ public class ImageBox : LeafWidget, SpriteRect
 	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
-		p_view.translateQuad(vertices, p);
+		p_view.translateMesh(vertices, 4, p);
 	}
 
 	public override void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
@@ -252,14 +252,14 @@ public class Button: Container, Interactible
 
 	public override void unfocus()
 	{
-		(cast(SpriteRect)children[1]).changeSprite(view, view.renderer.style.button.normal);
+		(cast(RectWidget)children[1]).changeSprite(view, view.renderer.style.button.normal);
 	}
 
 	public override void drag(ivec2 _) {}
 
 	public override void interact()
 	{
-		(cast(SpriteRect)children[1]).changeSprite(view, view.renderer.style.button.pressed);
+		(cast(RectWidget)children[1]).changeSprite(view, view.renderer.style.button.pressed);
 		onPressed(this);
 	}
 }

@@ -480,18 +480,16 @@ public final class UIView
 		setQuadUV(p_verts[0], node);
 	}
 
-	public void translateQuad(ushort[] p_vertices, svec2 p_translation) nothrow
+	/// p_count is the number of vertices to change
+	/// Assumes the mesh is continuous
+	public void translateMesh(ushort[] p_vertices, int p_count, svec2 p_translation) nothrow
 	{
-		assert(p_vertices.length == 6);
-		ushort quadStart = p_vertices[0];
+		ushort vert = p_vertices[0];
 
-		vertpos[quadStart] += p_translation;
-		vertpos[quadStart + 1] += p_translation;
-		vertpos[quadStart + 2] += p_translation;
-		vertpos[quadStart + 3] += p_translation;
+		vertpos[vert..vert+p_count] += p_translation;
 
 		invalidated[ViewState.PositionBufferPartial] = true;
-		posInvalid.apply(quadStart, quadStart + 4);
+		posInvalid.apply(vert, vert + p_count);
 	}
 
 	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow

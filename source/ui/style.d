@@ -9,42 +9,25 @@ import lanlib.types : ivec2, svec2;
 import ui.layout;
 import ui.render;
 import ui.view;
+import ui.widgets;
 
 interface IRectStyle
 {
-	ushort[] create(UIView p_view, RealSize p_size);
-	void resize(UIView p_view, ushort[] p_mesh, RealSize p_size);
-	void translate(UIView p_view, ushort[] p_mesh, svec2 p_position);
-	void change(UIView p_view, ushort[] p_mesh, SpriteId p_sprite);
+	RectWidget create(UIRenderer p_renderer) nothrow;
 }
 
 final class SpriteQuadStyle: IRectStyle
 {
 	private SpriteId id;
 
-	public this(SpriteId p_id)
+	public this(SpriteId p_id) nothrow
 	{
 		this.id = p_id;
 	}
 
-	public override ushort[] create(UIView p_view, RealSize p_size) nothrow
+	public override RectWidget create(UIRenderer p_renderer) nothrow
 	{
-		return p_view.addSpriteQuad(id);
-	}
-
-	public override void resize(UIView p_view, ushort[] p_mesh, RealSize p_size) nothrow
-	{
-		p_view.setQuadSize(p_mesh, p_size);
-	}
-
-	public override void translate(UIView p_view, ushort[] p_mesh, svec2 p_position) nothrow
-	{
-		p_view.translateQuad(p_mesh, p_position);
-	}
-
-	public override void change(UIView p_view, ushort[] p_mesh, SpriteId p_sprite) nothrow
-	{
-		p_view.changeSprite(p_mesh, p_sprite);
+		return new ImageBox(p_renderer, id);
 	}
 }
 
