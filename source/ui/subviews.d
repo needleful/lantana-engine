@@ -30,7 +30,6 @@ public final class Scrolled : LeafWidget, Interactible
 
 	private Widget scrollbar;
 	private ImageBox scrollbarHandle;
-	private SpriteId spriteNormal, spriteDragging;
 
 	private InteractibleId id;
 	private int scrollLocation = 0;
@@ -46,21 +45,18 @@ public final class Scrolled : LeafWidget, Interactible
 		scrollLocation = cast(int)(scrollSpan * p_scroll);
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	public override void initialize(UIRenderer p_ui, UIView p_view) nothrow
 	{
 		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
 		parentView = p_view;
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
 
-		spriteNormal = p_renderer.addSinglePixel(color(100, 100, 200, 255));
-		spriteDragging = p_renderer.addSinglePixel(color(200, 200, 255, 255));
+		scrollbar = new ImageBox(p_ui, p_ui.style.scrollbar.trough.sprite);
+		scrollbarHandle = new ImageBox(p_ui, p_ui.style.button.normal);
 
-		scrollbar = new ImageBox(p_renderer, color(0,0,0, 150), RealSize(1));
-		scrollbarHandle = new ImageBox(p_renderer, spriteNormal);
-
-		scrollbar.initialize(p_renderer, p_view);
-		scrollbarHandle.initialize(p_renderer, p_view);
+		scrollbar.initialize(p_ui, p_view);
+		scrollbarHandle.initialize(p_ui, p_view);
 
 		id = p_view.addInteractible(this);
 		scrollTo(oldScroll);
@@ -69,7 +65,7 @@ public final class Scrolled : LeafWidget, Interactible
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
 		printf("Start scroll(%p) layout\n", this);
-		int scrollbarWidth = 20;
+		int scrollbarWidth = p_view.renderer.style.scrollbar.width;
 
 		SizeRequest childReq = SizeRequest(
 			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth), 
@@ -140,11 +136,11 @@ public final class Scrolled : LeafWidget, Interactible
 	
 	public override void interact() nothrow
 	{
-		scrollbarHandle.changeSprite(parentView, spriteDragging);
+		scrollbarHandle.changeSprite(parentView, childView.renderer.style.button.pressed);
 	}
 	public override void unfocus() nothrow
 	{
-		scrollbarHandle.changeSprite(parentView, spriteNormal);
+		scrollbarHandle.changeSprite(parentView, childView.renderer.style.button.normal);
 	}
 
 	public void scrollBy(int p_pixels) nothrow
