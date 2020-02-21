@@ -215,6 +215,16 @@ public struct RealSize
 		else
 			assert(false, "No operator '"~op~"' between RealSize objects");
 	}
+	
+	public RealSize opBinary(string op)(double rhs)  nothrow
+	{
+		static if(op == "/")
+			return RealSize(cast(int)(width / rhs), cast(int)(height / rhs));
+		static if(op == "*")
+			return RealSize(cast(int)(width * rhs), cast(int)(height * rhs));
+		else
+			assert(false, "No operator '"~op~"' between RealSize and numbers");
+	}
 
 	bool opEquals(RealSize rhs)  nothrow const
 	{
