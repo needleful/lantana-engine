@@ -43,6 +43,7 @@ int main()
 		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
+		button.pad = Pad(8, 12);
 
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -84,10 +85,7 @@ int main()
 		new Anchor (
 			new Button(
 				ui,
-				new Padding(
-					new TextBox(testFont, "Press Me!"),
-					12, 18
-				),
+				new TextBox(testFont, "Press Me!"),
 				(Widget source) 
 				{
 					pressed = !pressed;

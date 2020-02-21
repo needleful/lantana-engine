@@ -12,7 +12,7 @@ import gl3n.linalg: vec2;
 import lanlib.types;
 import lanlib.util.printing;
 import logic.input : Input;
-import ui.containers : Container;
+import ui.containers;
 import ui.interaction;
 import ui.layout;
 import ui.render;
@@ -264,8 +264,8 @@ public class Button: Container, Interactible
 	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed)
 	{
 		children.reserve(2);
-		children ~= p_child;
 		children ~= p_renderer.style.button.mesh.create(p_renderer);
+		children ~= new Padding(p_child, p_renderer.style.button.pad);
 		onPressed = p_onPressed;
 
 		children[0].position = ivec2(0,0);
@@ -281,8 +281,8 @@ public class Button: Container, Interactible
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
 	{
-		RealSize childSize = children[0].layout(p_view, p_request);
-		children[1].layout(p_view, SizeRequest(childSize));
+		RealSize childSize = children[1].layout(p_view, p_request);
+		children[0].layout(p_view, SizeRequest(childSize));
 		p_view.setInteractSize(id, childSize);
 		return childSize;
 	}
@@ -302,14 +302,14 @@ public class Button: Container, Interactible
 
 	public override void unfocus()
 	{
-		(cast(RectWidget)children[1]).changeSprite(view, view.renderer.style.button.normal);
+		(cast(RectWidget)children[0]).changeSprite(view, view.renderer.style.button.normal);
 	}
 
 	public override void drag(ivec2 _) {}
 
 	public override void interact()
 	{
-		(cast(RectWidget)children[1]).changeSprite(view, view.renderer.style.button.pressed);
+		(cast(RectWidget)children[0]).changeSprite(view, view.renderer.style.button.pressed);
 		onPressed(this);
 	}
 }

@@ -44,7 +44,8 @@ int main()
 		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-
+		button.pad = Pad(8, 12);
+		
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
 
@@ -75,7 +76,7 @@ int main()
 		// Pause menu
 		new AnchoredBox([
 			ui.style.panel.mesh.create(ui),
-			new Padding(new Scrolled(dialog, 0), 18),
+			new Padding(new Scrolled(dialog, 0), Pad(18)),
 		],
 		vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none),

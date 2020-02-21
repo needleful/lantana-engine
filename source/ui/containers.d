@@ -285,56 +285,32 @@ public class AnchoredBox : Container
 public class Padding : SingularContainer
 {
 	// Padding, in pixels
-	int top, bottom, left, right;
+	Pad pad;
 
-	public this(Widget p_child, int p_padding) nothrow
+	public this(Widget p_child, Pad p_pad) nothrow
 	{
 		child = p_child;
 
-		top = p_padding;
-		bottom = p_padding;
-		left = p_padding;
-		right = p_padding;
-	}
-
-	public this(Widget p_child, int p_vertical, int p_horizontal) nothrow
-	{
-		child = p_child;
-
-		top = p_vertical;
-		bottom = p_vertical;
-
-		left = p_horizontal;
-		right = p_horizontal;
-	}
-
-	public this(Widget p_child, int p_top, int p_bottom, int p_left, int p_right) nothrow
-	{
-		child = p_child;
-
-		top = p_top;
-		bottom = p_bottom;
-		left = p_left;
-		right = p_right;
+		pad = p_pad;
 	}
 
 	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
-		double maxWidth = request.width.max - (left + right);
-		double minWidth = request.width.min - (left + right);
+		double maxWidth = request.width.max - (pad.left + pad.right);
+		double minWidth = request.width.min - (pad.left + pad.right);
 
-		double maxHeight = request.height.max - (top + bottom);
-		double minHeight = request.height.min - (top + bottom);
+		double maxHeight = request.height.max - (pad.top + pad.bottom);
+		double minHeight = request.height.min - (pad.top + pad.bottom);
 
 		// Constrain child to the full box (or infinity)
 		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
 
 		RealSize csize = child.layout(p_renderer, childIntrinsic);
-		child.position = ivec2(left, bottom);
+		child.position = ivec2(pad.left, pad.bottom);
 
-		return RealSize(csize.width + left + right, csize.height + top + bottom);
+		return RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
 	}
 }
 

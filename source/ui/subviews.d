@@ -26,23 +26,19 @@ public final class Scrolled : LeafWidget
 	private class ScrollGrab : Interactible
 	{
 		Scrolled parent;
-		bool reversed;
 		short m_priority;
+		bool pan;
 
-		this(Scrolled p_parent, bool p_reversed, short p_priority) nothrow
+		this(Scrolled p_parent, bool p_pan, short p_priority) nothrow
 		{
 			parent = p_parent;
-			reversed = p_reversed;
+			pan = p_pan;
 			m_priority = p_priority;
 		}
 
 		public override void drag(ivec2 p_dragAmount) nothrow
 		{
-			if(reversed)
-			{
-				p_dragAmount.y *= -1;
-			}
-			parent.scrollBy(cast(int) p_dragAmount.y);
+			parent.scrollBy(cast(int) p_dragAmount.y, pan);
 		}
 		
 		public override void interact() nothrow
@@ -171,33 +167,63 @@ public final class Scrolled : LeafWidget
 		p_view.setInteractPosition(idPan, p_pen);
 	}
 
-	public void scrollBy(int p_pixels) nothrow
+	public void scrollBy(int p_pixels, bool pan) nothrow
 	{
-		int newLoc = scrollLocation - p_pixels;
-
-		if(newLoc < 0 )
+		if(pan)
 		{
-			newLoc = 0;
+			int translate = childView.translation.y - p_pixels;
+			if(translate > 0 )
+			{
+				translate = 0;
+			}
+			else if(translate < -scrollSpan/scrollRatio)
+			{
+				translate = cast(int)(-scrollSpan/scrollRatio);
+			}
+
+			int newLoc = cast(int)(-translate * scrollRatio);
+			if(newLoc == scrollLocation)
+			{
+				return;
+			}
+
+			int pixels = scrollLocation - newLoc;
+
+			scrollLocation = newLoc;
+
+			childView.translation = ivec2(0, translate);
+
+			ivec2 pos = ivec2(0, -pixels);
+			scrollbarHandle.position += pos;
+			scrollbarHandle.prepareRender(parentView, pos);
 		}
-		else if(newLoc > scrollSpan)
+		else
 		{
-			newLoc = scrollSpan;
+			int newLoc = scrollLocation - p_pixels;
+			if(newLoc < 0 )
+			{
+				newLoc = 0;
+			}
+			else if(newLoc > scrollSpan)
+			{
+				newLoc = scrollSpan;
+			}
+
+			if(newLoc == scrollLocation)
+			{
+				return;
+			}
+
+			int pixels = scrollLocation - newLoc;
+
+			scrollLocation = newLoc;
+
+			childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
+
+			ivec2 pos = ivec2(0, -pixels);
+			scrollbarHandle.position += pos;
+			scrollbarHandle.prepareRender(parentView, pos);
 		}
-
-		if(newLoc == scrollLocation)
-		{
-			return;
-		}
-
-		int pixels = scrollLocation - newLoc;
-
-		scrollLocation = newLoc;
-
-		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
-
-		ivec2 pos = ivec2(0, -pixels);
-		scrollbarHandle.position += pos;
-		scrollbarHandle.prepareRender(parentView, pos);
 	}
 
 	public void scrollTo(float p_position) nothrow
@@ -214,7 +240,7 @@ public final class Scrolled : LeafWidget
 
 		int desiredLoc = cast(int)(scrollSpan * pos);
 
-		scrollBy(scrollLocation - desiredLoc);
+		scrollBy(scrollLocation - desiredLoc, false);
 	}
 }
 

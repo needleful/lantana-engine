@@ -51,6 +51,7 @@ final class PatchRectStyle : IRectStyle
 struct ButtonStyle
 {
 	IRectStyle mesh;
+	Pad pad;
 	SpriteId normal;
 	SpriteId pressed;
 }

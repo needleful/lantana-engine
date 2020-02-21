@@ -283,6 +283,14 @@ public struct Pad
 		right = p_right;
 	}
 
+	this(ubyte p_vertical, ubyte p_horizontal) nothrow @nogc
+	{
+		top = p_vertical;
+		bottom = p_vertical;
+		left = p_horizontal;
+		right = p_horizontal;
+	}
+
 	this(ubyte p_pad) nothrow @nogc
 	{
 		top = p_pad;
