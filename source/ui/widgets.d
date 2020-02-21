@@ -31,6 +31,52 @@ public abstract class RectWidget : LeafWidget
 	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow;
 }
 
+public class PatchRect : RectWidget
+{
+	SpriteId sprite;
+	ushort[] vertices;
+	// Pixel padding for the 9-patch
+	Pad pad;
+	private Widget child;
+
+	public this(SpriteId p_sprite, Pad p_pad) nothrow
+	{
+		sprite = p_sprite;
+		pad = p_pad;
+	}
+
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
+	{
+		vertices = p_view.addPatchRect(sprite, pad);
+	}
+
+	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	{
+		// At least as large as the pad and bound to the absolute bounds
+		SizeRequest rq = p_request
+			.constrained(absoluteWidth, absoluteHeight)
+			.constrained(
+				Bounds(pad.left + pad.right, double.infinity),
+				Bounds(pad.top + pad.bottom, double.infinity));
+
+		RealSize result = RealSize(cast(int) rq.width.min, cast(int) rq.height.min);
+
+		p_view.setPatchRectSize(vertices, result, pad);
+
+		return result;
+	}
+
+	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	{
+		p_view.translateMesh(vertices, 16, svec(p_pen));
+	}
+
+	public override void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
+	{
+		p_view.setPatchRectUV(vertices[0], p_sprite, pad);
+	}
+}
+
 public class ImageBox : RectWidget
 {
 	RealSize textureSize;
@@ -215,11 +261,11 @@ public class Button: Container, Interactible
 	InteractibleId id;
 	UIView view;
 
-	public this(UIRenderer p_renderer, Widget p_child, SpriteId p_patchRect, Interactible.Callback p_onPressed)
+	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed)
 	{
 		children.reserve(2);
 		children ~= p_child;
-		children ~= new ImageBox(p_renderer, p_renderer.style.button.normal);
+		children ~= p_renderer.style.button.mesh.create(p_renderer);
 		onPressed = p_onPressed;
 
 		children[0].position = ivec2(0,0);

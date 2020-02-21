@@ -42,7 +42,7 @@ int main()
 	{
 		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
-		button.mesh = new SpriteQuadStyle(button.normal);
+		button.mesh = new PatchRectStyle(button.normal, Pad(6));
 
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -88,7 +88,6 @@ int main()
 					new TextBox(testFont, "Press Me!"),
 					12, 18
 				),
-				ui.loadSprite("data/test/blankRGBA.png"),
 				(Widget source) 
 				{
 					pressed = !pressed;

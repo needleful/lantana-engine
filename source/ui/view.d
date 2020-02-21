@@ -402,35 +402,31 @@ public final class UIView
 		assert(uvstart == vertStart);
 		uvs.length += 4;
 
-		setQuadUV(uvstart, node);
+		setQuadUV(uvstart, Rect(node.position, node.size));
 
 		ulong elemStart = elemSprite.length;
 		elemSprite.length += 6;
 
-		elemSprite[elemStart..elemStart+6]= [
-			cast(ushort)(vertStart+0), 
-			cast(ushort)(vertStart+2), 
-			cast(ushort)(vertStart+1),
-
-			cast(ushort)(vertStart+1), 
-			cast(ushort)(vertStart+2), 
-			cast(ushort)(vertStart+3)
+		elemSprite[elemStart..elemStart+6] = [
+			0, 2, 1,
+			1, 2, 3
 		];
+		elemSprite[elemStart..elemStart+6] += vertStart;
 
 		invalidated[ViewState.UVBuffer] = true;
 		invalidated[ViewState.SpriteEBO] = true;
 		return elemSprite[elemStart..elemStart+6];
 	}
 
-	private void setQuadUV(uint p_start, TextureNode* p_node) nothrow
+	private void setQuadUV(uint p_start, Rect p_rect) nothrow
 	{
 		// UV start, normalized
-		vec2 uv_pos = vec2(p_node.position.x, p_node.position.y);
+		vec2 uv_pos = vec2(p_rect.pos.x, p_rect.pos.y);
 		uv_pos.x /= renderer.atlasSprite.texture.size.width;
 		uv_pos.y /= renderer.atlasSprite.texture.size.height;
 
 		// UV offset, normalized
-		vec2 uv_size = vec2(p_node.size.width, p_node.size.height);
+		vec2 uv_size = vec2(p_rect.size.width, p_rect.size.height);
 
 		uv_size.x /= renderer.atlasSprite.texture.size.width;
 		uv_size.y /= renderer.atlasSprite.texture.size.height;
@@ -458,8 +454,6 @@ public final class UIView
 
 	public void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
 	{
-		assert(p_vertices.length == 6);
-
 		// Consult the diagram in addSpriteQuad for explanation
 		ushort quadStart = p_vertices[0];
 		vertpos[quadStart] = svec(0,0);
@@ -477,7 +471,154 @@ public final class UIView
 
 		TextureNode* node = renderer.atlasSprite.map[p_sprite];
 
-		setQuadUV(p_verts[0], node);
+		setQuadUV(p_verts[0], Rect(node.position, node.size));
+	}
+
+	public ushort[] addPatchRect(SpriteId p_sprite, Pad p_pad) nothrow
+	{
+		ushort vertstart = cast(ushort)vertpos.length;
+		ushort uvstart = cast(ushort)uvs.length;
+
+		assert(vertstart == uvstart);
+
+		vertpos.length += 16;
+		uvs.length += 16;
+
+		setPatchRectUV(vertstart, p_sprite, p_pad);
+
+		uint elemstart = cast(uint)elemSprite.length;
+		elemSprite.length += 6*9;
+
+		ushort v = vertstart;
+
+		// See comment in setPatchRectUV for diagram
+		elemSprite[elemstart..elemstart+6*9] = [
+			// 0
+			0, 2, 1,
+			1, 2, 3,
+			// 1
+			1, 3, 4,
+			4, 3, 6,
+			// 2
+			4, 6, 5,
+			5, 6, 7,
+			// 3
+			2, 8, 3,
+			3, 8, 9,
+			// 4
+			3, 9, 6,
+			6, 9, 12,
+			// 5
+			6, 12, 7,
+			7, 12, 13,
+			// 6
+			8, 10, 9,
+			9, 10, 11,
+			// 7
+			9, 11, 12,
+			12, 11, 14,
+			// 8
+			12, 14, 13,
+			13, 14, 15
+		];
+		elemSprite[elemstart..elemstart+6*9] += vertstart;
+
+		invalidated[ViewState.UVBuffer] = true;
+		invalidated[ViewState.PositionBuffer] = true;
+		invalidated[ViewState.SpriteEBO] = true;
+
+		return elemSprite[elemstart..elemstart+6*9];
+	}
+
+	public void setPatchRectUV(uint p_start, SpriteId p_sprite, Pad p_pad) nothrow
+	{
+		/+
+			A biggun!
+
+			5---7--------D---F
+			| 2 |   5    | 8 |
+			4---6--------C---E
+			|   |        |   |
+			| 1 |   4    | 7 |
+			|   |        |   |
+			1---3--------9---B   /\
+			| 0 |   3    | 6 |   |
+			0---2--------8---A   y+
+
+			x+ ->
+
+			As with quads, elements ordered like so:
+			{0, 2, 1}
+			{1, 2, 3}
+		+/
+		TextureNode * node = renderer.atlasSprite.map[p_sprite];
+
+		// Each rectangle has its own position
+		ivec2 bot_left = node.position;
+
+		ivec2 top_left = ivec2(
+			node.position.x, 
+			node.position.y + node.size.height - p_pad.top);
+
+		ivec2 bot_right = ivec2(
+			node.position.x + node.size.width - p_pad.right,
+			node.position.y);
+
+		ivec2 top_right = ivec2(
+			node.position.x + node.size.width - p_pad.right,
+			node.position.y + node.size.height - p_pad.top);
+
+		setQuadUV(p_start,   Rect(bot_left,  RealSize(p_pad.left, p_pad.bottom)));
+		setQuadUV(p_start+4, Rect(top_left,  RealSize(p_pad.left, p_pad.top)));
+
+		setQuadUV(p_start+8,  Rect(bot_right, RealSize(p_pad.right, p_pad.bottom)));
+		setQuadUV(p_start+12, Rect(top_right, RealSize(p_pad.right, p_pad.top)));
+	}
+
+	public void setPatchRectSize(ushort[] p_vertices, RealSize p_size, Pad p_pad) nothrow
+	{
+		printT("Patch size: %, %\n", p_size, p_pad);
+		/+
+			A biggun!
+
+			5---7--------D---F
+			| 2 |   5    | 8 |
+			4---6--------C---E
+			|   |  Inner |   |
+			| 1 |   4    | 7 |
+			|   |        |   |
+			1---3--------9---B   /\
+			| 0 |   3    | 6 |   |
+			0---2--------8---A   y+
+
+			x+ ->
+		+/
+		uint vecstart = p_vertices[0];
+
+		int topbar = p_size.height - p_pad.top;
+		int rightbar = p_size.width - p_pad.right;
+
+		vertpos[vecstart..vecstart+16] = [
+			svec(0,          0),
+			svec(0,          p_pad.bottom),
+			svec(p_pad.left, 0),
+			svec(p_pad.left, p_pad.bottom),
+
+			svec(0,          topbar),
+			svec(0,          p_size.height),
+			svec(p_pad.left, topbar),
+			svec(p_pad.left, p_size.height),
+
+			svec(rightbar,     0),
+			svec(rightbar,     p_pad.bottom),
+			svec(p_size.width, 0),
+			svec(p_size.width, p_pad.bottom),
+
+			svec(rightbar,     topbar),
+			svec(rightbar,     p_size.height),
+			svec(p_size.width, topbar),
+			svec(p_size.width, p_size.height),
+		];
 	}
 
 	/// p_count is the number of vertices to change

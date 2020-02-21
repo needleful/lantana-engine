@@ -260,3 +260,29 @@ struct Rect
 		printT("REC[ ivec(%, %), %]", pos.x, pos.y, size);
 	}
 }
+
+public struct Pad
+{
+	ubyte top, bottom, left, right;
+
+	this(ubyte p_top, ubyte p_bottom, ubyte p_left, ubyte p_right) nothrow @nogc
+	{
+		top = p_top;
+		bottom = p_bottom;
+		left = p_left;
+		right = p_right;
+	}
+
+	this(ubyte p_pad) nothrow @nogc
+	{
+		top = p_pad;
+		bottom = p_pad;
+		left = p_pad;
+		right = p_pad;
+	}
+
+	void print() @nogc nothrow
+	{
+		printf("pad[%u, %u, %u, %u]", top, bottom, left, right);
+	}
+}

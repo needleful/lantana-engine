@@ -31,6 +31,23 @@ final class SpriteQuadStyle: IRectStyle
 	}
 }
 
+final class PatchRectStyle : IRectStyle
+{
+	private SpriteId id;
+	private Pad pad;
+
+	public this(SpriteId p_id, Pad p_pad)
+	{
+		id = p_id;
+		pad = p_pad;
+	}
+
+	public override RectWidget create(UIRenderer p_renderer) nothrow
+	{
+		return new PatchRect(id, pad);
+	}
+}
+
 struct ButtonStyle
 {
 	IRectStyle mesh;
