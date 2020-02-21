@@ -57,7 +57,7 @@ public auto vmin(L, R)(L lhs, R rhs)
 }
 
 /// Same problem as svec
-public AlphaColor color(uint r, uint g, uint b, uint a) nothrow @nogc
+public AlphaColor color(uint r, uint g, uint b, uint a = 255) nothrow @nogc
 {
 	return AlphaColor(cast(ubyte)r, cast(ubyte)g, cast(ubyte)b, cast(ubyte)a);
 }

@@ -22,6 +22,7 @@ import render.textures;
 import ui.containers;
 import ui.interaction;
 import ui.layout;
+import ui.style;
 import ui.view;
 
 struct SpriteId
@@ -80,6 +81,9 @@ public final class UIRenderer
 
 	/// The index of the focused interactive widget
 	package Interactible focused;
+
+	/// Package style
+	private UIStyle m_style;
 
 	/++++++++++++++++++++++++++++++++++++++
 		FreeType data
@@ -159,12 +163,13 @@ public final class UIRenderer
 		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText));
 		debug
 		{
-			atlasSprite.texture.blitgrid(color(255,255,0,255));
+			atlasSprite.texture.blitgrid(color(255,255,0));
 			atlasText.texture.blitgrid(255);
 		}
 		invalidated.setAll();
 
 		views ~= new UIView(this, Rect(ivec2(0), p_windowSize));
+		m_style = new UIStyle();
 	}
 
 	public ~this()
@@ -252,6 +257,11 @@ public final class UIRenderer
 			}
 		}
 		glDisable(GL_SCISSOR_TEST);
+	}
+
+	@property public UIStyle style() @nogc nothrow
+	{
+		return m_style;
 	}
 
 	public UIView rootView() @nogc nothrow
