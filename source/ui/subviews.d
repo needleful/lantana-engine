@@ -97,6 +97,8 @@ public final class Scrolled : LeafWidget
 		scrollbarHandle.initialize(p_ui, p_view);
 
 		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 1));
+		idPan = p_view.addInteractible(new ScrollGrab(this, true, 0));
+
 		scrollTo(oldScroll);
 	}
 
@@ -150,6 +152,7 @@ public final class Scrolled : LeafWidget
 		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
 
 		p_view.setInteractSize(idHandle, barsize);
+		p_view.setInteractSize(idPan, childSize);
 
 		printT("End scroll % layout: % -> %\n", cast(void*) this, p_request, result);
 
@@ -165,6 +168,7 @@ public final class Scrolled : LeafWidget
 		scrollbarHandle.prepareRender(p_view, scrollbarHandle.position);
 
 		p_view.setInteractPosition(idHandle, scrollbar.position + p_pen);
+		p_view.setInteractPosition(idPan, p_pen);
 	}
 
 	public void scrollBy(int p_pixels) nothrow

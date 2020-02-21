@@ -67,7 +67,7 @@ int main()
 		new TextBox(ui.style.defaultFont, "Hello!"),
 		new ImageBox(ui, nful),
 		new ImageBox(ui, nful),
-		new ImageBox(ui, "data/test/ui_sprites/upclick.png"),
+		new Button(ui, new ImageBox(ui, "data/test/ui_sprites/upclick.png"), (Widget w){writeln("Pressed upclick!");}),
 		new ImageBox(ui, nful),
 	], 18);
 

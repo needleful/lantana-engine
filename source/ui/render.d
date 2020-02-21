@@ -203,43 +203,49 @@ public final class UIRenderer
 
 		invalidated.clear();
 
-		foreach(view; views)
+		Interactible newFocus = null;
+		if(!focused)
 		{
-			if(view.isVisible() && view.rect.contains(p_input.mouse_position))
+			foreach(view; views)
 			{
-				InteractibleId newFocus;
-
-				if(view.getFocusedObject(p_input, newFocus))
+				if(view.isVisible() && view.rect.contains(p_input.mouse_position))
 				{
-					Interactible newObject = view.interactibles[newFocus];
-					if(focused && newObject != focused)
-					{
-						focused.unfocus();
-					}
+					InteractibleId newId;
 
-					focused = newObject;
-
-					if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+					if(view.getFocusedObject(p_input, newId))
 					{
-						focused.interact();
-					}
-				}
-				// Continue focusing on an object if we're dragging it
-				if(focused)
-				{
-					if(p_input.is_pressed(Input.Action.UI_INTERACT))
-					{
-						ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
-						focused.drag(drag);
-					}
-					else
-					{
-						focused.unfocus();
-						focused = null;
+						Interactible newObject = view.interactibles[newId];
+						if(!newFocus || newObject.priority() >= newFocus.priority())
+						{
+							newFocus = newObject;
+						}
 					}
 				}
 			}
+			if(newFocus)
+			{
+				focused = newFocus;
+			}
 		}
+
+		if(focused)
+		{
+			if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+			{
+				focused.interact();
+			}
+			else if(p_input.is_pressed(Input.Action.UI_INTERACT))
+			{
+				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
+				focused.drag(drag);
+			}
+			else
+			{
+				focused.unfocus();
+				focused = null;
+			}
+		}
+
 	}
 
 	public void render() 

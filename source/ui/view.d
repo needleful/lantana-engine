@@ -371,6 +371,7 @@ public final class UIView
 
 	package bool getFocusedObject(Input* p_input, ref InteractibleId id)
 	{
+		// TODO: buttons within Scrolled currently don't work. Is it a problem in here?
 		// Get interaction
 		if(interactAreas.length > 0)
 		{
