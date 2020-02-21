@@ -63,7 +63,6 @@ package enum AtlasState
 	Sprite,
 }
 
-
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
 /// There should be exactly one UIRenderer

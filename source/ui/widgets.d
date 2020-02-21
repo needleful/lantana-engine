@@ -293,6 +293,10 @@ public class Button: Container, Interactible
 		super.prepareRender(p_view, p_pen);
 	}
 
+	public override short priority()
+	{
+		return 1;
+	}
 	/// Interactible methods
 	public override void focus() {}
 

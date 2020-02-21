@@ -21,8 +21,46 @@ import ui.widgets;
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public final class Scrolled : LeafWidget, Interactible
+public final class Scrolled : LeafWidget
 {
+	private class ScrollGrab : Interactible
+	{
+		Scrolled parent;
+		bool reversed;
+		short m_priority;
+
+		this(Scrolled p_parent, bool p_reversed, short p_priority) nothrow
+		{
+			parent = p_parent;
+			reversed = p_reversed;
+			m_priority = p_priority;
+		}
+
+		public override void drag(ivec2 p_dragAmount) nothrow
+		{
+			if(reversed)
+			{
+				p_dragAmount.y *= -1;
+			}
+			parent.scrollBy(cast(int) p_dragAmount.y);
+		}
+		
+		public override void interact() nothrow
+		{
+			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.pressed);
+		}
+		public override void unfocus() nothrow
+		{
+			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.normal);
+		}
+		public override short priority() nothrow
+		{
+			return m_priority;
+		}
+		/// Unimplemented Interactible methods
+		public override void focus() {}
+	} 
+
 	private UIView parentView;
 	private UIView childView;
 	private Widget child;
@@ -31,7 +69,7 @@ public final class Scrolled : LeafWidget, Interactible
 	private Widget scrollbar;
 	private RectWidget scrollbarHandle;
 
-	private InteractibleId id;
+	private InteractibleId idHandle, idPan;
 	private int scrollLocation = 0;
 	private int scrollSpan;
 	private float scrollRatio = 1;
@@ -58,7 +96,7 @@ public final class Scrolled : LeafWidget, Interactible
 		scrollbar.initialize(p_ui, p_view);
 		scrollbarHandle.initialize(p_ui, p_view);
 
-		id = p_view.addInteractible(this);
+		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 1));
 		scrollTo(oldScroll);
 	}
 
@@ -111,7 +149,7 @@ public final class Scrolled : LeafWidget, Interactible
 		scrollbar.position = ivec2(childSize.width, 0);
 		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
 
-		p_view.setInteractSize(id, barsize);
+		p_view.setInteractSize(idHandle, barsize);
 
 		printT("End scroll % layout: % -> %\n", cast(void*) this, p_request, result);
 
@@ -126,21 +164,7 @@ public final class Scrolled : LeafWidget, Interactible
 		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
 		scrollbarHandle.prepareRender(p_view, scrollbarHandle.position);
 
-		p_view.setInteractPosition(id, scrollbar.position + p_pen);
-	}
-
-	public override void drag(ivec2 p_dragAmount) nothrow
-	{
-		scrollBy(cast(int) p_dragAmount.y);
-	}
-	
-	public override void interact() nothrow
-	{
-		scrollbarHandle.changeSprite(parentView, childView.renderer.style.button.pressed);
-	}
-	public override void unfocus() nothrow
-	{
-		scrollbarHandle.changeSprite(parentView, childView.renderer.style.button.normal);
+		p_view.setInteractPosition(idHandle, scrollbar.position + p_pen);
 	}
 
 	public void scrollBy(int p_pixels) nothrow
@@ -188,9 +212,6 @@ public final class Scrolled : LeafWidget, Interactible
 
 		scrollBy(scrollLocation - desiredLoc);
 	}
-
-	/// Unimplemented Interactible methods
-	public override void focus() {}
 }
 
 public final class Modal : LeafWidget

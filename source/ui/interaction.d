@@ -19,4 +19,7 @@ public interface Interactible
 	public void interact();
 
 	public void drag(ivec2 p_dragAmount);
+
+	// When selecting elements, overlapping elements are selected based on maximum priority (undefined if they overlap and are the same)
+	public short priority();
 }
