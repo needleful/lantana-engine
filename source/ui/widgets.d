@@ -26,7 +26,12 @@ public abstract class LeafWidget : Widget
 	}
 }
 
-public class ImageBox : LeafWidget
+public interface SpriteRect
+{
+	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow;
+}
+
+public class ImageBox : LeafWidget, SpriteRect
 {
 	RealSize textureSize;
 	SpriteId spriteId;
@@ -143,7 +148,7 @@ public class ImageBox : LeafWidget
 		p_view.translateQuad(vertices, p);
 	}
 
-	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
+	public override void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
 	{
 		p_view.changeSprite(vertices, p_sprite);
 	}
@@ -208,13 +213,13 @@ public class Button: Container, Interactible
 {
 	Interactible.Callback onPressed;
 	InteractibleId id;
-	//Interactible.State state;
+	UIView view;
 
 	public this(UIRenderer p_renderer, Widget p_child, SpriteId p_patchRect, Interactible.Callback p_onPressed)
 	{
 		children.reserve(2);
 		children ~= p_child;
-		children ~= new ImageBox(p_renderer, p_patchRect);
+		children ~= new ImageBox(p_renderer, p_renderer.style.button.normal);
 		onPressed = p_onPressed;
 
 		children[0].position = ivec2(0,0);
@@ -223,6 +228,7 @@ public class Button: Container, Interactible
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
+		view = p_view;
 		id = p_view.addInteractible(this);
 		super.initialize(p_renderer, p_view);
 	}
@@ -244,12 +250,16 @@ public class Button: Container, Interactible
 	/// Interactible methods
 	public override void focus() {}
 
-	public override void unfocus() {}
+	public override void unfocus()
+	{
+		(cast(SpriteRect)children[1]).changeSprite(view, view.renderer.style.button.normal);
+	}
 
 	public override void drag(ivec2 _) {}
 
 	public override void interact()
 	{
+		(cast(SpriteRect)children[1]).changeSprite(view, view.renderer.style.button.pressed);
 		onPressed(this);
 	}
 }

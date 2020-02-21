@@ -38,6 +38,23 @@ int main()
 	auto mm = BaseRegion(MAX_MEMORY);
 
 	UIRenderer ui = new UIRenderer(ww.getSize());
+	with(ui.style)
+	{
+		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
+		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
+		button.mesh = new SpriteQuadStyle(button.normal);
+
+		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
+		panel.mesh = new SpriteQuadStyle(panel.sprite);
+
+		scrollbar.width = 20;
+		scrollbar.trough.sprite = ui.addSinglePixel(color(0, 148, 255, 128));
+		scrollbar.trough.mesh = new SpriteQuadStyle(scrollbar.trough.sprite);
+		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
+		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
+
+		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+	}
 
 	ww.grab_mouse(false);
 

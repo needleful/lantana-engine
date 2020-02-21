@@ -10,7 +10,7 @@ import ui.layout;
 import ui.render;
 import ui.view;
 
-interface IRectMesh
+interface IRectStyle
 {
 	ushort[] create(UIView p_view, RealSize p_size);
 	void resize(UIView p_view, ushort[] p_mesh, RealSize p_size);
@@ -18,7 +18,7 @@ interface IRectMesh
 	void change(UIView p_view, ushort[] p_mesh, SpriteId p_sprite);
 }
 
-final class SpriteQuad: IRectMesh
+final class SpriteQuadStyle: IRectStyle
 {
 	private SpriteId id;
 
@@ -50,14 +50,14 @@ final class SpriteQuad: IRectMesh
 
 struct ButtonStyle
 {
-	IRectMesh mesh;
+	IRectStyle mesh;
 	SpriteId normal;
 	SpriteId pressed;
 }
 
 struct PanelStyle
 {
-	IRectMesh mesh;
+	IRectStyle mesh;
 	SpriteId sprite;
 }
 
