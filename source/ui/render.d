@@ -419,15 +419,15 @@ public final class UIRenderer
 		];
 
 		views[0].vertpos[0..$] = [
-			svec(0, 0),
-			svec(0, 256),
-			svec(256, 0),
-			svec(256, 256),
+			ivec2(0, 0),
+			ivec2(0, 256),
+			ivec2(256, 0),
+			ivec2(256, 256),
 
-			svec(256, 256),
-			svec(256, 256+1024),
-			svec(256+1024, 256),
-			svec(256+1024, 256+1024)
+			ivec2(256, 256),
+			ivec2(256, 256+1024),
+			ivec2(256+1024, 256),
+			ivec2(256+1024, 256+1024)
 		];
 
 		views[0].elemText.length = 6;

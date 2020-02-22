@@ -25,6 +25,9 @@ import ui.interaction;
 import ui.layout;
 import ui.render;
 
+/// Index into EBOs
+alias ebo_t = uint;
+
 // Text is rendered in a weird way.
 // I gave up on doing it all in one draw call for various reasons.
 // Instead, each text box is drawn with the same EBO and VBO, but at
@@ -39,7 +42,7 @@ private struct TextMesh
 	// (between 0 and 1) the proportion of characters visible.
 	float visiblePortion;
 	// Offset within the EBO
-	uint offset;
+	ebo_t offset;
 	// Number of quads to render
 	ushort length;
 	// Amount of quads allocated
@@ -160,9 +163,9 @@ public final class UIView
 	/// 1: sprite VAO
 	package GLuint[2] vao;
 
-	package uint[] elemText;
-	package ushort[] elemSprite;
-	package svec2[] vertpos;
+	package ebo_t[] elemText;
+	package ebo_t[] elemSprite;
+	package ivec2[] vertpos;
 	package vec2[] uvs;
 
 	/// A buffer is altered at max once per frame by checking these ranges.
@@ -284,7 +287,7 @@ public final class UIView
 		glDrawElements(
 			GL_TRIANGLES,
 			cast(int) elemSprite.length,
-			GL_UNSIGNED_SHORT,
+			GL_UNSIGNED_INT,
 			cast(void*) 0);
 
 		glcheck();
@@ -431,11 +434,11 @@ public final class UIView
 
 		// The positions are set by other functions, 
 		// so they can stay (0,0) right now
-		ushort vertStart = cast(ushort)vertpos.length;
+		ebo_t vertStart = cast(ebo_t)vertpos.length;
 		vertpos.length += 4;
 
 		// The UVs must be set, though
-		ushort uvstart = cast(ushort)uvs.length;
+		ebo_t uvstart = cast(ebo_t)uvs.length;
 		assert(uvstart == vertStart);
 		uvs.length += 4;
 
@@ -455,7 +458,7 @@ public final class UIView
 		return MeshRef(cast(uint)elemStart, 2, 4);
 	}
 
-	private void setQuadUV(uint p_start, Rect p_rect) 
+	private void setQuadUV(ebo_t p_start, Rect p_rect) 
 	{
 		// UV start, normalized
 		vec2 uv_pos = vec2(p_rect.pos.x, p_rect.pos.y);
@@ -494,10 +497,10 @@ public final class UIView
 		assert(p_mesh.tris == 2);
 		// Consult the diagram in addSpriteQuad for explanation
 		auto quadStart = elemSprite[p_mesh.start];
-		vertpos[quadStart] = svec(0,0);
-		vertpos[quadStart + 1] = svec(0, p_size.height);
-		vertpos[quadStart + 2] = svec(p_size.width, 0);
-		vertpos[quadStart + 3] = svec(p_size.width, p_size.height);
+		vertpos[quadStart] = ivec2(0,0);
+		vertpos[quadStart + 1] = ivec2(0, p_size.height);
+		vertpos[quadStart + 2] = ivec2(p_size.width, 0);
+		vertpos[quadStart + 3] = ivec2(p_size.width, p_size.height);
 
 		invalidated[ViewState.PositionBufferPartial] = true;
 		posInvalid.apply(quadStart, quadStart + 4);
@@ -512,8 +515,8 @@ public final class UIView
 
 	public MeshRef addPatchRect(SpriteId p_sprite, Pad p_pad) 
 	{
-		ushort vertstart = cast(ushort)vertpos.length;
-		ushort uvstart = cast(ushort)uvs.length;
+		uint vertstart = cast(uint)vertpos.length;
+		uint uvstart = cast(uint)uvs.length;
 
 		assert(vertstart == uvstart);
 
@@ -525,7 +528,7 @@ public final class UIView
 		uint elemstart = cast(uint)elemSprite.length;
 		elemSprite.length += 6*9;
 
-		ushort v = vertstart;
+		uint v = vertstart;
 
 		// See comment in setPatchRectUV for diagram
 		elemSprite[elemstart..elemstart+18*3] = [
@@ -639,31 +642,31 @@ public final class UIView
 		int rightbar = p_size.width - p_pad.right;
 
 		vertpos[vecstart..vecstart+p_mesh.vertices] = [
-			svec(0,          0),
-			svec(0,          p_pad.bottom),
-			svec(p_pad.left, 0),
-			svec(p_pad.left, p_pad.bottom),
+			ivec2(0,          0),
+			ivec2(0,          p_pad.bottom),
+			ivec2(p_pad.left, 0),
+			ivec2(p_pad.left, p_pad.bottom),
 
-			svec(0,          topbar),
-			svec(0,          p_size.height),
-			svec(p_pad.left, topbar),
-			svec(p_pad.left, p_size.height),
+			ivec2(0,          topbar),
+			ivec2(0,          p_size.height),
+			ivec2(p_pad.left, topbar),
+			ivec2(p_pad.left, p_size.height),
 
-			svec(rightbar,     0),
-			svec(rightbar,     p_pad.bottom),
-			svec(p_size.width, 0),
-			svec(p_size.width, p_pad.bottom),
+			ivec2(rightbar,     0),
+			ivec2(rightbar,     p_pad.bottom),
+			ivec2(p_size.width, 0),
+			ivec2(p_size.width, p_pad.bottom),
 
-			svec(rightbar,     topbar),
-			svec(rightbar,     p_size.height),
-			svec(p_size.width, topbar),
-			svec(p_size.width, p_size.height),
+			ivec2(rightbar,     topbar),
+			ivec2(rightbar,     p_size.height),
+			ivec2(p_size.width, topbar),
+			ivec2(p_size.width, p_size.height),
 		];
 	}
 
 	/// p_count is the number of vertices to change
 	/// Assumes the mesh is continuous
-	public void translateMesh(MeshRef p_mesh, svec2 p_translation) 
+	public void translateMesh(MeshRef p_mesh, ivec2 p_translation) 
 	{
 		auto vert = elemSprite[p_mesh.start];
 
@@ -705,7 +708,7 @@ public final class UIView
 		tm.visiblePortion = 1;
 
 		elemText.length += 6*vertspace;
-		elemText[tm.offset] = cast(ushort)vertpos.length;
+		elemText[tm.offset] = cast(ebo_t)vertpos.length;
 
 		vertpos.length += 4*vertspace;
 		uvs.length += 4*vertspace;
@@ -741,7 +744,7 @@ public final class UIView
 		mesh.length = cast(ushort)(quads);
 
 		// Write the buffers
-		svec2 pen = svec(0,0);
+		ivec2 pen = ivec2(0,0);
 
 		FT_Face face = renderer.fonts[p_font];
 
@@ -781,7 +784,7 @@ public final class UIView
 			}
 			else if(c.isWhite())
 			{
-				pen += svec(
+				pen += ivec2(
 					ftGlyph.advance.x >> 6, 
 					ftGlyph.advance.y >> 6);
 				continue;
@@ -807,16 +810,16 @@ public final class UIView
 			// 		{0, 2, 1}
 			// 		{1, 2, 3}
 
-			svec2 left = svec(ftGlyph.bitmap_left, 0);
-			svec2 right = svec(ftGlyph.bitmap_left + ftGlyph.bitmap.width, 0);
-			svec2 bottom = svec(0, ftGlyph.bitmap_top - ftGlyph.bitmap.rows);
-			svec2 top = svec(0, ftGlyph.bitmap_top);
+			ivec2 left = ivec2(ftGlyph.bitmap_left, 0);
+			ivec2 right = ivec2(ftGlyph.bitmap_left + ftGlyph.bitmap.width, 0);
+			ivec2 bottom = ivec2(0, ftGlyph.bitmap_top - ftGlyph.bitmap.rows);
+			ivec2 top = ivec2(0, ftGlyph.bitmap_top);
 
 			vertpos[vertQuad..vertQuad+4] = [
-				pen.add(left).add(bottom),
-				pen.add(left).add(top),
-				pen.add(right).add(bottom),
-				pen.add(right).add(top)
+				pen + left + bottom,
+				pen + left + top,
+				pen + right + bottom,
+				pen + right + top
 			];
 
 			ivec2 blchar = vertpos[vertQuad];
@@ -857,7 +860,7 @@ public final class UIView
 			vertQuad += 4;
 			eboQuad += 6;
 
-			pen += svec(
+			pen += ivec2(
 				ftGlyph.advance.x >> 6, 
 				ftGlyph.advance.y >> 6);
 		}
@@ -901,7 +904,7 @@ public final class UIView
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glVertexAttribIPointer(
 			renderer.atrText.position,
-			2, GL_SHORT,
+			2, GL_INT,
 			0, 
 			cast(void*) 0);
 
@@ -927,7 +930,7 @@ public final class UIView
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glVertexAttribIPointer(
 			renderer.atrSprite.position,
-			2, GL_SHORT,
+			2, GL_INT,
 			0, 
 			cast(void*) 0);
 

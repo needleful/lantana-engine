@@ -69,7 +69,7 @@ public class PatchRect : RectWidget
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
-		p_view.translateMesh(mesh, svec(p_pen));
+		p_view.translateMesh(mesh, ivec2(p_pen));
 	}
 
 	public override void setSprite(UIView p_view, SpriteId p_sprite) 
@@ -80,7 +80,7 @@ public class PatchRect : RectWidget
 	public override void setPosition(UIView p_view, ivec2 p_position)
 	{
 		p_view.setPatchRectSize(mesh, size, pad);
-		p_view.translateMesh(mesh, svec(p_position));
+		p_view.translateMesh(mesh, ivec2(p_position));
 	}
 }
 
@@ -196,7 +196,7 @@ public class ImageBox : RectWidget
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
-		svec2 p = svec(p_pen.x, p_pen.y);
+		ivec2 p = ivec2(p_pen.x, p_pen.y);
 		p_view.translateMesh(vertices, p);
 	}
 
@@ -208,7 +208,7 @@ public class ImageBox : RectWidget
 	public override void setPosition(UIView p_view, ivec2 p_position)
 	{
 		p_view.setQuadSize(vertices, resultSize);
-		p_view.translateMesh(vertices, svec(p_position));
+		p_view.translateMesh(vertices, ivec2(p_position));
 	}
 }
 

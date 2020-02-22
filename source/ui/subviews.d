@@ -67,8 +67,8 @@ public final class Scrolled : LeafWidget
 
 	private InteractibleId idHandle, idPan;
 	private ivec2 drawPos;
-	private float scrollLocation = 0;
-	private float scrollRatio = 1;
+	private double scrollLocation = 0;
+	private double scrollRatio = 1;
 	private int scrollSpan;
 
 	public this(Widget p_child, float p_scroll = 1) 
@@ -82,7 +82,7 @@ public final class Scrolled : LeafWidget
 
 	public override void initialize(UIRenderer p_ui, UIView p_view) 
 	{
-		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
+		auto oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 		parentView = p_view;
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
@@ -113,7 +113,7 @@ public final class Scrolled : LeafWidget
 		childSize = result.constrained(p_request);
 		childSize.width -= scrollbarWidth;
 
-		scrollRatio = childSize.height / (cast(float) result.height);
+		scrollRatio = childSize.height / (cast(double) result.height);
 
 		if(scrollRatio > 1)
 		{
@@ -130,14 +130,14 @@ public final class Scrolled : LeafWidget
 			).constrained(Bounds.none, Bounds(barsize.width/2))
 		);
 
-		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
+		auto oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 
 		// How far, in pixels, the user can scroll
 		scrollSpan = barsize.height - handleSize.height;
 		if(scrollSpan < 0) scrollSpan = 0;
 
 		// Readjusting scroll to match old position as best as possible
-		scrollLocation = cast(int)(scrollSpan * oldScroll);
+		scrollLocation = scrollSpan * oldScroll;
 		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
 
 		scrollbar.position = ivec2(childSize.width, 0);
@@ -162,9 +162,9 @@ public final class Scrolled : LeafWidget
 		p_view.setInteractPosition(idPan, p_pen);
 	}
 
-	public void scrollBy(float p_pixels, bool pan) 
+	public void scrollBy(double p_pixels, bool pan) 
 	{
-		float translate, newLoc;
+		double translate, newLoc;
 		if(pan)
 		{
 			translate = childView.translation.y - p_pixels;
@@ -209,9 +209,9 @@ public final class Scrolled : LeafWidget
 		scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 	}
 
-	public void scrollTo(float p_position) 
+	public void scrollTo(double p_position) 
 	{
-		float pos = p_position;
+		double pos = p_position;
 		if(pos < 0)
 		{
 			pos = 0;
@@ -221,7 +221,7 @@ public final class Scrolled : LeafWidget
 			pos = 1;
 		}
 
-		float desiredLoc = scrollSpan * pos;
+		double desiredLoc = scrollSpan * pos;
 
 		scrollBy(scrollLocation - desiredLoc, false);
 	}
