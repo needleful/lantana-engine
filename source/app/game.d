@@ -64,34 +64,7 @@ int main()
 
 	TextBox frameTime = new TextBox(ui.style.defaultFont, debugFormat, true);
 	uint frame = 0;
-
-	int i = 0;
-	Widget[] list = [
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
-	];
-	VBox dialog = new VBox(list, 18);
+	VBox dialog = new VBox([new ImageBox(ui, nful)], 18);
 
 	Modal uiModal = new Modal([
 		// Pause menu
@@ -200,6 +173,11 @@ int main()
 
 		window.end_frame();
 		frame ++;
+
+		if(paused && (frame % 9 == 0))
+		{
+			dialog.addChild(new TextBox(ui.style.defaultFont, format("The N Word %d", frame)));
+		}
 
 	}
 	debug writeln("Game closing");

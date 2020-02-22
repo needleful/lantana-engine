@@ -390,7 +390,6 @@ class VBox: Container
 			size.height = vertPos + childSize.height;
 
 			vertPos += childSize.height + spacing;
-			printT("Children[%] -> % at (%, %)\n", i, childSize, child.position.x, child.position.y);
 		}
 
 		if(size.width > p_request.width.max)

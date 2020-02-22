@@ -39,7 +39,7 @@ private struct TextMesh
 	// (between 0 and 1) the proportion of characters visible.
 	float visiblePortion;
 	// Offset within the EBO
-	ushort offset;
+	uint offset;
 	// Number of quads to render
 	ushort length;
 	// Amount of quads allocated
@@ -49,6 +49,19 @@ private struct TextMesh
 public struct TextId
 {
 	mixin StrictAlias!ushort;
+}
+
+public struct MeshRef
+{
+	uint start;
+	ushort tris, vertices;
+
+	private this(uint p_start, ushort p_tris, ushort p_verts)
+	{
+		start = p_start;
+		tris = p_tris;
+		vertices = p_verts;
+	}
 }
 
 package enum ViewState
@@ -410,7 +423,7 @@ public final class UIView
 		return false;
 	}
 
-	public ushort[] addSpriteQuad(SpriteId p_sprite) 
+	public MeshRef addSpriteQuad(SpriteId p_sprite) 
 	{
 		assert(p_sprite in renderer.atlasSprite.map);
 
@@ -439,7 +452,7 @@ public final class UIView
 
 		invalidated[ViewState.UVBuffer] = true;
 		invalidated[ViewState.SpriteEBO] = true;
-		return elemSprite[elemStart..elemStart+6];
+		return MeshRef(cast(uint)elemStart, 2, 4);
 	}
 
 	private void setQuadUV(uint p_start, Rect p_rect) 
@@ -476,10 +489,11 @@ public final class UIView
 		uvInvalid.apply(p_start, p_start + 4);
 	}
 
-	public void setQuadSize(ushort[] p_vertices, RealSize p_size) 
+	public void setQuadSize(MeshRef p_mesh, RealSize p_size) 
 	{
+		assert(p_mesh.tris == 2);
 		// Consult the diagram in addSpriteQuad for explanation
-		ushort quadStart = p_vertices[0];
+		auto quadStart = elemSprite[p_mesh.start];
 		vertpos[quadStart] = svec(0,0);
 		vertpos[quadStart + 1] = svec(0, p_size.height);
 		vertpos[quadStart + 2] = svec(p_size.width, 0);
@@ -489,16 +503,14 @@ public final class UIView
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
-	public void changeSprite(ushort[] p_verts, SpriteId p_sprite) 
+	public void setSprite(MeshRef p_mesh, SpriteId p_sprite) 
 	{
-		assert(p_verts.length == 6);
-
+		assert(p_mesh.tris == 2);
 		TextureNode* node = renderer.atlasSprite.map[p_sprite];
-
-		setQuadUV(p_verts[0], Rect(node.position, node.size));
+		setQuadUV(elemSprite[p_mesh.start], Rect(node.position, node.size));
 	}
 
-	public ushort[] addPatchRect(SpriteId p_sprite, Pad p_pad) 
+	public MeshRef addPatchRect(SpriteId p_sprite, Pad p_pad) 
 	{
 		ushort vertstart = cast(ushort)vertpos.length;
 		ushort uvstart = cast(ushort)uvs.length;
@@ -516,7 +528,7 @@ public final class UIView
 		ushort v = vertstart;
 
 		// See comment in setPatchRectUV for diagram
-		elemSprite[elemstart..elemstart+6*9] = [
+		elemSprite[elemstart..elemstart+18*3] = [
 			// 0
 			0, 2, 1,
 			1, 2, 3,
@@ -545,16 +557,21 @@ public final class UIView
 			12, 14, 13,
 			13, 14, 15
 		];
-		elemSprite[elemstart..elemstart+6*9] += vertstart;
+		elemSprite[elemstart..elemstart+18*3] += vertstart;
 
 		invalidated[ViewState.UVBuffer] = true;
 		invalidated[ViewState.PositionBuffer] = true;
 		invalidated[ViewState.SpriteEBO] = true;
 
-		return elemSprite[elemstart..elemstart+6*9];
+		return MeshRef(elemstart, 18, 16);
 	}
 
-	public void setPatchRectUV(uint p_start, SpriteId p_sprite, Pad p_pad) 
+	public void setPatchRectUV(MeshRef p_mesh, SpriteId p_sprite, Pad p_pad)
+	{
+		setPatchRectUV(elemSprite[p_mesh.start], p_sprite, p_pad);
+	}
+
+	private void setPatchRectUV(uint p_vertstart, SpriteId p_sprite, Pad p_pad) 
 	{
 		/+
 			A biggun!
@@ -592,14 +609,14 @@ public final class UIView
 			node.position.x + node.size.width - p_pad.right,
 			node.position.y + node.size.height - p_pad.top);
 
-		setQuadUV(p_start,   Rect(bot_left,  RealSize(p_pad.left, p_pad.bottom)));
-		setQuadUV(p_start+4, Rect(top_left,  RealSize(p_pad.left, p_pad.top)));
+		setQuadUV(p_vertstart,   Rect(bot_left,  RealSize(p_pad.left, p_pad.bottom)));
+		setQuadUV(p_vertstart+4, Rect(top_left,  RealSize(p_pad.left, p_pad.top)));
 
-		setQuadUV(p_start+8,  Rect(bot_right, RealSize(p_pad.right, p_pad.bottom)));
-		setQuadUV(p_start+12, Rect(top_right, RealSize(p_pad.right, p_pad.top)));
+		setQuadUV(p_vertstart+8,  Rect(bot_right, RealSize(p_pad.right, p_pad.bottom)));
+		setQuadUV(p_vertstart+12, Rect(top_right, RealSize(p_pad.right, p_pad.top)));
 	}
 
-	public void setPatchRectSize(ushort[] p_vertices, RealSize p_size, Pad p_pad) 
+	public void setPatchRectSize(MeshRef p_mesh, RealSize p_size, Pad p_pad) 
 	{
 		/+
 			A biggun!
@@ -616,12 +633,12 @@ public final class UIView
 
 			x+ ->
 		+/
-		uint vecstart = p_vertices[0];
+		uint vecstart = elemSprite[p_mesh.start];
 
 		int topbar = p_size.height - p_pad.top;
 		int rightbar = p_size.width - p_pad.right;
 
-		vertpos[vecstart..vecstart+16] = [
+		vertpos[vecstart..vecstart+p_mesh.vertices] = [
 			svec(0,          0),
 			svec(0,          p_pad.bottom),
 			svec(p_pad.left, 0),
@@ -646,14 +663,14 @@ public final class UIView
 
 	/// p_count is the number of vertices to change
 	/// Assumes the mesh is continuous
-	public void translateMesh(ushort[] p_vertices, int p_count, svec2 p_translation) 
+	public void translateMesh(MeshRef p_mesh, svec2 p_translation) 
 	{
-		ushort vert = p_vertices[0];
+		auto vert = elemSprite[p_mesh.start];
 
-		vertpos[vert..vert+p_count] += p_translation;
+		vertpos[vert..vert+p_mesh.vertices] += p_translation;
 
 		invalidated[ViewState.PositionBufferPartial] = true;
-		posInvalid.apply(vert, vert + p_count);
+		posInvalid.apply(vert, vert + p_mesh.vertices);
 	}
 
 	public TextId addTextMesh(FontId p_font, string p_text, int allocLen) 

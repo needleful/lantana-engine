@@ -28,16 +28,18 @@ public abstract class LeafWidget : Widget
 
 public abstract class RectWidget : LeafWidget
 {
-	public void changeSprite(UIView p_view, SpriteId p_sprite) ;
+	public void setSprite(UIView p_view, SpriteId p_sprite);
+
+	public void setPosition(UIView p_view, ivec2 p_position);
 }
 
 public class PatchRect : RectWidget
 {
+	Widget child;
 	SpriteId sprite;
-	ushort[] vertices;
-	// Pixel padding for the 9-patch
+	MeshRef mesh;
+	RealSize size;
 	Pad pad;
-	private Widget child;
 
 	public this(SpriteId p_sprite, Pad p_pad) 
 	{
@@ -47,7 +49,7 @@ public class PatchRect : RectWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		vertices = p_view.addPatchRect(sprite, pad);
+		mesh = p_view.addPatchRect(sprite, pad);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
@@ -59,30 +61,35 @@ public class PatchRect : RectWidget
 				Bounds(pad.left + pad.right, double.infinity),
 				Bounds(pad.top + pad.bottom, double.infinity));
 
-		RealSize result = RealSize(cast(int) rq.width.min, cast(int) rq.height.min);
+		size = RealSize(cast(int) rq.width.min, cast(int) rq.height.min);
+		p_view.setPatchRectSize(mesh, size, pad);
 
-		p_view.setPatchRectSize(vertices, result, pad);
-
-		return result;
+		return size;
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
-		p_view.translateMesh(vertices, 16, svec(p_pen));
+		p_view.translateMesh(mesh, svec(p_pen));
 	}
 
-	public override void changeSprite(UIView p_view, SpriteId p_sprite) 
+	public override void setSprite(UIView p_view, SpriteId p_sprite) 
 	{
-		p_view.setPatchRectUV(vertices[0], p_sprite, pad);
+		p_view.setPatchRectUV(mesh, p_sprite, pad);
+	}
+
+	public override void setPosition(UIView p_view, ivec2 p_position)
+	{
+		p_view.setPatchRectSize(mesh, size, pad);
+		p_view.translateMesh(mesh, svec(p_position));
 	}
 }
 
 public class ImageBox : RectWidget
 {
-	RealSize textureSize;
+	RealSize textureSize, resultSize;
 	SpriteId spriteId;
 	// indeces into the UIRenderer vertex buffer
-	ushort[] vertices;
+	MeshRef vertices;
 
 	// Instead of rendering a sprite, render a colored rectangle
 	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) 
@@ -109,7 +116,6 @@ public class ImageBox : RectWidget
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		vertices = p_view.addSpriteQuad(spriteId);
-		assert(vertices.length == 6);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
@@ -182,21 +188,27 @@ public class ImageBox : RectWidget
 			}
 		}
 
-		RealSize result = RealSize(cast(int)(size.width * wrIdeal), cast(int)(size.height * hrIdeal));
+		resultSize = RealSize(cast(int)(size.width * wrIdeal), cast(int)(size.height * hrIdeal));
 
-		p_view.setQuadSize(vertices, result);
-		return result;
+		p_view.setQuadSize(vertices, resultSize);
+		return resultSize;
 	}
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
-		p_view.translateMesh(vertices, 4, p);
+		p_view.translateMesh(vertices, p);
 	}
 
-	public override void changeSprite(UIView p_view, SpriteId p_sprite) 
+	public override void setSprite(UIView p_view, SpriteId p_sprite) 
 	{
-		p_view.changeSprite(vertices, p_sprite);
+		p_view.setSprite(vertices, p_sprite);
+	}
+
+	public override void setPosition(UIView p_view, ivec2 p_position)
+	{
+		p_view.setQuadSize(vertices, resultSize);
+		p_view.translateMesh(vertices, svec(p_position));
 	}
 }
 
@@ -319,14 +331,14 @@ public class Button: Container, Interactible
 
 	public override void unfocus()
 	{
-		(cast(RectWidget)children[0]).changeSprite(view, view.renderer.style.button.normal);
+		(cast(RectWidget)children[0]).setSprite(view, view.renderer.style.button.normal);
 	}
 
 	public override void drag(ivec2 _) {}
 
 	public override void interact()
 	{
-		(cast(RectWidget)children[0]).changeSprite(view, view.renderer.style.button.pressed);
+		(cast(RectWidget)children[0]).setSprite(view, view.renderer.style.button.pressed);
 		onPressed(this);
 	}
 }

@@ -43,11 +43,11 @@ public final class Scrolled : LeafWidget
 		
 		public override void interact() 
 		{
-			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.pressed);
+			parent.scrollbarHandle.setSprite(parent.parentView, parent.childView.renderer.style.button.pressed);
 		}
 		public override void unfocus() 
 		{
-			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.normal);
+			parent.scrollbarHandle.setSprite(parent.parentView, parent.childView.renderer.style.button.normal);
 		}
 		public override short priority() 
 		{
@@ -66,22 +66,23 @@ public final class Scrolled : LeafWidget
 	private RectWidget scrollbarHandle;
 
 	private InteractibleId idHandle, idPan;
-	private int scrollLocation = 0;
-	private int scrollSpan;
+	private ivec2 drawPos;
+	private float scrollLocation = 0;
 	private float scrollRatio = 1;
+	private int scrollSpan;
 
 	public this(Widget p_child, float p_scroll = 1) 
 	{
 		child = p_child;
 
 		// A hack to set the scroll bar's position before anything's been laid out
-		scrollSpan = 100;
-		scrollLocation = cast(int)(scrollSpan * p_scroll);
+		scrollSpan = 1;
+		scrollLocation = scrollSpan * p_scroll;
 	}
 
 	public override void initialize(UIRenderer p_ui, UIView p_view) 
 	{
-		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
+		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 		parentView = p_view;
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
@@ -118,10 +119,6 @@ public final class Scrolled : LeafWidget
 		{
 			scrollRatio = 1;
 		}
-		if(scrollRatio < 0.1)
-		{
-			scrollRatio = 0.1;
-		}
 
 		RealSize barsize = scrollbar.layout(p_view, SizeRequest(Bounds(scrollbarWidth), Bounds(childSize.height)));
 		
@@ -130,10 +127,10 @@ public final class Scrolled : LeafWidget
 			SizeRequest(
 				Bounds(barsize.width), 
 				Bounds(cast(int)(barsize.height*scrollRatio))
-			)
+			).constrained(Bounds.none, Bounds(barsize.width/2))
 		);
 
-		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
+		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 
 		// How far, in pixels, the user can scroll
 		scrollSpan = barsize.height - handleSize.height;
@@ -144,7 +141,7 @@ public final class Scrolled : LeafWidget
 		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
 
 		scrollbar.position = ivec2(childSize.width, 0);
-		scrollbarHandle.position = ivec2(scrollbar.position.x, scrollLocation);
+		scrollbarHandle.position = ivec2(scrollbar.position.x, cast(int)scrollLocation);
 
 		p_view.setInteractSize(idHandle, barsize);
 		p_view.setInteractSize(idPan, childSize);
@@ -154,7 +151,8 @@ public final class Scrolled : LeafWidget
 
 	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
-		scrollbarHandle.position = ivec2(scrollbar.position + p_pen + ivec2(0, scrollLocation));
+		drawPos = scrollbar.position + p_pen;
+		scrollbarHandle.position = drawPos + ivec2(0, cast(int)scrollLocation);
 
 		childView.setRect(Rect(p_pen, childSize));
 		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
@@ -164,39 +162,40 @@ public final class Scrolled : LeafWidget
 		p_view.setInteractPosition(idPan, p_pen);
 	}
 
-	public void scrollBy(int p_pixels, bool pan) 
+	public void scrollBy(float p_pixels, bool pan) 
 	{
 		if(pan)
 		{
-			int translate = childView.translation.y - p_pixels;
+			float translate = childView.translation.y - p_pixels;
+			float newLoc = -translate * scrollRatio;
+
 			if(translate > 0 )
 			{
 				translate = 0;
+				newLoc = 0;
 			}
 			else if(translate < -scrollSpan/scrollRatio)
 			{
-				translate = cast(int)(-scrollSpan/scrollRatio);
+				translate = -scrollSpan/scrollRatio;
+				newLoc = scrollSpan;
 			}
 
-			int newLoc = cast(int)(-translate * scrollRatio);
 			if(newLoc == scrollLocation)
 			{
 				return;
 			}
 
-			int pixels = scrollLocation - newLoc;
+			float pixels = scrollLocation - newLoc;
 
 			scrollLocation = newLoc;
+			childView.translation = ivec2(0, cast(int)translate);
 
-			childView.translation = ivec2(0, translate);
-
-			ivec2 pos = ivec2(0, -pixels);
-			scrollbarHandle.position += pos;
-			scrollbarHandle.prepareRender(parentView, pos);
+			scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
+			scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 		}
 		else
 		{
-			int newLoc = scrollLocation - p_pixels;
+			float newLoc = scrollLocation - p_pixels;
 			if(newLoc < 0 )
 			{
 				newLoc = 0;
@@ -211,15 +210,14 @@ public final class Scrolled : LeafWidget
 				return;
 			}
 
-			int pixels = scrollLocation - newLoc;
+			float pixels = scrollLocation - newLoc;
 
 			scrollLocation = newLoc;
 
 			childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
 
-			ivec2 pos = ivec2(0, -pixels);
-			scrollbarHandle.position += pos;
-			scrollbarHandle.prepareRender(parentView, pos);
+			scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
+			scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 		}
 	}
 
@@ -235,7 +233,7 @@ public final class Scrolled : LeafWidget
 			pos = 1;
 		}
 
-		int desiredLoc = cast(int)(scrollSpan * pos);
+		float desiredLoc = scrollSpan * pos;
 
 		scrollBy(scrollLocation - desiredLoc, false);
 	}
