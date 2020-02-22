@@ -176,7 +176,7 @@ int main()
 
 		if(paused && (frame % 8 == 0))
 		{
-			dialog.addChild(new TextBox(ui.style.defaultFont, format("The N Word %d", frame/8)));
+			dialog.addChild(new TextBox(ui.style.defaultFont, format("Mambo Number %d", frame/8)));
 		}
 
 	}

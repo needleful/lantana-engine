@@ -164,61 +164,49 @@ public final class Scrolled : LeafWidget
 
 	public void scrollBy(float p_pixels, bool pan) 
 	{
+		float translate, newLoc;
 		if(pan)
 		{
-			float translate = childView.translation.y - p_pixels;
-			float newLoc = -translate * scrollRatio;
+			translate = childView.translation.y - p_pixels;
+			newLoc = -translate * scrollRatio;
 
-			if(translate > 0 )
+			if(translate >= 0 )
 			{
 				translate = 0;
 				newLoc = 0;
 			}
-			else if(translate < -scrollSpan/scrollRatio)
+			else if(translate <= -scrollSpan/scrollRatio)
 			{
 				translate = -scrollSpan/scrollRatio;
 				newLoc = scrollSpan;
 			}
-
-			if(newLoc == scrollLocation)
-			{
-				return;
-			}
-
-			float pixels = scrollLocation - newLoc;
-
-			scrollLocation = newLoc;
-			childView.translation = ivec2(0, cast(int)translate);
-
-			scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
-			scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 		}
 		else
 		{
-			float newLoc = scrollLocation - p_pixels;
-			if(newLoc < 0 )
+			newLoc = scrollLocation - p_pixels;
+			translate = -newLoc / scrollRatio;
+
+			if(newLoc <= 0 )
 			{
 				newLoc = 0;
+				translate = 0;
 			}
-			else if(newLoc > scrollSpan)
+			else if(newLoc >= scrollSpan)
 			{
 				newLoc = scrollSpan;
+				translate = -scrollSpan/scrollRatio;
 			}
-
-			if(newLoc == scrollLocation)
-			{
-				return;
-			}
-
-			float pixels = scrollLocation - newLoc;
-
-			scrollLocation = newLoc;
-
-			childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
-
-			scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
-			scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 		}
+
+		if(childView.translation.y == cast(int)translate && newLoc == scrollLocation)
+		{
+			return;
+		}
+
+		scrollLocation = newLoc;
+		childView.translation = ivec2(0, cast(int) translate);
+		scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
+		scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
 	}
 
 	public void scrollTo(float p_position) 

@@ -887,17 +887,6 @@ public final class UIView
 
 	private void initBuffers() 
 	{
-		// Reserve space for 256 characters
-		enum textQuads = 256;
-		// Space for 10 sprites
-		enum spriteQuads = 10;
-
-		elemText.reserve(6*textQuads);
-		elemSprite.reserve(6*spriteQuads);
-
-		vertpos.reserve(4*(textQuads + spriteQuads));
-		uvs.reserve(4*(textQuads + spriteQuads));
-
 		glGenBuffers(vbo.length, vbo.ptr);
 		glGenVertexArrays(vao.length, vao.ptr);
 
