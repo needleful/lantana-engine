@@ -29,27 +29,27 @@ public final class Scrolled : LeafWidget
 		short m_priority;
 		bool pan;
 
-		this(Scrolled p_parent, bool p_pan, short p_priority) nothrow
+		this(Scrolled p_parent, bool p_pan, short p_priority) 
 		{
 			parent = p_parent;
 			pan = p_pan;
 			m_priority = p_priority;
 		}
 
-		public override void drag(ivec2 p_dragAmount) nothrow
+		public override void drag(ivec2 p_dragAmount) 
 		{
 			parent.scrollBy(cast(int) p_dragAmount.y, pan);
 		}
 		
-		public override void interact() nothrow
+		public override void interact() 
 		{
 			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.pressed);
 		}
-		public override void unfocus() nothrow
+		public override void unfocus() 
 		{
 			parent.scrollbarHandle.changeSprite(parent.parentView, parent.childView.renderer.style.button.normal);
 		}
-		public override short priority() nothrow
+		public override short priority() 
 		{
 			return m_priority;
 		}
@@ -70,7 +70,7 @@ public final class Scrolled : LeafWidget
 	private int scrollSpan;
 	private float scrollRatio = 1;
 
-	public this(Widget p_child, float p_scroll = 1) nothrow
+	public this(Widget p_child, float p_scroll = 1) 
 	{
 		child = p_child;
 
@@ -79,7 +79,7 @@ public final class Scrolled : LeafWidget
 		scrollLocation = cast(int)(scrollSpan * p_scroll);
 	}
 
-	public override void initialize(UIRenderer p_ui, UIView p_view) nothrow
+	public override void initialize(UIRenderer p_ui, UIView p_view) 
 	{
 		float oldScroll = scrollSpan == 0 ? 0 : scrollLocation/cast(float)scrollSpan;
 		parentView = p_view;
@@ -98,9 +98,8 @@ public final class Scrolled : LeafWidget
 		scrollTo(oldScroll);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		printf("Start scroll(%p) layout\n", this);
 		int scrollbarWidth = p_view.renderer.style.scrollbar.width;
 
 		SizeRequest childReq = SizeRequest(
@@ -150,12 +149,10 @@ public final class Scrolled : LeafWidget
 		p_view.setInteractSize(idHandle, barsize);
 		p_view.setInteractSize(idPan, childSize);
 
-		printT("End scroll % layout: % -> %\n", cast(void*) this, p_request, result);
-
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		scrollbarHandle.position = ivec2(scrollbar.position + p_pen + ivec2(0, scrollLocation));
 
@@ -167,7 +164,7 @@ public final class Scrolled : LeafWidget
 		p_view.setInteractPosition(idPan, p_pen);
 	}
 
-	public void scrollBy(int p_pixels, bool pan) nothrow
+	public void scrollBy(int p_pixels, bool pan) 
 	{
 		if(pan)
 		{
@@ -226,7 +223,7 @@ public final class Scrolled : LeafWidget
 		}
 	}
 
-	public void scrollTo(float p_position) nothrow
+	public void scrollTo(float p_position) 
 	{
 		float pos = p_position;
 		if(pos < 0)
@@ -251,13 +248,13 @@ public final class Modal : LeafWidget
 
 	private uint currentMode;
 
-	public this(Widget[] p_widgets) nothrow
+	public this(Widget[] p_widgets) 
 	{
 		widgets = p_widgets;
 		views.reserve(widgets.length);
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	public override void initialize(UIRenderer p_renderer, UIView p_view) 
 	{
 		foreach(w; widgets)
 		{
@@ -272,7 +269,7 @@ public final class Modal : LeafWidget
 		views[currentMode].setVisible(true);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		foreach(view; views)
 		{
@@ -282,7 +279,7 @@ public final class Modal : LeafWidget
 		return widgets[currentMode].layout(views[currentMode], p_request);
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		UIView v = views[currentMode];
 		Widget wi = widgets[currentMode];
@@ -310,7 +307,7 @@ public final class Modal : LeafWidget
 
 		views[p_mode].setVisible(true);
 
-		views[p_mode].renderer.requestUpdate();
+		views[p_mode].requestUpdate();
 		currentMode = p_mode;
 	}
 }

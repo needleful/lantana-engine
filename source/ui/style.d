@@ -13,19 +13,19 @@ import ui.widgets;
 
 interface IRectStyle
 {
-	RectWidget create(UIRenderer p_renderer) nothrow;
+	RectWidget create(UIRenderer p_renderer) ;
 }
 
 final class SpriteQuadStyle: IRectStyle
 {
 	private SpriteId id;
 
-	public this(SpriteId p_id) nothrow
+	public this(SpriteId p_id) 
 	{
 		this.id = p_id;
 	}
 
-	public override RectWidget create(UIRenderer p_renderer) nothrow
+	public override RectWidget create(UIRenderer p_renderer) 
 	{
 		return new ImageBox(p_renderer, id);
 	}
@@ -42,7 +42,7 @@ final class PatchRectStyle : IRectStyle
 		pad = p_pad;
 	}
 
-	public override RectWidget create(UIRenderer p_renderer) nothrow
+	public override RectWidget create(UIRenderer p_renderer) 
 	{
 		return new PatchRect(id, pad);
 	}

@@ -63,20 +63,49 @@ int main()
 	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 
 	TextBox frameTime = new TextBox(ui.style.defaultFont, debugFormat, true);
+	uint frame = 0;
 
-	VBox dialog = new VBox([
-		new TextBox(ui.style.defaultFont, "Hello!"),
-		new ImageBox(ui, nful),
-		new ImageBox(ui, nful),
-		new Button(ui, new ImageBox(ui, "data/test/ui_sprites/upclick.png"), (Widget w){writeln("Pressed upclick!");}),
-		new ImageBox(ui, nful),
-	], 18);
+	int i = 0;
+	Widget[] list = [
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+		new TextBox(ui.style.defaultFont, format("Hello! #%d", i++)),
+	];
+	VBox dialog = new VBox(list, 18);
 
 	Modal uiModal = new Modal([
 		// Pause menu
 		new AnchoredBox([
 			ui.style.panel.mesh.create(ui),
 			new Padding(new Scrolled(dialog, 0), Pad(18)),
+			new Positioned(
+				new Button(ui, new TextBox(ui.style.defaultFont, "Add"),
+					(Widget w)
+					{
+						dialog.addChild(new TextBox(ui.style.defaultFont, format("Added object at frame %u", frame)));
+					}),
+				vec2(1, 0.1), vec2(0,0)
+			)
 		],
 		vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
@@ -95,8 +124,6 @@ int main()
 	ui.setRootWidget(uiModal);
 
 	uiModal.setMode(1);
-
-	uint frame = 0;
 
 	debug writeln("Beginning game loop");
 	stdout.flush();

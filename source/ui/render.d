@@ -63,6 +63,7 @@ package enum AtlasState
 	Sprite,
 }
 
+
 /// The Grand Poobah of UI.
 /// It handles all the logic for rendering UI layouts and updating them responsibly.
 /// There should be exactly one UIRenderer
@@ -180,11 +181,6 @@ public final class UIRenderer
 		FT_Done_FreeType(fontLibrary);
 	}
 
-	public void requestUpdate() nothrow
-	{
-		views[0].invalidated[ViewState.Layout] = true;
-	}
-
 	public void update(float p_delta, Input* p_input)
 	{
 		// Widgets manage their own layouts, we just update the root layout
@@ -264,12 +260,12 @@ public final class UIRenderer
 		glDisable(GL_SCISSOR_TEST);
 	}
 
-	@property public UIStyle style() @nogc nothrow
+	@property public UIStyle style() @nogc 
 	{
 		return m_style;
 	}
 
-	public UIView rootView() @nogc nothrow
+	public UIView rootView() @nogc 
 	{
 		return views[0];
 	}
@@ -284,13 +280,13 @@ public final class UIRenderer
 		views[0].setRootWidget(new HodgePodge(p_widgets));
 	}
 
-	public void setSize(RealSize p_size) nothrow
+	public void setSize(RealSize p_size) 
 	{
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
 	}
 
-	public RealSize getSize() nothrow
+	public RealSize getSize() 
 	{
 		return windowSize;
 	}
@@ -300,7 +296,7 @@ public final class UIRenderer
 	+++++++++++++++++++++++++++++++++++++++/
 
 	/// Add a sprite to be rendered
-	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer, bool p_swapRB = true) nothrow
+	public SpriteId addSprite(RealSize p_size, AlphaColor* p_buffer, bool p_swapRB = true) 
 	{
 		assert(spriteCount < SpriteId.dt.max, "Sprite limit exceeded.");
 
@@ -327,7 +323,7 @@ public final class UIRenderer
 	}
 	
 	/// Add a single-pixel texture for color rectangles
-	public SpriteId addSinglePixel(AlphaColor p_color) nothrow
+	public SpriteId addSinglePixel(AlphaColor p_color) 
 	{
 		return addSprite(RealSize(1), &p_color, false);
 	}
@@ -343,7 +339,7 @@ public final class UIRenderer
 		return result;
 	}
 
-	public RealSize getSpriteSize(SpriteId p_id) nothrow
+	public RealSize getSpriteSize(SpriteId p_id) 
 	{
 		return atlasSprite.map[p_id].size;
 	}

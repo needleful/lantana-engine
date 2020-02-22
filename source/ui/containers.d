@@ -21,7 +21,7 @@ public abstract class Container : Widget
 {
 	protected Widget[] children;
 
-	public override Widget[] getChildren() nothrow
+	public override Widget[] getChildren() 
 	{
 		return children;
 	}
@@ -31,12 +31,12 @@ public abstract class SingularContainer: Widget
 {
 	protected Widget child;
 
-	public override Widget[] getChildren() nothrow
+	public override Widget[] getChildren() 
 	{
 		return (&child)[0..1];
 	}
 
-	public const(Widget) getChild() nothrow
+	public const(Widget) getChild() 
 	{
 		return child;
 	}
@@ -45,12 +45,12 @@ public abstract class SingularContainer: Widget
 /// Provides no layout hints.  All widgets are laid out in the same space and position
 public class HodgePodge : Container
 {
-	public this(Widget[] p_children) nothrow
+	public this(Widget[] p_children) 
 	{
 		children = p_children;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_renderer, SizeRequest p_request) 
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -75,18 +75,18 @@ public class Positioned: SingularContainer
 	vec2 anchor;
 	vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor) nothrow
+	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor) 
 	{
 		child = p_child;
 		anchor = p_anchor;
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request)
+	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
 		SizeRequest childRequest = SizeRequest(absoluteWidth, absoluteHeight);
 
-		RealSize childSize = child.layout(p_renderer, childRequest);
+		RealSize childSize = child.layout(p_view, childRequest);
 
 		RealSize parent = RealSize(cast(int) p_request.width.max, cast(int) p_request.height.max);
 
@@ -106,7 +106,7 @@ public class Anchor: SingularContainer
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
 	vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) nothrow
+	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) 
 	{
 		child = p_child;
 		child.position = ivec2(0,0);
@@ -115,7 +115,7 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
@@ -233,7 +233,7 @@ public class Anchor: SingularContainer
 			else return RealSize(0,0);
 		}
 
-		RealSize childSize = child.layout(p_renderer, childIntrinsic);
+		RealSize childSize = child.layout(p_view, childIntrinsic);
 
 		child.position = ivec2(
 			cast(int)(parentWidth*anchor.x - childSize.width*childAnchor.x),
@@ -261,7 +261,7 @@ public class AnchoredBox : Container
 		topRight = p_tRight;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request)
+	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
@@ -275,7 +275,7 @@ public class AnchoredBox : Container
 		foreach(child; children)
 		{
 			child.position = ivec2(cast(int)(p_request.width.max*bottomLeft.x), cast(int)(p_request.height.max*bottomLeft.y));
-			child.layout(p_renderer, childRequest);
+			child.layout(p_view, childRequest);
 		}
 
 		return RealSize(cast(int) childRequest.width.max, cast(int) childRequest.height.max);
@@ -287,14 +287,14 @@ public class Padding : SingularContainer
 	// Padding, in pixels
 	Pad pad;
 
-	public this(Widget p_child, Pad p_pad) nothrow
+	public this(Widget p_child, Pad p_pad) 
 	{
 		child = p_child;
 
 		pad = p_pad;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -307,7 +307,7 @@ public class Padding : SingularContainer
 		// Constrain child to the full box (or infinity)
 		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
 
-		RealSize csize = child.layout(p_renderer, childIntrinsic);
+		RealSize csize = child.layout(p_view, childIntrinsic);
 		child.position = ivec2(pad.left, pad.bottom);
 
 		return RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
@@ -325,7 +325,7 @@ class HBox: Container
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -334,7 +334,7 @@ class HBox: Container
 		ivec2 pen = ivec2(0,0);
 		foreach(child; children)
 		{
-			RealSize childSize = child.layout(p_renderer, request);
+			RealSize childSize = child.layout(p_view, request);
 			child.position.x = pen.x;
 			child.position.y = -childSize.height/2;
 
@@ -356,6 +356,7 @@ class HBox: Container
 /// Goes from bottom to top
 class VBox: Container
 {
+	UIView view;
 	// Space between children
 	int spacing;
 
@@ -363,29 +364,33 @@ class VBox: Container
 	// TODO: make adding new children put them on the bottom, too
 	this(Widget[] p_children, int p_spacing = 0)
 	{
-		children = p_children.reverse();
+		children = p_children;
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		view = p_view;
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		childRequest.height.min = 0;
 		childRequest.width.min = 0;
 
 		//TODO: respect intrinsics properly
 		RealSize size;
-		ivec2 pen = ivec2(0,0);
-		foreach(child; children)
+		uint vertPos = 0;
+		// Going through the items backwards
+		for(int i = cast(int)(children.length - 1); i >= 0; i--)
 		{
-			RealSize childSize = child.layout(p_renderer, childRequest);
+			Widget child = children[i];
+			RealSize childSize = child.layout(p_view, childRequest);
 			child.position.x = -childSize.width/2;
-			child.position.y = pen.y;
+			child.position.y = vertPos;
 
 			size.width = childSize.width > size.width? childSize.width: size.width;
-			size.height = pen.y + childSize.height;
+			size.height = vertPos + childSize.height;
 
-			pen.y += childSize.height + spacing;
+			vertPos += childSize.height + spacing;
+			printT("Children[%] -> % at (%, %)\n", i, childSize, child.position.x, child.position.y);
 		}
 
 		if(size.width > p_request.width.max)
@@ -403,5 +408,12 @@ class VBox: Container
 		}
 
 		return size;
+	}
+
+	public void addChild(Widget w)
+	{
+		children ~= w;
+		w.initialize(view.renderer, view);
+		view.requestUpdate();
 	}
 }

@@ -33,12 +33,12 @@ public abstract class Widget
 
 	/// First phase of layout, taking some SizeRequest (bounds), and providing the real size of the object
 	/// Parents calculate the position of their children
-	public abstract RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow;
+	public abstract RealSize layout(UIView p_renderer, SizeRequest p_request);
 
-	public abstract Widget[] getChildren() nothrow;
+	public abstract Widget[] getChildren();
 
 	/// Second phase of layout: this is 
-	public void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
+	public void prepareRender(UIView p_renderer, ivec2 p_pen)
 	{
 		foreach(child; getChildren())
 		{
@@ -46,7 +46,7 @@ public abstract class Widget
 		}
 	}
 
-	public void initialize(UIRenderer p_renderer, UIView p_view) nothrow
+	public void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		foreach(child; getChildren())
 		{
@@ -54,7 +54,7 @@ public abstract class Widget
 		}
 	}
 
-	public Widget withBounds(Bounds p_width, Bounds p_height) nothrow
+	public Widget withBounds(Bounds p_width, Bounds p_height)
 	{
 		absoluteWidth = p_width;
 		absoluteHeight = p_height;

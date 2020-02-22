@@ -30,7 +30,7 @@ import ui.render;
 // Instead, each text box is drawn with the same EBO and VBO, but at
 // different starting points and with different lengths.
 // To clarify, the EBO isn't changed
-public struct TextMeshRef
+private struct TextMesh
 {
 	// The total bounding box
 	RealSize boundingSize;
@@ -44,6 +44,11 @@ public struct TextMeshRef
 	ushort length;
 	// Amount of quads allocated
 	ushort capacity;
+}
+
+public struct TextId
+{
+	mixin StrictAlias!ushort;
 }
 
 package enum ViewState
@@ -70,24 +75,24 @@ package struct BufferRange
 	uint start;
 	uint end;
 
-	this(int p_start, int p_end) nothrow  @safe
+	this(int p_start, int p_end)   @safe
 	{
 		start = p_start;
 		end = p_end;
 	}
 
-	void clear() nothrow  @safe
+	void clear()   @safe
 	{
 		start = uint.max;
 		end = uint.min;
 	}
 
-	void apply(BufferRange rhs) nothrow  @safe
+	void apply(BufferRange rhs)   @safe
 	{
 		apply(rhs.start, rhs.end);
 	}
 
-	void apply(uint p_start, uint p_end) nothrow  @safe
+	void apply(uint p_start, uint p_end)   @safe
 	{
 		start = start < p_start? start : p_start;
 		end = end > p_end? end : p_end;
@@ -110,6 +115,9 @@ public final class UIView
 	/// Children of the current view
 	private UIView[] children;
 
+	/// Parent
+	private UIView parent;
+
 	/// The rectangle for scissor clipping
 	package Rect rect;
 
@@ -121,7 +129,7 @@ public final class UIView
 	package Bitfield!ViewState invalidated;
 
 	// All text is rendered by iterating this list
-	package TextMeshRef[] textMeshes;
+	package TextMesh[] textMeshes;
 
 	/// Interactible rectangles
 	package Rect[] interactAreas;
@@ -147,7 +155,7 @@ public final class UIView
 	/// A buffer is altered at max once per frame by checking these ranges.
 	package BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
-	public this(UIRenderer p_renderer, Rect p_rect) nothrow
+	public this(UIRenderer p_renderer, Rect p_rect) 
 	{
 		renderer = p_renderer;
 		rect = p_rect;
@@ -156,18 +164,36 @@ public final class UIView
 		textMeshes.reserve(8);
 	}
 
-	public ~this() nothrow
+	public this(UIView p_view, Rect p_rect) 
+	{
+		parent = p_view;
+		renderer = p_view.renderer;
+		initBuffers();
+		invalidated.setAll();
+		textMeshes.reserve(8);
+	}
+
+	public ~this() 
 	{
 		glDeleteVertexArrays(vao.length, vao.ptr);
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	public RealSize updateLayout() nothrow
+	public void requestUpdate() 
+	{
+		invalidated[ViewState.Layout] = true;
+		if(parent)
+		{
+			parent.requestUpdate();
+		}
+	}
+
+	public RealSize updateLayout() 
 	{
 		return updateLayout(SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)));
 	}
 
-	public RealSize updateLayout(SizeRequest p_request) nothrow
+	public RealSize updateLayout(SizeRequest p_request) 
 	{
 		if(!invalidated[ViewState.Layout])
 			return rect.size;
@@ -176,9 +202,6 @@ public final class UIView
 		root.prepareRender(this, ivec2(0,0));
 
 		invalidated[ViewState.Layout] = false;
-
-		printT("Update layout of %\n", this);
-
 		return cs;
 	}
 
@@ -280,7 +303,7 @@ public final class UIView
 		glcheck();
 	}
 
-	public void setRootWidget(Widget p_root) nothrow
+	public void setRootWidget(Widget p_root) 
 	{
 		clearData();
 		root = p_root;
@@ -288,15 +311,15 @@ public final class UIView
 		invalidated[ViewState.Layout] = true;
 	}
 
-	public UIView addView(Rect p_rect) nothrow
+	public UIView addView(Rect p_rect) 
 	{
-		UIView v = new UIView(renderer, p_rect);
+		UIView v = new UIView(this, p_rect);
 		renderer.views ~= v;
 		children ~= v;
 		return v;
 	}
 
-	public void setRect(Rect p_rect) nothrow
+	public void setRect(Rect p_rect) 
 	{
 		if(p_rect == rect)
 		{
@@ -306,27 +329,27 @@ public final class UIView
 		invalidated[ViewState.Layout] = true;
 	}
 
-	public ivec2 position() nothrow
+	public ivec2 position() 
 	{
 		return rect.pos;
 	}
 
-	public RealSize size() nothrow
+	public RealSize size() 
 	{
 		return rect.size;
 	}
 
-	public void translate(ivec2 mov) nothrow
+	public void translate(ivec2 mov) 
 	{
 		translation += mov;
 	}
 
-	public bool isVisible() nothrow @nogc const
+	public bool isVisible()  @nogc const
 	{
 		return visible;
 	}
 
-	public void setVisible(bool p_vis) nothrow @nogc
+	public void setVisible(bool p_vis)  @nogc
 	{
 		visible = p_vis;
 		if(visible)
@@ -339,7 +362,7 @@ public final class UIView
 		}
 	}
 
-	public void print() nothrow @nogc
+	public void print()  @nogc
 	{
 		printT("UIView % %", cast(void*)this, rect);
 	}
@@ -348,7 +371,7 @@ public final class UIView
 		public methods -- interactive objects
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public InteractibleId addInteractible(Interactible p_source) nothrow
+	public InteractibleId addInteractible(Interactible p_source) 
 	{
 		assert(interactAreas.length == interactibles.length);
 		ubyte id = cast(ubyte) interactAreas.length;
@@ -359,12 +382,12 @@ public final class UIView
 		return InteractibleId(id);
 	}
 
-	public void setInteractSize(InteractibleId p_id, RealSize p_size) nothrow
+	public void setInteractSize(InteractibleId p_id, RealSize p_size) 
 	{
 		interactAreas[p_id].size = p_size;
 	}
 
-	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) nothrow
+	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) 
 	{
 		interactAreas[p_id].pos = p_position;
 	}
@@ -387,7 +410,7 @@ public final class UIView
 		return false;
 	}
 
-	public ushort[] addSpriteQuad(SpriteId p_sprite) nothrow
+	public ushort[] addSpriteQuad(SpriteId p_sprite) 
 	{
 		assert(p_sprite in renderer.atlasSprite.map);
 
@@ -419,7 +442,7 @@ public final class UIView
 		return elemSprite[elemStart..elemStart+6];
 	}
 
-	private void setQuadUV(uint p_start, Rect p_rect) nothrow
+	private void setQuadUV(uint p_start, Rect p_rect) 
 	{
 		// UV start, normalized
 		vec2 uv_pos = vec2(p_rect.pos.x, p_rect.pos.y);
@@ -453,7 +476,7 @@ public final class UIView
 		uvInvalid.apply(p_start, p_start + 4);
 	}
 
-	public void setQuadSize(ushort[] p_vertices, RealSize p_size) nothrow
+	public void setQuadSize(ushort[] p_vertices, RealSize p_size) 
 	{
 		// Consult the diagram in addSpriteQuad for explanation
 		ushort quadStart = p_vertices[0];
@@ -466,7 +489,7 @@ public final class UIView
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
-	public void changeSprite(ushort[] p_verts, SpriteId p_sprite) nothrow
+	public void changeSprite(ushort[] p_verts, SpriteId p_sprite) 
 	{
 		assert(p_verts.length == 6);
 
@@ -475,7 +498,7 @@ public final class UIView
 		setQuadUV(p_verts[0], Rect(node.position, node.size));
 	}
 
-	public ushort[] addPatchRect(SpriteId p_sprite, Pad p_pad) nothrow
+	public ushort[] addPatchRect(SpriteId p_sprite, Pad p_pad) 
 	{
 		ushort vertstart = cast(ushort)vertpos.length;
 		ushort uvstart = cast(ushort)uvs.length;
@@ -531,7 +554,7 @@ public final class UIView
 		return elemSprite[elemstart..elemstart+6*9];
 	}
 
-	public void setPatchRectUV(uint p_start, SpriteId p_sprite, Pad p_pad) nothrow
+	public void setPatchRectUV(uint p_start, SpriteId p_sprite, Pad p_pad) 
 	{
 		/+
 			A biggun!
@@ -576,9 +599,8 @@ public final class UIView
 		setQuadUV(p_start+12, Rect(top_right, RealSize(p_pad.right, p_pad.top)));
 	}
 
-	public void setPatchRectSize(ushort[] p_vertices, RealSize p_size, Pad p_pad) nothrow
+	public void setPatchRectSize(ushort[] p_vertices, RealSize p_size, Pad p_pad) 
 	{
-		printT("Patch size: %, %\n", p_size, p_pad);
 		/+
 			A biggun!
 
@@ -624,7 +646,7 @@ public final class UIView
 
 	/// p_count is the number of vertices to change
 	/// Assumes the mesh is continuous
-	public void translateMesh(ushort[] p_vertices, int p_count, svec2 p_translation) nothrow
+	public void translateMesh(ushort[] p_vertices, int p_count, svec2 p_translation) 
 	{
 		ushort vert = p_vertices[0];
 
@@ -634,25 +656,32 @@ public final class UIView
 		posInvalid.apply(vert, vert + p_count);
 	}
 
-	public TextMeshRef* addTextMesh(FontId p_font, string p_text, bool p_dynamicSize) nothrow
+	public TextId addTextMesh(FontId p_font, string p_text, int allocLen) 
 	{
 		import std.uni: isWhite;
 
 		// Calculate number of quads to add
 		ushort quads = 0;
-		foreach(c; p_text)
+		if(allocLen < p_text.length)
 		{
-			if(!c.isWhite())
+			foreach(c; p_text)
 			{
-				quads += 1;
+				if(!c.isWhite())
+				{
+					quads += 1;
+				}
 			}
 		}
-		// If a dynamically sized string, allocate 150% of the current size
-		auto vertspace = p_dynamicSize? cast(ushort)(quads*1.5) : quads;
+		else
+		{
+			quads = cast(ushort) allocLen;
+		}
 
-		// Set fields in the TextMeshRef
-		textMeshes ~= TextMeshRef();
-		TextMeshRef* tm = &textMeshes[$-1];
+		auto vertspace = quads;
+
+		// Set fields in the TextMesh
+		textMeshes ~= TextMesh();
+		TextMesh* tm = &textMeshes[$-1];
 		tm.length = cast(ushort)(quads);
 		tm.capacity = vertspace;
 		tm.offset = cast(ushort)elemText.length;
@@ -666,20 +695,22 @@ public final class UIView
 
 		assert(uvs.length == vertpos.length);
 
-		setTextMesh(tm, p_font, p_text);
+		auto id = TextId(cast(ushort)(textMeshes.length - 1));
+		setTextMesh(id, p_font, p_text);
 
 		invalidated[ViewState.UVBuffer] = true;
 		invalidated[ViewState.PositionBuffer] = true;
 		invalidated[ViewState.TextEBO] = true;
 
-		return tm;
+		return id;
 	}
 
-	public void setTextMesh(TextMeshRef* p_tm, FontId p_font, string p_text) nothrow
+	public void setTextMesh(TextId p_id, FontId p_font, string p_text) 
 	{
+		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
 
-		ushort oldCount = p_tm.length;
+		ushort oldCount = mesh.length;
 
 		ushort quads = 0;
 		foreach(c; p_text)
@@ -689,8 +720,8 @@ public final class UIView
 				quads += 1;
 			}
 		}
-		assert(quads <= p_tm.capacity, "Tried to resize text, but it was too large");
-		p_tm.length = cast(ushort)(quads);
+		assert(quads <= mesh.capacity, "Tried to resize text, but it was too large");
+		mesh.length = cast(ushort)(quads);
 
 		// Write the buffers
 		svec2 pen = svec(0,0);
@@ -701,7 +732,7 @@ public final class UIView
 		ivec2 bottom_left = ivec2(int.max, int.max);
 		ivec2 top_right = ivec2(int.min, int.min);
 
-		auto ebostart = p_tm.offset;
+		auto ebostart = mesh.offset;
 		auto vertstart = elemText[ebostart];
 
 		auto eboQuad = ebostart;
@@ -724,7 +755,7 @@ public final class UIView
 				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
 				pen.x = 0;
 				auto lineHeight = face.size.metrics.height >> 6;
-				foreach(v; elemText[p_tm.offset]..vertQuad)
+				foreach(v; elemText[mesh.offset]..vertQuad)
 				{
 					vertpos[v].y += lineHeight;
 				}
@@ -814,25 +845,30 @@ public final class UIView
 				ftGlyph.advance.y >> 6);
 		}
 
-		posInvalid.apply(vertstart, vertstart + p_tm.length*4);
+		posInvalid.apply(vertstart, vertstart + mesh.length*4);
 		invalidated[ViewState.PositionBufferPartial] = true;
 
-		uvInvalid.apply(vertstart, vertstart + p_tm.length*4);
+		uvInvalid.apply(vertstart, vertstart + mesh.length*4);
 		invalidated[ViewState.UVBufferPartial] = true;
 
-		textInvalid.apply(ebostart, ebostart + p_tm.length*6);
-		invalidated[ViewState.TextEBOPartial] = p_tm.length > oldCount;
+		textInvalid.apply(ebostart, ebostart + mesh.length*6);
+		invalidated[ViewState.TextEBOPartial] = mesh.length > oldCount;
 
-		p_tm.boundingSize = RealSize(top_right - bottom_left);
+		mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
 	
-	public void translateTextMesh(TextMeshRef* p_text, ivec2 p_translation)  nothrow
+	public void translateTextMesh(TextId p_id, ivec2 p_translation)  
 	{
-		p_text.translation = p_translation;
+		TextMesh* mesh = &textMeshes[p_id];
+		mesh.translation = p_translation;
 	}
 
+	public RealSize textBoundingBox(TextId p_id)
+	{
+		return textMeshes[p_id].boundingSize;
+	}
 
-	private void initBuffers() nothrow
+	private void initBuffers() 
 	{
 		// Reserve space for 256 characters
 		enum textQuads = 256;
@@ -903,7 +939,7 @@ public final class UIView
 		glDisableVertexAttribArray(renderer.atrSprite.position);
 	}
 
-	package void clearBufferInvalidation() nothrow
+	package void clearBufferInvalidation() 
 	{
 		bool layoutInvalid = invalidated[ViewState.Layout];
 		invalidated.clear();
@@ -916,7 +952,7 @@ public final class UIView
 		uvInvalid.clear();
 	}
 
-	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer) nothrow
+	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer) 
 	{
 		glBindBuffer(p_type, p_vbo);
 		glBufferData(
@@ -937,7 +973,7 @@ public final class UIView
 			&p_buffer[p_range.start]);
 	}
 
-	private void clearData() nothrow
+	private void clearData() 
 	{
 		textMeshes.clear();
 		elemSprite.clear();

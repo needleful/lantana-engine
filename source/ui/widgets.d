@@ -20,7 +20,7 @@ import ui.view;
 
 public abstract class LeafWidget : Widget
 {
-	public override Widget[] getChildren() nothrow
+	public override Widget[] getChildren() 
 	{
 		return [];
 	}
@@ -28,7 +28,7 @@ public abstract class LeafWidget : Widget
 
 public abstract class RectWidget : LeafWidget
 {
-	public void changeSprite(UIView p_view, SpriteId p_sprite) nothrow;
+	public void changeSprite(UIView p_view, SpriteId p_sprite) ;
 }
 
 public class PatchRect : RectWidget
@@ -39,7 +39,7 @@ public class PatchRect : RectWidget
 	Pad pad;
 	private Widget child;
 
-	public this(SpriteId p_sprite, Pad p_pad) nothrow
+	public this(SpriteId p_sprite, Pad p_pad) 
 	{
 		sprite = p_sprite;
 		pad = p_pad;
@@ -50,7 +50,7 @@ public class PatchRect : RectWidget
 		vertices = p_view.addPatchRect(sprite, pad);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		// At least as large as the pad and bound to the absolute bounds
 		SizeRequest rq = p_request
@@ -66,12 +66,12 @@ public class PatchRect : RectWidget
 		return result;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		p_view.translateMesh(vertices, 16, svec(p_pen));
 	}
 
-	public override void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
+	public override void changeSprite(UIView p_view, SpriteId p_sprite) 
 	{
 		p_view.setPatchRectUV(vertices[0], p_sprite, pad);
 	}
@@ -85,7 +85,7 @@ public class ImageBox : RectWidget
 	ushort[] vertices;
 
 	// Instead of rendering a sprite, render a colored rectangle
-	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) nothrow
+	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) 
 	{
 		spriteId = p_renderer.addSinglePixel(p_color);
 		textureSize = p_size;
@@ -100,7 +100,7 @@ public class ImageBox : RectWidget
 		textureSize = p_renderer.getSpriteSize(spriteId);
 	}
 
-	public this(UIRenderer p_renderer, SpriteId p_spriteId) nothrow
+	public this(UIRenderer p_renderer, SpriteId p_spriteId) 
 	{
 		spriteId = p_spriteId;
 		textureSize = p_renderer.getSpriteSize(spriteId);
@@ -112,7 +112,7 @@ public class ImageBox : RectWidget
 		assert(vertices.length == 6);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		RealSize size = textureSize;
@@ -188,13 +188,13 @@ public class ImageBox : RectWidget
 		return result;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		svec2 p = svec(p_pen.x, p_pen.y);
 		p_view.translateMesh(vertices, 4, p);
 	}
 
-	public override void changeSprite(UIView p_view, SpriteId p_sprite) nothrow
+	public override void changeSprite(UIView p_view, SpriteId p_sprite) 
 	{
 		p_view.changeSprite(vertices, p_sprite);
 	}
@@ -205,38 +205,55 @@ public class TextBox: LeafWidget
 {
 	FontId font;
 	string text;
-	TextMeshRef* mesh;
 	UIView view;
+	uint allocCapacity;
+	TextId mesh;
+	bool dynamic;
 	bool textChanged;
-	bool dynamicSize;
 
-	public this(FontId p_font, string p_text, bool p_dynamicSize = false)
+	public this(FontId p_font, string p_text, bool p_dynamic = false)
 	{
+		dynamic = p_dynamic;
+		if(p_dynamic)
+		{
+			allocCapacity = cast(uint)(p_text.length*1.5);
+		}
+		else
+		{
+			allocCapacity = cast(uint)p_text.length;
+		}
 		font = p_font;
 		text = p_text;
+	}
 
-		dynamicSize = p_dynamicSize;
+	public this(FontId p_font, string p_text, uint allocLen)
+	{
+		dynamic = true;
+		font = p_font;
+		text = p_text;
+		allocCapacity = allocLen;
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		mesh = p_view.addTextMesh(font, text, dynamicSize);
+		mesh = p_view.addTextMesh(font, text, allocCapacity);
 		view = p_view;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		// TODO: layout text to fit bounds
-		return mesh.boundingSize;
+		return p_view.textBoundingBox(mesh);
 	}
 
-	public override void prepareRender(UIView p_renderer, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
-		p_renderer.translateTextMesh(mesh, p_pen);
+		p_view.translateTextMesh(mesh, p_pen);
 	}
 
-	public void setText(string p_text) nothrow
+	public void setText(string p_text) 
 	{
+		assert(dynamic, "This text is not dynamically resizable");
 		if(text != p_text)
 		{
 			view.setTextMesh(mesh, font, p_text);
@@ -244,15 +261,15 @@ public class TextBox: LeafWidget
 		text = p_text;
 	}
 
-	public void setVisiblePortion(float p_visible)  nothrow
-	{
-		mesh.visiblePortion = p_visible;
-	}
+	//public void setVisiblePortion(float p_visible)  
+	//{
+	//	mesh.visiblePortion = p_visible;
+	//}
 
-	public float getPortionVisible()  nothrow
-	{
-		return mesh.visiblePortion;
-	}
+	//public float getPortionVisible()  
+	//{
+	//	return mesh.visiblePortion;
+	//}
 }
 
 public class Button: Container, Interactible
@@ -279,7 +296,7 @@ public class Button: Container, Interactible
 		super.initialize(p_renderer, p_view);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) nothrow
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
 		RealSize childSize = children[1].layout(p_view, p_request);
 		children[0].layout(p_view, SizeRequest(childSize));
@@ -287,7 +304,7 @@ public class Button: Container, Interactible
 		return childSize;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) nothrow
+	public override void prepareRender(UIView p_view, ivec2 p_pen) 
 	{
 		p_view.setInteractPosition(id, p_pen);
 		super.prepareRender(p_view, p_pen);
