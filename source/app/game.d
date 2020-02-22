@@ -174,9 +174,9 @@ int main()
 		window.end_frame();
 		frame ++;
 
-		if(paused && (frame % 9 == 0))
+		if(paused && (frame % 8 == 0))
 		{
-			dialog.addChild(new TextBox(ui.style.defaultFont, format("The N Word %d", frame)));
+			dialog.addChild(new TextBox(ui.style.defaultFont, format("The N Word %d", frame/8)));
 		}
 
 	}

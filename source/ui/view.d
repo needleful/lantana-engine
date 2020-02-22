@@ -48,7 +48,7 @@ private struct TextMesh
 
 public struct TextId
 {
-	mixin StrictAlias!ushort;
+	mixin StrictAlias!uint;
 }
 
 public struct MeshRef
@@ -160,7 +160,7 @@ public final class UIView
 	/// 1: sprite VAO
 	package GLuint[2] vao;
 
-	package ushort[] elemText;
+	package uint[] elemText;
 	package ushort[] elemSprite;
 	package svec2[] vertpos;
 	package vec2[] uvs;
@@ -307,8 +307,8 @@ public final class UIView
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
-				GL_UNSIGNED_SHORT,
-				cast(void*) (tm.offset*ushort.sizeof));
+				GL_UNSIGNED_INT,
+				cast(void*) (tm.offset*typeof(tm.offset).sizeof));
 		}
 
 		glBindVertexArray(0);
@@ -701,7 +701,7 @@ public final class UIView
 		TextMesh* tm = &textMeshes[$-1];
 		tm.length = cast(ushort)(quads);
 		tm.capacity = vertspace;
-		tm.offset = cast(ushort)elemText.length;
+		tm.offset = cast(uint)elemText.length;
 		tm.visiblePortion = 1;
 
 		elemText.length += 6*vertspace;
@@ -712,7 +712,7 @@ public final class UIView
 
 		assert(uvs.length == vertpos.length);
 
-		auto id = TextId(cast(ushort)(textMeshes.length - 1));
+		auto id = TextId(cast(uint)textMeshes.length - 1);
 		setTextMesh(id, p_font, p_text);
 
 		invalidated[ViewState.UVBuffer] = true;
@@ -845,13 +845,13 @@ public final class UIView
 			];
 
 			elemText[eboQuad..eboQuad+6] = [
-				cast(ushort)(vertQuad),
-				cast(ushort)(vertQuad + 2),
-				cast(ushort)(vertQuad + 1),
+				vertQuad,
+				vertQuad + 2,
+				vertQuad + 1,
 
-				cast(ushort)(vertQuad + 1),
-				cast(ushort)(vertQuad + 2),
-				cast(ushort)(vertQuad + 3),
+				vertQuad + 1,
+				vertQuad + 2,
+				vertQuad + 3,
 			];
 
 			vertQuad += 4;
