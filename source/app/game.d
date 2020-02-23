@@ -78,9 +78,8 @@ int main()
 						dialog.addChild(new TextBox(ui.style.defaultFont, format("Added object at frame %u", frame)));
 					}),
 				vec2(1, 0.1), vec2(0,0)
-			)
-		],
-		vec2(0.02,0.02), vec2(0.2, .98)
+			)],
+			vec2(0.02,0.02), vec2(0.2, .98)
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
 		// Debug Text
@@ -174,9 +173,13 @@ int main()
 		window.end_frame();
 		frame ++;
 
-		if(paused && (frame % 8 == 0))
+		if((frame % 16 == 0))
 		{
-			dialog.addChild(new TextBox(ui.style.defaultFont, format("Mambo Number %d", frame/8)));
+			dialog.addChild(new HBox([
+				new ImageBox(ui, upclickSprite),
+				new TextBox(ui.style.defaultFont, format("Mambo Number %d", frame/16)),
+
+			]));
 		}
 
 	}

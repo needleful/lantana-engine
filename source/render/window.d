@@ -244,6 +244,7 @@ struct Window
 
 	void begin_frame() 
 	{
+		assert(glGetError() == GL_NO_ERROR);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		assert(glGetError() == GL_NO_ERROR);
 	}

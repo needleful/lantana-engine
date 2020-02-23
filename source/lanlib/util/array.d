@@ -49,3 +49,32 @@ T[] reverse(T)(T[] input)
 
 	return input;
 }
+
+/// Add object, double size if length exceeds capacity
+T* append(T)(ref T[] list, T object)
+{
+	if(list.length == 0)
+	{
+		list.reserve(2);
+	}
+	else if(list.length == list.capacity)
+	{
+		list.reserve(list.length * 2);
+	}
+
+	list ~= object;
+	return &list[$-1];
+}
+
+// Returns true if we had to reserve more space, false otherwise
+bool addSpace(T)(ref T[] list, uint space)
+{
+	bool realloc_required = false;
+	if((list.length + space) > list.capacity)
+	{
+		list.reserve((list.length * 2));
+		realloc_required = true;
+	}
+	list.length += space;
+	return realloc_required;
+}

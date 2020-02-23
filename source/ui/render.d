@@ -191,6 +191,8 @@ public final class UIRenderer
 			view.updateBuffers();
 		}
 
+		glcheck();
+
 		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
 

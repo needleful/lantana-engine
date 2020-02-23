@@ -368,9 +368,14 @@ class VBox: Container
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		view = p_view;
+		super.initialize(p_renderer, p_view);
+	}
+
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	{
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		childRequest.height.min = 0;
 		childRequest.width.min = 0;

@@ -91,7 +91,7 @@ package struct BufferRange
 	uint start;
 	uint end;
 
-	this(int p_start, int p_end)   @safe
+	this(int p_start, int p_end)  @safe
 	{
 		start = p_start;
 		end = p_end;
@@ -103,12 +103,12 @@ package struct BufferRange
 		end = uint.min;
 	}
 
-	void apply(BufferRange rhs)   @safe
+	void apply(BufferRange rhs)  @safe
 	{
 		apply(rhs.start, rhs.end);
 	}
 
-	void apply(uint p_start, uint p_end)   @safe
+	void apply(uint p_start, uint p_end)  @safe
 	{
 		start = start < p_start? start : p_start;
 		end = end > p_end? end : p_end;
@@ -435,17 +435,17 @@ public final class UIView
 		// The positions are set by other functions, 
 		// so they can stay (0,0) right now
 		ebo_t vertStart = cast(ebo_t)vertpos.length;
-		vertpos.length += 4;
+		vertpos.addSpace(4);
 
 		// The UVs must be set, though
 		ebo_t uvstart = cast(ebo_t)uvs.length;
 		assert(uvstart == vertStart);
-		uvs.length += 4;
+		bool uvRealloc = uvs.addSpace(4);
 
 		setQuadUV(uvstart, Rect(node.position, node.size));
 
 		ulong elemStart = elemSprite.length;
-		elemSprite.length += 6;
+		bool elemRealloc = elemSprite.addSpace(6);
 
 		elemSprite[elemStart..elemStart+6] = [
 			0, 2, 1,
@@ -453,8 +453,16 @@ public final class UIView
 		];
 		elemSprite[elemStart..elemStart+6] += vertStart;
 
-		invalidated[ViewState.UVBuffer] = true;
-		invalidated[ViewState.SpriteEBO] = true;
+		if(uvRealloc) invalidated[ViewState.UVBuffer] = true;
+		if(elemRealloc) 
+		{
+			invalidated[ViewState.SpriteEBO] = true;
+		}
+		else
+		{
+			invalidated[ViewState.SpriteEBOPartial] = true;
+			spriteInvalid.apply(cast(uint) elemStart, cast(uint)elemStart + 6);
+		}
 		return MeshRef(cast(uint)elemStart, 2, 4);
 	}
 
@@ -520,13 +528,13 @@ public final class UIView
 
 		assert(vertstart == uvstart);
 
-		vertpos.length += 16;
-		uvs.length += 16;
+		vertpos.addSpace(16);
+		uvs.addSpace(16);
 
 		setPatchRectUV(vertstart, p_sprite, p_pad);
 
 		uint elemstart = cast(uint)elemSprite.length;
-		elemSprite.length += 6*9;
+		elemSprite.addSpace(18*3);
 
 		uint v = vertstart;
 
@@ -700,32 +708,31 @@ public final class UIView
 		auto vertspace = quads;
 
 		// Set fields in the TextMesh
-		textMeshes ~= TextMesh();
-		TextMesh* tm = &textMeshes[$-1];
+		TextMesh* tm = textMeshes.append(TextMesh());
 		tm.length = cast(ushort)(quads);
 		tm.capacity = vertspace;
 		tm.offset = cast(uint)elemText.length;
 		tm.visiblePortion = 1;
 
-		elemText.length += 6*vertspace;
+		bool eboRealloc = elemText.addSpace(6*vertspace);
 		elemText[tm.offset] = cast(ebo_t)vertpos.length;
 
-		vertpos.length += 4*vertspace;
-		uvs.length += 4*vertspace;
+		bool vertRealloc = vertpos.addSpace(4*vertspace);
+		bool uvRealloc = uvs.addSpace(4*vertspace);
 
 		assert(uvs.length == vertpos.length);
 
 		auto id = TextId(cast(uint)textMeshes.length - 1);
-		setTextMesh(id, p_font, p_text);
+		setTextMesh(id, p_font, p_text, true);
 
-		invalidated[ViewState.UVBuffer] = true;
-		invalidated[ViewState.PositionBuffer] = true;
-		invalidated[ViewState.TextEBO] = true;
+		if(uvRealloc) invalidated[ViewState.UVBuffer] = true;
+		if(vertRealloc) invalidated[ViewState.PositionBuffer] = true;
+		if(eboRealloc) invalidated[ViewState.TextEBO] = true;
 
 		return id;
 	}
 
-	public void setTextMesh(TextId p_id, FontId p_font, string p_text) 
+	public void setTextMesh(TextId p_id, FontId p_font, string p_text, bool p_forceEBOUpdate = false) 
 	{
 		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
@@ -872,7 +879,7 @@ public final class UIView
 		invalidated[ViewState.UVBufferPartial] = true;
 
 		textInvalid.apply(ebostart, ebostart + mesh.length*6);
-		invalidated[ViewState.TextEBOPartial] = mesh.length > oldCount;
+		invalidated[ViewState.TextEBOPartial] = p_forceEBOUpdate || mesh.length > oldCount;
 
 		mesh.boundingSize = RealSize(top_right - bottom_left);
 	}
@@ -890,6 +897,10 @@ public final class UIView
 
 	private void initBuffers() 
 	{
+		elemText.reserve(6);
+		elemSprite.reserve(6);
+		vertpos.reserve(4);
+		uvs.reserve(4);
 		glGenBuffers(vbo.length, vbo.ptr);
 		glGenVertexArrays(vao.length, vao.ptr);
 
@@ -963,23 +974,27 @@ public final class UIView
 
 	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer) 
 	{
+		glcheck();
 		glBindBuffer(p_type, p_vbo);
 		glBufferData(
 			p_type,
-			p_buffer.length*T.sizeof,
+			p_buffer.capacity*T.sizeof,
 			p_buffer.ptr,
 			GL_DYNAMIC_DRAW);
+		glcheck();
 	}
 
 	private void updateBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer, BufferRange p_range)
 	{
 		assert(p_range.start < p_range.end);
+		glcheck();
 		glBindBuffer(p_type, p_vbo);
 		glBufferSubData(
 			p_type,
 			p_range.start*T.sizeof,
 			(p_range.end - p_range.start)*T.sizeof,
 			&p_buffer[p_range.start]);
+		glcheck();
 	}
 
 	private void clearData() 
