@@ -66,6 +66,19 @@ int main()
 	uint frame = 0;
 	VBox dialog = new VBox([new ImageBox(ui, nful)], 18);
 
+	bool showOptions;
+
+	auto nfulWidget = new Anchor(
+		new Button(ui, 
+			new TextBox(ui.style.defaultFont, "Button One"),
+			(Widget w)
+			{
+				dialog.addChild(new TextBox(ui.style.defaultFont, format("Pressed Button One at frame %u", frame)));
+				showOptions = false;
+			}), 
+		vec2(1,0), vec2(1,0)
+	);
+
 	Modal uiModal = new Modal([
 		// Pause menu
 		new AnchoredBox([
@@ -75,11 +88,11 @@ int main()
 				new Button(ui, new TextBox(ui.style.defaultFont, "Add"),
 					(Widget w)
 					{
-						dialog.addChild(new TextBox(ui.style.defaultFont, format("Added object at frame %u", frame)));
+						showOptions = true;
 					}),
 				vec2(1, 0.1), vec2(0,0)
 			)],
-			vec2(0.02,0.02), vec2(0.2, .98)
+			vec2(0.02,0.02), vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
 		// Debug Text
@@ -93,7 +106,7 @@ int main()
 		)
 	]);
 
-	ui.setRootWidget(uiModal);
+	ui.setRootWidget(new HodgePodge([uiModal, nfulWidget]));
 
 	uiModal.setMode(1);
 
@@ -165,6 +178,8 @@ int main()
 
 			//game.animSystem.update(delta, game.scene.animMeshes);
 		}
+		nfulWidget.setVisible(showOptions);
+		
 		ui.update(delta, &input);
 
 		window.begin_frame();
@@ -172,16 +187,6 @@ int main()
 
 		window.end_frame();
 		frame ++;
-
-		if((frame % 16 == 0))
-		{
-			dialog.addChild(new HBox([
-				new ImageBox(ui, upclickSprite),
-				new TextBox(ui.style.defaultFont, format("Mambo Number %d", frame/16)),
-
-			]));
-		}
-
 	}
 	debug writeln("Game closing");
 	return 0;

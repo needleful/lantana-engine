@@ -183,6 +183,7 @@ public final class UIRenderer
 
 	public void update(float p_delta, Input* p_input)
 	{
+		updateInteraction(p_input);
 		// Widgets manage their own layouts, we just update the root layout
 		views[0].updateLayout();
 
@@ -200,7 +201,26 @@ public final class UIRenderer
 			atlasText.reload();
 
 		invalidated.clear();
+	}
 
+	public void render() 
+	{
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_SCISSOR_TEST);
+		foreach(v; views)
+		{
+			if(v.isVisible())
+			{
+				v.render(windowSize);
+			}
+		}
+		glDisable(GL_SCISSOR_TEST);
+	}
+
+	private void updateInteraction(Input* p_input)
+	{
 		Interactible newFocus = null;
 		if(!focused)
 		{
@@ -243,23 +263,6 @@ public final class UIRenderer
 				focused = null;
 			}
 		}
-
-	}
-
-	public void render() 
-	{
-		glEnable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_SCISSOR_TEST);
-		foreach(v; views)
-		{
-			if(v.isVisible())
-			{
-				v.render(windowSize);
-			}
-		}
-		glDisable(GL_SCISSOR_TEST);
 	}
 
 	@property public UIStyle style() @nogc 

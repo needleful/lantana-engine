@@ -54,6 +54,11 @@ public class PatchRect : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		{
+			p_view.setPatchRectSize(mesh, RealSize(0), Pad(0));
+			return RealSize(0);
+		}
 		// At least as large as the pad and bound to the absolute bounds
 		SizeRequest rq = p_request
 			.constrained(absoluteWidth, absoluteHeight)
@@ -120,6 +125,11 @@ public class ImageBox : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		{
+			p_view.setQuadSize(vertices, RealSize(0));
+			return RealSize(0);
+		}
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		RealSize size = textureSize;
 
@@ -254,6 +264,13 @@ public class TextBox: LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		{
+			p_view.setTextVisiblePercent(mesh, 0f);
+			printf("Text should be invisible\n");
+			return RealSize(0);
+		}
+		p_view.setTextVisiblePercent(mesh, 1);
 		// TODO: layout text to fit bounds
 		return p_view.textBoundingBox(mesh);
 	}
@@ -310,6 +327,14 @@ public class Button: Container, Interactible
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		{
+			foreach(child ; children)
+			{
+				child.layout(p_view, SizeRequest(RealSize(0)));
+			}
+			return RealSize(0);
+		}
 		RealSize childSize = children[1].layout(p_view, p_request);
 		children[0].layout(p_view, SizeRequest(childSize));
 		p_view.setInteractSize(id, childSize);

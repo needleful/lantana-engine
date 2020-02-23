@@ -895,6 +895,11 @@ public final class UIView
 		return textMeshes[p_id].boundingSize;
 	}
 
+	public void setTextVisiblePercent(TextId p_id, float p_vis)
+	{
+		textMeshes[p_id].visiblePortion = p_vis;
+	}
+
 	private void initBuffers() 
 	{
 		elemText.reserve(6);
