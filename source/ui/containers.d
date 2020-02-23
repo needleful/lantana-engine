@@ -16,21 +16,54 @@ import ui.interaction;
 import ui.layout;
 import ui.render;
 import ui.view;
+import ui.widgets;
 
 public abstract class Container : Widget
 {
-	protected Widget[] children;
+	UIView view;
+	bool visible = true;
 
-	public override Widget[] getChildren() 
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		return children;
+		view = p_view;
+		super.initialize(p_renderer, p_view);
+	}
+
+	public void setVisible(bool p_vis)
+	{
+		if(p_vis == visible) return;
+		visible = p_vis;
+		view.requestUpdate();
+	}
+	
+	public final bool isVisible()
+	{
+		return visible;
 	}
 }
 
-public abstract class SingularContainer: Widget
+public abstract class MultiContainer : Container
+{
+	protected Widget[] children;
+
+	public final override Widget[] getChildren() 
+	{
+		return children;
+	}
+
+	protected final RealSize layoutEmpty(UIView p_view)
+	{
+		foreach(child; getChildren())
+		{
+			child.layout(p_view, SizeRequest.zero);
+		}
+		return RealSize(0);
+	}
+}
+
+public abstract class SingularContainer: Container
 {
 	protected Widget child;
-	protected bool visible = true;
 
 	public final override Widget[] getChildren() 
 	{
@@ -42,24 +75,25 @@ public abstract class SingularContainer: Widget
 		return child;
 	}
 
-	public abstract void setVisible(bool);
-	
-	public final bool isVisible()
+	protected final RealSize layoutEmpty(UIView p_view)
 	{
-		return visible;
+		child.layout(p_view, SizeRequest.zero);
+		return RealSize(0);
 	}
 }
 
 /// Provides no layout hints.  All widgets are laid out in the same space and position
-public class HodgePodge : Container
+public class HodgePodge : MultiContainer
 {
 	public this(Widget[] p_children) 
 	{
 		children = p_children;
 	}
 
-	public override RealSize layout(UIView p_renderer, SizeRequest p_request) 
+	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
 		ivec2 top_right;
@@ -67,20 +101,19 @@ public class HodgePodge : Container
 		foreach(child; children)
 		{
 			child.position = ivec2(0,0);
-			RealSize csize = child.layout(p_renderer, request);
+			RealSize csize = child.layout(p_view, request);
 
 			// Calculating the bounding box for the hodgepodge
 			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
 		}
 
-		return RealSize(top_right.x, top_right.y);
+		return visible? RealSize(top_right.x, top_right.y): RealSize(0);
 	}
 }
 
 /// Relative positioning with no size constraints on object
 public class Positioned: SingularContainer
 {
-	UIView view;
 	vec2 anchor;
 	vec2 childAnchor;
 
@@ -91,18 +124,12 @@ public class Positioned: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		view = p_view;
-		super.initialize(p_renderer, p_view);
-	}
-
 	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		SizeRequest childRequest = SizeRequest(absoluteWidth, absoluteHeight);
-		RealSize childSize = visible ? 
-			child.layout(p_view, childRequest) 
-			: child.layout(p_view, SizeRequest(RealSize(0,0)));
+		RealSize childSize = child.layout(p_view, childRequest);
 
 		RealSize parent = RealSize(cast(int) p_request.width.max, cast(int) p_request.height.max);
 		child.position = ivec2(
@@ -111,20 +138,13 @@ public class Positioned: SingularContainer
 
 		return parent;
 	}
-
-	public override void setVisible(bool p_vis)
-	{
-		if(p_vis == visible) return;
-		visible = p_vis;
-		view.requestUpdate();
-	}
 }
 
 /// Anchor the widget to a specific point
 public class Anchor: SingularContainer
 {
 	UIView view;
-	// Normalized coordinates, (0,0) is bottom left of the container
+	// Normalized coordinates, (0,0) is bottom left of the MultiContainer
 	vec2 anchor;
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
 	vec2 childAnchor;
@@ -138,25 +158,10 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		view = p_view;
-		super.initialize(p_renderer, p_view);
-	}
-
-	public override void setVisible(bool p_vis)
-	{
-		if(p_vis == visible) return;
-		visible = p_vis;
-		view.requestUpdate();
-	}
-
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible)
-		{
-			return child.layout(p_view, SizeRequest(RealSize(0,0)));
-		}
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
 		// I'm sure I could break this down into something presentable with more work.
@@ -279,17 +284,17 @@ public class Anchor: SingularContainer
 			cast(int)(parentWidth*anchor.x - childSize.width*childAnchor.x),
 			cast(int)(parentHeight*anchor.y - childSize.height*childAnchor.y));
 
-		debug assert(child.position.x >= 0 && child.position.y >= 0, "Child extends beyond container bounds.");
+		debug assert(child.position.x >= 0 && child.position.y >= 0, "Child extends beyond MultiContainer bounds.");
 
-		// Final size of the container
+		// Final size of the MultiContainer
 		RealSize result = RealSize(childSize.width + position.x, childSize.height + position.y);
-		debug assert(!result.contains(RealSize(cast(int)parentHeight, cast(int)parentWidth)), "Child is larger than container.");
+		debug assert(!result.contains(RealSize(cast(int)parentHeight, cast(int)parentWidth)), "Child is larger than MultiContainer.");
 
 		return result;
 	}
 }
 
-public class AnchoredBox : Container
+public class AnchoredBox : MultiContainer
 {
 	vec2 bottomLeft;
 	vec2 topRight;
@@ -303,6 +308,8 @@ public class AnchoredBox : Container
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
 
@@ -324,30 +331,30 @@ public class AnchoredBox : Container
 
 public final class Padding : SingularContainer
 {
-	UIView view;
 	// Padding, in pixels
 	Pad pad;
+	RectWidget panel;
 
-	public this(Widget p_child, Pad p_pad) 
+	public this(Widget p_child, Pad p_pad, RectWidget p_panel = null) 
 	{
 		child = p_child;
-
 		pad = p_pad;
+		panel = p_panel;
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		view = p_view;
+		if(panel)
+		{
+			panel.initialize(p_renderer, p_view);
+		}
 		super.initialize(p_renderer, p_view);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible)
-		{
-			child.layout(p_view, SizeRequest(RealSize(0)));
-			return RealSize(0);
-		}
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
 		double maxWidth = request.width.max - (pad.left + pad.right);
@@ -362,18 +369,19 @@ public final class Padding : SingularContainer
 		RealSize csize = child.layout(p_view, childIntrinsic);
 		child.position = ivec2(pad.left, pad.bottom);
 
-		return RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
+		RealSize res = RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
+		if(panel) panel.layout(p_view, SizeRequest(res));
+		return res;
 	}
 
-	public override void setVisible(bool p_vis)
+	public override void prepareRender(UIView p_view, ivec2 p_pen)
 	{
-		if(p_vis == visible) return;
-		visible = p_vis;
-		view.requestUpdate();
+		if(panel) panel.prepareRender(p_view, p_pen);
+		super.prepareRender(p_view, p_pen);
 	}
 }
 
-public final class HBox: Container
+public final class HBox: MultiContainer
 {
 	// Space between children
 	int spacing;
@@ -386,6 +394,8 @@ public final class HBox: Container
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
 		//TODO: respect intrinsics properly
@@ -413,9 +423,8 @@ public final class HBox: Container
 }
 
 /// Goes from bottom to top
-class VBox: Container
+class VBox: MultiContainer
 {
-	UIView view;
 	// Space between children
 	int spacing;
 
@@ -427,14 +436,10 @@ class VBox: Container
 		spacing = p_spacing;
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		view = p_view;
-		super.initialize(p_renderer, p_view);
-	}
-
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(!visible || p_request == SizeRequest.zero) layoutEmpty(p_view);
+
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		childRequest.height.min = 0;
 		childRequest.width.min = 0;

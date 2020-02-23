@@ -54,7 +54,7 @@ public class PatchRect : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		if(p_request == SizeRequest.zero)
 		{
 			p_view.setPatchRectSize(mesh, RealSize(0), Pad(0));
 			return RealSize(0);
@@ -125,7 +125,7 @@ public class ImageBox : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		if(p_request == SizeRequest.zero)
 		{
 			p_view.setQuadSize(vertices, RealSize(0));
 			return RealSize(0);
@@ -264,10 +264,9 @@ public class TextBox: LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		if(p_request == SizeRequest.zero)
 		{
 			p_view.setTextVisiblePercent(mesh, 0f);
-			printf("Text should be invisible\n");
 			return RealSize(0);
 		}
 		p_view.setTextVisiblePercent(mesh, 1);
@@ -301,11 +300,10 @@ public class TextBox: LeafWidget
 	//}
 }
 
-public class Button: Container, Interactible
+public class Button: MultiContainer, Interactible
 {
 	Interactible.Callback onPressed;
 	InteractibleId id;
-	UIView view;
 
 	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed)
 	{
@@ -320,20 +318,15 @@ public class Button: Container, Interactible
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		view = p_view;
 		id = p_view.addInteractible(this);
 		super.initialize(p_renderer, p_view);
 	}
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request.width.max <= 0 || p_request.height.max <= 0)
+		if(!visible || p_request == SizeRequest.zero)
 		{
-			foreach(child ; children)
-			{
-				child.layout(p_view, SizeRequest(RealSize(0)));
-			}
-			return RealSize(0);
+			return layoutEmpty(p_view);
 		}
 		RealSize childSize = children[1].layout(p_view, p_request);
 		children[0].layout(p_view, SizeRequest(childSize));

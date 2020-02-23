@@ -12,7 +12,6 @@ import gl3n.linalg: vec2;
 import lanlib.types;
 import lanlib.util.printing;
 import logic.input : Input;
-import ui.containers : Container;
 import ui.interaction;
 import ui.layout;
 import ui.render;
@@ -101,6 +100,18 @@ public final class Scrolled : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request == SizeRequest.zero)
+		{
+			scrollbar.layout(p_view, SizeRequest.zero);
+			scrollbarHandle.layout(p_view, SizeRequest.zero);
+			childView.setVisible(false);
+			return RealSize(0);
+		}
+		else
+		{
+			childView.setVisible(true);
+		}
+
 		int scrollbarWidth = p_view.renderer.style.scrollbar.width;
 
 		SizeRequest childReq = SizeRequest(
@@ -257,6 +268,19 @@ public final class Modal : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
+		if(p_request == SizeRequest.zero)
+		{
+			foreach(view; views)
+			{
+				view.setVisible(false);
+			}
+			return RealSize(0);
+		}
+		else
+		{
+			views[currentMode].setVisible(true);
+		}
+
 		foreach(view; views)
 		{
 			view.setRect(Rect(ivec2(0,0), p_view.renderer.getSize()));

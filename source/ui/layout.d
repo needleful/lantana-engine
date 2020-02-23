@@ -69,6 +69,7 @@ public struct SizeRequest
 	Bounds height;
 
 	public static enum SizeRequest none = SizeRequest(Bounds.none);
+	public static enum SizeRequest zero = SizeRequest(RealSize(0));
 
 	public this(Bounds p_width, Bounds p_height) nothrow
 	{

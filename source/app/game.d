@@ -69,14 +69,17 @@ int main()
 	bool showOptions;
 
 	auto nfulWidget = new Anchor(
-		new Button(ui, 
-			new TextBox(ui.style.defaultFont, "Button One"),
-			(Widget w)
-			{
-				dialog.addChild(new TextBox(ui.style.defaultFont, format("Pressed Button One at frame %u", frame)));
-				showOptions = false;
-			}), 
-		vec2(1,0), vec2(1,0)
+		new Padding(
+			new Button(ui, 
+				new TextBox(ui.style.defaultFont, "Button One"),
+				(Widget w)
+				{
+					dialog.addChild(new TextBox(ui.style.defaultFont, format("Pressed Button One at frame %u", frame)));
+					showOptions = false;
+				}),
+			Pad(12, 18),
+			ui.style.panel.mesh.create(ui)),
+		vec2(0.99,0.01), vec2(1,0)
 	);
 
 	Modal uiModal = new Modal([
@@ -179,7 +182,7 @@ int main()
 			//game.animSystem.update(delta, game.scene.animMeshes);
 		}
 		nfulWidget.setVisible(showOptions);
-		
+
 		ui.update(delta, &input);
 
 		window.begin_frame();
