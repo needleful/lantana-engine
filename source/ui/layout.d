@@ -68,8 +68,10 @@ public struct SizeRequest
 	Bounds width;
 	Bounds height;
 
+	/// Indicates no preference for size
 	public static enum SizeRequest none = SizeRequest(Bounds.none);
-	public static enum SizeRequest zero = SizeRequest(RealSize(0));
+	/// Indicates the element should be totally invisible, not just of zero size
+	public static enum SizeRequest hide = SizeRequest(Bounds(-double.infinity, -double.infinity));
 
 	public this(Bounds p_width, Bounds p_height) nothrow
 	{

@@ -55,7 +55,7 @@ public abstract class MultiContainer : Container
 	{
 		foreach(child; getChildren())
 		{
-			child.layout(p_view, SizeRequest.zero);
+			child.layout(p_view, SizeRequest.hide);
 		}
 		return RealSize(0);
 	}
@@ -77,7 +77,7 @@ public abstract class SingularContainer: Container
 
 	protected final RealSize layoutEmpty(UIView p_view)
 	{
-		child.layout(p_view, SizeRequest.zero);
+		child.layout(p_view, SizeRequest.hide);
 		return RealSize(0);
 	}
 }
@@ -92,7 +92,7 @@ public class HodgePodge : MultiContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -126,7 +126,7 @@ public class Positioned: SingularContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		SizeRequest childRequest = SizeRequest(absoluteWidth, absoluteHeight);
 		RealSize childSize = child.layout(p_view, childRequest);
@@ -160,7 +160,7 @@ public class Anchor: SingularContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
@@ -308,7 +308,7 @@ public class AnchoredBox : MultiContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request)
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
@@ -353,7 +353,7 @@ public final class Padding : SingularContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -394,7 +394,7 @@ public final class HBox: MultiContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -438,7 +438,7 @@ class VBox: MultiContainer
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero) layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) layoutEmpty(p_view);
 
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		childRequest.height.min = 0;

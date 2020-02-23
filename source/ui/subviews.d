@@ -100,10 +100,10 @@ public final class Scrolled : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.zero)
+		if(p_request == SizeRequest.hide)
 		{
-			scrollbar.layout(p_view, SizeRequest.zero);
-			scrollbarHandle.layout(p_view, SizeRequest.zero);
+			scrollbar.layout(p_view, SizeRequest.hide);
+			scrollbarHandle.layout(p_view, SizeRequest.hide);
 			childView.setVisible(false);
 			return RealSize(0);
 		}
@@ -268,7 +268,7 @@ public final class Modal : LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.zero)
+		if(p_request == SizeRequest.hide)
 		{
 			foreach(view; views)
 			{
@@ -314,10 +314,9 @@ public final class Modal : LeafWidget
 			return;
 		}
 		views[currentMode].setVisible(false);
-
 		views[p_mode].setVisible(true);
-
 		views[p_mode].requestUpdate();
+		
 		currentMode = p_mode;
 	}
 }

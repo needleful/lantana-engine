@@ -54,7 +54,7 @@ public class PatchRect : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.zero)
+		if(p_request == SizeRequest.hide)
 		{
 			p_view.setPatchRectSize(mesh, RealSize(0), Pad(0));
 			return RealSize(0);
@@ -125,7 +125,7 @@ public class ImageBox : RectWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.zero)
+		if(p_request == SizeRequest.hide)
 		{
 			p_view.setQuadSize(vertices, RealSize(0));
 			return RealSize(0);
@@ -264,7 +264,7 @@ public class TextBox: LeafWidget
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.zero)
+		if(p_request == SizeRequest.hide)
 		{
 			p_view.setTextVisiblePercent(mesh, 0f);
 			return RealSize(0);
@@ -324,7 +324,7 @@ public class Button: MultiContainer, Interactible
 
 	public override RealSize layout(UIView p_view, SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.zero)
+		if(!visible || p_request == SizeRequest.hide)
 		{
 			return layoutEmpty(p_view);
 		}
