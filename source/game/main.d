@@ -33,43 +33,40 @@ final class DialogButton : Button
 {
 	Dialog dialog;
 	
-	public this(UIRenderer p_renderer)
+	public this(UIRenderer p_renderer, Dialog.Callback p_callback)
 	{
 		visible = false;
-		super(p_renderer, new TextBox(p_renderer.style.defaultFont, "", 128), (Widget w){});
-	}
 
-	public void setDialog(Dialog p_dialog, Interactible.Callback p_onpressed)
-	{
-		dialog = p_dialog;
-		onPressed = p_onpressed;
-		(cast(TextBox)getChild()).setText(p_dialog.message);
-	}
-}
-
-void applyDialog(Dialog p_dialog, UIRenderer p_renderer, DialogButton[] p_buttons, VBox p_box, void delegate(Dialog) p_onDialog)
-{
-	assert(p_dialog.responses.length <= p_buttons.length);
-
-	FontId f = p_renderer.style.defaultFont;
-
-	p_box.addChild(new TextBox(f, p_dialog.message));
-
-	foreach(size_t i, Dialog resp; p_dialog.responses)
-	{
-		p_buttons[i].setVisible(true);
-		p_buttons[i].setDialog(resp, 
-			(Widget w) 
+		super(p_renderer, new TextBox(p_renderer.style.defaultFont, "", 128), 
+			(Widget w)
 			{
-				applyDialog(resp, p_renderer, p_buttons, p_box, p_onDialog);
+				p_callback(this.dialog);
 			});
 	}
 
-	for(ulong i = p_dialog.responses.length; i < p_buttons.length; i++)
+	public void setDialog(Dialog p_dialog)
 	{
-		p_buttons[i].setVisible(false);
+		dialog = p_dialog;
+		(cast(TextBox)getChild()).setText(p_dialog.message);
 	}
-	p_onDialog(p_dialog);
+
+	public override string toString()
+	{
+		import std.format;
+		if(!dialog)
+		{
+			return format("DialogButton @[%x], <empty>", cast(void*)this);
+		}
+		return format("DialogButton @[%x], %s, %s", cast(void*)this, dialog.message, dialog.responses);
+	}
+}
+
+struct DialogState
+{
+	Dialog current;
+	DialogButton[] buttons;
+	VBox messageBox;
+	float timer;
 }
 
 version(lantana_game)
@@ -113,19 +110,41 @@ int main()
 	uint frame = 0;
 
 	/// BEGIN - Dialog initialization
-		bool showOptions = true;
-		DialogButton[] buttons = [];
-		buttons.reserve(8);
+		DialogState ds;
+
+		bool showDialog = true;
+		ds.buttons.reserve(8);
+
+		void dialogCallback(Dialog p_dialog)
+		{
+			assert(p_dialog.responses.length <= ds.buttons.length);
+			ds.current = p_dialog;
+
+			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, p_dialog.message));
+
+			foreach(i, resp; p_dialog.responses)
+			{
+				ds.buttons[i].setVisible(true);
+				ds.buttons[i].setDialog(resp);
+			}
+
+			for(ulong i = p_dialog.responses.length; i < ds.buttons.length; i++)
+			{
+				ds.buttons[i].setVisible(false);
+			}
+			ds.timer = 0;
+			showDialog = false;
+		}
 
 		for(int i = 0; i < 8; i++)
 		{
-			buttons ~= new DialogButton(ui);
+			ds.buttons ~= new DialogButton(ui, &dialogCallback);
 		}
 
 		Widget[] tmp_widgets;
-		tmp_widgets.reserve(buttons.length);
+		tmp_widgets.reserve(ds.buttons.length);
 
-		foreach(button; buttons)
+		foreach(button; ds.buttons)
 		{
 			tmp_widgets ~= button;
 		}
@@ -137,11 +156,11 @@ int main()
 				dialogbox, 
 				Pad(0),
 				ui.style.panel.mesh.create(ui)
-			).withBounds(Bounds(300), Bounds(250, 400)),
+			).withBounds(Bounds(300, double.infinity), Bounds(250, double.infinity)),
 			vec2(0.99,0.01), vec2(1,0)
 		);
 
-		VBox dialog = new VBox([new ImageBox(ui, nful)], 18);
+		ds.messageBox = new VBox([new ImageBox(ui, nful)], 18);
 		Dialog currentDialog = testDialog();
 	/// END - Dialog initialization
 
@@ -149,16 +168,14 @@ int main()
 		// Pause menu
 		new AnchoredBox([
 			ui.style.panel.mesh.create(ui),
-			new Padding(new Scrolled(dialog, 0), Pad(18)),
-			new Positioned(
-				new Button(ui, new TextBox(ui.style.defaultFont, "Add"),
-					(Widget w)
-					{
-						showOptions = true;
-					}),
-				vec2(1, 0.1), vec2(0,0)
+			new Padding(
+				new Scrolled(
+					new Padding(ds.messageBox, Pad(12))
+					, 0), 
+				Pad(8)
 			)],
-			vec2(0.02,0.02), vec2(0.2, .98),
+			vec2(0.02,0.02),
+			vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
 		// Debug Text
@@ -174,12 +191,13 @@ int main()
 
 	ui.setRootWidget(new HodgePodge([uiModal, dialogWidget]));
 
+	// Needs to be run after initialization
+	dialogCallback(currentDialog);
+
 	uiModal.setMode(1);
 
 	debug writeln("Beginning game loop");
 	stdout.flush();
-
-	currentDialog.applyDialog(ui, buttons, dialog, (Dialog d) {showOptions = !showOptions;});
 
 	float maxDelta_ms = -1;
 	float runningMaxDelta_ms = -1;
@@ -246,7 +264,11 @@ int main()
 
 			//game.animSystem.update(delta, game.scene.animMeshes);
 		}
-		dialogWidget.setVisible(showOptions);
+		if((ds.timer += delta) >= ds.current.pauseTime)
+		{
+			showDialog = true;
+		}
+		dialogWidget.setVisible(showDialog);
 
 		ui.update(delta, &input);
 

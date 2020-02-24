@@ -254,9 +254,11 @@ public class TextBox: Widget
 			view.setTextVisiblePercent(mesh, 0f);
 			return RealSize(0);
 		}
+		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
+		
 		view.setTextVisiblePercent(mesh, 1);
 		// TODO: layout text to fit bounds
-		return view.textBoundingBox(mesh);
+		return view.textBoundingBox(mesh).constrained(req);
 	}
 
 	public override void prepareRender(ivec2 p_pen) 
@@ -309,8 +311,11 @@ public class Button: MultiContainer, Interactible
 		{
 			return layoutEmpty();
 		}
-		RealSize childSize = children[1].layout(p_request);
+		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
+
+		RealSize childSize = children[1].layout(req);
 		children[0].layout(SizeRequest(childSize));
+
 		view.setInteractSize(id, childSize);
 		return childSize;
 	}

@@ -377,7 +377,7 @@ class VBox: MultiContainer
 
 	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) layoutEmpty();
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		
@@ -395,7 +395,8 @@ class VBox: MultiContainer
 		{
 			Widget child = children[i];
 			RealSize childSize = child.layout(childRequest);
-			child.position.x = -childSize.width/2;
+
+			if(!forceExpand) child.position.x = -childSize.width/2;
 			child.position.y = vertPos;
 
 			size.width = childSize.width > size.width? childSize.width: size.width;
@@ -413,12 +414,17 @@ class VBox: MultiContainer
 			size.width = cast(int) p_request.width.min;
 		}
 
-		foreach(child; children)
+		if(forceExpand) foreach(child; children)
+		{
+			child.layout(SizeRequest(Bounds(size.width), childRequest.height));
+			child.position.x = 0;
+		}
+		else foreach(child; children)
 		{
 			child.position.x += size.width/2;
 		}
 
-		return size;
+		return size.constrained(SizeRequest(absoluteWidth, absoluteHeight));
 	}
 
 	public void addChild(Widget w)

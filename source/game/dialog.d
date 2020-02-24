@@ -6,9 +6,10 @@ module game.dialog;
 
 public final class Dialog
 {
+	alias Callback = void delegate(Dialog message);
 	public string id;
-	public float pauseTime;
 	public string message;
+	public float pauseTime;
 	public Dialog[] responses;
 
 	this(string p_id, string p_message, float p_pause, Dialog[] p_responses)
@@ -17,6 +18,12 @@ public final class Dialog
 		pauseTime = p_pause;
 		message = p_message;
 		responses = p_responses;
+	}
+
+	public override string toString()
+	{
+		import std.format;
+		return format("``%s`` -> %d responses", message, responses.length);
 	}
 }
 
@@ -41,14 +48,14 @@ public final Dialog testDialog()
 				new Dialog("04-f", "Mambo... \nNumber..\n...\n\nFive.", 4, [
 					start
 				]),
-				new Dialog("04-q", "depression ??", .2, [
+				new Dialog("04-q", "another option.", .2, [
 					start
 				]),
 			]),
 			new Dialog("02-f", "Mambo... \nNumber..\n...\n\nFive.", 4, [
 				start
 			]),
-			new Dialog("02-q", "depression ??", .2, [
+			new Dialog("02-q", "I wanna eat a hat", .2, [
 				start, start, start, start, start
 			]),
 		]),
