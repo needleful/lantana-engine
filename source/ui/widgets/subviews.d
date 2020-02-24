@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module ui.subviews;
+module ui.widgets.subviews;
 
 import std.math;
 debug import std.stdio;
@@ -20,7 +20,7 @@ import ui.widgets;
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public final class Scrolled : LeafWidget
+public final class Scrolled : Widget
 {
 	private class ScrollGrab : Interactible
 	{
@@ -42,11 +42,11 @@ public final class Scrolled : LeafWidget
 		
 		public override void interact() 
 		{
-			parent.scrollbarHandle.setSprite(parent.parentView, parent.childView.renderer.style.button.pressed);
+			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.pressed);
 		}
 		public override void unfocus() 
 		{
-			parent.scrollbarHandle.setSprite(parent.parentView, parent.childView.renderer.style.button.normal);
+			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
 		}
 		public override short priority() 
 		{
@@ -54,9 +54,8 @@ public final class Scrolled : LeafWidget
 		}
 		/// Unimplemented Interactible methods
 		public override void focus() {}
-	} 
+	}
 
-	private UIView parentView;
 	private UIView childView;
 	private Widget child;
 	private RealSize childSize;
@@ -81,8 +80,9 @@ public final class Scrolled : LeafWidget
 
 	public override void initialize(UIRenderer p_ui, UIView p_view) 
 	{
+		super.initialize(p_ui, p_view);
+
 		auto oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
-		parentView = p_view;
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
 
@@ -98,12 +98,12 @@ public final class Scrolled : LeafWidget
 		scrollTo(oldScroll);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.hide)
+		if(!visible || p_request == SizeRequest.hide)
 		{
-			scrollbar.layout(p_view, SizeRequest.hide);
-			scrollbarHandle.layout(p_view, SizeRequest.hide);
+			scrollbar.layout(SizeRequest.hide);
+			scrollbarHandle.layout(SizeRequest.hide);
 			childView.setVisible(false);
 			return RealSize(0);
 		}
@@ -112,7 +112,7 @@ public final class Scrolled : LeafWidget
 			childView.setVisible(true);
 		}
 
-		int scrollbarWidth = p_view.renderer.style.scrollbar.width;
+		int scrollbarWidth = view.renderer.style.scrollbar.width;
 
 		SizeRequest childReq = SizeRequest(
 			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth), 
@@ -131,10 +131,9 @@ public final class Scrolled : LeafWidget
 			scrollRatio = 1;
 		}
 
-		RealSize barsize = scrollbar.layout(p_view, SizeRequest(Bounds(scrollbarWidth), Bounds(childSize.height)));
+		RealSize barsize = scrollbar.layout(SizeRequest(Bounds(scrollbarWidth), Bounds(childSize.height)));
 		
 		RealSize handleSize = scrollbarHandle.layout(
-			p_view,
 			SizeRequest(
 				Bounds(barsize.width), 
 				Bounds(cast(int)(barsize.height*scrollRatio))
@@ -154,23 +153,23 @@ public final class Scrolled : LeafWidget
 		scrollbar.position = ivec2(childSize.width, 0);
 		scrollbarHandle.position = ivec2(scrollbar.position.x, cast(int)scrollLocation);
 
-		p_view.setInteractSize(idHandle, barsize);
-		p_view.setInteractSize(idPan, childSize);
+		view.setInteractSize(idHandle, barsize);
+		view.setInteractSize(idPan, childSize);
 
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
 		drawPos = scrollbar.position + p_pen;
 		scrollbarHandle.position = drawPos + ivec2(0, cast(int)scrollLocation);
 
 		childView.setRect(Rect(p_pen, childSize));
-		scrollbar.prepareRender(p_view, p_pen + scrollbar.position);
-		scrollbarHandle.prepareRender(p_view, scrollbarHandle.position);
+		scrollbar.prepareRender(p_pen + scrollbar.position);
+		scrollbarHandle.prepareRender(scrollbarHandle.position);
 
-		p_view.setInteractPosition(idHandle, scrollbar.position + p_pen);
-		p_view.setInteractPosition(idPan, p_pen);
+		view.setInteractPosition(idHandle, scrollbar.position + p_pen);
+		view.setInteractPosition(idPan, p_pen);
 	}
 
 	public void scrollBy(double p_pixels, bool pan) 
@@ -217,7 +216,7 @@ public final class Scrolled : LeafWidget
 		scrollLocation = newLoc;
 		childView.translation = ivec2(0, cast(int) translate);
 		scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
-		scrollbarHandle.setPosition(parentView, scrollbarHandle.position);
+		scrollbarHandle.setPosition(scrollbarHandle.position);
 	}
 
 	public void scrollTo(double p_position) 
@@ -238,7 +237,7 @@ public final class Scrolled : LeafWidget
 	}
 }
 
-public final class Modal : LeafWidget
+public final class Modal : Widget
 {
 	private UIView[] views;
 	private Widget[] widgets;
@@ -253,6 +252,8 @@ public final class Modal : LeafWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view) 
 	{
+		super.initialize(p_renderer, p_view);
+
 		foreach(w; widgets)
 		{
 			UIView v = p_view.addView(Rect(ivec2(0,0), p_renderer.getSize()));
@@ -266,13 +267,13 @@ public final class Modal : LeafWidget
 		views[currentMode].setVisible(true);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.hide)
+		if(!visible || p_request == SizeRequest.hide)
 		{
-			foreach(view; views)
+			foreach(v; views)
 			{
-				view.setVisible(false);
+				v.setVisible(false);
 			}
 			return RealSize(0);
 		}
@@ -281,20 +282,19 @@ public final class Modal : LeafWidget
 			views[currentMode].setVisible(true);
 		}
 
-		foreach(view; views)
+		foreach(v; views)
 		{
-			view.setRect(Rect(ivec2(0,0), p_view.renderer.getSize()));
+			v.setRect(Rect(ivec2(0,0), view.renderer.getSize()));
 		}
 
-		return widgets[currentMode].layout(views[currentMode], p_request);
+		return widgets[currentMode].layout(p_request);
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
-		UIView v = views[currentMode];
 		Widget wi = widgets[currentMode];
 
-		wi.prepareRender(v, p_pen + wi.position);
+		wi.prepareRender(p_pen + wi.position);
 	}
 
 	public uint totalModes()

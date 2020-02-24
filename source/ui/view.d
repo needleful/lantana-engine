@@ -20,10 +20,10 @@ import render.gl;
 import render.material;
 import render.textures;
 
-import ui.containers;
 import ui.interaction;
 import ui.layout;
 import ui.render;
+import ui.widgets;
 
 /// Index into EBOs
 alias ebo_t = uint;
@@ -214,8 +214,8 @@ public final class UIView
 		if(!invalidated[ViewState.Layout])
 			return rect.size;
 
-		RealSize cs = root.layout(this, p_request);
-		root.prepareRender(this, ivec2(0,0));
+		RealSize cs = root.layout(p_request);
+		root.prepareRender(ivec2(0,0));
 
 		invalidated[ViewState.Layout] = false;
 		return cs;

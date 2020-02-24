@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module ui.widgets;
+module ui.widgets.objects;
 
 import std.math;
 debug import std.stdio;
@@ -12,30 +12,14 @@ import gl3n.linalg: vec2;
 import lanlib.types;
 import lanlib.util.printing;
 import logic.input : Input;
-import ui.containers;
 import ui.interaction;
 import ui.layout;
 import ui.render;
 import ui.view;
-
-public abstract class LeafWidget : Widget
-{
-	public override Widget[] getChildren() 
-	{
-		return [];
-	}
-}
-
-public abstract class RectWidget : LeafWidget
-{
-	public void setSprite(UIView p_view, SpriteId p_sprite);
-
-	public void setPosition(UIView p_view, ivec2 p_position);
-}
+import ui.widgets;
 
 public class PatchRect : RectWidget
 {
-	Widget child;
 	SpriteId sprite;
 	MeshRef mesh;
 	RealSize size;
@@ -49,14 +33,15 @@ public class PatchRect : RectWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		mesh = p_view.addPatchRect(sprite, pad);
+		super.initialize(p_renderer, p_view);
+		mesh = view.addPatchRect(sprite, pad);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.hide)
+		if(!visible || p_request == SizeRequest.hide)
 		{
-			p_view.setPatchRectSize(mesh, RealSize(0), Pad(0));
+			view.setPatchRectSize(mesh, RealSize(0), Pad(0));
 			return RealSize(0);
 		}
 		// At least as large as the pad and bound to the absolute bounds
@@ -67,25 +52,25 @@ public class PatchRect : RectWidget
 				Bounds(pad.top + pad.bottom, double.infinity));
 
 		size = RealSize(cast(int) rq.width.min, cast(int) rq.height.min);
-		p_view.setPatchRectSize(mesh, size, pad);
+		view.setPatchRectSize(mesh, size, pad);
 
 		return size;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
-		p_view.translateMesh(mesh, ivec2(p_pen));
+		view.translateMesh(mesh, ivec2(p_pen));
 	}
 
-	public override void setSprite(UIView p_view, SpriteId p_sprite) 
+	public override void setSprite(SpriteId p_sprite) 
 	{
-		p_view.setPatchRectUV(mesh, p_sprite, pad);
+		view.setPatchRectUV(mesh, p_sprite, pad);
 	}
 
-	public override void setPosition(UIView p_view, ivec2 p_position)
+	public override void setPosition(ivec2 p_position)
 	{
-		p_view.setPatchRectSize(mesh, size, pad);
-		p_view.translateMesh(mesh, ivec2(p_position));
+		view.setPatchRectSize(mesh, size, pad);
+		view.translateMesh(mesh, ivec2(p_position));
 	}
 }
 
@@ -120,14 +105,15 @@ public class ImageBox : RectWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
+		super.initialize(p_renderer, p_view);
 		vertices = p_view.addSpriteQuad(spriteId);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.hide)
+		if(!visible || p_request == SizeRequest.hide)
 		{
-			p_view.setQuadSize(vertices, RealSize(0));
+			view.setQuadSize(vertices, RealSize(0));
 			return RealSize(0);
 		}
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
@@ -200,34 +186,33 @@ public class ImageBox : RectWidget
 
 		resultSize = RealSize(cast(int)(size.width * wrIdeal), cast(int)(size.height * hrIdeal));
 
-		p_view.setQuadSize(vertices, resultSize);
+		view.setQuadSize(vertices, resultSize);
 		return resultSize;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
 		ivec2 p = ivec2(p_pen.x, p_pen.y);
-		p_view.translateMesh(vertices, p);
+		view.translateMesh(vertices, p);
 	}
 
-	public override void setSprite(UIView p_view, SpriteId p_sprite) 
+	public override void setSprite(SpriteId p_sprite) 
 	{
-		p_view.setSprite(vertices, p_sprite);
+		view.setSprite(vertices, p_sprite);
 	}
 
-	public override void setPosition(UIView p_view, ivec2 p_position)
+	public override void setPosition(ivec2 p_position)
 	{
-		p_view.setQuadSize(vertices, resultSize);
-		p_view.translateMesh(vertices, ivec2(p_position));
+		view.setQuadSize(vertices, resultSize);
+		view.translateMesh(vertices, ivec2(p_position));
 	}
 }
 
 // TODO: implement word wrap
-public class TextBox: LeafWidget
+public class TextBox: Widget
 {
 	FontId font;
 	string text;
-	UIView view;
 	uint allocCapacity;
 	TextId mesh;
 	bool dynamic;
@@ -258,25 +243,25 @@ public class TextBox: LeafWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
+		super.initialize(p_renderer, p_view);
 		mesh = p_view.addTextMesh(font, text, allocCapacity);
-		view = p_view;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(p_request == SizeRequest.hide)
+		if(!visible || p_request == SizeRequest.hide)
 		{
-			p_view.setTextVisiblePercent(mesh, 0f);
+			view.setTextVisiblePercent(mesh, 0f);
 			return RealSize(0);
 		}
-		p_view.setTextVisiblePercent(mesh, 1);
+		view.setTextVisiblePercent(mesh, 1);
 		// TODO: layout text to fit bounds
-		return p_view.textBoundingBox(mesh);
+		return view.textBoundingBox(mesh);
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
-		p_view.translateTextMesh(mesh, p_pen);
+		view.translateTextMesh(mesh, p_pen);
 	}
 
 	public void setText(string p_text) 
@@ -289,21 +274,17 @@ public class TextBox: LeafWidget
 		text = p_text;
 	}
 
-	//public void setVisiblePortion(float p_visible)  
-	//{
-	//	mesh.visiblePortion = p_visible;
-	//}
-
-	//public float getPortionVisible()  
-	//{
-	//	return mesh.visiblePortion;
-	//}
+	public FontId getFont()
+	{
+		return font;
+	}
 }
 
 public class Button: MultiContainer, Interactible
 {
-	Interactible.Callback onPressed;
-	InteractibleId id;
+	private InteractibleId id;
+	public Interactible.Callback onPressed;
+	private bool pressed;
 
 	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed)
 	{
@@ -318,26 +299,26 @@ public class Button: MultiContainer, Interactible
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
-		id = p_view.addInteractible(this);
 		super.initialize(p_renderer, p_view);
+		id = p_view.addInteractible(this);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
 		if(!visible || p_request == SizeRequest.hide)
 		{
-			return layoutEmpty(p_view);
+			return layoutEmpty();
 		}
-		RealSize childSize = children[1].layout(p_view, p_request);
-		children[0].layout(p_view, SizeRequest(childSize));
-		p_view.setInteractSize(id, childSize);
+		RealSize childSize = children[1].layout(p_request);
+		children[0].layout(SizeRequest(childSize));
+		view.setInteractSize(id, childSize);
 		return childSize;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen) 
+	public override void prepareRender(ivec2 p_pen) 
 	{
-		p_view.setInteractPosition(id, p_pen);
-		super.prepareRender(p_view, p_pen);
+		view.setInteractPosition(id, p_pen);
+		super.prepareRender(p_pen);
 	}
 
 	public override short priority()
@@ -349,14 +330,21 @@ public class Button: MultiContainer, Interactible
 
 	public override void unfocus()
 	{
-		(cast(RectWidget)children[0]).setSprite(view, view.renderer.style.button.normal);
+		if(pressed) onPressed(this);
+		pressed = false;
+		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 	}
 
 	public override void drag(ivec2 _) {}
 
 	public override void interact()
 	{
-		(cast(RectWidget)children[0]).setSprite(view, view.renderer.style.button.pressed);
-		onPressed(this);
+		pressed = true;
+		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.pressed);
+	}
+
+	public Widget getChild()
+	{
+		return (cast(Container)children[1]).getChildren()[0];
 	}
 }

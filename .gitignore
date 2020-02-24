@@ -1,8 +1,6 @@
 .dub
 dub.selections.*
 *.sublime-workspace
-editor
-game
 *.a
 *.so
 *.o
@@ -15,3 +13,4 @@ logs
 *.*~
 *.log
 *.lgbt
+*.sln

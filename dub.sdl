@@ -22,22 +22,22 @@ buildType "release-ultra" {
 }
 
 configuration "game" {
+	versions "lantana_game"
 	targetType "executable"
 	targetPath "bin"
 	targetName "game"
-	excludedSourceFiles "source/app/editor.d" "source/app/converter.d"
 }
 
 configuration "editor" {
+	versions "lantana_editor"
 	targetType "executable"
 	targetPath "bin"
 	targetName "editor"
-	excludedSourceFiles "source/app/game.d" "source/app/converter.d"
 }
 
 configuration "converter" {
+	versions "lantana_converter"
 	targetType "executable"
 	targetPath "bin"
 	targetName "converter"
-	excludedSourceFiles "source/app/editor.d" "source/app/game.d"
 }

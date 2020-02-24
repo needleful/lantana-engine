@@ -8,59 +8,6 @@ import std.stdio;
 
 import lanlib.types;
 import lanlib.util.printing;
-import ui.render: UIRenderer;
-import ui.view : UIView;
-
-// The basic system is inspired by Flutter
-// Flutter data layout:
-// Construct a tree.
-//		From root to leaves, apply constraints
-//		from leaves to root, calculate sizes
-//	Child knows size, parent knows position
-//	This means the child's size cannot depend on its position
-
-/// Base UI class.  All UI elements are Widgets
-public abstract class Widget
-{
-	/// Pixel position of the widget, from the bottom left of the screen to the bottom left of the widget
-	/// As a rule, the position should ONLY be read by the parent
-	public ivec2 position;
-
-	/// Force the Widget to be within these bounds.  Overrides the parent request.
-	/// This should be used sparingly!  It can break things!
-	protected Bounds absoluteWidth = Bounds.none;
-	protected Bounds absoluteHeight = Bounds.none;
-
-	/// First phase of layout, taking some SizeRequest (bounds), and providing the real size of the object
-	/// Parents calculate the position of their children
-	public abstract RealSize layout(UIView p_renderer, SizeRequest p_request);
-
-	public abstract Widget[] getChildren();
-
-	/// Second phase of layout: this is 
-	public void prepareRender(UIView p_renderer, ivec2 p_pen)
-	{
-		foreach(child; getChildren())
-		{
-			child.prepareRender(p_renderer, child.position + p_pen);
-		}
-	}
-
-	public void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		foreach(child; getChildren())
-		{
-			child.initialize(p_renderer, p_view);
-		}
-	}
-
-	public Widget withBounds(Bounds p_width, Bounds p_height)
-	{
-		absoluteWidth = p_width;
-		absoluteHeight = p_height;
-		return this;
-	}
-}
 
 /// Bounds for laying out UI elements
 public struct SizeRequest

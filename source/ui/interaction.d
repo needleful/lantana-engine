@@ -6,7 +6,7 @@ module ui.interaction;
 
 import lanlib.types : ivec2;
 import logic.input;
-import ui.layout;
+import ui.widgets;
 
 public interface Interactible
 {

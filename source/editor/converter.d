@@ -10,6 +10,7 @@ import lanlib.file.gltf2;
 import lanlib.file.lgbt;
 import lanlib.util.memory;
 
+version(lantana_converter)
 int main(string[] args)
 {
 	if(args.length != 2)

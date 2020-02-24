@@ -2,12 +2,15 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
+module game.main;
+
 import core.memory;
 import std.format;
 import std.math;
 import std.stdio;
 
 import audio;
+import game.dialog;
 import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
@@ -26,6 +29,50 @@ enum cam_speed = 8;
 
 float g_timescale = 1;
 
+final class DialogButton : Button
+{
+	Dialog dialog;
+	
+	public this(UIRenderer p_renderer)
+	{
+		visible = false;
+		super(p_renderer, new TextBox(p_renderer.style.defaultFont, "", 128), (Widget w){});
+	}
+
+	public void setDialog(Dialog p_dialog, Interactible.Callback p_onpressed)
+	{
+		dialog = p_dialog;
+		onPressed = p_onpressed;
+		(cast(TextBox)getChild()).setText(p_dialog.message);
+	}
+}
+
+void applyDialog(Dialog p_dialog, UIRenderer p_renderer, DialogButton[] p_buttons, VBox p_box, void delegate(Dialog) p_onDialog)
+{
+	assert(p_dialog.responses.length <= p_buttons.length);
+
+	FontId f = p_renderer.style.defaultFont;
+
+	p_box.addChild(new TextBox(f, p_dialog.message));
+
+	foreach(size_t i, Dialog resp; p_dialog.responses)
+	{
+		p_buttons[i].setVisible(true);
+		p_buttons[i].setDialog(resp, 
+			(Widget w) 
+			{
+				applyDialog(resp, p_renderer, p_buttons, p_box, p_onDialog);
+			});
+	}
+
+	for(ulong i = p_dialog.responses.length; i < p_buttons.length; i++)
+	{
+		p_buttons[i].setVisible(false);
+	}
+	p_onDialog(p_dialog);
+}
+
+version(lantana_game)
 int main()
 {
 	// Store test scenes
@@ -35,8 +82,8 @@ int main()
 	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
 
-	AudioManager audio = AudioManager(32);
-	//audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
+	AudioManager audio = AudioManager(16);
+	audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
 
 	UIRenderer ui = new UIRenderer(window.getSize());
 	with(ui.style)
@@ -64,23 +111,39 @@ int main()
 
 	TextBox frameTime = new TextBox(ui.style.defaultFont, debugFormat, true);
 	uint frame = 0;
-	VBox dialog = new VBox([new ImageBox(ui, nful)], 18);
 
-	bool showOptions;
+	/// BEGIN - Dialog initialization
+		bool showOptions = true;
+		DialogButton[] buttons = [];
+		buttons.reserve(8);
 
-	auto nfulWidget = new Anchor(
-		new Padding(
-			new Button(ui, 
-				new TextBox(ui.style.defaultFont, "Button One"),
-				(Widget w)
-				{
-					dialog.addChild(new TextBox(ui.style.defaultFont, format("Pressed Button One at frame %u", frame)));
-					showOptions = false;
-				}),
-			Pad(12, 18),
-			ui.style.panel.mesh.create(ui)),
-		vec2(0.99,0.01), vec2(1,0)
-	);
+		for(int i = 0; i < 8; i++)
+		{
+			buttons ~= new DialogButton(ui);
+		}
+
+		Widget[] tmp_widgets;
+		tmp_widgets.reserve(buttons.length);
+
+		foreach(button; buttons)
+		{
+			tmp_widgets ~= button;
+		}
+
+		VBox dialogbox = new VBox(tmp_widgets, 0, true);
+
+		auto dialogWidget = new Anchor(
+			new Padding(
+				dialogbox, 
+				Pad(0),
+				ui.style.panel.mesh.create(ui)
+			).withBounds(Bounds(300), Bounds(250, 400)),
+			vec2(0.99,0.01), vec2(1,0)
+		);
+
+		VBox dialog = new VBox([new ImageBox(ui, nful)], 18);
+		Dialog currentDialog = testDialog();
+	/// END - Dialog initialization
 
 	Modal uiModal = new Modal([
 		// Pause menu
@@ -109,12 +172,14 @@ int main()
 		)
 	]);
 
-	ui.setRootWidget(new HodgePodge([uiModal, nfulWidget]));
+	ui.setRootWidget(new HodgePodge([uiModal, dialogWidget]));
 
 	uiModal.setMode(1);
 
 	debug writeln("Beginning game loop");
 	stdout.flush();
+
+	currentDialog.applyDialog(ui, buttons, dialog, (Dialog d) {showOptions = !showOptions;});
 
 	float maxDelta_ms = -1;
 	float runningMaxDelta_ms = -1;
@@ -181,7 +246,7 @@ int main()
 
 			//game.animSystem.update(delta, game.scene.animMeshes);
 		}
-		nfulWidget.setVisible(showOptions);
+		dialogWidget.setVisible(showOptions);
 
 		ui.update(delta, &input);
 

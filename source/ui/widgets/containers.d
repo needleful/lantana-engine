@@ -2,7 +2,7 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
-module ui.containers;
+module ui.widgets.containers;
 
 import std.math;
 debug import std.stdio;
@@ -18,70 +18,6 @@ import ui.render;
 import ui.view;
 import ui.widgets;
 
-public abstract class Container : Widget
-{
-	UIView view;
-	bool visible = true;
-
-	public override void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		view = p_view;
-		super.initialize(p_renderer, p_view);
-	}
-
-	public void setVisible(bool p_vis)
-	{
-		if(p_vis == visible) return;
-		visible = p_vis;
-		view.requestUpdate();
-	}
-	
-	public final bool isVisible()
-	{
-		return visible;
-	}
-}
-
-public abstract class MultiContainer : Container
-{
-	protected Widget[] children;
-
-	public final override Widget[] getChildren() 
-	{
-		return children;
-	}
-
-	protected final RealSize layoutEmpty(UIView p_view)
-	{
-		foreach(child; getChildren())
-		{
-			child.layout(p_view, SizeRequest.hide);
-		}
-		return RealSize(0);
-	}
-}
-
-public abstract class SingularContainer: Container
-{
-	protected Widget child;
-
-	public final override Widget[] getChildren() 
-	{
-		return (&child)[0..1];
-	}
-
-	public final const(Widget) getChild() 
-	{
-		return child;
-	}
-
-	protected final RealSize layoutEmpty(UIView p_view)
-	{
-		child.layout(p_view, SizeRequest.hide);
-		return RealSize(0);
-	}
-}
-
 /// Provides no layout hints.  All widgets are laid out in the same space and position
 public class HodgePodge : MultiContainer
 {
@@ -90,9 +26,9 @@ public class HodgePodge : MultiContainer
 		children = p_children;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -101,7 +37,7 @@ public class HodgePodge : MultiContainer
 		foreach(child; children)
 		{
 			child.position = ivec2(0,0);
-			RealSize csize = child.layout(p_view, request);
+			RealSize csize = child.layout(request);
 
 			// Calculating the bounding box for the hodgepodge
 			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
@@ -124,12 +60,12 @@ public class Positioned: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request)
+	public override RealSize layout(SizeRequest p_request)
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest childRequest = SizeRequest(absoluteWidth, absoluteHeight);
-		RealSize childSize = child.layout(p_view, childRequest);
+		RealSize childSize = child.layout(childRequest);
 
 		RealSize parent = RealSize(cast(int) p_request.width.max, cast(int) p_request.height.max);
 		child.position = ivec2(
@@ -158,9 +94,9 @@ public class Anchor: SingularContainer
 		childAnchor = p_childAnchor;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 		// Calculating the child dimensions and the resulting size of the whole thing is so confusing.
@@ -278,7 +214,7 @@ public class Anchor: SingularContainer
 			else return RealSize(0,0);
 		}
 
-		RealSize childSize = child.layout(p_view, childIntrinsic);
+		RealSize childSize = child.layout(childIntrinsic);
 
 		child.position = ivec2(
 			cast(int)(parentWidth*anchor.x - childSize.width*childAnchor.x),
@@ -306,9 +242,9 @@ public class AnchoredBox : MultiContainer
 		topRight = p_tRight;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request)
+	public override RealSize layout(SizeRequest p_request)
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
@@ -322,7 +258,7 @@ public class AnchoredBox : MultiContainer
 		foreach(child; children)
 		{
 			child.position = ivec2(cast(int)(p_request.width.max*bottomLeft.x), cast(int)(p_request.height.max*bottomLeft.y));
-			child.layout(p_view, childRequest);
+			child.layout(childRequest);
 		}
 
 		return RealSize(cast(int) childRequest.width.max, cast(int) childRequest.height.max);
@@ -351,9 +287,9 @@ public final class Padding : SingularContainer
 		super.initialize(p_renderer, p_view);
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -366,18 +302,18 @@ public final class Padding : SingularContainer
 		// Constrain child to the full box (or infinity)
 		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
 
-		RealSize csize = child.layout(p_view, childIntrinsic);
+		RealSize csize = child.layout(childIntrinsic);
 		child.position = ivec2(pad.left, pad.bottom);
 
 		RealSize res = RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
-		if(panel) panel.layout(p_view, SizeRequest(res));
+		if(panel) panel.layout(SizeRequest(res));
 		return res;
 	}
 
-	public override void prepareRender(UIView p_view, ivec2 p_pen)
+	public override void prepareRender(ivec2 p_pen)
 	{
-		if(panel) panel.prepareRender(p_view, p_pen);
-		super.prepareRender(p_view, p_pen);
+		if(panel) panel.prepareRender(p_pen);
+		super.prepareRender(p_pen);
 	}
 }
 
@@ -392,9 +328,9 @@ public final class HBox: MultiContainer
 		spacing = p_spacing;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -403,7 +339,7 @@ public final class HBox: MultiContainer
 		ivec2 pen = ivec2(0,0);
 		foreach(child; children)
 		{
-			RealSize childSize = child.layout(p_view, request);
+			RealSize childSize = child.layout(request);
 			child.position.x = pen.x;
 			child.position.y = -childSize.height/2;
 
@@ -425,24 +361,31 @@ public final class HBox: MultiContainer
 /// Goes from bottom to top
 class VBox: MultiContainer
 {
+	// Expands the children to match the requested width
+	bool forceExpand;
 	// Space between children
 	int spacing;
 
 	// Put children from top to bottom
 	// TODO: make adding new children put them on the bottom, too
-	this(Widget[] p_children, int p_spacing = 0)
+	this(Widget[] p_children, int p_spacing = 0, bool p_expand = false)
 	{
 		children = p_children;
 		spacing = p_spacing;
+		forceExpand = p_expand;
 	}
 
-	public override RealSize layout(UIView p_view, SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) layoutEmpty(p_view);
+		if(!visible || p_request == SizeRequest.hide) layoutEmpty();
 
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
+		
 		childRequest.height.min = 0;
-		childRequest.width.min = 0;
+		if(!forceExpand)
+		{
+			childRequest.width.min = 0;
+		}
 
 		//TODO: respect intrinsics properly
 		RealSize size;
@@ -451,7 +394,7 @@ class VBox: MultiContainer
 		for(int i = cast(int)(children.length - 1); i >= 0; i--)
 		{
 			Widget child = children[i];
-			RealSize childSize = child.layout(p_view, childRequest);
+			RealSize childSize = child.layout(childRequest);
 			child.position.x = -childSize.width/2;
 			child.position.y = vertPos;
 
