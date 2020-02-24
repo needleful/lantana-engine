@@ -110,58 +110,53 @@ int main()
 	uint frame = 0;
 
 	/// BEGIN - Dialog initialization
-		DialogState ds;
+	DialogState ds;
 
-		bool showDialog = true;
-		ds.buttons.reserve(8);
+	bool showDialog = true;
+	ds.buttons.reserve(8);
 
-		void dialogCallback(Dialog p_dialog)
+	void dialogCallback(Dialog p_dialog)
+	{
+		assert(p_dialog.responses.length <= ds.buttons.length);
+		ds.current = p_dialog;
+
+		ds.messageBox.addChild(new TextBox(ui.style.defaultFont, p_dialog.message));
+
+		foreach(i, resp; p_dialog.responses)
 		{
-			assert(p_dialog.responses.length <= ds.buttons.length);
-			ds.current = p_dialog;
-
-			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, p_dialog.message));
-
-			foreach(i, resp; p_dialog.responses)
-			{
-				ds.buttons[i].setVisible(true);
-				ds.buttons[i].setDialog(resp);
-			}
-
-			for(ulong i = p_dialog.responses.length; i < ds.buttons.length; i++)
-			{
-				ds.buttons[i].setVisible(false);
-			}
-			ds.timer = 0;
-			showDialog = false;
+			ds.buttons[i].setVisible(true);
+			ds.buttons[i].setDialog(resp);
 		}
 
-		for(int i = 0; i < 8; i++)
+		for(ulong i = p_dialog.responses.length; i < ds.buttons.length; i++)
 		{
-			ds.buttons ~= new DialogButton(ui, &dialogCallback);
+			ds.buttons[i].setVisible(false);
 		}
+		ds.timer = 0;
+		showDialog = false;
+	}
 
-		Widget[] tmp_widgets;
-		tmp_widgets.reserve(ds.buttons.length);
+	for(int i = 0; i < 8; i++)
+	{
+		ds.buttons ~= new DialogButton(ui, &dialogCallback);
+	}
 
-		foreach(button; ds.buttons)
-		{
-			tmp_widgets ~= button;
-		}
+	Widget[] tmp_widgets;
+	tmp_widgets.reserve(ds.buttons.length);
 
-		VBox dialogbox = new VBox(tmp_widgets, 0, true);
+	foreach(button; ds.buttons)
+	{
+		tmp_widgets ~= button;
+	}
 
-		auto dialogWidget = new Anchor(
-			new Padding(
-				dialogbox, 
-				Pad(0),
-				ui.style.panel.mesh.create(ui)
-			).withBounds(Bounds(300, double.infinity), Bounds(250, double.infinity)),
-			vec2(0.99,0.01), vec2(1,0)
-		);
+	VBox dialogbox = new VBox(tmp_widgets, 0, true);
 
-		ds.messageBox = new VBox([new ImageBox(ui, nful)], 18);
-		Dialog currentDialog = testDialog();
+	ds.messageBox = new VBox([new ImageBox(ui, nful)], 18);
+	Dialog currentDialog = testDialog();
+	Widget dialogWidget = new Padding(
+		dialogbox, 
+		Pad(8), 
+		ui.style.panel.mesh.create(ui));
 	/// END - Dialog initialization
 
 	Modal uiModal = new Modal([
@@ -169,11 +164,14 @@ int main()
 		new AnchoredBox([
 			ui.style.panel.mesh.create(ui),
 			new Padding(
-				new Scrolled(
-					new Padding(ds.messageBox, Pad(12))
-					, 0), 
-				Pad(8)
-			)],
+				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
+				Pad(8)),
+			new Positioned(
+				dialogWidget,
+				vec2(1, 0.4),
+				vec2(0,0.5))
+			],
+
 			vec2(0.02,0.02),
 			vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
@@ -189,7 +187,7 @@ int main()
 		)
 	]);
 
-	ui.setRootWidget(new HodgePodge([uiModal, dialogWidget]));
+	ui.setRootWidget(uiModal);
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);

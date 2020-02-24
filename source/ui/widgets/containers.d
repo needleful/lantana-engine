@@ -289,7 +289,11 @@ public final class Padding : SingularContainer
 
 	public override RealSize layout(SizeRequest p_request) 
 	{
-		if(!visible || p_request == SizeRequest.hide) return layoutEmpty();
+		if(!visible || p_request == SizeRequest.hide) 
+		{
+			if(panel) panel.layout(SizeRequest.hide);
+			return layoutEmpty();
+		}
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
@@ -307,7 +311,7 @@ public final class Padding : SingularContainer
 
 		RealSize res = RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
 		if(panel) panel.layout(SizeRequest(res));
-		return res;
+		return res.constrained(SizeRequest(absoluteWidth, absoluteHeight));
 	}
 
 	public override void prepareRender(ivec2 p_pen)
