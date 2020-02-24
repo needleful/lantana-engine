@@ -53,6 +53,7 @@ struct ButtonStyle
 	IRectStyle mesh;
 	Pad pad;
 	SpriteId normal;
+	SpriteId focused;
 	SpriteId pressed;
 }
 

@@ -87,6 +87,7 @@ int main()
 	{
 		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
+		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
 		button.pad = Pad(8, 12);
 		

@@ -243,6 +243,7 @@ public final class UIRenderer
 			if(newFocus)
 			{
 				focused = newFocus;
+				focused.focus();
 			}
 		}
 
@@ -257,7 +258,7 @@ public final class UIRenderer
 				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
 				focused.drag(drag);
 			}
-			else
+			else if(!newFocus || p_input.is_just_released(Input.Action.UI_INTERACT))
 			{
 				focused.unfocus();
 				focused = null;

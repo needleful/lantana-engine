@@ -331,7 +331,10 @@ public class Button: MultiContainer, Interactible
 		return 1;
 	}
 	/// Interactible methods
-	public override void focus() {}
+	public override void focus()
+	{
+		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.focused);
+	}
 
 	public override void unfocus()
 	{

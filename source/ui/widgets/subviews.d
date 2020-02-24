@@ -53,7 +53,10 @@ public final class Scrolled : Widget
 			return m_priority;
 		}
 		/// Unimplemented Interactible methods
-		public override void focus() {}
+		public override void focus() 
+		{
+			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
+		}
 	}
 
 	private UIView childView;
