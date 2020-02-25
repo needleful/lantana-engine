@@ -23,7 +23,7 @@ int main(string[] args)
 
 	BaseRegion mem = BaseRegion(MAX_MEMORY/4);
 
-	File errLog = File("model_error.log", "w");
+	debug File errLog = File("model_error.log", "w");
 	auto lines = File(path, "r").byLine();
 	foreach(ref line; lines) 
 	{

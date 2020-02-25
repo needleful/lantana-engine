@@ -23,7 +23,7 @@ public final class Dialog
 	public override string toString()
 	{
 		import std.format;
-		return format("``%s`` -> %d responses", message, responses.length);
+		return format("[%s] ``%s`` -> %d responses", id, message, responses.length);
 	}
 }
 

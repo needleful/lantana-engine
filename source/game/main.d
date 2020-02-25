@@ -270,10 +270,10 @@ int main()
 			showDialog = true;
 		}
 		dialogWidget.setVisible(showDialog);
-		if(showDialog)
-		{
-			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", ds.messageBox.getChildren().length)));
-		}
+		//if(showDialog)
+		//{
+		//	ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", ds.messageBox.getChildren().length)));
+		//}
 
 		ui.update(delta, &input);
 
