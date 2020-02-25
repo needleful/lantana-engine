@@ -268,6 +268,10 @@ int main()
 			showDialog = true;
 		}
 		dialogWidget.setVisible(showDialog);
+		if(showDialog && frame % 8 == 0)
+		{
+			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", frame)));
+		}
 
 		ui.update(delta, &input);
 

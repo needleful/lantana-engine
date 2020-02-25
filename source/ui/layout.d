@@ -215,6 +215,17 @@ struct Rect
 		return (p.x >= 0 && p.x <= size.width) && (p.y >= 0 && p.y <= size.height);
 	}
 
+	bool intersects(Rect rhs) const nothrow @nogc
+	{
+		ivec2 topRight = ivec2(pos.x + size.width, pos.y + size.height);
+		ivec2 topRightRhs = ivec2(rhs.pos.x + rhs.size.width, rhs.pos.y + rhs.size.height);
+
+		return ( (pos.x >= rhs.pos.x && pos.x <= topRightRhs.x) 
+		         || (topRight.x >= rhs.pos.x && topRight.x <= topRightRhs.x))
+		       && ( (pos.y >= rhs.pos.y && pos.y <= topRightRhs.y) 
+		         || (topRight.y >= rhs.pos.y && topRight.y <= topRightRhs.y));
+	}
+
 	void print() const @nogc nothrow
 	{
 		printT("REC[ ivec(%, %), %]", pos.x, pos.y, size);

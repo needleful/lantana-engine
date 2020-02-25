@@ -306,7 +306,13 @@ public final class UIView
 		
 		foreach(ref tm; textMeshes)
 		{
-			renderer.matText.setUniform(renderer.uniText.translation, rect.pos+translation+tm.translation);
+			Rect textRect = Rect(rect.pos+translation+tm.translation, tm.boundingSize);
+			if(!textRect.intersects(rect))
+			{
+				continue;
+			}
+
+			renderer.matText.setUniform(renderer.uniText.translation, textRect.pos);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
