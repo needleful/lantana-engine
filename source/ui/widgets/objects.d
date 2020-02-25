@@ -309,6 +309,7 @@ public class Button: MultiContainer, Interactible
 	{
 		if(!visible || p_request == SizeRequest.hide)
 		{
+			view.setInteractSize(id, RealSize(0));
 			return layoutEmpty();
 		}
 		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);

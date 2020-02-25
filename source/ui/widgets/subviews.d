@@ -55,7 +55,7 @@ public final class Scrolled : Widget
 		/// Unimplemented Interactible methods
 		public override void focus() 
 		{
-			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
+			if(!pan) parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
 		}
 	}
 
