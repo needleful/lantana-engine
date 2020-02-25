@@ -22,7 +22,7 @@ import ui.widgets;
 /// Other dimensions are still constrained
 public final class Scrolled : Widget
 {
-	private class ScrollGrab : Interactible
+	private final class ScrollGrab : Interactible
 	{
 		Scrolled parent;
 		short m_priority;
@@ -61,31 +61,26 @@ public final class Scrolled : Widget
 
 	private UIView childView;
 	private Widget child;
-	private RealSize childSize;
 
 	private Widget scrollbar;
 	private RectWidget scrollbarHandle;
 
 	private InteractibleId idHandle, idPan;
 	private ivec2 drawPos;
-	private double scrollLocation = 0;
-	private double scrollRatio = 1;
 	private int scrollSpan;
+	private double scrollPercent = 0;
+	private RealSize childSize, widgetSize;
 
 	public this(Widget p_child, float p_scroll = 1) 
 	{
 		child = p_child;
-
-		// A hack to set the scroll bar's position before anything's been laid out
-		scrollSpan = 1;
-		scrollLocation = scrollSpan * p_scroll;
+		scrollPercent = p_scroll;
 	}
 
 	public override void initialize(UIRenderer p_ui, UIView p_view) 
 	{
 		super.initialize(p_ui, p_view);
 
-		auto oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(child);
 
@@ -98,7 +93,7 @@ public final class Scrolled : Widget
 		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 1));
 		idPan = p_view.addInteractible(new ScrollGrab(this, true, 0));
 
-		scrollTo(oldScroll);
+		scrollTo(scrollPercent);
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -108,6 +103,8 @@ public final class Scrolled : Widget
 			scrollbar.layout(SizeRequest.hide);
 			scrollbarHandle.layout(SizeRequest.hide);
 			childView.setVisible(false);
+			view.setInteractSize(idHandle, RealSize(0));
+			view.setInteractSize(idPan, RealSize(0));
 			return RealSize(0);
 		}
 		else
@@ -122,39 +119,32 @@ public final class Scrolled : Widget
 			Bounds.none)
 		.constrained(absoluteWidth, absoluteHeight);
 
-		RealSize result = childView.updateLayout(childReq);
+		widgetSize = childView.updateLayout(childReq);
+		childSize = widgetSize.constrained(SizeRequest(childReq.width, p_request.height));
 
-		childSize = result.constrained(p_request);
-		childSize.width -= scrollbarWidth;
-
-		scrollRatio = childSize.height / (cast(double) result.height);
+		double scrollRatio = childSize.height / (cast(double) widgetSize.height);
 
 		if(scrollRatio > 1)
-		{
 			scrollRatio = 1;
-		}
+		else if(scrollRatio < 0)
+			scrollRatio = 0;
 
-		RealSize barsize = scrollbar.layout(SizeRequest(Bounds(scrollbarWidth), Bounds(childSize.height)));
-		
+		RealSize barsize = scrollbar.layout(SizeRequest(RealSize(scrollbarWidth, childSize.height)));
 		RealSize handleSize = scrollbarHandle.layout(
 			SizeRequest(
 				Bounds(barsize.width), 
 				Bounds(cast(int)(barsize.height*scrollRatio))
-			).constrained(Bounds.none, Bounds(barsize.width/2))
+			).constrained(Bounds.none, Bounds(barsize.width))
 		);
-
-		auto oldScroll = scrollSpan == 0 ? 0 : scrollLocation/scrollSpan;
 
 		// How far, in pixels, the user can scroll
 		scrollSpan = barsize.height - handleSize.height;
 		if(scrollSpan < 0) scrollSpan = 0;
 
 		// Readjusting scroll to match old position as best as possible
-		scrollLocation = scrollSpan * oldScroll;
-		childView.translation = ivec2(0, cast(int)(-scrollLocation/scrollRatio));
+		childView.translation = ivec2(0, cast(int)(-scrollPercent* (widgetSize.height - childSize.height)));
 
 		scrollbar.position = ivec2(childSize.width, 0);
-		scrollbarHandle.position = ivec2(scrollbar.position.x, cast(int)scrollLocation);
 
 		view.setInteractSize(idHandle, barsize);
 		view.setInteractSize(idPan, childSize);
@@ -165,10 +155,10 @@ public final class Scrolled : Widget
 	public override void prepareRender(ivec2 p_pen) 
 	{
 		drawPos = scrollbar.position + p_pen;
-		scrollbarHandle.position = drawPos + ivec2(0, cast(int)scrollLocation);
+		scrollbarHandle.position = drawPos + ivec2(0, cast(int)(scrollSpan*scrollPercent));
 
 		childView.setRect(Rect(p_pen, childSize));
-		scrollbar.prepareRender(p_pen + scrollbar.position);
+		scrollbar.prepareRender(drawPos);
 		scrollbarHandle.prepareRender(scrollbarHandle.position);
 
 		view.setInteractPosition(idHandle, scrollbar.position + p_pen);
@@ -177,66 +167,30 @@ public final class Scrolled : Widget
 
 	public void scrollBy(double p_pixels, bool pan) 
 	{
-		double translate, newLoc;
+		double newLoc = scrollPercent;
 		if(pan)
-		{
-			translate = childView.translation.y - p_pixels;
-			newLoc = -translate * scrollRatio;
-
-			if(translate >= 0 )
-			{
-				translate = 0;
-				newLoc = 0;
-			}
-			else if(translate <= -scrollSpan/scrollRatio)
-			{
-				translate = -scrollSpan/scrollRatio;
-				newLoc = scrollSpan;
-			}
-		}
+			newLoc += p_pixels/(widgetSize.height - childSize.height);
 		else
-		{
-			newLoc = scrollLocation - p_pixels;
-			translate = -newLoc / scrollRatio;
+			newLoc -= p_pixels/(scrollSpan);
 
-			if(newLoc <= 0 )
-			{
-				newLoc = 0;
-				translate = 0;
-			}
-			else if(newLoc >= scrollSpan)
-			{
-				newLoc = scrollSpan;
-				translate = -scrollSpan/scrollRatio;
-			}
-		}
+		if(newLoc > 1)
+			newLoc = 1;
+		else if(newLoc < 0)
+			newLoc = 0;
 
-		if(childView.translation.y == cast(int)translate && newLoc == scrollLocation)
-		{
+		if(newLoc == scrollPercent)
 			return;
-		}
 
-		scrollLocation = newLoc;
-		childView.translation = ivec2(0, cast(int) translate);
-		scrollbarHandle.position.y = drawPos.y + cast(int)scrollLocation;
-		scrollbarHandle.setPosition(scrollbarHandle.position);
+		scrollTo(newLoc);
 	}
 
 	public void scrollTo(double p_position) 
 	{
-		double pos = p_position;
-		if(pos < 0)
-		{
-			pos = 0;
-		}
-		else if(pos > 1)
-		{
-			pos = 1;
-		}
+		scrollPercent = p_position;
 
-		double desiredLoc = scrollSpan * pos;
-
-		scrollBy(scrollLocation - desiredLoc, false);
+		childView.translation.y = cast(int) (-scrollPercent*(widgetSize.height-childSize.height));
+		scrollbarHandle.position.y = drawPos.y + cast(int)(scrollPercent*scrollSpan);
+		scrollbarHandle.setPosition(scrollbarHandle.position);
 	}
 }
 

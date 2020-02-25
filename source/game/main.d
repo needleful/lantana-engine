@@ -165,7 +165,7 @@ int main()
 		new AnchoredBox([
 			ui.style.panel.mesh.create(ui),
 			new Padding(
-				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
+				new Scrolled(new Padding(ds.messageBox, Pad(12)), 1),
 				Pad(8)),
 			new Positioned(
 				dialogWidget,
@@ -177,18 +177,20 @@ int main()
 			vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
-		// Debug Text
-		new Anchor(
-			new HBox([
-				new TextBox(ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
-				frameTime
-			], 5),
-			vec2(0.99, 0.99),
-			vec2(1, 1)
-		)
+		new HodgePodge([]),
 	]);
 
-	ui.setRootWidget(uiModal);
+	ui.setRootWidget(
+		new HodgePodge([
+			uiModal,
+	 		new Anchor(
+				new HBox([
+					new TextBox(ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
+					frameTime
+				], 5),
+				vec2(0.99, 0.99),
+				vec2(1, 1)
+		)]));
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);
@@ -268,9 +270,9 @@ int main()
 			showDialog = true;
 		}
 		dialogWidget.setVisible(showDialog);
-		if(showDialog && frame % 8 == 0)
+		if(showDialog)
 		{
-			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", frame)));
+			ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", ds.messageBox.getChildren().length)));
 		}
 
 		ui.update(delta, &input);
