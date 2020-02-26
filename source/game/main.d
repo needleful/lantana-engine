@@ -208,6 +208,8 @@ int main()
 
 	Input input = Input();
 
+	File frame_log = File("logs/framerate.tsv", "w");
+	frame_log.writeln("Frametime\tMax\tAverage");
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
@@ -281,6 +283,7 @@ int main()
 		ui.render();
 
 		window.end_frame();
+		frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
 		frame ++;
 	}
 	debug writeln("Game closing");
