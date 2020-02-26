@@ -290,6 +290,8 @@ int main()
 	float delta = 0.001f;
 	uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 
+	File frame_log = File("logs/framerate.tsv", "w");
+	frame_log.writeln("Frametime\tMax\tAverage");
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
@@ -338,6 +340,7 @@ int main()
 		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 
 		window.end_frame();
+		frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
 		frame ++;
 	}
 	debug writeln("Game closing");
