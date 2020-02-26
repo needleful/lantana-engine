@@ -4,12 +4,7 @@
 
 module audio.driver;
 
-import core.thread: Thread;
-import core.time: dur;
-import std.concurrency;
-
 import bindbc.sdl.mixer;
-
 
 struct AudioManager
 {

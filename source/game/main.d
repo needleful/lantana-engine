@@ -5,6 +5,7 @@
 module game.main;
 
 import core.memory;
+import std.concurrency;
 import std.format;
 import std.math;
 import std.stdio;
@@ -69,46 +70,49 @@ struct DialogState
 	float timer;
 }
 
-version(lantana_game)
-int main()
+struct UIReady{}
+struct UICancel{}
+
+struct UIEvents
 {
-	// Store test scenes
-	binaryStore("data/scenes/test1.lgbt", testScene());
-	binaryStore("data/scenes/test2.lgbt", testScene2());
+	float delta;
+	Input input;
+	Bitfield!WindowState window;
+	RealSize size;
 
-	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
-	RealSize ws = window.getSize();
-
-	AudioManager audio = AudioManager(16);
-	audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
-
-	UIRenderer ui = new UIRenderer(window.getSize());
-	with(ui.style)
+	this(float p_delta, Input p_input, Bitfield!WindowState p_window, RealSize p_size)
 	{
-		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
-		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
-		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
+		delta = p_delta;
+		input = p_input;
+		window = p_window;
+		size = p_size;
+	}
+}
+
+__gshared UIRenderer g_ui;
+__gshared string g_frameTime;
+
+void uiMain()
+{
+	with(g_ui.style)
+	{
+		button.normal = g_ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
+		button.pressed = g_ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
+		button.focused = g_ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
 		button.pad = Pad(8, 12);
 		
-		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
+		panel.sprite = g_ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
 
 		scrollbar.width = 20;
-		scrollbar.trough.sprite = ui.addSinglePixel(color(0, 148, 255, 128));
+		scrollbar.trough.sprite = g_ui.addSinglePixel(color(0, 148, 255, 128));
 		scrollbar.trough.mesh = new SpriteQuadStyle(scrollbar.trough.sprite);
-		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
-		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
+		scrollbar.upArrow = g_ui.loadSprite("data/ui/sprites/arrow-up.png");
+		scrollbar.downArrow = g_ui.loadSprite("data/ui/sprites/arrow-down.png");
 
-		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+		defaultFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 	}
-
-	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
-	SpriteId nful = ui.loadSprite("data/test/needleful.png");
-	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
-
-	TextBox frameTime = new TextBox(ui.style.defaultFont, debugFormat, true);
-	uint frame = 0;
 
 	/// BEGIN - Dialog initialization
 	DialogState ds;
@@ -121,7 +125,7 @@ int main()
 		assert(p_dialog.responses.length <= ds.buttons.length);
 		ds.current = p_dialog;
 
-		ds.messageBox.addChild(new TextBox(ui.style.defaultFont, p_dialog.message));
+		ds.messageBox.addChild(new TextBox(g_ui.style.defaultFont, p_dialog.message));
 
 		foreach(i, resp; p_dialog.responses)
 		{
@@ -139,7 +143,7 @@ int main()
 
 	for(int i = 0; i < 8; i++)
 	{
-		ds.buttons ~= new DialogButton(ui, &dialogCallback);
+		ds.buttons ~= new DialogButton(g_ui, &dialogCallback);
 	}
 
 	Widget[] tmp_widgets;
@@ -152,20 +156,24 @@ int main()
 
 	VBox dialogbox = new VBox(tmp_widgets, 0, true);
 
-	ds.messageBox = new VBox([new ImageBox(ui, nful)], 18);
+	ds.messageBox = new VBox([new ImageBox(g_ui, g_ui.loadSprite("data/test/needleful.png"))], 18);
 	Dialog currentDialog = testDialog();
 	Widget dialogWidget = new Padding(
 		dialogbox, 
 		Pad(8), 
-		ui.style.panel.mesh.create(ui));
+		g_ui.style.panel.mesh.create(g_ui));
 	/// END - Dialog initialization
+
+	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
+
+	TextBox frameTime = new TextBox(g_ui.style.defaultFont, "", 64);
 
 	Modal uiModal = new Modal([
 		// Pause menu
 		new AnchoredBox([
-			ui.style.panel.mesh.create(ui),
+			g_ui.style.panel.mesh.create(g_ui),
 			new Padding(
-				new Scrolled(new Padding(ds.messageBox, Pad(12)), 1),
+				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
 				Pad(8)),
 			new Positioned(
 				dialogWidget,
@@ -180,12 +188,12 @@ int main()
 		new HodgePodge([]),
 	]);
 
-	ui.setRootWidget(
+	g_ui.setRootWidget(
 		new HodgePodge([
 			uiModal,
 	 		new Anchor(
 				new HBox([
-					new TextBox(ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
+					new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
 					frameTime
 				], 5),
 				vec2(0.99, 0.99),
@@ -197,51 +205,18 @@ int main()
 
 	uiModal.setMode(1);
 
-	debug writeln("Beginning game loop");
-	stdout.flush();
-
-	float maxDelta_ms = -1;
-	float runningMaxDelta_ms = -1;
-	float accumDelta_ms = 0;
-	float runningFrame = 0;
-	bool paused;
-
-	Input input = Input();
-
-	while(!window.state[WindowState.CLOSED])
+	ownerTid.send(UIReady());
+	bool paused = false;
+	void processEvents(UIEvents events)
 	{
-		float delta_ms = window.delta_ms();
-		float delta = g_timescale*delta_ms/1000.0;
-		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
-		
-		accumDelta_ms += delta_ms;
-		if(frame % 256 == 0)
+		if(events.window[WindowState.RESIZED])
 		{
-			maxDelta_ms = runningMaxDelta_ms;
-			runningMaxDelta_ms = -1;
-			frameTime.setText(format(debugFormat, delta_ms, maxDelta_ms, accumDelta_ms/runningFrame));
-			runningFrame = 1;
-			accumDelta_ms = 0;
-			if(paused)
-			{	
-				// Try garbage collecting while paused
-				GC.collect();
-			}
-		}
-		runningFrame ++;
-	
-		window.pollEvents(&input);
-
-		if(window.state[WindowState.RESIZED])
-		{
-			ws = window.getSize();
-			ui.setSize(window.getSize());
+			g_ui.setSize(events.size);
 		}
 
-		if(input.is_just_pressed(Input.Action.PAUSE))
+		if(events.input.is_just_pressed(Input.Action.PAUSE))
 		{
 			paused = !paused;
-			window.grab_mouse(!paused);
 			if(paused)
 			{
 				uiModal.setMode(0);
@@ -250,6 +225,97 @@ int main()
 			{
 				uiModal.setMode(1);
 			}
+		}
+
+		if((ds.timer += events.delta) >= ds.current.pauseTime)
+		{
+			showDialog = true;
+		}
+
+		dialogWidget.setVisible(showDialog);
+		if(showDialog)
+		{
+			ds.messageBox.addChild(
+				new HBox([
+					new ImageBox(g_ui, upclickSprite),
+					new TextBox(g_ui.style.defaultFont, format("Mambo number %u", ds.messageBox.getChildren().length))
+				]));
+		}
+
+		frameTime.setText(g_frameTime);
+		g_ui.update(events.delta, &events.input);
+	}
+
+	bool shouldRun = true;
+	while(shouldRun)
+	{
+		receive(
+			&processEvents,
+			(UICancel _)
+			{
+				shouldRun = false;
+			});
+
+		ownerTid.send(UIReady());
+	}
+}
+
+version(lantana_game)
+int main()
+{
+	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
+	RealSize ws = window.getSize();
+	g_ui = new UIRenderer(ws);
+
+	auto uiThread = spawn(&uiMain);
+
+	AudioManager audio = AudioManager(16);
+	audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
+
+	debug writeln("Beginning game loop");
+	stdout.flush();
+
+	float runningMaxDelta_ms = -1;
+	float accumDelta_ms = 0;
+	bool paused = false;
+
+	Input input = Input();
+	uint frame = 0;
+
+	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
+
+	receiveOnly!UIReady();
+	g_ui.initialize();
+
+	float delta = 0.001f;
+	uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+
+	while(!window.state[WindowState.CLOSED])
+	{
+		float delta_ms = window.delta_ms();
+		delta = g_timescale*delta_ms/1000.0;
+		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+		accumDelta_ms += delta_ms;
+
+		if(frame % 256 == 0)
+		{
+			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/256);
+
+			runningMaxDelta_ms = -1;
+			accumDelta_ms = 0;
+			if(paused)
+			{
+				GC.collect();
+			}
+		}
+	
+		window.pollEvents(&input);
+
+
+		if(input.is_just_pressed(Input.Action.PAUSE))
+		{
+			paused = !paused;
+			window.grab_mouse(!paused);
 		}
 
 		if(!paused)
@@ -265,20 +331,11 @@ int main()
 
 			//game.animSystem.update(delta, game.scene.animMeshes);
 		}
-		if((ds.timer += delta) >= ds.current.pauseTime)
-		{
-			showDialog = true;
-		}
-		dialogWidget.setVisible(showDialog);
-		//if(showDialog)
-		//{
-		//	ds.messageBox.addChild(new TextBox(ui.style.defaultFont, format("Mambo number %u", ds.messageBox.getChildren().length)));
-		//}
 
-		ui.update(delta, &input);
-
+		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
-		ui.render();
+		g_ui.render();
+		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 
 		window.end_frame();
 		frame ++;
