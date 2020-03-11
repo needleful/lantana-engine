@@ -175,7 +175,6 @@ public final class UIView
 	{
 		renderer = p_renderer;
 		rect = p_rect;
-		initBuffers();
 		invalidated.setAll();
 		textMeshes.reserve(8);
 	}
@@ -184,7 +183,6 @@ public final class UIView
 	{
 		parent = p_view;
 		renderer = p_view.renderer;
-		initBuffers();
 		invalidated.setAll();
 		textMeshes.reserve(8);
 	}
@@ -906,7 +904,7 @@ public final class UIView
 		textMeshes[p_id].visiblePortion = p_vis;
 	}
 
-	private void initBuffers() 
+	package void initBuffers() 
 	{
 		elemText.reserve(6);
 		elemSprite.reserve(6);

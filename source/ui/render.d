@@ -185,14 +185,26 @@ public final class UIRenderer
 	{
 		// Widgets manage their own layouts, we just update the root layout
 		views[0].updateLayout();
+		updateInteraction(p_input);
+	}
 
+	public void initialize()
+	{
+		glcheck();
+
+		foreach(view; views)
+		{
+			view.initBuffers();
+		}
+	}
+
+	public void render() 
+	{
 		foreach(view; views)
 		{
 			view.updateBuffers();
 		}
-
-		glcheck();
-
+		
 		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
 
@@ -200,11 +212,7 @@ public final class UIRenderer
 			atlasText.reload();
 
 		invalidated.clear();
-		updateInteraction(p_input);
-	}
 
-	public void render() 
-	{
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
