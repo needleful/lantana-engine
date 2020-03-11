@@ -29,6 +29,8 @@ enum cam_speed = 8;
 
 float g_timescale = 1;
 
+enum g_MemoryCapacity = 1024*1024*64;
+
 final class DialogButton : Button
 {
 	Dialog dialog;
@@ -72,15 +74,27 @@ struct DialogState
 version(lantana_game)
 int main()
 {
-	// Store test scenes
-	binaryStore("data/scenes/test1.lgbt", testScene());
-	binaryStore("data/scenes/test2.lgbt", testScene2());
-
 	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
 
 	AudioManager audio = AudioManager(16);
-	audio.startMusic("data/audio/music/forest_floor.ogg", 4000);
+	audio.startMusic("data/audio/music/floating-full.ogg", 0);
+
+	auto mainMem = BaseRegion(g_MemoryCapacity);
+	auto sysMesh = StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
+	sysMesh.meshes = mainMem.makeOwnedList!StaticMesh(1);
+
+	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
+	auto lights = LightInfo("data/palettes/test.png", mainMem);
+	lights.direction = vec3(0,-1,0);
+	lights.bias = 0.5;
+	lights.areaCeiling = -4;
+	lights.areaSpan = 8;
+
+	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
+	StaticMeshInstance kInstance;
+	kInstance.mesh = mesh;
+	kInstance.transform = Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180));
 
 	UIRenderer ui = new UIRenderer(window.getSize());
 	with(ui.style)
@@ -238,6 +252,9 @@ int main()
 		{
 			ws = window.getSize();
 			ui.setSize(window.getSize());
+			camera.set_projection(
+				Projection(cast(float)ws.width/ws.height, 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
+			);
 		}
 
 		if(input.is_just_pressed(Input.Action.PAUSE))
@@ -256,12 +273,12 @@ int main()
 
 		if(!paused)
 		{
-			//game.scene.camera.rot.x += game.input.mouse_movement.x*delta*60;
-			//float next_rot = game.scene.camera.rot.y + game.input.mouse_movement.y*delta*60;
-			//if(abs(next_rot) < 90)
-			//{
-			//	game.scene.camera.rot.y = next_rot;
-			//}
+			camera.rot.x += input.mouse_movement.x*delta*60;
+			float next_rot = camera.rot.y + input.mouse_movement.y*delta*60;
+			if(abs(next_rot) < 90)
+			{
+				camera.rot.y = next_rot;
+			}
 			
 			//game.scene.update(game.input, delta);
 
@@ -280,6 +297,8 @@ int main()
 		ui.update(delta, &input);
 
 		window.begin_frame();
+
+		sysMesh.render(camera.vp(), lights, [kInstance]);
 		ui.render();
 
 		window.end_frame();
