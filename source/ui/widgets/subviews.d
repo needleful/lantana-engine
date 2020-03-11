@@ -169,10 +169,18 @@ public final class Scrolled : Widget
 	{
 		double newLoc = scrollPercent;
 		if(pan)
-			newLoc += p_pixels/(widgetSize.height - childSize.height);
-		else
+		{
+			int dist = widgetSize.height - childSize.height;
+			if(dist > 0)
+			{
+				newLoc += p_pixels/dist;
+			}
+		}
+		else if(scrollSpan > 0)
+		{
 			newLoc -= p_pixels/(scrollSpan);
-
+		}
+		
 		if(newLoc > 1)
 			newLoc = 1;
 		else if(newLoc < 0)
