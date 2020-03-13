@@ -49,12 +49,10 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
-	//debug scope(failure) writeln("Could not load "~p_file);
 
 	auto input = File(p_file, "rb");
 	uint[3] header;
 	input.rawRead(header);
-	// We won't bother checking the version (header[1]) or length (header[2])
 	assert(header[0] == 0x46546C67, "Invalid magic number: " ~ header[0].stringof);
 
 	uint[2] jsonHeader;
@@ -64,9 +62,8 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	char[] json;
 	json.length = jsonHeader[0];
 	input.rawRead(json);
-	uint bufferMax;
-	auto results = glbJsonParse!Spec(json, p_alloc, bufferMax);
-	results.bufferSize = bufferMax;
+
+	auto results = glbJsonParse!Spec(json, p_alloc);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
@@ -78,7 +75,7 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	return results;
 }
 
-private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc, ref uint p_bufferMax)
+private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
 {
 	JSONValue scn = parseJSON(p_json);
@@ -197,14 +194,14 @@ private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc, ref uint p_bu
 	with(result.accessor)
 	{
 		indices = GLBBufferView(access[ac_indeces], bufferViews);
-		p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
+		result.bufferSize = max(result.bufferSize, indices.byteOffset + indices.byteLength);
 
 		static foreach(field; Spec.attribType.fields)
 		{{
 			auto ac = atr[mixin("Spec.loader."~field)].integer();
 
 			mixin(field) = GLBBufferView(access[ac], bufferViews);
-			p_bufferMax = max(p_bufferMax, mixin(field).byteOffset + mixin(field).byteLength);
+			result.bufferSize = max(result.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
 		}}
 		
 		auto material = scn["materials"][primitives["material"].integer()];
