@@ -7,7 +7,7 @@ module lanlib.math.func;
 public import std.math: sin, cos, tan, PI;
 import gl3n.linalg: quat;
 
-float radians(float p_degrees)  @safe nothrow
+double radians(double p_degrees)  @safe nothrow
 {
 	return (p_degrees/180)*PI;
 }

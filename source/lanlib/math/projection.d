@@ -30,11 +30,11 @@ struct Projection
 
 	void compute_matrix()  @safe nothrow
 	{
-		float t = tan(radians(fov)/2);
-		float ar = aspectRatio;
+		double t = tan(radians(fov)/2);
+		double ar = aspectRatio;
 
-		float z1 = (-nearPlane - farPlane)/(nearPlane - farPlane);
-		float z2 = (2*nearPlane*farPlane)/(nearPlane - farPlane); 
+		double z1 = (-nearPlane - farPlane)/(nearPlane - farPlane);
+		double z2 = (2*nearPlane*farPlane)/(nearPlane - farPlane); 
 
 		_matrix = mat4(
 			vec4(1/(ar*t),   0,  0, 0f),

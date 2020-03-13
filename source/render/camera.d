@@ -33,9 +33,9 @@ struct Camera
 
 	mat4 calculate_view() @safe  nothrow
 	{
-		vec3 f = forward();
-		vec3 r = right();
-		vec3 u = cross(r, f);
+		auto f = forward();
+		auto r = right();
+		auto u = cross(r, f);
 
 		auto eye = pos + f;
 
@@ -64,8 +64,8 @@ struct Camera
 
 	@property vec3 forward() @safe  nothrow
 	{
-		float rx = radians(rot.x);
-		float ry = radians(rot.y);
+		double rx = radians(rot.x);
+		double ry = radians(rot.y);
 		return vec3(
 			cos(ry)*sin(rx),
 			sin(ry),

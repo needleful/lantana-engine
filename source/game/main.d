@@ -297,6 +297,10 @@ int main()
 	float delta = 0.001f;
 	uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 
+	vec2 velCamRot = vec2(0);
+	float accelCamRot = 2;
+	float dampCamRot = 0.99;
+
 	File frame_log = File("logs/framerate.tsv", "w");
 	frame_log.writeln("Frametime\tMax\tAverage");
 	int runningFrame = 1;
@@ -338,17 +342,10 @@ int main()
 
 		if(!paused)
 		{
-			camera.rot.x += input.mouse_movement.x*delta*60;
-			float next_rot = camera.rot.y + input.mouse_movement.y*delta*60;
-			if(abs(next_rot) < 90)
-			{
-				camera.rot.y = next_rot;
-			}
-			
-			//game.scene.update(game.input, delta);
-
-			//game.animSystem.update(delta, game.scene.animMeshes);
+			velCamRot += input.mouse_movement*delta*accelCamRot;
 		}
+		velCamRot *= dampCamRot;
+		camera.rot += velCamRot;
 
 		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
