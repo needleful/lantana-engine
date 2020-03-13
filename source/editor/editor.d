@@ -19,7 +19,6 @@ import render.gl;
 import render.material;
 import render.mesh;
 import render.window;
-import test.loading;
 import ui;
 
 enum atlasTest = false;

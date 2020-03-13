@@ -5,7 +5,6 @@
 import std.stdio;
 import std.string;
 
-import logic.scenes;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
 import lanlib.util.memory;

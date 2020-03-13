@@ -81,15 +81,6 @@ struct AnimatedMeshSystem
 	{
 		GLBLoadResults!Spec loaded;
 		loaded = glbLoad!Spec(p_filename, p_alloc);
-		loaded = glbLoad!Spec(p_filename, p_alloc);
-		
-		//if(p_filename.endsWith(".glb"))
-		//{
-		//}
-		//else
-		//{
-		//	loaded = binaryLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
-		//}
 		meshes.place(this, loaded.accessor, loaded, p_alloc);
 		return &meshes[$-1];
 	}
@@ -312,14 +303,14 @@ struct AnimatedMesh
 	this(ref AnimatedMeshSystem p_system, ref AnimatedMeshSystem.Spec.accessor p_accessor, ref GLBLoadResults!(AnimatedMeshSystem.Spec) p_loaded, ref Region p_alloc) 
 	{
 		data = p_loaded.data;
-		bones = p_loaded.bones;
 		accessor = p_accessor;
-		animations = p_loaded.animations;
 		with(p_accessor.tex_albedo)
 		{
 			tex_albedo = Texture!Color(true, type, p_loaded.data[byteOffset..byteOffset+byteLength], p_alloc);
 		}
 
+		bones = p_loaded.bones;
+		animations = p_loaded.animations;
 		auto ibmStart = p_loaded.inverseBindMatrices.byteOffset;
 		auto ibmEnd = p_loaded.inverseBindMatrices.byteLength;
 		inverseBindMatrices = (cast(mat4*) &data[ibmStart])[0..ibmEnd/mat4.sizeof];

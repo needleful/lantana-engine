@@ -22,7 +22,6 @@ import gl3n.linalg;
 
 import logic;
 import render;
-import test.scenes;
 
 import ui;
 
@@ -267,8 +266,8 @@ int main()
 	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
-	auto sysMesh = StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
-	sysMesh.meshes = mainMem.makeOwnedList!StaticMesh(1);
+	auto sysMesh = SMesh.System(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
+	sysMesh.meshes = mainMem.makeOwnedList!(SMesh.Mesh)(1);
 
 	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
 	auto lights = LightInfo("data/palettes/test.png", mainMem);
@@ -278,7 +277,7 @@ int main()
 	lights.areaSpan = 8;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
-	StaticMeshInstance kInstance;
+	SMesh.Instance kInstance;
 	kInstance.mesh = mesh;
 	kInstance.transform = Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180));
 
