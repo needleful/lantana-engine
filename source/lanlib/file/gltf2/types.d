@@ -293,6 +293,20 @@ struct GLBMeshAccessor
 	GLBImage tex_albedo;
 }
 
+struct GLBAccessor(Attribs)
+{
+	import std.format;
+	import std.traits:FieldNameTuple;
+	
+	string name;
+	GLBBufferView position;
+
+	static foreach(field; FieldNameTuple!Attribs)
+	{
+		mixin(format("GLBBufferView %s;", field));
+	}
+}
+
 enum GLBAnimationPath
 {
 	TRANSLATION,
