@@ -74,15 +74,12 @@ struct StaticMeshSystem
 
 	StaticMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
-		GLBStaticLoadResults loaded;
-		if(p_filename.endsWith(".glb"))
-		{
-			loaded = glbLoad(p_filename, p_alloc);
-		}
-		else
-		{
-			loaded = binaryLoad!GLBStaticLoadResults(p_filename, p_alloc);
-		}
+		GLBLoadResults!Spec loaded;
+		loaded = glbLoad!Spec(p_filename, p_alloc);
+		//else
+		//{
+		//	loaded = binaryLoad!GLBStaticLoadResults(p_filename, p_alloc);
+		//}
 		meshes.place(this, loaded.accessor, loaded.data, loaded.bufferSize, p_alloc);
 		return &meshes[$-1];
 	}
@@ -142,11 +139,11 @@ struct StaticMeshSystem
 struct StaticMesh
 {
 	ubyte[] data;
-	GLBMeshAccessor accessor;
+	StaticMeshSystem.Spec.accessor accessor;
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref StaticMeshSystem p_parent, ref GLBMeshAccessor p_accessor, ubyte[] p_data, uint p_bufferSize, ref Region p_alloc) 
+	this(ref StaticMeshSystem p_parent, ref StaticMeshSystem.Spec.accessor p_accessor, ubyte[] p_data, uint p_bufferSize, ref Region p_alloc) 
 	{
 		data = p_data;
 		accessor = p_accessor;

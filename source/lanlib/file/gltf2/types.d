@@ -283,28 +283,19 @@ struct GLBImage
 	ImageType type;
 }
 
-struct GLBMeshAccessor
-{
-	string name;
-	GLBBufferView position;
-	GLBBufferView uv;
-	GLBBufferView normal;
-	GLBBufferView indices;
-	GLBImage tex_albedo;
-}
-
 struct GLBAccessor(Attribs)
 {
 	import std.format;
 	import std.traits:FieldNameTuple;
-	
+
 	string name;
-	GLBBufferView position;
+	GLBBufferView indices;
 
 	static foreach(field; FieldNameTuple!Attribs)
 	{
 		mixin(format("GLBBufferView %s;", field));
 	}
+	GLBImage tex_albedo;
 }
 
 enum GLBAnimationPath
@@ -450,31 +441,6 @@ struct GLBSkin
 	string name;
 	GLBNode[] joints;
 	ubyte inverseBindMatrices;
-}
-
-struct GLBAnimatedAccessor
-{
-	string name;
-	GLBBufferView position;
-	GLBBufferView uv;
-	GLBBufferView normal;
-	GLBBufferView indices;
-	GLBBufferView bone_idx;
-	GLBBufferView bone_weight;
-	GLBImage tex_albedo;
-
-	GLBMeshAccessor mesh()
-	{
-		GLBMeshAccessor m;
-		m.name = name;
-		m.position = position;
-		m.uv = uv;
-		m.normal = normal;
-		m.indices = indices;
-		m.tex_albedo = tex_albedo;
-
-		return m;
-	}
 }
 
 quat getQuat(T)(Vector!(T, 4) p_val)

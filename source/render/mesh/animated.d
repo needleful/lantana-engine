@@ -35,6 +35,7 @@ struct AnimatedMeshSystem
 		LightUniforms light;
 	}
 
+	@animated
 	struct Attributes
 	{
 		vec3 position;
@@ -78,15 +79,17 @@ struct AnimatedMeshSystem
 
 	AnimatedMesh* loadMesh(string p_filename, ref Region p_alloc)
 	{
-		GLBAnimatedLoadResults loaded;
-		if(p_filename.endsWith(".glb"))
-		{
-			loaded = glbLoad!true(p_filename, p_alloc);
-		}
-		else
-		{
-			loaded = binaryLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
-		}
+		GLBLoadResults!Spec loaded;
+		loaded = glbLoad!Spec(p_filename, p_alloc);
+		loaded = glbLoad!Spec(p_filename, p_alloc);
+		
+		//if(p_filename.endsWith(".glb"))
+		//{
+		//}
+		//else
+		//{
+		//	loaded = binaryLoad!GLBAnimatedLoadResults(p_filename, p_alloc);
+		//}
 		meshes.place(this, loaded.accessor, loaded, p_alloc);
 		return &meshes[$-1];
 	}
@@ -302,11 +305,11 @@ struct AnimatedMesh
 	mat4[] inverseBindMatrices;
 	ubyte[] data;
 	GLBAnimation[] animations;
-	GLBAnimatedAccessor accessor;
+	AnimatedMeshSystem.Spec.accessor accessor;
 	Texture!Color tex_albedo;
 	GLuint vbo, vao;
 
-	this(ref AnimatedMeshSystem p_system, ref GLBAnimatedAccessor p_accessor, ref GLBAnimatedLoadResults p_loaded, ref Region p_alloc) 
+	this(ref AnimatedMeshSystem p_system, ref AnimatedMeshSystem.Spec.accessor p_accessor, ref GLBLoadResults!(AnimatedMeshSystem.Spec) p_loaded, ref Region p_alloc) 
 	{
 		data = p_loaded.data;
 		bones = p_loaded.bones;

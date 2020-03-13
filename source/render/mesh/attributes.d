@@ -79,6 +79,7 @@ enum animated;
 struct MeshSpec(Attributes, Loader)
 {
 	alias attribType = Attr!Attributes;
+	alias accessor = GLBAccessor!Attributes;
 	alias loader = Loader;
 	enum isAnimated = hasUDA!(Attributes, animated);
 }

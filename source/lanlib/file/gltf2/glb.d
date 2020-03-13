@@ -17,6 +17,8 @@ import lanlib.types;
 import lanlib.util.memory;
 import lanlib.util.array;
 
+import render.mesh.attributes;
+
 
 enum GLBChunkType : uint
 {
@@ -24,23 +26,18 @@ enum GLBChunkType : uint
 	BIN = 0x004E4942
 }
 
-struct GLBStaticLoadResults
+struct GLBLoadResults(Spec)
+	if(isTemplateType!(MeshSpec, Spec))
 {
+	static if(Spec.isAnimated)
+	{
+		GLBAnimation[] animations;
+		GLBNode[] bones;
+		GLBBufferView inverseBindMatrices;
+	}
 	ubyte[] data;
-	GLBMeshAccessor accessor;
-	/// `data[0..bufferSize]` is what's put in the vertex buffer.
-	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
-	/// without requiring the buffer to be chopped up and copied around.
-	uint bufferSize;
-}
+	Spec.accessor accessor;
 
-struct GLBAnimatedLoadResults
-{
-	GLBAnimation[] animations;
-	GLBNode[] bones;
-	ubyte[] data;
-	GLBAnimatedAccessor accessor;
-	GLBBufferView inverseBindMatrices;
 	/// `data[0..bufferSize]` is what's put in the vertex buffer.
 	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
 	/// without requiring the buffer to be chopped up and copied around.
@@ -48,7 +45,8 @@ struct GLBAnimatedLoadResults
 }
 
 //Check a binary gltf2 file
-auto glbLoad(bool animated = false)(string p_file, ref Region p_alloc)
+auto glbLoad(Spec)(string p_file, ref Region p_alloc)
+	if(isTemplateType!(MeshSpec, Spec))
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
 	//debug scope(failure) writeln("Could not load "~p_file);
@@ -67,7 +65,7 @@ auto glbLoad(bool animated = false)(string p_file, ref Region p_alloc)
 	json.length = jsonHeader[0];
 	input.rawRead(json);
 	uint bufferMax;
-	auto results = glbJsonParse!animated(json, p_alloc, bufferMax);
+	auto results = glbJsonParse!Spec(json, p_alloc, bufferMax);
 	results.bufferSize = bufferMax;
 
 	uint[2] binaryHeader;
@@ -80,10 +78,9 @@ auto glbLoad(bool animated = false)(string p_file, ref Region p_alloc)
 	return results;
 }
 
-auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_bufferMax)
+private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc, ref uint p_bufferMax)
+	if(isTemplateType!(MeshSpec, Spec))
 {
-	//debug writeln(p_json);
-
 	JSONValue scn = parseJSON(p_json);
 	assert(scn.type == JSONType.object);
 
@@ -91,9 +88,10 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 	auto access = scn["accessors"].array();
 	auto bufferViews = scn["bufferViews"].array();
 
-	static if(animated)
+	GLBLoadResults!Spec result;
+
+	static if(Spec.isAnimated)
 	{
-		GLBAnimatedLoadResults result;
 
 		auto scn_index = scn["scene"].integer();
 		auto scene = scn["scenes"].array()[scn_index];
@@ -173,10 +171,6 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 			}
 		}
 	}
-	else
-	{
-		GLBStaticLoadResults result;
-	}
 
 	assert(jMeshes.length == 1, "Cannot process GLB files with multiple meshes");
 
@@ -199,129 +193,33 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		result.accessor.name = p_alloc.copy(m["name"].str());
 	}
 	auto ac_indeces = primitives["indices"].integer();
-	auto ac_position = atr["POSITION"].integer();
-	auto ac_normal = atr["NORMAL"].integer();
-	auto ac_uv = atr["TEXCOORD_0"].integer();
 
 	with(result.accessor)
 	{
 		indices = GLBBufferView(access[ac_indeces], bufferViews);
 		p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
 
-		position = GLBBufferView(access[ac_position], bufferViews);
-		p_bufferMax = max(p_bufferMax, position.byteOffset + position.byteLength);
+		static foreach(field; Spec.attribType.fields)
+		{{
+			auto ac = atr[mixin("Spec.loader."~field)].integer();
 
-		normal = GLBBufferView(access[ac_normal], bufferViews);
-		p_bufferMax = max(p_bufferMax, normal.byteOffset + normal.byteLength);
-
-		uv = GLBBufferView(access[ac_uv], bufferViews);
-		p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);
+			mixin(field) = GLBBufferView(access[ac], bufferViews);
+			p_bufferMax = max(p_bufferMax, mixin(field).byteOffset + mixin(field).byteLength);
+		}}
 		
 		auto material = scn["materials"][primitives["material"].integer()];
 		auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
 		auto img_albedo = scn["images"][
 			scn["textures"][idx_texture]["source"].integer()
 		];
+
 		// Not used in VBO, so no change to p_bufferMax
 		tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
 		auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
 		tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
 		tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
-
-		static if(animated)
-		{
-			auto ac_weights = atr["WEIGHTS_0"].integer();
-			auto ac_joints = atr["JOINTS_0"].integer();
-			bone_weight = GLBBufferView(access[ac_weights], bufferViews);
-			p_bufferMax = max(p_bufferMax, bone_weight.byteOffset + bone_weight.byteLength);
-
-			bone_idx = GLBBufferView(access[ac_joints], bufferViews);
-			p_bufferMax = max(p_bufferMax, bone_idx.byteOffset + bone_idx.byteLength);
-		}
 	}
 	return result;
-}
-
-void glbPrint(ref GLBAnimatedLoadResults p_loaded)
-{
-	writeln(p_loaded.accessor.name);
-	writeln("Bone indeces");
-	glbPrintBuffer(p_loaded.accessor.bone_idx, p_loaded.data);
-	writeln("Bone weights");
-	glbPrintBuffer(p_loaded.accessor.bone_weight, p_loaded.data);
-}
-
-void glbPrintBuffer(ref GLBBufferView p_view, ubyte[] p_bytes)
-{
-	debug assert(p_view.byteOffset < p_bytes.length, 
-		format("Bad bufferView/buffer.  Buffer length: %u.  View offset: %u", p_bytes.length, p_view.byteOffset));
-	switch(p_view.componentType)
-	{
-		case GLBComponentType.BYTE:
-			printThis!byte(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_BYTE:
-			printThis!ubyte(p_view, p_bytes);
-			break;
-		case GLBComponentType.SHORT:
-			printThis!short(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_SHORT:
-			printThis!ushort(p_view, p_bytes);
-			break;
-		case GLBComponentType.UNSIGNED_INT:
-			printThis!uint(p_view, p_bytes);
-			break;
-		case GLBComponentType.FLOAT:
-			printThis!float(p_view, p_bytes);
-			break;
-		default:
-			write("Can't print componentType: ");
-			writeln(p_view.componentType);
-			break;
-	}
-}
-void printThis(Type)(ref GLBBufferView p_view, ubyte[] p_bytes)
-{
-	switch(p_view.dataType)
-	{
-		case GLBDataType.SCALAR:
-			printThisStuff!Type(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC2:
-			printThisStuff!(Type[2])(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC3:
-			printThisStuff!(Type[3])(p_view, p_bytes);
-			break;
-		case GLBDataType.VEC4:
-			printThisStuff!(Type[4])(p_view, p_bytes);
-			break;
-		//case GLBDataType.MAT2:
-		//	printThisStuff!(Matrix!(Type, 2, 2))(p_view, p_bytes);
-		//	break;
-		//case GLBDataType.MAT3:
-		//	printThisStuff!(Matrix!(Type, 3, 3))(p_view, p_bytes);
-		//	break;
-		//case GLBDataType.MAT4:
-		//	printThisStuff!(Matrix!(Type, 4, 4))(p_view, p_bytes);
-		//	break;
-		default:
-			write("Unsupported data type: ");
-			writeln(p_view.dataType);
-			break;
-	}
-}
-
-void printThisStuff(Type)(ref GLBBufferView p_view, ubyte[] p_data)
-{
-	uint length = p_view.byteLength/Type.sizeof;
-	Type[] values = (cast(Type*)(&p_data[p_view.byteOffset]))[0..length];
-	foreach(value; values)
-	{
-		write("\t->");
-		writeln(value);
-	}
 }
 
 GLBAnimation animationFromJSON(ref Region p_alloc, JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)
