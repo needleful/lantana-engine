@@ -264,7 +264,7 @@ int main()
 	auto uiThread = spawn(&uiMain);
 
 	AudioManager audio = AudioManager(16);
-	audio.startMusic("data/audio/music/floating-full.ogg", 0);
+	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
 	auto sysMesh = StaticMeshSystem(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));

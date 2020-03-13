@@ -193,7 +193,12 @@ struct Material
 		scope(exit) glcheck();
 
 		auto val = AttribId(matId.glGetAttribLocation(p_attrib.ptr));
-		debug assert(val > -1, "Invalid attribute: " ~ p_attrib);
+		
+		debug if(val <= -1)
+		{
+			printf("Invalid attribute: %s\n", p_attrib.ptr);
+			assert(false);
+		}
 		return val;
 	}
 

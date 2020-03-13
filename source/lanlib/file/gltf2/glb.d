@@ -208,11 +208,11 @@ auto glbJsonParse(bool animated)(char[] p_json, ref Region p_alloc, ref uint p_b
 		indices = GLBBufferView(access[ac_indeces], bufferViews);
 		p_bufferMax = max(p_bufferMax, indices.byteOffset + indices.byteLength);
 
-		positions = GLBBufferView(access[ac_position], bufferViews);
-		p_bufferMax = max(p_bufferMax, positions.byteOffset + positions.byteLength);
+		position = GLBBufferView(access[ac_position], bufferViews);
+		p_bufferMax = max(p_bufferMax, position.byteOffset + position.byteLength);
 
-		normals = GLBBufferView(access[ac_normal], bufferViews);
-		p_bufferMax = max(p_bufferMax, normals.byteOffset + normals.byteLength);
+		normal = GLBBufferView(access[ac_normal], bufferViews);
+		p_bufferMax = max(p_bufferMax, normal.byteOffset + normal.byteLength);
 
 		uv = GLBBufferView(access[ac_uv], bufferViews);
 		p_bufferMax = max(p_bufferMax, uv.byteOffset + uv.byteLength);

@@ -17,6 +17,7 @@ import lanlib.util.memory;
 import logic.input;
 import render.gl;
 import render.material;
+import render.mesh.attributes;
 import render.textures;
 
 import ui.interaction;
@@ -102,10 +103,10 @@ public final class UIRenderer
 		OpenGL data
 	+++++++++++++++++++++++++++++++++++++++/
 
-	struct VertAttributes
+	private struct Vert
 	{
-		AttribId uv;
-		AttribId position;
+		float uv;
+		int position;
 	}
 	
 	struct TextUniforms
@@ -131,7 +132,7 @@ public final class UIRenderer
 	}
 
 	package Material matText, matSprite;
-	package VertAttributes atrText, atrSprite;
+	package Attr!Vert atrText, atrSprite;
 	package TextUniforms uniText;
 	package SpriteUniforms uniSprite;
 
@@ -470,21 +471,17 @@ public final class UIRenderer
 
 	package void initMaterials()
 	{
-		VertAttributes _build(Material* p_mat, GLuint p_vert, GLuint p_frag)
+		Material _build(GLuint p_vert, GLuint p_frag)
 		{
 			MaterialId prog = MaterialId(glCreateProgram());
 			prog.glAttachShader(p_vert);
 			prog.glAttachShader(p_frag);
 			prog.linkShader();
 
-			*p_mat = Material(prog);
-			assert(p_mat.canRender());
+			Material mat = Material(prog);
+			assert(mat.canRender());
 
-			VertAttributes atr;
-			atr.uv = p_mat.getAttribId("uv");
-			atr.position = p_mat.getAttribId("position");
-
-			return atr;
+			return mat;
 		} 
 
 		GLuint vert2d = 
@@ -494,13 +491,17 @@ public final class UIRenderer
 		GLuint fragSprite = 
 			compileShader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
 
-		atrText = _build(&matText, vert2d, fragText);
+		matText = _build(vert2d, fragText);
+		atrText = Attr!Vert(matText);
+
 		uniText.cam_resolution = matText.getUniformId("cam_resolution");
 		uniText.translation = matText.getUniformId("translation");
 		uniText.in_tex = matText.getUniformId("in_tex");
 		uniText.color = matText.getUniformId("color");
 
-		atrSprite = _build(&matSprite, vert2d, fragSprite);
+		matSprite = _build(vert2d, fragSprite);
+		atrSprite = Attr!Vert(matSprite);
+
 		uniSprite.cam_resolution = matSprite.getUniformId("cam_resolution");
 		uniSprite.translation = matSprite.getUniformId("translation");
 		uniSprite.in_tex = matSprite.getUniformId("in_tex");

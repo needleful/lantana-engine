@@ -18,7 +18,6 @@ libs "sdl2" "freetype" platform="posix"
 
 buildType "release-ultra" {
 	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "verbose" "stackStomping"
-	dflags "-O3"
 }
 
 configuration "game" {

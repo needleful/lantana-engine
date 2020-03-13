@@ -286,9 +286,9 @@ struct GLBImage
 struct GLBMeshAccessor
 {
 	string name;
-	GLBBufferView positions;
+	GLBBufferView position;
 	GLBBufferView uv;
-	GLBBufferView normals;
+	GLBBufferView normal;
 	GLBBufferView indices;
 	GLBImage tex_albedo;
 }
@@ -441,9 +441,9 @@ struct GLBSkin
 struct GLBAnimatedAccessor
 {
 	string name;
-	GLBBufferView positions;
+	GLBBufferView position;
 	GLBBufferView uv;
-	GLBBufferView normals;
+	GLBBufferView normal;
 	GLBBufferView indices;
 	GLBBufferView bone_idx;
 	GLBBufferView bone_weight;
@@ -453,9 +453,9 @@ struct GLBAnimatedAccessor
 	{
 		GLBMeshAccessor m;
 		m.name = name;
-		m.positions = positions;
+		m.position = position;
 		m.uv = uv;
-		m.normals = normals;
+		m.normal = normal;
 		m.indices = indices;
 		m.tex_albedo = tex_albedo;
 

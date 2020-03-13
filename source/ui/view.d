@@ -916,8 +916,7 @@ public final class UIView
 		// Text Vertices
 		glBindVertexArray(vao[0]);
 
-		glEnableVertexAttribArray(renderer.atrText.uv);
-		glEnableVertexAttribArray(renderer.atrText.position);
+		renderer.atrText.enable();
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
 
@@ -939,11 +938,8 @@ public final class UIView
 		// Sprite Vertices
 		glBindVertexArray(vao[1]);
 
-		glDisableVertexAttribArray(renderer.atrText.uv);
-		glDisableVertexAttribArray(renderer.atrText.position);
-
-		glEnableVertexAttribArray(renderer.atrSprite.uv);
-		glEnableVertexAttribArray(renderer.atrSprite.position);
+		renderer.atrText.disable();
+		renderer.atrSprite.enable();
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1]);
 
@@ -964,8 +960,7 @@ public final class UIView
 
 		glBindVertexArray(0);
 
-		glDisableVertexAttribArray(renderer.atrSprite.uv);
-		glDisableVertexAttribArray(renderer.atrSprite.position);
+		renderer.atrSprite.disable();
 	}
 
 	package void clearBufferInvalidation() 
