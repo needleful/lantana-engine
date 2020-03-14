@@ -78,6 +78,7 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
 {
+	scope(failure) writeln(p_json);
 	JSONValue scn = parseJSON(p_json);
 	assert(scn.type == JSONType.object);
 

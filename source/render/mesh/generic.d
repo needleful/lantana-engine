@@ -38,8 +38,18 @@ struct DefaultUniforms
 	int tex_albedo;
 }
 
-template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
+struct DefaultSettings
 {
+	enum alphaBlend = false;
+	enum depthTest = true;
+	enum depthWrite = true;
+	alias textureType = Color;
+}
+
+template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
+{
+	alias settings = Settings;
+
 	alias Spec = MeshSpec!(Attrib, Loader);
 
 	struct InstanceUniforms
@@ -52,6 +62,11 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 	}
 
 	alias Uniforms = UniformT!(GlobalUniforms, InstanceUniforms);
+
+	enum hasLightPalette = __traits(compiles, {
+		Uniforms.global g;
+		g.light_palette = 0;
+	});
 
 	struct System
 	{
@@ -83,18 +98,37 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 		{
 			glcheck();
 			glEnable(GL_CULL_FACE);
-			glDisable(GL_BLEND);
-			glEnable(GL_DEPTH_TEST);
+
+			static if(Settings.alphaBlend)
+			{
+				pragma(msg, "Alpha blend enabled for "~Mesh.stringof);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			}
+			else
+				glDisable(GL_BLEND);
+
+			static if(Settings.depthTest)
+				glEnable(GL_DEPTH_TEST);
+			else
+				glDisable(GL_DEPTH_TEST);
+
+			static if(Settings.depthWrite)
+				glDepthMask(GL_TRUE);
+			else
+				glDepthMask(GL_FALSE);
 
 			mat.enable();
 			
-			p_globals.light_palette = 0;
+			static if(hasLightPalette)
+			{
+				p_globals.light_palette = 0;
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, p_palette.id);
+			}
 			p_globals.tex_albedo = 1;
 
 			un.setGlobals(mat, p_globals);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, p_palette.id);
 
 			GLuint current_vao = 0;
 			foreach(ref inst; p_instances)
@@ -177,6 +211,8 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 
 	struct Mesh
 	{
+		alias texture = Texture!(Settings.textureType);
+
 		ubyte[] data;
 
 		static if(Spec.isAnimated)
@@ -188,7 +224,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 
 		Spec.accessor accessor;
 
-		Texture!Color tex_albedo;
+		texture tex_albedo;
 
 		GLuint vbo, vao;
 
@@ -226,7 +262,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 
 			with(accessor.tex_albedo)
 			{
-				tex_albedo = Texture!Color(true, type, data[byteOffset..byteOffset+byteLength], p_alloc);
+				tex_albedo = texture(true, type, data[byteOffset..byteOffset+byteLength], p_alloc);
 			}
 
 			glcheck();

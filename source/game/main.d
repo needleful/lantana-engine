@@ -12,6 +12,7 @@ import std.stdio;
 
 import audio;
 import game.dialog;
+import game.skybox;
 import lanlib.file.gltf2;
 import lanlib.math;
 import lanlib.types;
@@ -91,7 +92,7 @@ struct UIEvents
 }
 
 __gshared UIRenderer g_ui;
-__gshared string g_frameTime;
+//__gshared string g_frameTime;
 
 void uiMain()
 {
@@ -167,7 +168,7 @@ void uiMain()
 
 	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	TextBox frameTime = new TextBox(g_ui.style.defaultFont, "", 64);
+	//TextBox frameTime = new TextBox(g_ui.style.defaultFont, "", 64);
 
 	Modal uiModal = new Modal([
 		// Pause menu
@@ -192,14 +193,14 @@ void uiMain()
 	g_ui.setRootWidget(
 		new HodgePodge([
 			uiModal,
-	 		new Anchor(
-				new HBox([
-					new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
-					frameTime
-				], 5),
-				vec2(0.99, 0.99),
-				vec2(1, 1)
-		)]));
+	 		//new Anchor(
+				//new HBox([
+				//	new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
+				//	frameTime
+				//], 5),
+				//vec2(0.99, 0.99),
+				//vec2(1, 1))
+ 		]));
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);
@@ -235,7 +236,7 @@ void uiMain()
 
 		dialogWidget.setVisible(showDialog);
 
-		frameTime.setText(g_frameTime);
+		//frameTime.setText(g_frameTime);
 		g_ui.update(events.delta, &events.input);
 	}
 
@@ -266,23 +267,34 @@ int main()
 	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
+
 	auto sysMesh = AnimMesh.System(loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag"));
 	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
 
-	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
-	auto lights = LightPalette("data/palettes/test.png", mainMem);
-
 	AnimMesh.Uniforms.global globals;
-	globals.light_direction = vec3(0,-1,0);
-	globals.light_bias = 0.5;
-	globals.area_ceiling = -4;
-	globals.area_span = 8;
+	globals.light_direction = vec3(-0.1,-0.3,0.9);
+	globals.light_bias = 0.6;
+	globals.area_ceiling = -1;
+	globals.area_span = 3;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
 	AnimMesh.Instance kInstance = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
 	kInstance.play("Idle", true);
 
 	auto instances = [kInstance];
+
+	auto skyBox = SkyMesh.System(loadMaterial("data/shaders/skybox.vert", "data/shaders/skybox.frag"));
+	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
+	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
+	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);
+	skyMeshes[0].transform = Transform(0.2);
+	skyMeshes[0].mesh = sky;
+
+	SkyMesh.Uniforms.global skyUni;
+	skyUni.color_boost = 1.4;
+
+	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
+	auto lights = LightPalette("data/palettes/skyTest.png", mainMem);
 
 	float runningMaxDelta_ms = -1;
 	float accumDelta_ms = 0;
@@ -291,7 +303,7 @@ int main()
 	Input input = Input();
 	uint frame = 0;
 
-	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
+	//string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 
 	receiveOnly!UIReady();
 	g_ui.initialize();
@@ -318,7 +330,7 @@ int main()
 
 		if(frame % 256 == 0)
 		{
-			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/256);
+			//g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/256);
 
 			runningMaxDelta_ms = delta_ms;
 			accumDelta_ms = delta_ms;
@@ -354,6 +366,13 @@ int main()
 		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
 
+		vec3 pos = camera.pos;
+		camera.pos = vec3(0);
+
+		skyUni.projection = camera.vp();
+		skyBox.render(skyUni, lights.palette, skyMeshes);
+
+		camera.pos = pos;
 		globals.projection = camera.vp();
 
 		sysMesh.render(globals, lights.palette, instances);
