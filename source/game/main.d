@@ -279,10 +279,10 @@ int main()
 	globals.gamma = 1;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
-	AnimMesh.Instance kInstance = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
-	kInstance.play("Idle", true);
+	auto instances = mainMem.makeList!(AnimMesh.Instance)(1);
+	instances[0] = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
+	instances[0].play("Idle", true);
 
-	auto instances = [kInstance];
 
 	auto skyBox = SkyMesh.System(loadMaterial("data/shaders/skybox.vert", "data/shaders/skybox.frag"));
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
@@ -361,7 +361,7 @@ int main()
 		velCamRot *= dampCamRot;
 		camera.rot += velCamRot;
 
-		kInstance.transform._rotation.y += -8.21;
+		instances[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
 		sysMesh.update(delta, instances);
 
 		UIReady _ = receiveOnly!UIReady();
