@@ -102,7 +102,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 			static if(Settings.alphaBlend)
 			{
-				pragma(msg, "Alpha blend enabled for "~Mesh.stringof);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			}

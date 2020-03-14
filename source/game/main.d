@@ -288,7 +288,7 @@ int main()
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
 	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
 	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);
-	skyMeshes[0].transform = Transform(0.2);
+	skyMeshes[0].transform = Transform(1);
 	skyMeshes[0].mesh = sky;
 
 	SkyMesh.Uniforms.global skyUni;
