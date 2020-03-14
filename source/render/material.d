@@ -28,30 +28,6 @@ struct AttribId
 	mixin StrictAlias!GLint;
 }
 
-struct LightUniforms
-{
-	UniformId direction, bias;
-	UniformId area_ceiling, area_span;
-	UniformId palette;
-
-	this(ref Material p_mat) 
-	{
-		direction = p_mat.getUniformId("light_direction");
-		bias = p_mat.getUniformId("light_bias");
-		area_span = p_mat.getUniformId("area_span");
-		area_ceiling = p_mat.getUniformId("area_ceiling");
-		palette = p_mat.getUniformId("light_palette");
-	}
-
-	void set(ref Material p_mat, ref LightInfo p_info) 
-	{
-		p_mat.setUniform(direction, p_info.direction);
-		p_mat.setUniform(bias, p_info.bias);
-		p_mat.setUniform(area_span, p_info.areaSpan);
-		p_mat.setUniform(area_ceiling, p_info.areaCeiling);
-	}
-}
-
 Material loadMaterial(const string p_vertFile, const string p_fragFile)
 {
 	GLuint matId = glCreateProgram();
@@ -155,7 +131,7 @@ struct Material
 		}
 
 		GLint res = matId.glGetUniformLocation(p_name.ptr);
-		assert(res != -1, "Missing parameter ID");
+		assert(res != -1, "Missing parameter ID: "~p_name);
 
 		return UniformId(res);
 

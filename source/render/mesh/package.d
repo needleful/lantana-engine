@@ -4,8 +4,6 @@
 
 module render.mesh;
 
-public import render.mesh.animated;
-
 import render.mesh.attributes;
 import render.mesh.generic;
 

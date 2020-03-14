@@ -270,11 +270,13 @@ int main()
 	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
 
 	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
-	auto lights = LightInfo("data/palettes/test.png", mainMem);
-	lights.direction = vec3(0,-1,0);
-	lights.bias = 0.5;
-	lights.areaCeiling = -4;
-	lights.areaSpan = 8;
+	auto lights = LightPalette("data/palettes/test.png", mainMem);
+
+	AnimMesh.Uniforms.global globals;
+	globals.light_direction = vec3(0,-1,0);
+	globals.light_bias = 0.5;
+	globals.area_ceiling = -4;
+	globals.area_span = 8;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
 	AnimMesh.Instance kInstance = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
@@ -318,9 +320,9 @@ int main()
 		{
 			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/256);
 
-			runningMaxDelta_ms = -1;
+			runningMaxDelta_ms = delta_ms;
+			accumDelta_ms = delta_ms;
 			runningFrame = 1;
-			accumDelta_ms = 0;
 		}
 	
 		window.pollEvents(&input);
@@ -346,17 +348,18 @@ int main()
 		velCamRot *= dampCamRot;
 		camera.rot += velCamRot;
 
-		kInstance.transform.rotate_degrees(2*delta, -8.21*delta, 0.9*delta);
-		kInstance.transform.computeMatrix();
+		kInstance.transform._rotation.y += -8.21;
 		sysMesh.update(delta, instances);
 
 		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
 
-		sysMesh.render(camera.vp(), lights, instances);
-		g_ui.render();
-		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+		globals.projection = camera.vp();
 
+		sysMesh.render(globals, lights.palette, instances);
+		g_ui.render();
+
+		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 		window.end_frame();
 
 		debug frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);

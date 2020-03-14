@@ -4,6 +4,7 @@
 
 module render.mesh.attributes;
 
+import std.format;
 import std.traits;
 
 import lanlib.file.gltf2.types;
@@ -13,7 +14,6 @@ import render.material;
 
 struct Attr(Struct)
 {
-	import std.format;
 
 	enum fields = FieldNameTuple!Struct;
 	AttribId[fields.length] ids;
@@ -82,4 +82,55 @@ struct MeshSpec(Attributes, Loader)
 	alias accessor = GLBAccessor!Attributes;
 	alias loader = Loader;
 	enum isAnimated = hasUDA!(Attributes, animated);
+}
+
+struct UniformT(Global, Instance)
+	if(is(Global == struct) && is(Instance == struct))
+{
+	alias global = Global;
+	alias instance = Instance;
+
+	private enum gFields = FieldNameTuple!Global;
+	private enum iFields = FieldNameTuple!Instance;
+	private enum gFieldCount = gFields.length;
+
+	UniformId[gFields.length + iFields.length] ids;
+
+	this(ref Material mat)
+	{
+		static foreach(i, field; gFields)
+		{
+			ids[i] = mat.getUniformId(field);
+		}
+
+		static foreach(i, field; iFields)
+		{
+			ids[gFieldCount + i] = mat.getUniformId(field);
+		}
+	}
+
+	void setGlobals(ref Material mat, ref Global globals)
+	{
+		static foreach(i, type; Fields!Global)
+		{
+			mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
+		}
+	}
+
+	void setInstance(ref Material mat, ref Instance instance)
+	{
+		static foreach(i, type; Fields!Instance)
+		{
+			mat.setUniform!type(ids[gFieldCount + i], mixin("instance."~iFields[i]));
+		}
+	}
+
+	static foreach(i, field; gFields)
+	{
+		mixin(format("UniformId g_%s() {return ids[%d];}", field, i));
+	}
+	static foreach(i, field; iFields)
+	{
+		mixin(format("UniformId i_%s() {return ids[%d];}", field, i+gFieldCount));
+	}
 }

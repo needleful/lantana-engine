@@ -25,49 +25,47 @@ import render.mesh.animation;
 import render.mesh.attributes;
 import render.textures;
 
-
-struct Uniforms(bool animated)
+struct DefaultUniforms
 {
-	// Vertex uniforms
-	UniformId transform, projection;
+	mat4 projection;
 
-	static if(animated)
-	{
-		UniformId bones;
-	}
+	vec3 light_direction;
+	float light_bias;
+	float area_span;
+	float area_ceiling;
 
-	// Texture uniforms
-	UniformId tex_albedo;
-
-	// Light Uniforms
-	LightUniforms light;
+	int light_palette;
+	int tex_albedo;
 }
 
-template GenericMesh(Attrib, Loader)
+template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms)
 {
 	alias Spec = MeshSpec!(Attrib, Loader);
+
+	struct InstanceUniforms
+	{
+		mat4 transform;
+		static if(Spec.isAnimated)
+		{
+			mat4[] bones;
+		}
+	}
+
+	alias Uniforms = UniformT!(GlobalUniforms, InstanceUniforms);
+
 	struct System
 	{
 		Spec.attribType atr;
 		OwnedList!Mesh meshes;
 		Material mat;
-		Uniforms!(Spec.isAnimated) un;
+		Uniforms un;
 
 		this(Material p_material) 
 		{
 			mat = p_material;
 
 			atr = Spec.attribType(mat);
-			un.transform = mat.getUniformId("transform");
-			un.projection = mat.getUniformId("projection");
-			un.tex_albedo = mat.getUniformId("tex_albedo");
-
-			un.light = LightUniforms(mat);
-
-			static if(Spec.isAnimated)
-			{
-				un.bones = mat.getUniformId("bones");
-			}
+			un = Uniforms(mat);
 
 			glcheck();
 			assert(mat.canRender());
@@ -81,7 +79,7 @@ template GenericMesh(Attrib, Loader)
 			return &meshes[$-1];
 		}
 
-		void render(mat4 p_projection, ref LightInfo p_lights, Instance[] p_instances)
+		void render(ref Uniforms.global p_globals, ref Texture!Color p_palette, Instance[] p_instances)
 		{
 			glcheck();
 			glEnable(GL_CULL_FACE);
@@ -89,24 +87,24 @@ template GenericMesh(Attrib, Loader)
 			glEnable(GL_DEPTH_TEST);
 
 			mat.enable();
-			mat.setUniform(un.projection, p_projection);
-			mat.setUniform(un.light.palette, 0);
-			mat.setUniform(un.tex_albedo, 1);
+			
+			p_globals.light_palette = 0;
+			p_globals.tex_albedo = 1;
 
-			un.light.set(mat, p_lights);
+			un.setGlobals(mat, p_globals);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, p_lights.palette.id);
+			glBindTexture(GL_TEXTURE_2D, p_palette.id);
 
 			GLuint current_vao = 0;
 			foreach(ref inst; p_instances)
 			{
 				inst.transform.computeMatrix();
-				mat.setUniform(un.transform, inst.transform.matrix);
+				mat.setUniform(un.i_transform(), inst.transform.matrix);
 
 				static if(Spec.isAnimated)
 				{
-					mat.setUniform(un.bones, inst.anim.boneMatrices);
+					mat.setUniform(un.i_bones(), inst.anim.boneMatrices);
 				}
 
 				if(current_vao != inst.mesh.vao)

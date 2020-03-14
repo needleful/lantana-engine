@@ -11,12 +11,9 @@ import render.gl;
 import lanlib.util.memory;
 import render.textures;
 
-struct LightInfo
+struct LightPalette
 {
 	Texture!Color palette;
-	vec3 direction;
-	float bias;
-	float areaCeiling, areaSpan;
 	
 	public this(string p_palette_file, ref Region p_alloc)
 	{
