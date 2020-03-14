@@ -25,7 +25,7 @@ struct SkyboxLoader
 struct SkyboxUniforms
 {
 	mat4 projection;
-	float color_boost;
+	float gamma;
 	int tex_albedo;
 }
 

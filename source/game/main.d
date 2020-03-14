@@ -264,7 +264,7 @@ int main()
 	auto uiThread = spawn(&uiMain);
 
 	AudioManager audio = AudioManager(16);
-	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
+	audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
 
@@ -276,6 +276,7 @@ int main()
 	globals.light_bias = 0.6;
 	globals.area_ceiling = -1;
 	globals.area_span = 3;
+	globals.gamma = 1;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
 	AnimMesh.Instance kInstance = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
@@ -291,7 +292,7 @@ int main()
 	skyMeshes[0].mesh = sky;
 
 	SkyMesh.Uniforms.global skyUni;
-	skyUni.color_boost = 1.4;
+	skyUni.gamma = 1.8;
 
 	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
 	auto lights = LightPalette("data/palettes/skyTest.png", mainMem);

@@ -33,6 +33,7 @@ struct DefaultUniforms
 	float light_bias;
 	float area_span;
 	float area_ceiling;
+	float gamma;
 
 	int light_palette;
 	int tex_albedo;
