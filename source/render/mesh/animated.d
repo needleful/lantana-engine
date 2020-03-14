@@ -398,13 +398,13 @@ struct AnimatedMeshInstance
 		}
 		else 
 		{
-			return playAnimation(p_name, p_looping);
+			return play(p_name, p_looping);
 		}
 	}
 
 	/// Play an animation
 	/// Returns true if the animation could be started
-	bool playAnimation(string p_name, bool p_looping = false) 
+	bool play(string p_name, bool p_looping = false) 
 	{
 		is_updated = false;
 		foreach(ref anim; mesh.animations)

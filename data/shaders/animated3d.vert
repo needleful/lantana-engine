@@ -3,7 +3,7 @@
 uniform mat4 transform;
 uniform mat4 projection;
 
-uniform mat4 bones[24];
+uniform mat4 bones[64];
 
 // The y coordinate for the ceiling of the lights
 uniform float area_ceiling;
