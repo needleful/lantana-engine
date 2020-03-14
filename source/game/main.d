@@ -266,8 +266,8 @@ int main()
 	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
-	auto sysMesh = SMesh.System(loadMaterial("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag"));
-	sysMesh.meshes = mainMem.makeOwnedList!(SMesh.Mesh)(1);
+	auto sysMesh = AnimMesh.System(loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag"));
+	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
 
 	auto camera = Camera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
 	auto lights = LightInfo("data/palettes/test.png", mainMem);
@@ -277,9 +277,10 @@ int main()
 	lights.areaSpan = 8;
 
 	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
-	SMesh.Instance kInstance;
-	kInstance.mesh = mesh;
-	kInstance.transform = Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180));
+	AnimMesh.Instance kInstance = AnimMesh.Instance(mesh, Transform(1, vec3(0.53, 0, 0), vec3(0, -40, 180)), mainMem);
+	kInstance.play("Idle", true);
+
+	auto instances = [kInstance];
 
 	float runningMaxDelta_ms = -1;
 	float accumDelta_ms = 0;
@@ -300,8 +301,11 @@ int main()
 	float accelCamRot = 2;
 	float dampCamRot = 0.99;
 
-	File frame_log = File("logs/framerate.tsv", "w");
-	frame_log.writeln("Frametime\tMax\tAverage");
+	debug
+	{
+		File frame_log = File("logs/framerate.tsv", "w");
+		frame_log.writeln("Frametime\tMax\tAverage");
+	}
 	int runningFrame = 1;
 	while(!window.state[WindowState.CLOSED])
 	{
@@ -317,10 +321,6 @@ int main()
 			runningMaxDelta_ms = -1;
 			runningFrame = 1;
 			accumDelta_ms = 0;
-			if(paused)
-			{
-				GC.collect();
-			}
 		}
 	
 		window.pollEvents(&input);
@@ -346,16 +346,20 @@ int main()
 		velCamRot *= dampCamRot;
 		camera.rot += velCamRot;
 
+		kInstance.transform.rotate_degrees(2*delta, -8.21*delta, 0.9*delta);
+		kInstance.transform.computeMatrix();
+		sysMesh.update(delta, instances);
+
 		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
 
-		sysMesh.render(camera.vp(), lights, [kInstance]);
+		sysMesh.render(camera.vp(), lights, instances);
 		g_ui.render();
 		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 
 		window.end_frame();
 
-		frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
+		debug frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
 		frame ++;
 		runningFrame ++;
 	}

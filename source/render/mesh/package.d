@@ -9,7 +9,6 @@ public import render.mesh.animated;
 import render.mesh.attributes;
 import render.mesh.generic;
 
-
 private struct SAttributes
 {
 	float position;

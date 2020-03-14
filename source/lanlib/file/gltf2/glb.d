@@ -82,14 +82,63 @@ private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 	assert(scn.type == JSONType.object);
 
 	auto jMeshes = scn["meshes"].array();
-	auto access = scn["accessors"].array();
-	auto bufferViews = scn["bufferViews"].array();
+	assert(jMeshes.length == 1, "Cannot process GLB files with multiple meshes");
 
 	GLBLoadResults!Spec result;
 
+	auto m = jMeshes[0];
+
+	JSONValue primitives, atr;
+	{
+		auto prim_json = m["primitives"];
+		assert(prim_json.type == JSONType.array);
+		auto prim = prim_json.array();
+		assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
+		primitives = prim[0];
+
+		atr = primitives["attributes"];
+		assert(atr.type == JSONType.object);
+	}
+
+
+	if("name" in m)
+	{
+		result.accessor.name = p_alloc.copy(m["name"].str());
+	}
+
+	auto access = scn["accessors"].array();
+	auto bufferViews = scn["bufferViews"].array();
+
+	with(result.accessor)
+	{
+		auto ac_indeces = primitives["indices"].integer();
+
+		indices = GLBBufferView(access[ac_indeces], bufferViews);
+		result.bufferSize = max(result.bufferSize, indices.byteOffset + indices.byteLength);
+
+		static foreach(field; Spec.attribType.fields)
+		{{
+			// Double brackets so the same name can be reused
+			auto ac = atr[mixin("Spec.loader."~field)].integer();
+
+			mixin(field) = GLBBufferView(access[ac], bufferViews);
+			result.bufferSize = max(result.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
+		}}
+		
+		auto material = scn["materials"][primitives["material"].integer()];
+		auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+		auto img_albedo = scn["images"][
+			scn["textures"][idx_texture]["source"].integer()
+		];
+
+		tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+		auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+		tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+		tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+	}
+
 	static if(Spec.isAnimated)
 	{
-
 		auto scn_index = scn["scene"].integer();
 		auto scene = scn["scenes"].array()[scn_index];
 		auto anims = scn["animations"].array();
@@ -169,53 +218,6 @@ private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 		}
 	}
 
-	assert(jMeshes.length == 1, "Cannot process GLB files with multiple meshes");
-
-	auto m = jMeshes[0];
-
-	JSONValue primitives, atr;
-	{
-		auto prim_json = m["primitives"];
-		assert(prim_json.type == JSONType.array);
-		auto prim = prim_json.array();
-		assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
-		primitives = prim[0];
-
-		atr = primitives["attributes"];
-		assert(atr.type == JSONType.object);
-	}
-
-	if("name" in m)
-	{
-		result.accessor.name = p_alloc.copy(m["name"].str());
-	}
-	auto ac_indeces = primitives["indices"].integer();
-
-	with(result.accessor)
-	{
-		indices = GLBBufferView(access[ac_indeces], bufferViews);
-		result.bufferSize = max(result.bufferSize, indices.byteOffset + indices.byteLength);
-
-		static foreach(field; Spec.attribType.fields)
-		{{
-			auto ac = atr[mixin("Spec.loader."~field)].integer();
-
-			mixin(field) = GLBBufferView(access[ac], bufferViews);
-			result.bufferSize = max(result.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
-		}}
-		
-		auto material = scn["materials"][primitives["material"].integer()];
-		auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
-		auto img_albedo = scn["images"][
-			scn["textures"][idx_texture]["source"].integer()
-		];
-
-		// Not used in VBO, so no change to p_bufferMax
-		tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
-		auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
-		tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
-		tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
-	}
 	return result;
 }
 
