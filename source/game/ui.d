@@ -9,6 +9,7 @@ import std.concurrency;
 import std.format;
 import std.math;
 import std.stdio;
+import std.string: split;
 
 import audio;
 import game.dialog;
@@ -26,6 +27,8 @@ import render;
 
 import ui;
 
+static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
+static immutable(vec3) botoColor = vec3(0.2, 0.75, 0.3);
 
 final class DialogButton : Button
 {
@@ -45,7 +48,7 @@ final class DialogButton : Button
 	public void setDialog(Dialog p_dialog)
 	{
 		dialog = p_dialog;
-		(cast(TextBox)getChild()).setText(p_dialog.message);
+		(cast(TextBox)getChild()).setText(p_dialog.message, true);
 	}
 
 	public override string toString()
@@ -66,18 +69,20 @@ final class Message : HBox
 	static string fontFile;
 
 	string sender, content;
+	vec3 senderColor;
 
-	this(string p_sender, string p_content)
+	this(string p_sender, string p_content, vec3 p_color)
 	{
 		sender = p_sender;
 		content = p_content;
+		senderColor = p_color;
 		super([], 10, Alignment.TOP);
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		children = [
-			new TextBox(font, sender),
+			new TextBox(font, sender, senderColor),
 			new TextBox(p_renderer.style.defaultFont, content)
 		];
 		super.initialize(p_renderer, p_view);
@@ -112,7 +117,8 @@ struct UIEvents
 }
 
 __gshared UIRenderer g_ui;
-//__gshared string g_frameTime;
+__gshared string g_frameTime;
+__gshared string g_oxygenText;
 
 void uiMain()
 {
@@ -134,6 +140,7 @@ void uiMain()
 		scrollbar.downArrow = g_ui.loadSprite("data/ui/sprites/arrow-down.png");
 
 		defaultFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+		defaultFontColor = vec3(0.2, 0.5, 1);
 	}
 
 	Message.font = g_ui.loadFont("data/ui/fonts/averia/Averia-Bold.ttf", 20);
@@ -149,7 +156,7 @@ void uiMain()
 		assert(p_dialog.responses.length <= ds.buttons.length);
 		ds.current = p_dialog;
 
-		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message));
+		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
 
 		foreach(i, resp; p_dialog.responses)
 		{
@@ -180,7 +187,29 @@ void uiMain()
 
 	Widget dialogbox = new VBox(tmp_widgets, 0, true).withBounds(Bounds(0, 400), Bounds.none);
 
-	ds.messageBox = new VBox([new ImageBox(g_ui, g_ui.loadSprite("data/test/needleful.png"))], 18, true);
+	Widget[] messages;
+	string kitty = "Kitty:";
+	string boto = "Boto:";
+	foreach(line; File("data/dialog.tsv", "r").byLine())
+	{
+		if(line.length == 0 || line[0] == '#')
+		{
+			continue;
+		}
+		string[] fields = cast(string[]) line.split("\t");
+		assert(fields.length == 2);
+		if(fields[0] == "K")
+		{
+			messages ~= new Message(kitty, fields[1].dup, kittyColor);
+		}
+		else
+		{
+			messages ~= new Message(boto, fields[1].dup, botoColor);
+		}
+	}
+
+	ds.messageBox = new VBox(messages, 10, true);
+
 	Dialog currentDialog = testDialog();
 	Widget dialogWidget = new Padding(
 		dialogbox, 
@@ -190,39 +219,41 @@ void uiMain()
 
 	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	//TextBox frameTime = new TextBox(g_ui.style.defaultFont, "", 64);
+	TextBox frameTime = new TextBox(g_ui.style.defaultFont, "Getting data...", 64, vec3(0.5));
+	TextBox o2Text = new TextBox(g_ui.style.defaultFont, "Getting data...", 32, vec3(1));
 
 	Modal uiModal = new Modal([
 		// Pause menu
-		new AnchoredBox([
-			g_ui.style.panel.mesh.create(g_ui),
-			new Padding(
-				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
-				Pad(8)),
-			new Positioned(
-				dialogWidget,
-				vec2(1, 0),
-				vec2(0, 0))
-			],
+		new HodgePodge([
+			new AnchoredBox([
+				g_ui.style.panel.mesh.create(g_ui),
+				new Padding(
+					new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
+					Pad(8)),
+				new Positioned(
+					dialogWidget,
+					vec2(1, 0),
+					vec2(0, 0))
+				],
 
-			vec2(0.02,0.02),
-			vec2(0.2, .98),
-		).withBounds(Bounds(450, double.infinity), Bounds.none),
+				vec2(0.02,0.02),
+				vec2(0.2, .98),
+			).withBounds(Bounds(450, double.infinity), Bounds.none),
+			new Anchor(o2Text, vec2(0.99), vec2(1)),
+ 		]),
 
-		new HodgePodge([]),
+		new HodgePodge([
+			new Anchor(
+				new HBox([
+					new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
+					frameTime
+				], 5),
+				vec2(0.99, 0.99),
+				vec2(1, 1))
+		]),
 	]);
 
-	g_ui.setRootWidget(
-		new HodgePodge([
-			uiModal,
-	 		//new Anchor(
-				//new HBox([
-				//	new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage"), 
-				//	frameTime
-				//], 5),
-				//vec2(0.99, 0.99),
-				//vec2(1, 1))
- 		]));
+	g_ui.setRootWidget(uiModal);
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);
@@ -258,7 +289,9 @@ void uiMain()
 
 		dialogWidget.setVisible(showDialog);
 
-		//frameTime.setText(g_frameTime);
+		frameTime.setText(g_frameTime);
+		o2Text.setText(g_oxygenText);
+
 		g_ui.update(events.delta, &events.input);
 	}
 
@@ -274,4 +307,5 @@ void uiMain()
 
 		ownerTid.send(UIReady());
 	}
+	ownerTid.send(UIReady());
 }

@@ -33,6 +33,8 @@ float g_timescale = 1;
 
 enum g_MemoryCapacity = 1024*1024*64;
 
+float oxygen = 21.2;
+float oxygenDrain = 0.02;
 
 version(lantana_game)
 int main()
@@ -43,8 +45,8 @@ int main()
 
 	auto uiThread = spawn(&uiMain);
 
-	AudioManager audio = AudioManager(16);
-	audio.startMusic("data/audio/music/floating-full.ogg", 0);
+	//AudioManager audio = AudioManager(16);
+	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
 
@@ -86,7 +88,8 @@ int main()
 	Input input = Input();
 	uint frame = 0;
 
-	//string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
+	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
+	string oxygenFormat = "Oxygen: %.2f%%";
 
 	receiveOnly!UIReady();
 	g_ui.initialize();
@@ -103,22 +106,14 @@ int main()
 		File frame_log = File("logs/framerate.tsv", "w");
 		frame_log.writeln("Frametime\tMax\tAverage");
 	}
+
 	int runningFrame = 1;
+	float time_accum = 0;
+	g_oxygenText = format(oxygenFormat, oxygen);
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
 		delta = g_timescale*delta_ms/1000.0;
-		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
-		accumDelta_ms += delta_ms;
-
-		if(frame % 256 == 0)
-		{
-			//g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/256);
-
-			runningMaxDelta_ms = delta_ms;
-			accumDelta_ms = delta_ms;
-			runningFrame = 1;
-		}
 	
 		window.pollEvents(&input);
 
@@ -146,7 +141,6 @@ int main()
 		instances[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
 		sysMesh.update(delta, instances);
 
-		UIReady _ = receiveOnly!UIReady();
 		window.begin_frame();
 
 		float distance = camera.distance;
@@ -159,7 +153,26 @@ int main()
 		globals.projection = camera.vp();
 
 		sysMesh.render(globals, lights.palette, instances);
+
+		UIReady _ = receiveOnly!UIReady();
 		g_ui.render();
+
+		time_accum += delta;
+		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+		accumDelta_ms += delta_ms;
+
+		oxygen -= oxygenDrain*delta;
+
+		if(time_accum >= 2.75)
+		{
+			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
+			g_oxygenText = format(oxygenFormat, oxygen);
+
+			runningMaxDelta_ms = delta_ms;
+			accumDelta_ms = delta_ms;
+			runningFrame = 1;
+			time_accum = 0;
+		}
 
 		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
 		window.end_frame();
@@ -168,6 +181,10 @@ int main()
 		frame ++;
 		runningFrame ++;
 	}
+
+	uiThread.send(UICancel());
+	auto _ = receiveOnly!UIReady();
+
 	debug writeln("Game closing");
 	return 0;
 }

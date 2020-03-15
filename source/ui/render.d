@@ -184,9 +184,9 @@ public final class UIRenderer
 
 	public void update(float p_delta, Input* p_input)
 	{
+		updateInteraction(p_input);
 		// Widgets manage their own layouts, we just update the root layout
 		views[0].updateLayout();
-		updateInteraction(p_input);
 	}
 
 	public void initialize()

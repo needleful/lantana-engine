@@ -4,6 +4,8 @@
 
 module ui.style;
 
+import gl3n.linalg : vec3;
+
 import lanlib.types : ivec2, svec2;
 
 import ui.layout;
@@ -76,4 +78,5 @@ final class UIStyle
 	public PanelStyle panel;
 	public ScrollbarStyle scrollbar;
 	public FontId defaultFont;
+	public vec3 defaultFontColor;
 }

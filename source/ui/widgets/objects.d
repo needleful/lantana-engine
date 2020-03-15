@@ -7,7 +7,7 @@ module ui.widgets.objects;
 import std.math;
 debug import std.stdio;
 
-import gl3n.linalg: vec2;
+import gl3n.linalg: vec2, vec3;
 
 import lanlib.types;
 import lanlib.util.printing;
@@ -215,12 +215,11 @@ public class TextBox: Widget
 	string text;
 	uint allocCapacity;
 	TextId mesh;
-	bool dynamic;
+	vec3 color;
 	bool textChanged;
 
-	public this(FontId p_font, string p_text, bool p_dynamic = false)
+	public this(FontId p_font, string p_text, vec3 p_color = vec3(-1), bool p_dynamic = false)
 	{
-		dynamic = p_dynamic;
 		if(p_dynamic)
 		{
 			allocCapacity = cast(uint)(p_text.length*1.5);
@@ -231,20 +230,26 @@ public class TextBox: Widget
 		}
 		font = p_font;
 		text = p_text;
+		color = p_color;
 	}
 
-	public this(FontId p_font, string p_text, uint allocLen)
+	public this(FontId p_font, string p_text, uint allocLen, vec3 p_color = vec3(-1))
 	{
-		dynamic = true;
 		font = p_font;
 		text = p_text;
 		allocCapacity = allocLen;
+		color = p_color;
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
+		if(color == vec3(-1))
+		{
+			color = p_renderer.style.defaultFontColor;
+		}
 		mesh = p_view.addTextMesh(font, text, allocCapacity);
+		view.setTextVisiblePercent(mesh, 1);
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -254,27 +259,28 @@ public class TextBox: Widget
 			view.setTextVisiblePercent(mesh, 0f);
 			return RealSize(0);
 		}
+		view.setTextVisiblePercent(mesh, 1);
 		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
 		
-		view.setTextMesh(mesh, font, text, req.width);
-		view.setTextVisiblePercent(mesh, 1);
-		// TODO: layout text to fit bounds
+		view.setTextMesh(mesh, font, text, req.width, true);
+
 		return view.textBoundingBox(mesh).constrained(req);
 	}
 
 	public override void prepareRender(ivec2 p_pen) 
 	{
 		view.translateTextMesh(mesh, p_pen);
+		view.setTextColor(mesh, color);
 	}
 
-	public void setText(string p_text) 
+	public void setText(string p_text, bool p_show = false) 
 	{
-		assert(dynamic, "This text is not dynamically resizable");
 		if(text != p_text)
 		{
-			view.setTextMesh(mesh, font, p_text);
+			if(p_show) writeln("Set text: "~p_text);
+			text = p_text;
+			view.requestUpdate();
 		}
-		text = p_text;
 	}
 
 	public FontId getFont()

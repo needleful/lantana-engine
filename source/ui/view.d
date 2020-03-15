@@ -39,6 +39,8 @@ private struct TextMesh
 	RealSize boundingSize;
 	// Translation of the mesh
 	ivec2 translation;
+	// In linear space for now
+	vec3 color;
 	// (between 0 and 1) the proportion of characters visible.
 	float visiblePortion;
 	// Offset within the EBO
@@ -299,8 +301,6 @@ public final class UIView
 
 		renderer.matText.setUniform(renderer.uniText.in_tex, 0);
 		renderer.matText.setUniform(renderer.uniText.cam_resolution, wsize);
-		// TODO: text color should be configurable
-		renderer.matText.setUniform(renderer.uniText.color, vec3(0.2, 0.5, 1));
 		
 		foreach(ref tm; textMeshes)
 		{
@@ -311,6 +311,7 @@ public final class UIView
 			}
 
 			renderer.matText.setUniform(renderer.uniText.translation, textRect.pos);
+			renderer.matText.setUniform(renderer.uniText.color, tm.color);
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -741,7 +742,6 @@ public final class UIView
 		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
 
-		ushort oldCount = mesh.length;
 
 		ushort quads = 0;
 		foreach(c; p_text)
@@ -752,6 +752,7 @@ public final class UIView
 			}
 		}
 		assert(quads <= mesh.capacity, "Tried to resize text, but it was too large");
+		ushort oldLength = mesh.length;
 		mesh.length = cast(ushort)(quads);
 
 		// Write the buffers
@@ -795,7 +796,11 @@ public final class UIView
 
 			if(c.isWhite())
 			{
-				// get the size of the following word.  If it goes past the max allowed
+				pen += ivec2(
+					ftGlyph.advance.x >> 6, 
+					ftGlyph.advance.y >> 6);
+
+				//get the size of the following word and break if needed
 				uint wordLen = 0;
 				foreach(char c2; p_text[i+1..$])
 				{
@@ -805,17 +810,14 @@ public final class UIView
 					}
 					charindex = FT_Get_Char_Index(face, c2);
 					FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
-					wordLen += ftGlyph.advance.x >> 6;
-				}
+					ftGlyph = face.glyph;
 
-				pen += ivec2(
-					ftGlyph.advance.x >> 6, 
-					ftGlyph.advance.y >> 6);
+					wordLen += 10;// ftGlyph.advance.x >> 6;
+				}
 
 				if(pen.x + wordLen > p_width.max)
 				{
 					lineCount++;
-					// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
 					pen.x = 0;
 					foreach(v; elemText[mesh.offset]..vertQuad)
 					{
@@ -909,15 +911,19 @@ public final class UIView
 		invalidated[ViewState.UVBufferPartial] = true;
 
 		textInvalid.apply(ebostart, ebostart + mesh.length*6);
-		invalidated[ViewState.TextEBOPartial] = p_forceEBOUpdate || mesh.length > oldCount;
+		invalidated[ViewState.TextEBOPartial] = p_forceEBOUpdate || (mesh.length != oldLength);
 
 		mesh.boundingSize = RealSize(rightBound - leftBound, lineCount*lineHeight);
 	}
 	
 	public void translateTextMesh(TextId p_id, ivec2 p_translation)  
 	{
-		TextMesh* mesh = &textMeshes[p_id];
-		mesh.translation = p_translation;
+		textMeshes[p_id].translation = p_translation;
+	}
+
+	public void setTextColor(TextId p_id, vec3 p_color)
+	{
+		textMeshes[p_id].color = p_color;
 	}
 
 	public RealSize textBoundingBox(TextId p_id)

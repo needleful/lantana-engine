@@ -147,14 +147,17 @@ struct Bitfield(Enum)
 
 	public void opIndexAssign(bool p_value, Enum p_index) @nogc nothrow
 	{
-		// set the flag to zero
-		dt inverseMask = cast(dt)(~(1 << p_index));
-		data &= inverseMask;
-
-		// set the bit to 0 or 1
-		// bools are 1-bit ints, so this is either 0 or 1<<p_index
-		dt mask = cast(dt)(p_value << p_index);
-		data |= mask;
+		if(p_value)
+		{
+			dt mask = cast(dt)(1 << p_index);
+			data |= mask;
+		}
+		else
+		{	
+			// set the flag to zero
+			dt inverseMask = cast(dt)(~(1 << p_index));
+			data &= inverseMask;
+		}
 	}
 
 	public void setAll() @nogc nothrow
