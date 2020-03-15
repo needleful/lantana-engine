@@ -59,6 +59,31 @@ final class DialogButton : Button
 	}
 }
 
+final class Message : HBox
+{
+	public static FontId font;
+	static bool initialized;
+	static string fontFile;
+
+	string sender, content;
+
+	this(string p_sender, string p_content)
+	{
+		sender = p_sender;
+		content = p_content;
+		super([], 10, Alignment.TOP);
+	}
+
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
+	{
+		children = [
+			new TextBox(font, sender),
+			new TextBox(p_renderer.style.defaultFont, content)
+		];
+		super.initialize(p_renderer, p_view);
+	}
+}
+
 struct DialogState
 {
 	Dialog current;
@@ -97,7 +122,7 @@ void uiMain()
 		button.pressed = g_ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.focused = g_ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-		button.pad = Pad(8, 12);
+		button.pad = Pad(0, 10, 12, 12);
 		
 		panel.sprite = g_ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -111,6 +136,8 @@ void uiMain()
 		defaultFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 	}
 
+	Message.font = g_ui.loadFont("data/ui/fonts/averia/Averia-Bold.ttf", 20);
+
 	/// BEGIN - Dialog initialization
 	DialogState ds;
 
@@ -122,7 +149,7 @@ void uiMain()
 		assert(p_dialog.responses.length <= ds.buttons.length);
 		ds.current = p_dialog;
 
-		ds.messageBox.addChild(new TextBox(g_ui.style.defaultFont, p_dialog.message));
+		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message));
 
 		foreach(i, resp; p_dialog.responses)
 		{
@@ -151,9 +178,9 @@ void uiMain()
 		tmp_widgets ~= button;
 	}
 
-	VBox dialogbox = new VBox(tmp_widgets, 0, true);
+	Widget dialogbox = new VBox(tmp_widgets, 0, true).withBounds(Bounds(0, 400), Bounds.none);
 
-	ds.messageBox = new VBox([new ImageBox(g_ui, g_ui.loadSprite("data/test/needleful.png"))], 18);
+	ds.messageBox = new VBox([new ImageBox(g_ui, g_ui.loadSprite("data/test/needleful.png"))], 18, true);
 	Dialog currentDialog = testDialog();
 	Widget dialogWidget = new Padding(
 		dialogbox, 

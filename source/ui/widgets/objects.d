@@ -256,6 +256,7 @@ public class TextBox: Widget
 		}
 		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
 		
+		view.setTextMesh(mesh, font, text, req.width);
 		view.setTextVisiblePercent(mesh, 1);
 		// TODO: layout text to fit bounds
 		return view.textBoundingBox(mesh).constrained(req);

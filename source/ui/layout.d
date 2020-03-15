@@ -265,3 +265,10 @@ public struct Pad
 		printf("pad[%u, %u, %u, %u]", top, bottom, left, right);
 	}
 }
+
+enum Alignment
+{
+	TOP,
+	CENTER,
+	BOTTOM
+}

@@ -22,7 +22,11 @@ struct Input
 		PAUSE,
 		GAME_INTERACT,
 		UI_INTERACT,
-		DEBUG_LOADLEVEL,
+		DEBUG1,
+		DEBUG2,
+		DEBUG3,
+		DEBUG4,
+		DEBUG5,
 		UNKNOWN,
 		ACTION_COUNT,
 	}
@@ -151,7 +155,23 @@ static Input.Action from_scancode(SDL_Scancode code)  @safe nothrow
 	}
 	else if(code == SDL_SCANCODE_F1)
 	{
-		return Input.Action.DEBUG_LOADLEVEL;
+		return Input.Action.DEBUG1;
+	}
+	else if(code == SDL_SCANCODE_F2)
+	{
+		return Input.Action.DEBUG2;
+	}
+	else if(code == SDL_SCANCODE_F3)
+	{
+		return Input.Action.DEBUG3;
+	}
+	else if(code == SDL_SCANCODE_F4)
+	{
+		return Input.Action.DEBUG4;
+	}
+	else if(code == SDL_SCANCODE_F5)
+	{
+		return Input.Action.DEBUG5;
 	}
 	else
 	{

@@ -300,7 +300,7 @@ public final class UIView
 		renderer.matText.setUniform(renderer.uniText.in_tex, 0);
 		renderer.matText.setUniform(renderer.uniText.cam_resolution, wsize);
 		// TODO: text color should be configurable
-		renderer.matText.setUniform(renderer.uniText.color, vec3(1, 0.7, 1));
+		renderer.matText.setUniform(renderer.uniText.color, vec3(0.2, 0.5, 1));
 		
 		foreach(ref tm; textMeshes)
 		{
@@ -727,7 +727,7 @@ public final class UIView
 		assert(uvs.length == vertpos.length);
 
 		auto id = TextId(cast(uint)textMeshes.length - 1);
-		setTextMesh(id, p_font, p_text, true);
+		setTextMesh(id, p_font, p_text, Bounds.none, true);
 
 		if(uvRealloc) invalidated[ViewState.UVBuffer] = true;
 		if(vertRealloc) invalidated[ViewState.PositionBuffer] = true;
@@ -736,7 +736,7 @@ public final class UIView
 		return id;
 	}
 
-	public void setTextMesh(TextId p_id, FontId p_font, string p_text, bool p_forceEBOUpdate = false) 
+	public void setTextMesh(TextId p_id, FontId p_font, string p_text, Bounds p_width=Bounds.none, bool p_forceEBOUpdate = false) 
 	{
 		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
@@ -760,8 +760,8 @@ public final class UIView
 		FT_Face face = renderer.fonts[p_font];
 
 		// Bounds of the entire text box
-		ivec2 bottom_left = ivec2(int.max, int.max);
-		ivec2 top_right = ivec2(int.min, int.min);
+		int leftBound = int.max;
+		int rightBound = int.min;
 
 		auto ebostart = mesh.offset;
 		auto vertstart = elemText[ebostart];
@@ -771,35 +771,61 @@ public final class UIView
 
 		GlyphId g;
 		g.font = p_font;
+		uint lineHeight = face.size.metrics.height >> 6;
+		uint lineCount = 1;
 
-		foreach(c; p_text)
+		foreach(i, c; p_text)
 		{
-			g.glyph = c;
+			if(c == '\n')
+			{
+				lineCount++;
+				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
+				pen.x = 0;
+				foreach(v; elemText[mesh.offset]..vertQuad)
+				{
+					vertpos[v].y += lineHeight;
+				}
+				continue;
+			}
 
 			FT_UInt charindex = FT_Get_Char_Index(face, c);
 			FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
 
 			auto ftGlyph = face.glyph;
 
-			if(c == '\n')
+			if(c.isWhite())
 			{
-				// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
-				pen.x = 0;
-				auto lineHeight = face.size.metrics.height >> 6;
-				foreach(v; elemText[mesh.offset]..vertQuad)
+				// get the size of the following word.  If it goes past the max allowed
+				uint wordLen = 0;
+				foreach(char c2; p_text[i+1..$])
 				{
-					vertpos[v].y += lineHeight;
+					if(c2.isWhite())
+					{
+						break;
+					}
+					charindex = FT_Get_Char_Index(face, c2);
+					FT_Load_Glyph(face, charindex, FT_LOAD_DEFAULT);
+					wordLen += ftGlyph.advance.x >> 6;
 				}
-				top_right.y += lineHeight;
-				continue;
-			}
-			else if(c.isWhite())
-			{
+
 				pen += ivec2(
 					ftGlyph.advance.x >> 6, 
 					ftGlyph.advance.y >> 6);
+
+				if(pen.x + wordLen > p_width.max)
+				{
+					lineCount++;
+					// Because the coordinates are from the bottom left, we have to raise the rest of the mesh
+					pen.x = 0;
+					foreach(v; elemText[mesh.offset]..vertQuad)
+					{
+						vertpos[v].y += lineHeight;
+					}
+				}
 				continue;
 			}
+
+			g.glyph = c;
 
 			// The glyph is not whitespace, add its vertices
 			RealSize size = RealSize(ftGlyph.bitmap.pitch, ftGlyph.bitmap.rows);
@@ -836,8 +862,8 @@ public final class UIView
 			ivec2 blchar = vertpos[vertQuad];
 			ivec2 trchar = vertpos[vertQuad+3];
 
-			bottom_left = vmin(bottom_left, blchar);
-			top_right = vmax(top_right, trchar);
+			leftBound = leftBound < blchar.x ? leftBound : blchar.x;
+			rightBound = rightBound > trchar.x ? rightBound : trchar.x;
 
 			// UV start, normalized
 			vec2 uv_pos = vec2(node.position.x, node.position.y);
@@ -885,7 +911,7 @@ public final class UIView
 		textInvalid.apply(ebostart, ebostart + mesh.length*6);
 		invalidated[ViewState.TextEBOPartial] = p_forceEBOUpdate || mesh.length > oldCount;
 
-		mesh.boundingSize = RealSize(top_right - bottom_left);
+		mesh.boundingSize = RealSize(rightBound - leftBound, lineCount*lineHeight);
 	}
 	
 	public void translateTextMesh(TextId p_id, ivec2 p_translation)  

@@ -53,7 +53,7 @@ int main()
 
 	AnimMesh.Uniforms.global globals;
 	globals.light_direction = vec3(-0.1,-0.3,0.9);
-	globals.light_bias = 0.6;
+	globals.light_bias = 0.3;
 	globals.area_ceiling = -1;
 	globals.area_span = 3;
 	globals.gamma = 1;
@@ -74,7 +74,7 @@ int main()
 	SkyMesh.Uniforms.global skyUni;
 	skyUni.gamma = 1.8;
 
-	auto camera = OrbitalCamera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60);
+	auto camera = OrbitalCamera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60, vec2(20, 0));
 	camera.target = vec3(0);
 	camera.distance = 5;
 	auto lights = LightPalette("data/palettes/skyTest.png", mainMem);

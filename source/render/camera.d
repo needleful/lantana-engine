@@ -96,11 +96,11 @@ struct OrbitalCamera
 	// From the origin, facing it
 	float distance;
 
-	this(vec3 p_target, float aspect, float fov) @safe  nothrow
+	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe  nothrow
 	{
 		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		target = p_target;
-		angle = vec2(0,0);
+		angle = p_angle;
 	}
 
 	void set_projection(Projection p) @safe  nothrow

@@ -15,19 +15,19 @@ debug
 
 enum MAX_MEMORY = 1024*1024*16;
 
-template Alignment(Type)
+template AlignT(Type)
 {
 	static if(Type.sizeof <= ushort.sizeof)
 	{
-		enum Alignment = ushort.sizeof;
+		enum AlignT = ushort.sizeof;
 	}
 	else static if(Type.sizeof <= uint.sizeof)
 	{
-		enum Alignment = uint.sizeof;
+		enum AlignT = uint.sizeof;
 	}
 	else
 	{
-		enum Alignment = size_t.sizeof;
+		enum AlignT = size_t.sizeof;
 	}
 }
 
@@ -39,7 +39,7 @@ T* offset(T)(ref ubyte[] p_bytes, ulong p_offset)
 T[] addSpace(T)(ref ubyte[] p_bytes, ulong p_count, ref ulong p_start)
 {
 	/// Aligns data to size_t
-	//ushort shiftAlign = (cast(size_t)p_start) % Alignment!T;
+	//ushort shiftAlign = (cast(size_t)p_start) % AlignT!T;
 	//ulong size = T.sizeof*p_count+shiftAlign;
 	//p_start = p_bytes.length+shiftAlign;
 	//p_bytes.length += size+shiftAlign;
@@ -302,13 +302,13 @@ struct Region
 	T[] makeList(T)(size_t count)
 	{
 		//debug printf("MEM: Creating %s[%u]\n", T.stringof.ptr, count);
-		//return (cast(T*)allocAligned!(Alignment!T)(T.sizeof * count))[0..count];
+		//return (cast(T*)allocAligned!(AlignT!T)(T.sizeof * count))[0..count];
 		return (cast(T*)alloc(T.sizeof*count))[0..count];
 	}
 
 	OwnedList!T makeOwnedList(T)(ushort p_size)
 	{
-		//return OwnedList!T((cast(T*)allocAligned!(Alignment!T)(T.sizeof * p_size)), p_size);
+		//return OwnedList!T((cast(T*)allocAligned!(AlignT!T)(T.sizeof * p_size)), p_size);
 		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);
 	}
 
@@ -317,14 +317,14 @@ struct Region
 		//debug printf("MEM: Creating instance of %s\n", T.stringof.ptr);
 		static if(is(T == class))
 		{
-			//void[] buffer = allocAligned!(Alignment!T)(T.sizeof)[0..T.sizeof];
+			//void[] buffer = allocAligned!(AlignT!T)(T.sizeof)[0..T.sizeof];
 			void[] buffer = cast(void[]) alloc(T.sizeof)[0..T.sizeof];
 			assert(buffer.ptr != null, "Failed to allocate memory");
 			return emplace!(T, A)(buffer, args);
 		}
 		else
 		{
-			//T *ptr = cast(T*) allocAligned!(Alignment!T)(T.sizeof);
+			//T *ptr = cast(T*) allocAligned!(AlignT!T)(T.sizeof);
 			T *ptr = cast(T*) alloc(T.sizeof);
 			assert(ptr != null, "Failed to allocate memory");
 			return emplace!(T, A)(ptr, args);

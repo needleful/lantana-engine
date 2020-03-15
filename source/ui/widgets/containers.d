@@ -321,15 +321,17 @@ public final class Padding : SingularContainer
 	}
 }
 
-public final class HBox: MultiContainer
+public class HBox: MultiContainer
 {
 	// Space between children
 	int spacing;
+	Alignment alignment;
 
-	this(Widget[] p_children, int p_spacing = 0)
+	this(Widget[] p_children, int p_spacing = 0, Alignment p_align = Alignment.CENTER)
 	{
 		children = p_children;
 		spacing = p_spacing;
+		alignment = p_align;
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -338,6 +340,8 @@ public final class HBox: MultiContainer
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
+		request.width.min = 0;
+
 		//TODO: respect intrinsics properly
 		RealSize size;
 		ivec2 pen = ivec2(0,0);
@@ -345,17 +349,34 @@ public final class HBox: MultiContainer
 		{
 			RealSize childSize = child.layout(request);
 			child.position.x = pen.x;
-			child.position.y = -childSize.height/2;
+
+			if(alignment == Alignment.CENTER)
+			{
+				child.position.y = -childSize.height/2;
+			}
+			else if(alignment == Alignment.BOTTOM)
+			{
+				child.position.y = 0;
+			}
+			else if(alignment == Alignment.TOP)
+			{
+				child.position.y = -childSize.height;
+			}
 
 			size.width = pen.x + childSize.width;
 			size.height = childSize.height > size.height? childSize.height: size.height;
 
 			pen.x += childSize.width + spacing;
+			request.width.max -= (childSize.width + spacing);
 		}
 
-		foreach(child; children)
+		if(alignment == Alignment.CENTER) foreach(child; children)
 		{
 			child.position.y += size.height/2;
+		}
+		else if(alignment == Alignment.TOP) foreach(child; children)
+		{
+			child.position.y += size.height;
 		}
 
 		return size;
@@ -386,7 +407,11 @@ class VBox: MultiContainer
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		
 		childRequest.height.min = 0;
-		if(!forceExpand)
+		if(forceExpand)
+		{
+			childRequest.width.min = childRequest.width.max;
+		}
+		else
 		{
 			childRequest.width.min = 0;
 		}
@@ -400,7 +425,14 @@ class VBox: MultiContainer
 			Widget child = children[i];
 			RealSize childSize = child.layout(childRequest);
 
-			if(!forceExpand) child.position.x = -childSize.width/2;
+			if(forceExpand) 
+			{
+				child.position.x = 0;
+			}
+			else
+			{	
+				child.position.x = -childSize.width/2;
+			}
 			child.position.y = vertPos;
 
 			size.width = childSize.width > size.width? childSize.width: size.width;
@@ -418,12 +450,7 @@ class VBox: MultiContainer
 			size.width = cast(int) p_request.width.min;
 		}
 
-		if(forceExpand) foreach(child; children)
-		{
-			child.layout(SizeRequest(Bounds(size.width), childRequest.height));
-			child.position.x = 0;
-		}
-		else foreach(child; children)
+		if(!forceExpand) foreach(child; children)
 		{
 			child.position.x += size.width/2;
 		}
