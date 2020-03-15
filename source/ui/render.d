@@ -365,6 +365,9 @@ public final class UIRenderer
 
 	public FontId loadFont(string p_fontfile, ubyte p_size)
 	{
+		import std.file: exists;
+		assert(exists(p_fontfile), "No such file: "~p_fontfile);
+		
 		FT_Face newface;
 		FT_Error error = FT_New_Face(
 			fontLibrary,

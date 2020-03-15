@@ -234,9 +234,9 @@ struct Rect
 
 public struct Pad
 {
-	ubyte top, bottom, left, right;
+	byte top, bottom, left, right;
 
-	this(ubyte p_top, ubyte p_bottom, ubyte p_left, ubyte p_right) nothrow @nogc
+	this(byte p_top, byte p_bottom, byte p_left, byte p_right) nothrow @nogc
 	{
 		top = p_top;
 		bottom = p_bottom;
@@ -244,7 +244,7 @@ public struct Pad
 		right = p_right;
 	}
 
-	this(ubyte p_vertical, ubyte p_horizontal) nothrow @nogc
+	this(byte p_vertical, byte p_horizontal) nothrow @nogc
 	{
 		top = p_vertical;
 		bottom = p_vertical;
@@ -252,7 +252,7 @@ public struct Pad
 		right = p_horizontal;
 	}
 
-	this(ubyte p_pad) nothrow @nogc
+	this(byte p_pad) nothrow @nogc
 	{
 		top = p_pad;
 		bottom = p_pad;

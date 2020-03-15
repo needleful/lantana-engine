@@ -145,6 +145,8 @@ void uiMain()
 
 	Message.font = g_ui.loadFont("data/ui/fonts/averia/Averia-Bold.ttf", 20);
 
+	FontId sysFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 14);
+
 	/// BEGIN - Dialog initialization
 	DialogState ds;
 
@@ -155,6 +157,11 @@ void uiMain()
 	{
 		assert(p_dialog.responses.length <= ds.buttons.length);
 		ds.current = p_dialog;
+
+		if(p_dialog.date != "")
+		{
+			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~p_dialog.date), Pad(10, -10, 0, 0)));
+		}
 
 		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
 
@@ -202,6 +209,10 @@ void uiMain()
 		{
 			messages ~= new Message(kitty, fields[1].dup, kittyColor);
 		}
+		else if(fields[0] == "%")
+		{
+			messages ~= new Padding(new TextBox(sysFont, fields[1].dup), Pad(10, -10, 0, 0));
+		}
 		else
 		{
 			messages ~= new Message(boto, fields[1].dup, botoColor);
@@ -220,40 +231,40 @@ void uiMain()
 	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	TextBox frameTime = new TextBox(g_ui.style.defaultFont, "Getting data...", 64, vec3(0.5));
-	TextBox o2Text = new TextBox(g_ui.style.defaultFont, "Getting data...", 32, vec3(1));
+	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
 
 	Modal uiModal = new Modal([
 		// Pause menu
-		new HodgePodge([
-			new AnchoredBox([
-				g_ui.style.panel.mesh.create(g_ui),
-				new Padding(
-					new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
-					Pad(8)),
-				new Positioned(
-					dialogWidget,
-					vec2(1, 0),
-					vec2(0, 0))
-				],
+		new AnchoredBox([
+			g_ui.style.panel.mesh.create(g_ui),
+			new Padding(
+				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
+				Pad(8)),
+			new Positioned(
+				dialogWidget,
+				vec2(1, 0),
+				vec2(0, 0))
+			],
 
-				vec2(0.02,0.02),
-				vec2(0.2, .98),
-			).withBounds(Bounds(450, double.infinity), Bounds.none),
-			new Anchor(o2Text, vec2(0.99), vec2(1)),
- 		]),
+			vec2(0.02,0.02),
+			vec2(0.2, .98),
+		).withBounds(Bounds(450, double.infinity), Bounds.none),
 
-		new HodgePodge([
-			new Anchor(
-				new HBox([
-					new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
-					frameTime
-				], 5),
-				vec2(0.99, 0.99),
-				vec2(1, 1))
-		]),
+		new Anchor(
+			new HBox([
+				//new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
+				//frameTime
+			], 5),
+			vec2(0.99, 0.01),
+			vec2(1, 0)
+		),
 	]);
 
-	g_ui.setRootWidget(uiModal);
+	g_ui.setRootWidget(
+		new HodgePodge([
+			uiModal, 
+			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1))
+		]));
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);
@@ -289,7 +300,7 @@ void uiMain()
 
 		dialogWidget.setVisible(showDialog);
 
-		frameTime.setText(g_frameTime);
+		//frameTime.setText(g_frameTime);
 		o2Text.setText(g_oxygenText);
 
 		g_ui.update(events.delta, &events.input);
