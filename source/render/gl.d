@@ -4,7 +4,7 @@
 
 module render.gl;
 public import derelict.opengl;
-mixin glFreeFuncs!(GLVersion.gl45, false);
+mixin glFreeFuncs!(GLVersion.gl33, false);
 
 import std.file;
 import std.stdio;
