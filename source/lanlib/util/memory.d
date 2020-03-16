@@ -68,35 +68,6 @@ T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
 	return p_bytes.offset!T(p_byteOffset)[0..p_count];
 }
 
-struct OwnedRef(Type)
-{
-	Type* data;
-
-	this(Type* p_data) 
-	{
-		data = p_data;
-	}
-
-	~this() 
-	{
-		if(data)
-			destroy(data);
-	}
-
-	void opAssign(Type* p_val)
-	{
-		destroy(data);
-		data = p_val;
-	}
-
-	Type* borrow()
-	{
-		return data;
-	}
-
-	alias data this;
-}
-
 struct OwnedList(Type)
 {
 	private Type* m_ptr;
@@ -122,7 +93,7 @@ struct OwnedList(Type)
 		m_length = 0;
 		foreach(uint i; 0..m_length)
 		{
-			destroy!false(m_ptr[i]);
+			destroy(m_ptr[i]);
 		}
 	}
 

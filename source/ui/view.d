@@ -772,7 +772,7 @@ public final class UIView
 
 		GlyphId g;
 		g.font = p_font;
-		uint lineHeight = face.size.metrics.height >> 6;
+		uint lineHeight = cast(uint)(face.size.metrics.height >> 6);
 		uint lineCount = 1;
 
 		foreach(i, c; p_text)
@@ -797,8 +797,8 @@ public final class UIView
 			if(c.isWhite())
 			{
 				pen += ivec2(
-					ftGlyph.advance.x >> 6, 
-					ftGlyph.advance.y >> 6);
+					cast(int)(ftGlyph.advance.x >> 6), 
+					cast(int)(ftGlyph.advance.y >> 6));
 
 				//get the size of the following word and break if needed
 				uint wordLen = 0;
@@ -900,8 +900,8 @@ public final class UIView
 			eboQuad += 6;
 
 			pen += ivec2(
-				ftGlyph.advance.x >> 6, 
-				ftGlyph.advance.y >> 6);
+				cast(int)(ftGlyph.advance.x >> 6), 
+				cast(int)(ftGlyph.advance.y >> 6));
 		}
 
 		posInvalid.apply(vertstart, vertstart + mesh.length*4);

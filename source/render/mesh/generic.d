@@ -76,9 +76,9 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		Material mat;
 		Uniforms un;
 
-		this(Material p_material) 
+		this(string p_vertShader, string p_fragShader) 
 		{
-			mat = p_material;
+			mat = loadMaterial(p_vertShader, p_fragShader);
 
 			atr = Spec.attribType(mat);
 			un = Uniforms(mat);
@@ -108,10 +108,14 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			else
 				glDisable(GL_BLEND);
 
+			glcheck();
+
 			static if(Settings.depthTest)
 				glEnable(GL_DEPTH_TEST);
 			else
 				glDisable(GL_DEPTH_TEST);
+
+			glcheck();
 
 			static if(Settings.depthWrite)
 				glDepthMask(GL_TRUE);
@@ -120,12 +124,14 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 			mat.enable();
 			
+			glcheck();
 			static if(hasLightPalette)
 			{
 				p_globals.light_palette = 0;
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, p_palette.id);
 			}
+			glcheck();
 			p_globals.tex_albedo = 1;
 
 			un.setGlobals(mat, p_globals);

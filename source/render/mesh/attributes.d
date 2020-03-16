@@ -111,18 +111,22 @@ struct UniformT(Global, Instance)
 
 	void setGlobals(ref Material mat, ref Global globals)
 	{
+		glcheck();
 		static foreach(i, type; Fields!Global)
 		{
 			mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
 		}
+		glcheck();
 	}
 
 	void setInstance(ref Material mat, ref Instance instance)
 	{
+		glcheck();
 		static foreach(i, type; Fields!Instance)
 		{
 			mat.setUniform!type(ids[gFieldCount + i], mixin("instance."~iFields[i]));
 		}
+		glcheck();
 	}
 
 	static foreach(i, field; gFields)

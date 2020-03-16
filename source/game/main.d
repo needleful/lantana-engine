@@ -39,7 +39,7 @@ float oxygenDrain = 0.02;
 version(lantana_game)
 int main()
 {
-	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
+	Window window = Window(900, 600, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
 	g_ui = new UIRenderer(ws);
 
@@ -50,7 +50,7 @@ int main()
 
 	auto mainMem = BaseRegion(g_MemoryCapacity);
 
-	auto sysMesh = AnimMesh.System(loadMaterial("data/shaders/animated3d.vert", "data/shaders/material3d.frag"));
+	auto sysMesh = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
 	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
 
 	AnimMesh.Uniforms.global globals;
@@ -66,7 +66,7 @@ int main()
 	instances[0].play("Idle", true);
 
 
-	auto skyBox = SkyMesh.System(loadMaterial("data/shaders/skybox.vert", "data/shaders/skybox.frag"));
+	auto skyBox = SkyMesh.System("data/shaders/skybox.vert", "data/shaders/skybox.frag");
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
 	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
 	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);

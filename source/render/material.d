@@ -70,7 +70,8 @@ struct Material
 		debug printf("Destroying Material: %u\n", matId);
 		if(matId)
 		{
-			matId.glDeleteProgram();	
+			matId.glDeleteProgram();
+			assert(false, format("Deleting valid material: %u", matId.handle()));
 		}
 	}
 
@@ -81,7 +82,7 @@ struct Material
 		p_rhs.matId = MaterialId(0u);
 	}
 
-	const void enable()  nothrow
+	const void enable()
 	{
 		debug 
 		{
@@ -91,6 +92,7 @@ struct Material
 			}
 		}
 		matId.glUseProgram();
+		glcheck();
 	}
 
 	const bool canRender() 
@@ -139,6 +141,10 @@ struct Material
 
 	bool setUniform(T)(const UniformId p_uniform, auto ref T p_value) 
 	{
+		scope(failure)
+		{
+			writefln("Failed to set %s uniform: %s", T.stringof, p_value);
+		}
 		if(p_uniform == -1)
 		{
 			return false;
