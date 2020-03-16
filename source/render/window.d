@@ -242,10 +242,17 @@ struct Window
 		return [w, h];
 	}
 
-	void begin_frame() 
+	void begin_frame(bool clear_color = true)() 
 	{
 		assert(glGetError() == GL_NO_ERROR);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		static if(clear_color)
+		{
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		else
+		{
+			glClear(GL_DEPTH_BUFFER_BIT);
+		}
 		assert(glGetError() == GL_NO_ERROR);
 	}
 

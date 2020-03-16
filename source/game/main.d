@@ -39,7 +39,7 @@ float oxygenDrain = 0.02;
 version(lantana_game)
 int main()
 {
-	Window window = Window(900, 600, "Texting my Boyfriend while Dying in Space");
+	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
 	g_ui = new UIRenderer(ws);
 
@@ -65,12 +65,11 @@ int main()
 	instances[0] = AnimMesh.Instance(mesh, Transform(1, vec3(0, 0, 0), vec3(0, -40, 180)), mainMem);
 	instances[0].play("Idle", true);
 
-
 	auto skyBox = SkyMesh.System("data/shaders/skybox.vert", "data/shaders/skybox.frag");
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
 	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
 	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);
-	skyMeshes[0].transform = Transform(1);
+	skyMeshes[0].transform = Transform(0.5);
 	skyMeshes[0].mesh = sky;
 
 	SkyMesh.Uniforms.global skyUni;
@@ -141,7 +140,7 @@ int main()
 		instances[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
 		sysMesh.update(delta, instances);
 
-		window.begin_frame();
+		window.begin_frame!false();
 
 		float distance = camera.distance;
 		camera.distance = 0;

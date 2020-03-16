@@ -23,7 +23,7 @@ public final class Dialog
 
 public final Dialog testDialog()
 {
-	Dialog start = new Dialog("we\"re out of orbit", 2, []);
+	Dialog start = new Dialog("thinking of you", 2, [], "3:05 AM");
 
 	Dialog justSaying = 
 		new Dialog("i just wanted to say", 1,[

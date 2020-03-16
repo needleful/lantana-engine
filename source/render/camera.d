@@ -19,19 +19,19 @@ struct Camera
 	vec3 pos;
 	vec2 rot;
 
-	this(vec3 position, float aspect, float fov) @safe  nothrow
+	this(vec3 position, float aspect, float fov) @safe nothrow
 	{
 		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		pos = position;
 		rot = vec2(0,0);
 	}
 
-	void set_projection(Projection p) @safe  nothrow
+	void set_projection(Projection p) @safe nothrow
 	{
 		projection = p.matrix;
 	}
 
-	mat4 calculate_view() @safe  nothrow
+	mat4 calculate_view() @safe nothrow
 	{
 		auto f = forward();
 		auto r = right();
@@ -55,14 +55,14 @@ struct Camera
 		return view;
 	}
 
-	@property mat4 vp() @safe  nothrow
+	@property mat4 vp() @safe nothrow
 	{
 		mat4 res = projection;
 		res *= calculate_view();
 		return res;
 	}
 
-	@property vec3 forward() @safe  nothrow
+	@property vec3 forward() @safe nothrow
 	{
 		double rx = radians(rot.x);
 		double ry = radians(rot.y);
@@ -77,7 +77,7 @@ struct Camera
 		return right().cross(forward());
 	}
 
-	@property vec3 right() @safe  nothrow
+	@property vec3 right() @safe nothrow
 	{
 		double rx = radians(rot.x);
 		double ry = radians(rot.y);
@@ -96,19 +96,19 @@ struct OrbitalCamera
 	// From the origin, facing it
 	float distance;
 
-	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe  nothrow
+	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe nothrow
 	{
 		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		target = p_target;
 		angle = p_angle;
 	}
 
-	void set_projection(Projection p) @safe  nothrow
+	void set_projection(Projection p) @safe nothrow
 	{
 		projection = p.matrix;
 	}
 
-	mat4 calculate_view() @safe  nothrow
+	mat4 calculate_view() @safe nothrow
 	{
 		auto f = forward();
 		auto r = right();
@@ -139,14 +139,14 @@ struct OrbitalCamera
 		angle.y = angle.y % 360;
 	}
 
-	@property mat4 vp() @safe  nothrow
+	@property mat4 vp() @safe nothrow
 	{
 		mat4 res = projection;
 		res *= calculate_view();
 		return res;
 	}
 
-	@property vec3 forward() @safe  nothrow
+	@property vec3 forward() @safe nothrow
 	{
 		double rx = radians(angle.x);
 		double ry = radians(angle.y);
@@ -161,7 +161,7 @@ struct OrbitalCamera
 		return right().cross(forward());
 	}
 
-	@property vec3 right() @safe  nothrow
+	@property vec3 right() @safe nothrow
 	{
 		double rx = radians(angle.x);
 		double ry = radians(angle.y);

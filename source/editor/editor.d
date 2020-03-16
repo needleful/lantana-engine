@@ -44,8 +44,8 @@ int main()
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-		button.pad = Pad(8, 12);
-
+		button.pad = Pad(0, 10, 12, 12);
+		
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
 
@@ -56,6 +56,7 @@ int main()
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
 
 		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+		defaultFontColor = vec3(0.2, 0.5, 1);
 	}
 
 	ww.grab_mouse(false);

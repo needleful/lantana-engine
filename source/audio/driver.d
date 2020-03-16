@@ -18,7 +18,8 @@ struct AudioManager
 	{
 		SDLMixerSupport support = loadSDLMixer();
 
-		assert(support != SDLMixerSupport.noLibrary && support != SDLMixerSupport.badLibrary);
+		assert(support != SDLMixerSupport.noLibrary && support != SDLMixerSupport.badLibrary, 
+			"Could not load SDL Mixer");
 
 		int mixInit = MIX_INIT_OGG;
 		assert((Mix_Init(mixInit) & mixInit) == mixInit);
