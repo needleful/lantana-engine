@@ -1,0 +1,73 @@
+dialog "1F5C48812A0" {
+	message "i just wanted to say"
+	pause 1F
+	date ""
+	responses "1F5C4881300" "1F5C4881360"
+}
+dialog "1F5C4881480" {
+	message "how are you?"
+	pause 2F
+	date ""
+	responses "1F5C48814E0"
+}
+dialog "1F5C48814E0" {
+	message "wait you can't send replies when i;m in space"
+	pause 4F
+	date ""
+	responses "1F5C4881540" "1F5C48815A0"
+}
+dialog "1F5C48815A0" {
+	message "its fine."
+	pause 2F
+	date ""
+	responses "1F5C48812A0"
+}
+dialog "1F5C4881240" {
+	message "thinking of you"
+	pause 2F
+	date "3:05 AM"
+	responses "1F5C48813C0" "1F5C4881420" "1F5C4881600"
+}
+dialog "1F5C4881660" {
+	message "it fucking exploded"
+	pause 0.6000000238F
+	date ""
+	responses
+}
+dialog "1F5C4881420" {
+	message "Hi Boto"
+	pause 0.3000000119F
+	date "2:41 PM"
+	responses "1F5C48812A0" "1F5C4881480"
+}
+dialog "1F5C4881300" {
+	message "I love you."
+	pause 0.8000000119F
+	date ""
+	responses
+}
+dialog "1F5C4881360" {
+	message "there was a problem"
+	pause 2F
+	date ""
+	responses
+}
+dialog "1F5C4881540" {
+	message "god dammit"
+	pause 1F
+	date ""
+	responses
+}
+dialog "1F5C48813C0" {
+	message "hey"
+	pause 0.3000000119F
+	date "2:41 PM"
+	responses
+}
+dialog "1F5C4881600" {
+	message "the ship exploded."
+	pause 0.3000000119F
+	date "2:41 PM"
+	responses "1F5C4881660"
+}
+start "1F5C4881240"

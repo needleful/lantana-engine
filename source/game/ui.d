@@ -221,7 +221,7 @@ void uiMain()
 
 	ds.messageBox = new VBox(messages, 10, true);
 
-	Dialog currentDialog = testDialog();
+	Dialog currentDialog = loadDialog("data/testDialog.sdl");
 	Widget dialogWidget = new Padding(
 		dialogbox, 
 		Pad(8), 
