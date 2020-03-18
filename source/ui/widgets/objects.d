@@ -233,9 +233,32 @@ public class TextBox: Widget
 		color = p_color;
 	}
 
+	public this(string p_text, vec3 p_color = vec3(-1), bool p_dynamic = false)
+	{
+		if(p_dynamic)
+		{
+			allocCapacity = cast(uint)(p_text.length*1.5);
+		}
+		else
+		{
+			allocCapacity = cast(uint)p_text.length;
+		}
+		font = FontId.invalid;
+		text = p_text;
+		color = p_color;
+	}
+
 	public this(FontId p_font, string p_text, uint allocLen, vec3 p_color = vec3(-1))
 	{
 		font = p_font;
+		text = p_text;
+		allocCapacity = allocLen;
+		color = p_color;
+	}
+
+	public this(string p_text, uint allocLen, vec3 p_color = vec3(-1))
+	{
+		font = FontId.invalid;
 		text = p_text;
 		allocCapacity = allocLen;
 		color = p_color;
@@ -248,8 +271,13 @@ public class TextBox: Widget
 		{
 			color = p_renderer.style.defaultFontColor;
 		}
+		if(font == FontId.invalid)
+		{
+			font = p_renderer.style.defaultFont;
+		}
 		mesh = p_view.addTextMesh(font, text, allocCapacity);
 		view.setTextVisiblePercent(mesh, 1);
+		view.setTextColor(mesh, color);
 	}
 
 	public override RealSize layout(SizeRequest p_request) 

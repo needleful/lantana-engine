@@ -38,7 +38,7 @@ final class DialogButton : Button
 	{
 		visible = false;
 
-		super(p_renderer, new TextBox(p_renderer.style.defaultFont, "", 128), 
+		super(p_renderer, new TextBox("", 128), 
 			(Widget w)
 			{
 				p_callback(this.dialog);
@@ -83,7 +83,7 @@ final class Message : HBox
 	{
 		children = [
 			new TextBox(font, sender, senderColor),
-			new TextBox(p_renderer.style.defaultFont, content)
+			new TextBox(content)
 		];
 		super.initialize(p_renderer, p_view);
 	}
@@ -230,7 +230,7 @@ void uiMain()
 
 	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	TextBox frameTime = new TextBox(g_ui.style.defaultFont, "Getting data...", 64, vec3(0.5));
+	TextBox frameTime = new TextBox("Getting data...", 64, vec3(0.5));
 	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
 
 	Modal uiModal = new Modal([
@@ -238,7 +238,12 @@ void uiMain()
 		new AnchoredBox([
 			g_ui.style.panel.mesh.create(g_ui),
 			new Padding(
-				new Scrolled(new Padding(ds.messageBox, Pad(12)), 0),
+				new VBox([
+					new TextBox("Cencom Instant Messenger"),
+					new AnchoredBox([new Scrolled(new Padding(ds.messageBox, Pad(12)), 0)], 
+						vec2(0, 0),
+						vec2(1, 0.85)),
+					], 12),
 				Pad(8)),
 			new Positioned(
 				dialogWidget,
@@ -252,7 +257,7 @@ void uiMain()
 
 		new Anchor(
 			new HBox([
-				//new TextBox(g_ui.style.defaultFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
+				//new TextBox("Frame Time\nMax\nAverage", vec3(0.5)), 
 				//frameTime
 			], 5),
 			vec2(0.99, 0.01),
@@ -298,12 +303,14 @@ void uiMain()
 			showDialog = true;
 		}
 
+		g_ui.updateInteraction(&events.input);
+
 		dialogWidget.setVisible(showDialog);
 
 		//frameTime.setText(g_frameTime);
 		o2Text.setText(g_oxygenText);
 
-		g_ui.update(events.delta, &events.input);
+		g_ui.updateLayout();
 	}
 
 	bool shouldRun = true;

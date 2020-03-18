@@ -35,8 +35,9 @@ struct SpriteId
 
 struct FontId
 {
-	// "Only" 255 fonts.
 	mixin StrictAlias!ubyte;
+
+	enum invalid = FontId(ubyte.max);
 }
 
 struct InteractibleId
@@ -182,11 +183,9 @@ public final class UIRenderer
 		FT_Done_FreeType(fontLibrary);
 	}
 
-	public void update(float p_delta, Input* p_input)
+	public void updateLayout()
 	{
-		// Widgets manage their own layouts, we just update the root layout
 		views[0].updateLayout();
-		updateInteraction(p_input);
 	}
 
 	public void initialize()
@@ -226,9 +225,10 @@ public final class UIRenderer
 			}
 		}
 		glDisable(GL_SCISSOR_TEST);
+
 	}
 
-	private void updateInteraction(Input* p_input)
+	public void updateInteraction(Input* p_input)
 	{
 		Interactible newFocus = null;
 		if(!focused)

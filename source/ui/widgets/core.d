@@ -104,6 +104,13 @@ public abstract class MultiContainer : Container
 		}
 		return RealSize(0);
 	}
+	
+	public void addChild(Widget w)
+	{
+		children ~= w;
+		w.initialize(view.renderer, view);
+		view.requestUpdate();
+	}
 }
 
 public abstract class SingularContainer: Container

@@ -416,7 +416,6 @@ class VBox: MultiContainer
 			childRequest.width.min = 0;
 		}
 
-		//TODO: respect intrinsics properly
 		RealSize size;
 		uint vertPos = 0;
 		// Going through the items backwards
@@ -439,6 +438,7 @@ class VBox: MultiContainer
 			size.height = vertPos + childSize.height;
 
 			vertPos += childSize.height + spacing;
+			childRequest.height.max -= (childSize.height + spacing);
 		}
 
 		if(size.width > p_request.width.max)
@@ -456,12 +456,5 @@ class VBox: MultiContainer
 		}
 
 		return size.constrained(SizeRequest(absoluteWidth, absoluteHeight));
-	}
-
-	public void addChild(Widget w)
-	{
-		children ~= w;
-		w.initialize(view.renderer, view);
-		view.requestUpdate();
 	}
 }

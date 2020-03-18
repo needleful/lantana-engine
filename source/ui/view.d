@@ -312,6 +312,7 @@ public final class UIView
 
 			renderer.matText.setUniform(renderer.uniText.translation, textRect.pos);
 			renderer.matText.setUniform(renderer.uniText.color, tm.color);
+			//assert(tm.color.y > 0, "uniforms not properly set on this one");
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,

@@ -71,7 +71,7 @@ struct Material
 		if(matId)
 		{
 			matId.glDeleteProgram();
-			assert(false, format("Deleting valid material: %u", matId.handle()));
+			//assert(false, format("Deleting valid material: %u", matId.handle()));
 		}
 	}
 
