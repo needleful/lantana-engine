@@ -31,8 +31,6 @@ enum cam_speed = 1;
 
 float g_timescale = 1;
 
-enum g_MemoryCapacity = 1024*1024*64;
-
 float oxygen = 21.2;
 float oxygenDrain = 0.02;
 
@@ -48,14 +46,14 @@ int main()
 	//AudioManager audio = AudioManager(16);
 	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
-	auto mainMem = BaseRegion(g_MemoryCapacity);
+	auto mainMem = BaseRegion(MAX_MEMORY);
 
 	auto sysMesh = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
 	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
 
 	AnimMesh.Uniforms.global globals;
 	globals.light_direction = vec3(-0.1,-0.3,0.9);
-	globals.light_bias = 0.3;
+	globals.light_bias = 0.0;
 	globals.area_ceiling = -1;
 	globals.area_span = 3;
 	globals.gamma = 1;
@@ -78,7 +76,7 @@ int main()
 	auto camera = OrbitalCamera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60, vec2(20, 0));
 	camera.target = vec3(0);
 	camera.distance = 5;
-	auto lights = LightPalette("data/palettes/skyTest.png", mainMem);
+	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);
 
 	float runningMaxDelta_ms = -1;
 	float accumDelta_ms = 0;
