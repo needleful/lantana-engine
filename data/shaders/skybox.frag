@@ -11,7 +11,10 @@ out vec4 out_color;
 
 void main()
 {
-	float alpha = texture(tex_albedo, vec2(vert_uv.x, -vert_uv.y)).r;
+	vec3 texture = texture(tex_albedo, vec2(vert_uv.x, -vert_uv.y)).rgb;
 
-	out_color = vec4(pow(vert_color, vec3(1.0/gamma)), alpha);
+	// When we have HDR:
+	// vec3 color = vert_color*(1+texture.g*4 + texture.b*16);
+	vec3 color = vert_color;
+	out_color = vec4(pow(color, vec3(1.0/gamma)), texture.r);
 }

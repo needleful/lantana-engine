@@ -21,8 +21,6 @@ import render.mesh;
 import render.window;
 import ui;
 
-enum atlasTest = false;
-
 version(lantana_editor)
 int main()
 {
@@ -44,7 +42,7 @@ int main()
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-		button.pad = Pad(0, 10, 12, 12);
+		button.pad = Pad(8, 8, 12, 12);
 		
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -56,7 +54,7 @@ int main()
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
 
 		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
-		defaultFontColor = vec3(0.2, 0.5, 1);
+		defaultFontColor = vec3(0.0, 0.583, 1);
 	}
 
 	ww.grab_mouse(false);
@@ -64,18 +62,16 @@ int main()
 	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
 	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
 
-	FontId testFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 24);
-
-	auto title = new TextBox(testFont, "Lantana Editor", true);
+	auto title = new TextBox("Lantana Editor", 64);
 	bool pressed = false;
 
 	ui.setRootWidgets([
 		new Anchor(
-			new ImageBox(ui, upclickSprite),
+			new ImageBox(upclickSprite),
 			vec2(1,1), vec2(1,1)
 		),
 		new Anchor(
-			new ImageBox(ui, needlefulPNG),
+			new ImageBox(needlefulPNG),
 			vec2(0.027, 0.048),
 			vec2(0, 0)
 		),
@@ -87,7 +83,7 @@ int main()
 		new Anchor (
 			new Button(
 				ui,
-				new TextBox(testFont, "Press Me!"),
+				new TextBox("Press Me!"),
 				(Widget source) 
 				{
 					pressed = !pressed;
@@ -106,6 +102,8 @@ int main()
 		),
 	]);
 
+	ui.initialize();
+
 	while(!ww.state[WindowState.CLOSED])
 	{
 		ww.pollEvents(&ii);
@@ -114,19 +112,13 @@ int main()
 		{
 			ui.setSize(ww.getSize());
 		}
-		static if(atlasTest)
-		{
-			ww.begin_frame();
-			ui.debugRender();
-			ww.end_frame();
-		}
-		else
-		{
-			ui.update(0.016f, &ii);
-			ww.begin_frame();
-			ui.render();
-			ww.end_frame();
-		}
+
+		ui.updateInteraction(&ii);
+		ui.updateLayout();
+
+		ww.begin_frame();
+		ui.render();
+		ww.end_frame();
 	}
 	
 	return 0;
