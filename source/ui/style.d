@@ -29,7 +29,7 @@ final class SpriteQuadStyle: IRectStyle
 
 	public override RectWidget create(UIRenderer p_renderer) 
 	{
-		return new ImageBox(p_renderer, id);
+		return new ImageBox(id);
 	}
 }
 

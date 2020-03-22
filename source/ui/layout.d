@@ -272,3 +272,9 @@ enum Alignment
 	CENTER,
 	BOTTOM
 }
+enum HFlag
+{
+	Expand,
+	Center
+}
+alias HFlags = Bitfield!HFlag;

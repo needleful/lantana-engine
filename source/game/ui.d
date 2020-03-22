@@ -27,8 +27,8 @@ import render;
 
 import ui;
 
-static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
-static immutable(vec3) botoColor = vec3(0.2, 0.75, 0.3);
+private static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
+private static immutable(vec3) botoColor = vec3(0.2, 0.75, 0.3);
 
 final class DialogButton : Button
 {
@@ -128,7 +128,7 @@ void uiMain()
 		button.pressed = g_ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.focused = g_ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-		button.pad = Pad(0, 10, 12, 12);
+		button.pad = Pad(8, 8, 12, 12);
 		
 		panel.sprite = g_ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -140,7 +140,7 @@ void uiMain()
 		scrollbar.downArrow = g_ui.loadSprite("data/ui/sprites/arrow-down.png");
 
 		defaultFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
-		defaultFontColor = vec3(0.2, 0.5, 1);
+		defaultFontColor = vec3(0.0, 0.583, 1);
 	}
 
 	Message.font = g_ui.loadFont("data/ui/fonts/averia/Averia-Bold.ttf", 20);
@@ -185,14 +185,18 @@ void uiMain()
 	}
 
 	Widget[] tmp_widgets;
-	tmp_widgets.reserve(ds.buttons.length);
+	tmp_widgets.reserve(ds.buttons.length + 2);
 
+	tmp_widgets ~= new TextBox("Compose Your Message!");
+	tmp_widgets ~= new Spacer(RealSize(12));
 	foreach(button; ds.buttons)
 	{
 		tmp_widgets ~= button;
 	}
 
-	Widget dialogbox = new VBox(tmp_widgets, 0, true).withBounds(Bounds(0, 400), Bounds.none);
+	HFlags expand = HFlags(HFlag.Expand);
+
+	Widget dialogbox = new VBox(tmp_widgets, 0, HFlags(HFlag.Expand, HFlag.Center)).withBounds(Bounds(0, 400), Bounds.none);
 
 	Widget[] messages;
 	string kitty = "Kitty:";
@@ -219,7 +223,7 @@ void uiMain()
 		}
 	}
 
-	ds.messageBox = new VBox(messages, 10, true);
+	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
 	Dialog currentDialog = loadDialog("data/testDialog.sdl");
 	Widget dialogWidget = new Padding(
@@ -227,8 +231,6 @@ void uiMain()
 		Pad(8), 
 		g_ui.style.panel.mesh.create(g_ui));
 	/// END - Dialog initialization
-
-	SpriteId upclickSprite = g_ui.loadSprite("data/test/ui_sprites/upclick.png");
 
 	TextBox frameTime = new TextBox("Getting data...", 64, vec3(0.5));
 	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
@@ -239,11 +241,12 @@ void uiMain()
 			g_ui.style.panel.mesh.create(g_ui),
 			new Padding(
 				new VBox([
-					new TextBox("Cencom Instant Messenger"),
+					new ImageBox(g_ui, "data/ui/sprites/lantana-logo.png"),
+					new TextBox(sysFont, "Gamma-Wave Messenger (Version 639.11.3)"),
 					new AnchoredBox([new Scrolled(new Padding(ds.messageBox, Pad(12)), 0)], 
 						vec2(0, 0),
 						vec2(1, 0.85)),
-					], 12),
+					], 12, HFlags(HFlag.Center)),
 				Pad(8)),
 			new Positioned(
 				dialogWidget,

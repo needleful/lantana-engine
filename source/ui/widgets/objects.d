@@ -80,33 +80,36 @@ public class ImageBox : RectWidget
 	SpriteId spriteId;
 	// indeces into the UIRenderer vertex buffer
 	MeshRef vertices;
+	float scale;
 
 	// Instead of rendering a sprite, render a colored rectangle
 	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) 
 	{
 		spriteId = p_renderer.addSinglePixel(p_color);
 		textureSize = p_size;
+		scale = 1;
 	}
 
 	/// Currently no way for the UIRenderer to check if an image is loaded,
 	/// so only use this if the image is going to be shown once on screen
-	public this(UIRenderer p_renderer, string filename) 
+	public this(UIRenderer p_renderer, string filename, float p_scale = 1) 
 	{
 		spriteId = p_renderer.loadSprite(filename);
 		assert(spriteId != 0);
-		textureSize = p_renderer.getSpriteSize(spriteId);
+		scale = p_scale;
 	}
 
-	public this(UIRenderer p_renderer, SpriteId p_spriteId) 
+	public this(SpriteId p_spriteId, float p_scale = 1) 
 	{
 		spriteId = p_spriteId;
-		textureSize = p_renderer.getSpriteSize(spriteId);
+		scale = p_scale;
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
 		vertices = p_view.addSpriteQuad(spriteId);
+		textureSize = p_renderer.getSpriteSize(spriteId);
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -117,7 +120,7 @@ public class ImageBox : RectWidget
 			return RealSize(0);
 		}
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
-		RealSize size = textureSize;
+		RealSize size = textureSize*scale;
 
 		// The goal is to keep textures as close to their original size as possible, to avoid any stretching
 		// Failing that, it tries to keep the aspect ratio of the image
@@ -208,6 +211,26 @@ public class ImageBox : RectWidget
 	}
 }
 
+public final class Spacer : Widget
+{
+	RealSize size;
+
+	public this(RealSize p_size)
+	{
+		size = p_size;
+	}
+
+	public override RealSize layout(SizeRequest p_request)
+	{
+		return size.constrained(p_request);
+	}
+
+	public override void prepareRender(ivec2 p_pen) 
+	{
+		return;
+	}
+}
+
 // TODO: implement word wrap
 public class TextBox: Widget
 {
@@ -292,7 +315,7 @@ public class TextBox: Widget
 		
 		view.setTextMesh(mesh, font, text, req.width, true);
 
-		return view.textBoundingBox(mesh).constrained(req);
+		return view.textBoundingBox(mesh);
 	}
 
 	public override void prepareRender(ivec2 p_pen) 
@@ -319,11 +342,12 @@ public class TextBox: Widget
 
 public class Button: MultiContainer, Interactible
 {
-	private InteractibleId id;
 	public Interactible.Callback onPressed;
+	private InteractibleId id;
 	private bool pressed;
+	private HFlags flags;
 
-	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed)
+	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed, HFlags p_flags = HFlags.init)
 	{
 		children.reserve(2);
 		children ~= p_renderer.style.button.mesh.create(p_renderer);
@@ -332,6 +356,7 @@ public class Button: MultiContainer, Interactible
 
 		children[0].position = ivec2(0,0);
 		children[1].position = ivec2(0,0);
+		flags = p_flags;
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
@@ -348,12 +373,26 @@ public class Button: MultiContainer, Interactible
 			return layoutEmpty();
 		}
 		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
+		SizeRequest childReq = req;
+		if(!flags[HFlag.Expand])
+		{
+			childReq.height.min = 0;
+			childReq.width.min = 0;
+		}
 
-		RealSize childSize = children[1].layout(req);
-		children[0].layout(SizeRequest(childSize));
+		RealSize childSize = children[1].layout(childReq);
+		RealSize res = childSize.constrained(req);
 
-		view.setInteractSize(id, childSize);
-		return childSize;
+		if(flags[HFlag.Center])
+		{
+			RealSize diff = res - childSize;
+			children[1].position = ivec2(diff.width, diff.height)/2;
+		}
+
+		children[0].layout(SizeRequest(res));
+
+		view.setInteractSize(id, res);
+		return res;
 	}
 
 	public override void prepareRender(ivec2 p_pen) 

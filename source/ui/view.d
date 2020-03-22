@@ -756,9 +756,6 @@ public final class UIView
 		ushort oldLength = mesh.length;
 		mesh.length = cast(ushort)(quads);
 
-		// Write the buffers
-		ivec2 pen = ivec2(0,0);
-
 		FT_Face face = renderer.fonts[p_font];
 
 		// Bounds of the entire text box
@@ -774,8 +771,11 @@ public final class UIView
 		GlyphId g;
 		g.font = p_font;
 		uint lineHeight = cast(uint)(face.size.metrics.height >> 6);
+		uint baseline = cast(uint)((-face.size.metrics.descender) >> 6);
 		uint lineCount = 1;
 
+		// Write the buffers
+		ivec2 pen = ivec2(0,baseline);
 		foreach(i, c; p_text)
 		{
 			if(c == '\n')

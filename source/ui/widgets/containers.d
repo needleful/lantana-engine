@@ -386,18 +386,18 @@ public class HBox: MultiContainer
 /// Goes from bottom to top
 class VBox: MultiContainer
 {
-	// Expands the children to match the requested width
-	bool forceExpand;
+	// Force expand, center children, and other settings
+	HFlags flags;
 	// Space between children
 	int spacing;
 
 	// Put children from top to bottom
 	// TODO: make adding new children put them on the bottom, too
-	this(Widget[] p_children, int p_spacing = 0, bool p_expand = false)
+	this(Widget[] p_children, int p_spacing = 0, HFlags p_flags = HFlags.init)
 	{
 		children = p_children;
 		spacing = p_spacing;
-		forceExpand = p_expand;
+		flags = p_flags;
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -407,7 +407,7 @@ class VBox: MultiContainer
 		SizeRequest childRequest = p_request.constrained(absoluteWidth, absoluteHeight);
 		
 		childRequest.height.min = 0;
-		if(forceExpand)
+		if(flags[HFlag.Expand])
 		{
 			childRequest.width.min = childRequest.width.max;
 		}
@@ -424,13 +424,13 @@ class VBox: MultiContainer
 			Widget child = children[i];
 			RealSize childSize = child.layout(childRequest);
 
-			if(forceExpand) 
+			if(flags[HFlag.Center]) 
 			{
-				child.position.x = 0;
+				child.position.x = -childSize.width/2;
 			}
 			else
-			{	
-				child.position.x = -childSize.width/2;
+			{
+				child.position.x = 0;
 			}
 			child.position.y = vertPos;
 
@@ -450,7 +450,7 @@ class VBox: MultiContainer
 			size.width = cast(int) p_request.width.min;
 		}
 
-		if(!forceExpand) foreach(child; children)
+		if(flags[HFlag.Center]) foreach(child; children)
 		{
 			child.position.x += size.width/2;
 		}

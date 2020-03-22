@@ -32,7 +32,7 @@ enum cam_speed = 1;
 float g_timescale = 1;
 
 float oxygen = 21.2;
-float oxygenDrain = 0.02;
+float oxygenDrain = 0.027;
 
 version(lantana_game)
 int main()

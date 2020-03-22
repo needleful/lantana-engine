@@ -139,6 +139,21 @@ struct Bitfield(Enum)
 
 	private dt data;
 
+	public this(Enum[] flags...)
+	{
+		set(flags);
+	}
+
+	public void set(Enum[] flags...)
+	{
+		dt mask = 0;
+		foreach(flag; flags)
+		{
+			mask |= cast(dt)(1 << flag);
+		}
+		data |= mask;
+	}
+
 	public bool opIndex(Enum p_index) @nogc nothrow
 	{
 		dt mask = cast(dt)(1 << p_index);

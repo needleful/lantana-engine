@@ -16,7 +16,6 @@ out vec3 vert_normal;
 out vec2 vert_uv;
 out float area_gradient;
 
-
 void main()
 {
 	vec4 world_pos = transform * vec4(position, 1.0);
