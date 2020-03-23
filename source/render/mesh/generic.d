@@ -37,6 +37,8 @@ struct DefaultUniforms
 
 	int light_palette;
 	int tex_albedo;
+
+	float nearPlane, farPlane;
 }
 
 struct DefaultSettings

@@ -49,7 +49,9 @@ int main()
 	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(MAX_MEMORY);
-
+	auto camera = LongRangeOrbitalCamera(vec3(0), cast(float)ws.width/ws.height, 60, vec2(20, 0));
+	camera.target = vec3(0);
+	camera.distance = 5;
 
 	auto skyBox = SkyMesh.System("data/shaders/skybox.vert", "data/shaders/skybox.frag");
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
@@ -70,6 +72,8 @@ int main()
 	animGlobals.area_ceiling = -1;
 	animGlobals.area_span = 3;
 	animGlobals.gamma = 1;
+	animGlobals.nearPlane = camera.nearPlane;
+	animGlobals.farPlane = camera.farPlane;
 
 	auto playerMesh = anim.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
 	auto pInstance = mainMem.makeList!(AnimMesh.Instance)(1);
@@ -85,15 +89,14 @@ int main()
 	sGlobals.light_bias = animGlobals.light_bias;
 	sGlobals.area_span = 15;
 	sGlobals.gamma = animGlobals.gamma;
+	sGlobals.nearPlane = camera.nearPlane;
+	sGlobals.farPlane = camera.farPlane;
 
 	auto shipMesh = sMesh.loadMesh("data/meshes/ship.glb", mainMem);
 	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(1);
 	sInstance[0] = StaticMesh.Instance(shipMesh, Transform(1, vec3(10, 25, -30), vec3(12, 143, -90)));
 	vec3 shipVel = vec3(.3, .6, -1.2);
 
-	auto camera = LongRangeOrbitalCamera(vec3(0), cast(float)ws.width/ws.height, 60, vec2(20, 0));
-	camera.target = vec3(0);
-	camera.distance = 5;
 	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);
 
 	float runningMaxDelta_ms = -1;
@@ -154,25 +157,24 @@ int main()
 		window.begin_frame!false();
 
 			float distance = camera.distance;
-			//camera.distance = 0;
-			skyUni.projection = camera.vpNear();
+			camera.distance = 0;
+			skyUni.projection = camera.vp();
 			skyBox.render(skyUni, lights.palette, skyMeshes);
 			camera.distance = distance;
 
 
-			sGlobals.projection = camera.vpFar();
+			animGlobals.projection = camera.vp();
+			pInstance[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
+			anim.update(delta, pInstance);
+			anim.render(animGlobals, lights.palette, pInstance);
+
+
+			sGlobals.projection = animGlobals.projection;
 			sGlobals.area_ceiling = sInstance[0].transform._position.y;
 			sInstance[0].transform.rotate_degrees(2*delta, -0.1*delta, -2.5*delta);
 			sInstance[0].transform.translate(delta*shipVel);
 
 			sMesh.render(sGlobals, lights.palette, sInstance);
-
-			glClear(GL_DEPTH_BUFFER_BIT);
-			animGlobals.projection = camera.vpNear();
-
-			pInstance[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
-			anim.update(delta, pInstance);
-			anim.render(animGlobals, lights.palette, pInstance);
 
 
 			UIReady _ = receiveOnly!UIReady();

@@ -10,6 +10,9 @@ uniform float area_ceiling;
 // The distance from the ceiling before the light is completely dark
 uniform float area_span;
 
+uniform float nearPlane;
+uniform float farPlane;
+
 in vec3 position;
 in vec3 normal;
 in vec2 uv;
@@ -33,6 +36,7 @@ void main()
 	vec4 world_pos = transform * skpos;
 
 	gl_Position = projection * world_pos;
+	gl_Position.z = (2*log(nearPlane*gl_Position.w + 1)/log(nearPlane*farPlane + 1) - 1) * gl_Position.w;
 
 	vec4 sknorm = skmatrix * vec4(normal, 0);
 	vert_normal = (transform * sknorm).xyz;

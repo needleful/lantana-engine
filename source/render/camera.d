@@ -90,11 +90,13 @@ struct Camera
 
 struct LongRangeOrbitalCamera
 {
-	mat4 projectionNear, projectionFar;
+	mat4 projection;
 	vec3 target;
 	vec2 angle;
 	// From the origin, facing it
 	float distance;
+	float nearPlane = 0.01;
+	float farPlane = 15000;
 
 	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe nothrow
 	{
@@ -105,8 +107,7 @@ struct LongRangeOrbitalCamera
 
 	void setProjection(float aspect, float fov) @safe nothrow
 	{
-		projectionNear = Projection(aspect, fov, 0.05, 30).matrix;
-		projectionFar = Projection(aspect, fov, 30, 15000).matrix;
+		projection = Projection(aspect, fov, nearPlane, farPlane).matrix;
 	}
 
 	mat4 calculate_view() @safe nothrow
@@ -140,19 +141,13 @@ struct LongRangeOrbitalCamera
 		angle.y = angle.y % 360;
 	}
 
-	mat4 vpNear() @safe nothrow
+	mat4 vp() @safe nothrow
 	{
-		mat4 res = projectionNear;
+		mat4 res = projection;
 		res *= calculate_view();
 		return res;
 	}
-	mat4 vpFar() @safe nothrow
-	{
-		mat4 res = projectionFar;
-		res *= calculate_view();
-		return res;
-	}
-
+	
 	@property vec3 forward() @safe nothrow
 	{
 		double rx = radians(angle.x);
