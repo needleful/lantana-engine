@@ -10,8 +10,8 @@ import lanlib.math.projection;
 
 import gl3n.linalg;
 
-enum DEFAULT_NEAR_PLANE = 0.01;
-enum DEFAULT_FAR_PLANE = 500;
+enum DEFAULT_NEAR_PLANE = 0.1;
+enum DEFAULT_FAR_PLANE = 1000;
 
 struct Camera
 {
@@ -88,9 +88,9 @@ struct Camera
 	}
 }
 
-struct OrbitalCamera
+struct LongRangeOrbitalCamera
 {
-	mat4 projection;
+	mat4 projectionNear, projectionFar;
 	vec3 target;
 	vec2 angle;
 	// From the origin, facing it
@@ -98,14 +98,15 @@ struct OrbitalCamera
 
 	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe nothrow
 	{
-		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
+		setProjection(aspect, fov);
 		target = p_target;
 		angle = p_angle;
 	}
 
-	void set_projection(Projection p) @safe nothrow
+	void setProjection(float aspect, float fov) @safe nothrow
 	{
-		projection = p.matrix;
+		projectionNear = Projection(aspect, fov, 0.05, 30).matrix;
+		projectionFar = Projection(aspect, fov, 30, 15000).matrix;
 	}
 
 	mat4 calculate_view() @safe nothrow
@@ -139,9 +140,15 @@ struct OrbitalCamera
 		angle.y = angle.y % 360;
 	}
 
-	@property mat4 vp() @safe nothrow
+	mat4 vpNear() @safe nothrow
 	{
-		mat4 res = projection;
+		mat4 res = projectionNear;
+		res *= calculate_view();
+		return res;
+	}
+	mat4 vpFar() @safe nothrow
+	{
+		mat4 res = projectionFar;
 		res *= calculate_view();
 		return res;
 	}
@@ -164,7 +171,6 @@ struct OrbitalCamera
 	@property vec3 right() @safe nothrow
 	{
 		double rx = radians(angle.x);
-		double ry = radians(angle.y);
 		return vec3(
 			cos(rx),
 			0,

@@ -21,7 +21,7 @@ private struct SLoader
 	enum uv = "TEXCOORD_0";
 }
 
-alias SMesh = GenericMesh!(SAttributes, SLoader);
+alias StaticMesh = GenericMesh!(SAttributes, SLoader);
 
 @animated
 private struct AnimAttributes

@@ -44,6 +44,14 @@ struct Bitmap(TextureDataType)
 	}
 }
 
+enum TexFilter
+{
+	Linear,
+	MipMaps
+}
+
+alias Filter = Bitfield!TexFilter;
+
 struct Texture(TextureDataType)
 {
 	alias tex = TextureDataType;
@@ -72,7 +80,7 @@ struct Texture(TextureDataType)
 	GLuint id;
 	RealSize size;
 
-	this(bool p_filter, ImageType p_type, ubyte[] p_data, ref Region p_alloc) 
+	this(ImageType p_type, ubyte[] p_data, ref Region p_alloc, Filter p_filter) 
 	{
 		FREE_IMAGE_FORMAT format;
 		switch(p_type)
@@ -102,8 +110,7 @@ struct Texture(TextureDataType)
 		glGenTextures(1, &id);
 		glBindTexture(GL_TEXTURE_2D, id);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, p_filter? GL_LINEAR : GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		int mip = 0;
 
 		// Swap blue and red channels for FreeImage bitmaps
 		static if(is(tex == Color))
@@ -117,10 +124,10 @@ struct Texture(TextureDataType)
 			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle.ptr);
 		}
 
-		reload();
+		initialize(p_filter);
 	}
 
-	this(string p_filename, bool p_filter, ref Region p_alloc) 
+	this(string p_filename, ref Region p_alloc, Filter p_filter) 
 	{
 		Bitmap!tex b = Bitmap!tex(p_filename);
 		size = b.size;
@@ -132,9 +139,6 @@ struct Texture(TextureDataType)
 		glGenTextures(1, &id);
 		glBindTexture(GL_TEXTURE_2D, id);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, p_filter? GL_LINEAR : GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 		// Swap blue and red channels for FreeImage bitmaps
 		static if(is(tex == Color))
 		{
@@ -147,14 +151,16 @@ struct Texture(TextureDataType)
 			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle.ptr);
 		}
 
-		reload();
+		initialize(p_filter);
 	}
 
-	this(RealSize p_size, bool p_filter, tex* p_buffer) 
+	this(RealSize p_size, tex* p_buffer, Filter p_filter) 
 	{
 		size = p_size;
 		buffer = p_buffer;
 
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
 		initialize(p_filter);
 	}
 
@@ -167,23 +173,37 @@ struct Texture(TextureDataType)
 		rhs.id = 0;
 	}
 
-	public this(RealSize p_size, bool p_filter, ref Region p_alloc) 
+	public this(RealSize p_size, ref Region p_alloc, Filter p_filter) 
 	{
 		size = p_size;
 		buffer = p_alloc.makeList!tex(size.width*size.height).ptr;
 
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
 		initialize(p_filter);
 	}
 
-	private void initialize(bool p_filter) 
+	private void initialize(Filter p_filter) 
 	{
-		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, p_filter? GL_LINEAR : GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 		reload();
+		if(p_filter[TexFilter.Linear])
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+		else
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		
+		if(p_filter[TexFilter.MipMaps])
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
 	}
 
 	public ~this()  nothrow
@@ -261,7 +281,7 @@ struct Texture(TextureDataType)
 		reload();
 	}
 
-	public void reload() 
+	public void reload(int mipLevel = 0) 
 	{
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexImage2D(
@@ -315,13 +335,13 @@ struct TextureAtlas(IdType, TextureDataType)
 	{
 		tree = TextureNode(ivec2(0,0), p_size);
 
-		texture = Texture!TextureDataType(p_size, false, p_alloc);
+		texture = Texture!TextureDataType(p_size, p_alloc, Filter.init);
 	}
 
 	public this(RealSize p_size)
 	{
 		tree = TextureNode(ivec2(0,0), p_size);
-		texture = Texture!TextureDataType(p_size, false, new TextureDataType[p_size.width*p_size.height].ptr);
+		texture = Texture!TextureDataType(p_size, new TextureDataType[p_size.width*p_size.height].ptr, Filter.init);
 	}
 
 	///TODO implement

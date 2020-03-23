@@ -44,6 +44,7 @@ struct DefaultSettings
 	enum alphaBlend = false;
 	enum depthTest = true;
 	enum depthWrite = true;
+	enum filter = Filter(TexFilter.Linear, TexFilter.MipMaps);
 	alias textureType = Color;
 }
 
@@ -268,7 +269,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 			with(accessor.tex_albedo)
 			{
-				tex_albedo = texture(true, type, data[byteOffset..byteOffset+byteLength], p_alloc);
+				tex_albedo = texture(type, data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
 			}
 
 			glcheck();
@@ -302,6 +303,12 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 	{
 		Transform transform;
 		Mesh* mesh;
+
+		this(Mesh* p_mesh, Transform p_transform)
+		{
+			mesh = p_mesh;
+			transform = p_transform;
+		}
 
 		static if(Spec.isAnimated)
 		{

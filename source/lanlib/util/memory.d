@@ -13,8 +13,6 @@ debug
 	import std.stdio;
 }
 
-enum MAX_MEMORY = 1024*1024*64;
-
 template AlignT(Type)
 {
 	static if(Type.sizeof <= ubyte.sizeof)

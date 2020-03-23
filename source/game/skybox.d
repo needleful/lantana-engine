@@ -7,6 +7,7 @@ module game.skybox;
 import gl3n.linalg;
 import lanlib.types;
 import render.mesh.generic;
+import render.textures;
 
 struct SkyboxAttributes
 {
@@ -34,6 +35,7 @@ struct SkyboxSettings
 	enum alphaBlend = true;
 	enum depthTest = false;
 	enum depthWrite = false;
+	enum filter = Filter(TexFilter.Linear);
 	alias textureType = Color;
 }
 

@@ -34,6 +34,8 @@ float g_timescale = 1;
 float oxygen = 21.2;
 float oxygenDrain = 0.027;
 
+enum MAX_MEMORY = 1024*1024*64;
+
 version(lantana_game)
 int main()
 {
@@ -48,32 +50,48 @@ int main()
 
 	auto mainMem = BaseRegion(MAX_MEMORY);
 
-	auto sysMesh = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
-	sysMesh.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
-
-	AnimMesh.Uniforms.global globals;
-	globals.light_direction = vec3(-0.1,-0.3,0.9);
-	globals.light_bias = 0.0;
-	globals.area_ceiling = -1;
-	globals.area_span = 3;
-	globals.gamma = 1;
-
-	auto mesh = sysMesh.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
-	auto instances = mainMem.makeList!(AnimMesh.Instance)(1);
-	instances[0] = AnimMesh.Instance(mesh, Transform(1, vec3(0, 0, 0), vec3(0, -40, 180)), mainMem);
-	instances[0].play("Idle", true);
 
 	auto skyBox = SkyMesh.System("data/shaders/skybox.vert", "data/shaders/skybox.frag");
 	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
 	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
 	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);
-	skyMeshes[0].transform = Transform(0.5);
-	skyMeshes[0].mesh = sky;
+	skyMeshes[0] = SkyMesh.Instance(sky, Transform(0.5));
 
 	SkyMesh.Uniforms.global skyUni;
 	skyUni.gamma = 1.8;
 
-	auto camera = OrbitalCamera(vec3(0, -1.2, -5), cast(float)ws.width/ws.height, 60, vec2(20, 0));
+
+	auto anim = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
+	anim.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
+
+	AnimMesh.Uniforms.global animGlobals;
+	animGlobals.light_direction = vec3(-0.1,-0.3,0.9);
+	animGlobals.light_bias = 0.0;
+	animGlobals.area_ceiling = -1;
+	animGlobals.area_span = 3;
+	animGlobals.gamma = 1;
+
+	auto playerMesh = anim.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
+	auto pInstance = mainMem.makeList!(AnimMesh.Instance)(1);
+	pInstance[0] = AnimMesh.Instance(playerMesh, Transform(1, vec3(0, 0, 0), vec3(0, -40, 180)), mainMem);
+	pInstance[0].play("Idle", true);
+
+
+	auto sMesh = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
+	sMesh.meshes = mainMem.makeOwnedList!(StaticMesh.Mesh)(1);
+
+	StaticMesh.Uniforms.global sGlobals;
+	sGlobals.light_direction = animGlobals.light_direction;
+	sGlobals.light_bias = animGlobals.light_bias;
+	sGlobals.area_span = 15;
+	sGlobals.gamma = animGlobals.gamma;
+
+	auto shipMesh = sMesh.loadMesh("data/meshes/ship.glb", mainMem);
+	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(1);
+	sInstance[0] = StaticMesh.Instance(shipMesh, Transform(1, vec3(10, 25, -30), vec3(12, 143, -90)));
+	vec3 shipVel = vec3(.3, .6, -1.2);
+
+	auto camera = LongRangeOrbitalCamera(vec3(0), cast(float)ws.width/ws.height, 60, vec2(20, 0));
 	camera.target = vec3(0);
 	camera.distance = 5;
 	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);
@@ -117,9 +135,7 @@ int main()
 		if(window.state[WindowState.RESIZED])
 		{
 			ws = window.getSize();
-			camera.set_projection(
-				Projection(cast(float)ws.width/ws.height, 60, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE)
-			);
+			camera.setProjection(cast(float)ws.width/ws.height, 60);
 		}
 
 		if(input.is_just_pressed(Input.Action.PAUSE))
@@ -135,43 +151,52 @@ int main()
 		velCamRot *= dampCamRot;
 		camera.rotateDegrees(velCamRot*cam_speed*delta);
 
-		instances[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
-		sysMesh.update(delta, instances);
-
 		window.begin_frame!false();
 
-		float distance = camera.distance;
-		camera.distance = 0;
+			float distance = camera.distance;
+			//camera.distance = 0;
+			skyUni.projection = camera.vpNear();
+			skyBox.render(skyUni, lights.palette, skyMeshes);
+			camera.distance = distance;
 
-		skyUni.projection = camera.vp();
-		skyBox.render(skyUni, lights.palette, skyMeshes);
 
-		camera.distance = distance;
-		globals.projection = camera.vp();
+			sGlobals.projection = camera.vpFar();
+			sGlobals.area_ceiling = sInstance[0].transform._position.y;
+			sInstance[0].transform.rotate_degrees(2*delta, -0.1*delta, -2.5*delta);
+			sInstance[0].transform.translate(delta*shipVel);
 
-		sysMesh.render(globals, lights.palette, instances);
+			sMesh.render(sGlobals, lights.palette, sInstance);
 
-		UIReady _ = receiveOnly!UIReady();
-		g_ui.render();
+			glClear(GL_DEPTH_BUFFER_BIT);
+			animGlobals.projection = camera.vpNear();
 
-		time_accum += delta;
-		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
-		accumDelta_ms += delta_ms;
+			pInstance[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
+			anim.update(delta, pInstance);
+			anim.render(animGlobals, lights.palette, pInstance);
 
-		oxygen -= oxygenDrain*delta;
 
-		if(time_accum >= 2.75)
-		{
-			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
-			g_oxygenText = format(oxygenFormat, oxygen);
+			UIReady _ = receiveOnly!UIReady();
+			g_ui.render();
 
-			runningMaxDelta_ms = delta_ms;
-			accumDelta_ms = delta_ms;
-			runningFrame = 1;
-			time_accum = 0;
-		}
+			time_accum += delta;
+			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+			accumDelta_ms += delta_ms;
 
-		uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+			oxygen -= oxygenDrain*delta;
+
+			if(time_accum >= 2.75)
+			{
+				g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
+				g_oxygenText = format(oxygenFormat, oxygen);
+
+				runningMaxDelta_ms = delta_ms;
+				accumDelta_ms = delta_ms;
+				runningFrame = 1;
+				time_accum = 0;
+			}
+
+			uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+
 		window.end_frame();
 
 		debug frame_log.writefln("%f\t%f\t%f", delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
