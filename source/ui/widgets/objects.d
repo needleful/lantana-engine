@@ -109,7 +109,10 @@ public class ImageBox : RectWidget
 	{
 		super.initialize(p_renderer, p_view);
 		vertices = p_view.addSpriteQuad(spriteId);
-		textureSize = p_renderer.getSpriteSize(spriteId);
+		if(textureSize.width == 0 && textureSize.height == 0)
+		{
+			textureSize = p_renderer.getSpriteSize(spriteId);
+		}
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -231,7 +234,6 @@ public final class Spacer : Widget
 	}
 }
 
-// TODO: implement word wrap
 public class TextBox: Widget
 {
 	FontId font;
@@ -239,7 +241,6 @@ public class TextBox: Widget
 	uint allocCapacity;
 	TextId mesh;
 	vec3 color;
-	bool textChanged;
 
 	public this(FontId p_font, string p_text, vec3 p_color = vec3(-1), bool p_dynamic = false)
 	{
@@ -321,7 +322,6 @@ public class TextBox: Widget
 	public override void prepareRender(ivec2 p_pen) 
 	{
 		view.translateTextMesh(mesh, p_pen);
-		view.setTextColor(mesh, color);
 	}
 
 	public void setText(string p_text, bool p_show = false) 
@@ -337,97 +337,5 @@ public class TextBox: Widget
 	public FontId getFont()
 	{
 		return font;
-	}
-}
-
-public class Button: MultiContainer, Interactible
-{
-	public Interactible.Callback onPressed;
-	private InteractibleId id;
-	private bool pressed;
-	private HFlags flags;
-
-	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed, HFlags p_flags = HFlags.init)
-	{
-		children.reserve(2);
-		children ~= p_renderer.style.button.mesh.create(p_renderer);
-		children ~= new Padding(p_child, p_renderer.style.button.pad);
-		onPressed = p_onPressed;
-
-		children[0].position = ivec2(0,0);
-		children[1].position = ivec2(0,0);
-		flags = p_flags;
-	}
-
-	public override void initialize(UIRenderer p_renderer, UIView p_view)
-	{
-		super.initialize(p_renderer, p_view);
-		id = p_view.addInteractible(this);
-	}
-
-	public override RealSize layout(SizeRequest p_request) 
-	{
-		if(!visible || p_request == SizeRequest.hide)
-		{
-			view.setInteractSize(id, RealSize(0));
-			return layoutEmpty();
-		}
-		SizeRequest req = p_request.constrained(absoluteWidth, absoluteHeight);
-		SizeRequest childReq = req;
-		if(!flags[HFlag.Expand])
-		{
-			childReq.height.min = 0;
-			childReq.width.min = 0;
-		}
-
-		RealSize childSize = children[1].layout(childReq);
-		RealSize res = childSize.constrained(req);
-
-		if(flags[HFlag.Center])
-		{
-			RealSize diff = res - childSize;
-			children[1].position = ivec2(diff.width, diff.height)/2;
-		}
-
-		children[0].layout(SizeRequest(res));
-
-		view.setInteractSize(id, res);
-		return res;
-	}
-
-	public override void prepareRender(ivec2 p_pen) 
-	{
-		view.setInteractPosition(id, p_pen);
-		super.prepareRender(p_pen);
-	}
-
-	public override short priority()
-	{
-		return 1;
-	}
-	/// Interactible methods
-	public override void focus()
-	{
-		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.focused);
-	}
-
-	public override void unfocus()
-	{
-		if(pressed) onPressed(this);
-		pressed = false;
-		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
-	}
-
-	public override void drag(ivec2 _) {}
-
-	public override void interact()
-	{
-		pressed = true;
-		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.pressed);
-	}
-
-	public Widget getChild()
-	{
-		return (cast(Container)children[1]).getChildren()[0];
 	}
 }

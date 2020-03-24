@@ -410,6 +410,12 @@ public final class UIRenderer
 		return FontId(fontCount);
 	}
 
+	public ushort lineHeight(FontId p_id)
+	{
+		FT_Face face = fonts[p_id];
+		return cast(ushort)(face.size.metrics.height >> 6);
+	}
+
 	/++++++++++++++++++++++++++++++++++++++
 		public methods -- debug
 	+++++++++++++++++++++++++++++++++++++++/

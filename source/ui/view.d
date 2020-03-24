@@ -743,7 +743,6 @@ public final class UIView
 		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
 
-
 		ushort quads = 0;
 		foreach(c; p_text)
 		{
@@ -935,6 +934,24 @@ public final class UIView
 	public void setTextVisiblePercent(TextId p_id, float p_vis)
 	{
 		textMeshes[p_id].visiblePortion = p_vis;
+	}
+
+	public ivec2 getCursorPosition(TextId p_id, string p_text, uint p_index)
+	{
+		import std.uni: isWhite;
+		uint meshIndex = p_index*4 + textMeshes[p_id].offset;
+
+		foreach(i; 0..p_index)
+		{
+			if(p_text[i].isWhite())
+			{
+				meshIndex -= 4;
+			}
+		}
+		ivec2 pos = vertpos[meshIndex];
+		pos.x -= 2;
+		pos.y -= 4;
+		return pos;
 	}
 
 	package void initBuffers() 

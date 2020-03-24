@@ -2,6 +2,8 @@
 // developed by needleful
 // Licensed under GPL v3.0
 
+module editor.main;
+
 import std.format;
 import std.stdio;
 
@@ -20,6 +22,8 @@ import render.material;
 import render.mesh;
 import render.window;
 import ui;
+
+enum MAX_MEMORY = 1024*1024*8;
 
 version(lantana_editor)
 int main()
@@ -65,10 +69,14 @@ int main()
 	auto title = new TextBox("Lantana Editor", 64);
 	bool pressed = false;
 
+	TextInput testText = new TextInput(AlphaColor(255),
+				256, "Hullo, love!",
+				FontId.invalid, vec3(0.3));
+
 	ui.setRootWidgets([
 		new Anchor(
-			new ImageBox(upclickSprite),
-			vec2(1,1), vec2(1,1)
+			testText,
+			vec2(0.98,0.98), vec2(1,1)
 		),
 		new Anchor(
 			new ImageBox(needlefulPNG),
@@ -104,13 +112,32 @@ int main()
 
 	ui.initialize();
 
+	int frame = 0;
 	while(!ww.state[WindowState.CLOSED])
 	{
+		frame ++;
 		ww.pollEvents(&ii);
 
 		if(ww.state[WindowState.RESIZED])
 		{
 			ui.setSize(ww.getSize());
+		}
+
+		if(ii.is_just_pressed(Input.Action.LEFT))
+		{
+			testText.cursorLeft();
+		}
+		if(ii.is_just_pressed(Input.Action.RIGHT))
+		{
+			testText.cursorRight();
+		}
+		if(ii.is_just_pressed(Input.Action.DEBUG1))
+		{
+			testText.insert(cast(char) ((frame % 52)  + 28));
+		}
+		if(ii.is_just_pressed(Input.Action.DEBUG2))
+		{
+			testText.backSpace();
 		}
 
 		ui.updateInteraction(&ii);
