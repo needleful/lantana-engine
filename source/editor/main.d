@@ -83,9 +83,21 @@ int main()
 	string start;
 	auto dmap = loadDialog("data/testDialog.sdl", start);
 
+	DialogNode[Dialog] nodeMap;
+
 	foreach(dialog; dmap)
 	{
-		nodes ~= new DialogNode(dialog);
+		auto node = new DialogNode(dialog);
+		nodes ~= node;
+		nodeMap[dialog] = node;
+	}
+
+	foreach(node; nodeMap)
+	{	
+		foreach(response; node.getDialog().responses)
+		{
+			node.addResponse(nodeMap[response]);
+		}
 	}
 
 	ui.setRootWidgets(nodes);

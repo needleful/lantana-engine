@@ -228,6 +228,7 @@ public final class UIRenderer
 
 		invalidated.clear();
 
+		glDisable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -240,6 +241,7 @@ public final class UIRenderer
 			}
 		}
 		glDisable(GL_SCISSOR_TEST);
+		glEnable(GL_CULL_FACE);
 
 	}
 

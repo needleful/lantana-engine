@@ -64,7 +64,7 @@ public AlphaColor color(uint r, uint g, uint b, uint a = 255) nothrow @nogc
 
 struct Thunk(Type)
 {
-	alias func = Type delegate(void);
+	alias func = Type delegate();
 
 	func get;
 
@@ -76,6 +76,11 @@ struct Thunk(Type)
 	this(Type value)
 	{
 		get = (){ return value; };
+	}
+
+	this(Type* value)
+	{
+		get = (){ return *value; };
 	}
 
 	Type opCall()

@@ -36,7 +36,11 @@ final class DialogNode : Padding, Interactible
 	VBox box;
 	Button responseButton;
 
+	ivec2 lineStart, lineEnd;
+
 	DialogNode[] responses;
+	/// Lines to responses
+	Line[] lines;
 
 	// For dragging the window around
 	InteractibleId bar;
@@ -76,12 +80,20 @@ final class DialogNode : Padding, Interactible
 		box.addChild(message);
 
 		bar = view.addInteractible(this);
+
+		foreach(line; lines)
+		{
+			line.initialize(view.renderer, view);
+			line.prepareRender(ivec2(0));
+		}
 	}
 
 	public override RealSize layout(SizeRequest p_request)
 	{
 		RealSize rs = super.layout(p_request);
 		view.setInteractSize(bar, rs);
+		lineStart = ivec2(rs.width, rs.height/2);
+		lineEnd = ivec2(0, rs.height - 20);
 		return rs;
 	}
 
@@ -89,6 +101,23 @@ final class DialogNode : Padding, Interactible
 	{
 		super.prepareRender(p_pen);
 		view.setInteractPosition(bar, p_pen);
+		lineStart += p_pen;
+		lineEnd += p_pen;
+		foreach(line; lines)
+		{
+			line.prepareRender(ivec2(0));
+		}
+	}
+
+	public void addResponse(DialogNode node)
+	{
+		auto line = new Line(AlphaColor(255), Thunk!ivec2(&lineStart), Thunk!ivec2(&node.lineEnd));
+		if(view)
+		{
+			line.initialize(view.renderer, view);
+			line.prepareRender(ivec2(0));
+		}
+		lines ~= line;
 	}
 
 	public override void focus(){}
@@ -111,5 +140,10 @@ final class DialogNode : Padding, Interactible
 	public override short priority()
 	{
 		return 2;
+	}
+
+	public Dialog getDialog()
+	{
+		return dialog;
 	}
 }

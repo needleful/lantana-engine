@@ -520,6 +520,22 @@ public final class UIView
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
+	public void setLineQuad(MeshRef p_mesh, ivec2 p_start, ivec2 p_end, float p_thickness)
+	{
+		auto quadstart = elemSprite[p_mesh.start];
+		ivec2 dir = p_start - p_end;
+		vec2 orth = vec2(-dir.y, dir.x).normalized*p_thickness;
+		vertpos[quadstart..quadstart+4] = 
+		[
+			p_start,
+			p_start + ivec2(cast(int)orth.x, cast(int)orth.y),
+			p_end,
+			p_end + ivec2(cast(int)orth.x, cast(int)orth.y)
+		];
+		invalidated[ViewState.PositionBufferPartial] = true;
+		posInvalid.apply(quadstart, quadstart + 4);
+	}
+
 	public void setSprite(MeshRef p_mesh, SpriteId p_sprite) 
 	{
 		assert(p_mesh.tris == 2);
