@@ -161,7 +161,7 @@ public class Anchor: SingularContainer
 		{
 			// If this algorithm is correct, this should never be reached under any circumstances
 			debug assert(false, "Cannot fit child width within parent");
-			else return RealSize(0,0);
+			else childIntrinsic.width.max = childWidthMeetingLeft;
 		}
 
 		// We do the same process as above on the y axis
@@ -211,7 +211,7 @@ public class Anchor: SingularContainer
 		else
 		{
 			debug assert(false, "Cannot fit child height within parent");
-			else return RealSize(0,0);
+			else childIntrinsic.height.max = childHeightMeetingTop;
 		}
 
 		RealSize childSize = child.layout(childIntrinsic);

@@ -941,6 +941,8 @@ public final class UIView
 		import std.uni: isWhite;
 		uint meshIndex = p_index*4 + textMeshes[p_id].offset;
 
+		ivec2 offset = ivec2(-2, -4);
+
 		foreach(i; 0..p_index)
 		{
 			if(p_text[i].isWhite())
@@ -948,9 +950,13 @@ public final class UIView
 				meshIndex -= 4;
 			}
 		}
-		ivec2 pos = vertpos[meshIndex];
-		pos.x -= 2;
-		pos.y -= 4;
+		if(p_index == p_text.length)
+		{
+			meshIndex -= 2;
+			offset.x = 0;
+		}
+
+		ivec2 pos = vertpos[meshIndex] + offset;
 		return pos;
 	}
 

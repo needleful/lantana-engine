@@ -223,7 +223,7 @@ final class TextInput : Widget
 			return;
 		}
 
-		for(ulong i = index; i < text.length-1; i++)
+		for(ulong i = index; i < text.length; i++)
 		{
 			text[i-1] = text[i];
 		}
