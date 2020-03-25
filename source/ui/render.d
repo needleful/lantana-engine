@@ -285,7 +285,7 @@ public final class UIRenderer
 			}
 			else if(p_input.isClicked(Input.Mouse.Left))
 			{
-				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
+				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, - cast(int) p_input.mouse_movement.y);
 				focused.drag(drag);
 			}
 			else if(!newFocus || p_input.isJustReleased(Input.Mouse.Left))

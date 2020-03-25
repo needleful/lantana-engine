@@ -416,20 +416,23 @@ public final class UIView
 
 	package bool getFocusedObject(Input* p_input, ref InteractibleId id)
 	{
-		// TODO: buttons within Scrolled currently don't work. Is it a problem in here?
-		// Get interaction
+		bool found = false;
 		if(interactAreas.length > 0)
 		{
 			foreach(i, const ref Rect r; interactAreas)
 			{
-				if(r.contains(p_input.mouse_position))
+				if(r.contains(p_input.mouse_position - translation))
 				{
-					id = InteractibleId(cast(ubyte)i);
-					return true;
+					if(!found 
+						|| (found && interactibles[id].priority() < interactibles[i].priority()))
+					{
+						id = InteractibleId(cast(ubyte)i);
+						found = true;
+					}
 				}
 			}
 		}
-		return false;
+		return found;
 	}
 
 	public MeshRef addSpriteQuad(SpriteId p_sprite) 

@@ -81,7 +81,7 @@ int main()
 	Widget[] nodes;
 
 	string start;
-	auto dmap = loadDialog("data/testDialog.sdl", start);
+	auto dmap = loadDialog("data/dialog_edit.sdl", start);
 
 	DialogNode[Dialog] nodeMap;
 
@@ -100,7 +100,7 @@ int main()
 		}
 	}
 
-	ui.setRootWidgets(nodes);
+	ui.setRootWidget(new Panned(nodes));
 
 	ui.initialize();
 
@@ -115,6 +115,11 @@ int main()
 		if(ww.state[WindowState.RESIZED])
 		{
 			ui.setSize(ww.getSize());
+		}
+
+		if(ii.keyboard.isJustPressed(SDL_SCANCODE_S) && ii.keyboard.isPressed(SDL_SCANCODE_LCTRL))
+		{
+			storeDialog("data/dialog_edit.sdl", dmap[start]);
 		}
 
 		ui.updateInteraction(delta, &ii);

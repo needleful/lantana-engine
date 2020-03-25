@@ -99,6 +99,7 @@ final class DialogNode : Padding, Interactible
 
 	public override void prepareRender(ivec2 p_pen)
 	{
+		dialog.edit_position = p_pen;
 		super.prepareRender(p_pen);
 		view.setInteractPosition(bar, p_pen);
 		lineStart += p_pen;
@@ -111,7 +112,7 @@ final class DialogNode : Padding, Interactible
 
 	public void addResponse(DialogNode node)
 	{
-		auto line = new Line(AlphaColor(255), Thunk!ivec2(&lineStart), Thunk!ivec2(&node.lineEnd));
+		auto line = new Line(AlphaColor(255), Thunk!ivec2(&lineStart), Thunk!ivec2(&(node.lineEnd)));
 		if(view)
 		{
 			line.initialize(view.renderer, view);
@@ -132,7 +133,6 @@ final class DialogNode : Padding, Interactible
 
 	public override void drag(ivec2 p_dragAmount)
 	{
-		p_dragAmount.y = -p_dragAmount.y;
 		position += p_dragAmount;
 		view.requestUpdate();
 	}

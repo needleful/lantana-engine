@@ -173,12 +173,12 @@ public final class Scrolled : Widget
 			int dist = widgetSize.height - childSize.height;
 			if(dist > 0)
 			{
-				newLoc += p_pixels/dist;
+				newLoc -= p_pixels/dist;
 			}
 		}
 		else if(scrollSpan > 0)
 		{
-			newLoc -= p_pixels/(scrollSpan);
+			newLoc += p_pixels/(scrollSpan);
 		}
 		
 		if(newLoc > 1)
@@ -202,6 +202,62 @@ public final class Scrolled : Widget
 	}
 }
 
+public class Panned : Widget, Interactible
+{
+	UIView childView;
+	Widget widget;
+
+	RealSize viewSize;
+	InteractibleId pan;
+
+	public this(Widget[] widgets)
+	{
+		widget = new HodgePodge(widgets);
+	}
+
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
+	{
+		super.initialize(p_renderer, p_view);
+		childView = p_view.addView(Rect.init);
+		childView.setRootWidget(widget);
+
+		pan = childView.addInteractible(this);
+	}
+
+	public override RealSize layout(SizeRequest p_request)
+	{
+		if(!visible || p_request == SizeRequest.hide)
+		{
+			childView.setVisible(false);
+			return RealSize(0);
+		}
+		childView.setVisible(true);
+		viewSize = childView.updateLayout(p_request.constrained(absoluteWidth, absoluteWidth));
+
+		return viewSize;
+	}
+
+	public override void prepareRender(ivec2 p_pen)
+	{
+		childView.setInteractSize(pan, viewSize);
+		childView.setInteractPosition(pan, p_pen);
+		childView.setRect(Rect(p_pen, viewSize));
+	}
+
+	public override short priority()
+	{
+		return 0;
+	}
+
+	public override void drag(ivec2 p_dragAmount) 
+	{
+		childView.translation += p_dragAmount;
+	}
+	
+	public override void interact() {}
+	public override void unfocus() {}
+	public override void focus() {}
+}
 public final class Modal : Widget
 {
 	private UIView[] views;
