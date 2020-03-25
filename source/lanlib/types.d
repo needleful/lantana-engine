@@ -62,6 +62,28 @@ public AlphaColor color(uint r, uint g, uint b, uint a = 255) nothrow @nogc
 	return AlphaColor(cast(ubyte)r, cast(ubyte)g, cast(ubyte)b, cast(ubyte)a);
 }
 
+struct Thunk(Type)
+{
+	alias func = Type delegate(void);
+
+	func get;
+
+	this(func p_get)
+	{
+		get = p_get;
+	}
+
+	this(Type value)
+	{
+		get = (){ return value; };
+	}
+
+	Type opCall()
+	{
+		return get();
+	}
+}
+
 /**
  A strict alias for a given type.
  To use, initialize a struct like this:
