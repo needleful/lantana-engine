@@ -113,6 +113,7 @@ int main()
 	ui.initialize();
 
 	int frame = 0;
+	SDL_StartTextInput();
 	while(!ww.state[WindowState.CLOSED])
 	{
 		frame ++;
@@ -123,19 +124,19 @@ int main()
 			ui.setSize(ww.getSize());
 		}
 
-		if(ii.is_just_pressed(Input.Action.LEFT))
+		if(ii.keyboard.isJustPressed(SDL_SCANCODE_LEFT))
 		{
 			testText.cursorLeft();
 		}
-		if(ii.is_just_pressed(Input.Action.RIGHT))
+		if(ii.keyboard.isJustPressed(SDL_SCANCODE_RIGHT))
 		{
 			testText.cursorRight();
 		}
-		if(ii.is_just_pressed(Input.Action.DEBUG1))
+		if(ii.keyboard.text.length != 0)
 		{
-			testText.insert(cast(char) ((frame % 52)  + 28));
+			testText.insert(ii.keyboard.text);
 		}
-		if(ii.is_just_pressed(Input.Action.DEBUG2))
+		if(ii.keyboard.isJustPressed(SDL_SCANCODE_BACKSPACE))
 		{
 			testText.backSpace();
 		}
@@ -147,6 +148,7 @@ int main()
 		ui.render();
 		ww.end_frame();
 	}
+	SDL_StopTextInput();
 	
 	return 0;
 }

@@ -256,23 +256,23 @@ public final class UIRenderer
 			}
 		}
 
-		if(focused)
-		{
-			if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
-			{
-				focused.interact();
-			}
-			else if(p_input.is_pressed(Input.Action.UI_INTERACT))
-			{
-				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
-				focused.drag(drag);
-			}
-			else if(!newFocus || p_input.is_just_released(Input.Action.UI_INTERACT))
-			{
-				focused.unfocus();
-				focused = null;
-			}
-		}
+		//if(focused)
+		//{
+		//	if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
+		//	{
+		//		focused.interact();
+		//	}
+		//	else if(p_input.is_pressed(Input.Action.UI_INTERACT))
+		//	{
+		//		ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
+		//		focused.drag(drag);
+		//	}
+		//	else if(!newFocus || p_input.is_just_released(Input.Action.UI_INTERACT))
+		//	{
+		//		focused.unfocus();
+		//		focused = null;
+		//	}
+		//}
 	}
 
 	@property public UIStyle style() @nogc 

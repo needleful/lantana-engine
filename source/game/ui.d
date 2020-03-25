@@ -11,6 +11,8 @@ import std.math;
 import std.stdio;
 import std.string: split;
 
+import bindbc.sdl;
+
 import audio;
 import game.dialog;
 import game.skybox;
@@ -288,7 +290,7 @@ void uiMain()
 			g_ui.setSize(events.size);
 		}
 
-		if(events.input.is_just_pressed(Input.Action.PAUSE))
+		if(events.input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
 		{
 			paused = !paused;
 			if(paused)

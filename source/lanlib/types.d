@@ -194,7 +194,6 @@ struct Bitfield(Enum)
 
 struct BitSet(uint Size)
 {
-	//static assert(size % 64 == 0, "Bitsets must internally have a size that's a multiple of 64");
 	enum longCount = (Size+63)/64;
 	enum size = longCount*64;
 
@@ -334,6 +333,11 @@ struct BitSet(uint Size)
 		{
 			l = 0;
 		}
+	}
+
+	void opAssign(ref BitSet!Size rhs) @nogc nothrow
+	{
+		longs[] = rhs.longs[];
 	}
 }
 

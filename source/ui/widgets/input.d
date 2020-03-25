@@ -200,35 +200,42 @@ final class TextInput : Widget
 		view.requestUpdate();
 	}
 
-	public void insert(char c)
+	public void insert(char[] str)
 	{
 		import std.format;
-		text.length ++;
+		text.length += str.length;
 
-		for(ulong i = text.length-1; i > index; i--)
+		for(ulong i = text.length-1; i > index + str.length; i--)
 		{
-			text[i] = text[i-1];
+			text[i] = text[i-str.length];
 		}
 
-		text[index] = c;
-		index ++;
+		text[index..index+str.length] = str[];
+		index += str.length;
 
 		view.requestUpdate();
 	}
 
-	public void backSpace()
+	public void backSpace(ushort p_back = 1)
 	{
 		if(index == 0)
 		{
 			return;
 		}
 
-		for(ulong i = index; i < text.length; i++)
+		ushort movement = cast(ushort)(p_back - 1);
+
+		for(ulong i = index; i < text.length - movement; i++)
 		{
-			text[i-1] = text[i];
+			text[i-p_back] = text[i];
 		}
-		text.length --;
-		index--;
+		text.length -= p_back;
+		index-= p_back;
 		view.requestUpdate();
+	}
+
+	public string getTextCopy()
+	{
+		return cast(string) text.dup();
 	}
 }

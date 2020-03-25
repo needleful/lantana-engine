@@ -943,6 +943,11 @@ public final class UIView
 
 		ivec2 offset = ivec2(-2, -4);
 
+		if(p_text.length == 0)
+		{
+			return offset;
+		}
+
 		foreach(i; 0..p_index)
 		{
 			if(p_text[i].isWhite())

@@ -152,20 +152,9 @@ struct Window
 	void pollEvents(Input* input)  nothrow
 	{
 		state.clear();
-		
 		input.mouse_movement = vec2(0,0);
-
-		foreach(ref Input.Status status; input.status)
-		{
-			if(status == Input.Status.JUST_RELEASED)
-			{
-				status = Input.Status.UP;
-			}
-			if(status == Input.Status.JUST_PRESSED)
-			{
-				status = Input.Status.DOWN;
-			}
-		}
+		input.keyboard.pressedLast = input.keyboard.pressed;
+		input.keyboard.text.length = 0;
 
 		while(SDL_PollEvent(&event))
 		{
@@ -192,21 +181,17 @@ struct Window
 					}
 					break;
 				case SDL_KEYDOWN:
-					Input.Action a = from_scancode(event.key.keysym.scancode);
-					if(a != Input.Action.UNKNOWN)
-					{
-						input.press(a);
-					}
+					input.keyboard.press(event.key.keysym.scancode);
 					break;
 				case SDL_KEYUP:
-					Input.Action a = from_scancode(event.key.keysym.scancode);
-					if(a != Input.Action.UNKNOWN)
-					{
-						input.release(a);
-					}
+					input.keyboard.release(event.key.keysym.scancode);
 					break;
 				case SDL_MOUSEMOTION:
 					input.mouse_movement = vec2(event.motion.xrel, event.motion.yrel);
+					break;
+				case SDL_TEXTINPUT:
+					import std.string : fromStringz;
+					input.keyboard.text ~= fromStringz(event.text.text.ptr);
 					break;
 				default:
 					//Nothing
@@ -218,14 +203,14 @@ struct Window
 		// SDL has flipped coordinates for y-axis
 		input.mouse_position.y = getSize().height - input.mouse_position.y;
 
-		if(mouse & SDL_BUTTON_LMASK)
-		{
-			input.press(Input.Action.UI_INTERACT);
-		}
-		else if(input.is_pressed(Input.Action.UI_INTERACT))
-		{
-			input.release(Input.Action.UI_INTERACT);
-		}
+		//if(mouse & SDL_BUTTON_LMASK)
+		//{
+		//	input.press(Input.Action.UI_INTERACT);
+		//}
+		//else if(input.is_pressed(Input.Action.UI_INTERACT))
+		//{
+		//	input.release(Input.Action.UI_INTERACT);
+		//}
 	}
 
 	public RealSize getSize() nothrow
