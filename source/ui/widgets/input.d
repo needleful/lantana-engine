@@ -104,16 +104,19 @@ public class Button: MultiContainer, Interactible
 	}
 }
 
-final class TextInput : Widget
+final class TextInput : Widget, Interactible
 {
 	FontId font;
 	char[] text;
 	TextId mesh;
-	vec3 color;
+	vec3 regularColor;
+	vec3 focusColor;
 
 	RectWidget cursor;
 	AlphaColor cursorColor;
 	ushort index = 0;
+
+	InteractibleId interactible;
 
 	public this(AlphaColor p_cursor,
 		uint p_capacity = 256, string p_text = "",
@@ -123,7 +126,7 @@ final class TextInput : Widget
 		text.length = p_text.length;
 		text[] = p_text[];
 		font = p_font;
-		color = p_color;
+		regularColor = p_color;
 		cursorColor = p_cursor;
 		index = cast(ushort)(text.length);
 	}
@@ -131,18 +134,20 @@ final class TextInput : Widget
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
-		if(color == vec3(-1))
+		if(regularColor == vec3(-1))
 		{
-			color = p_renderer.style.defaultFontColor;
+			regularColor = p_renderer.style.defaultFontColor;
 		}
 		if(font == FontId.invalid)
 		{
 			font = p_renderer.style.defaultFont;
 		}
 
+		focusColor = p_renderer.style.defaultFontColor;
+
 		mesh = p_view.addTextMesh(font, cast(string)text, cast(int)text.capacity);
 		view.setTextVisiblePercent(mesh, 1);
-		view.setTextColor(mesh, color);
+		view.setTextColor(mesh, regularColor);
 
 		cursor = new ImageBox(
 			p_renderer,
@@ -150,6 +155,9 @@ final class TextInput : Widget
 			RealSize(1, p_renderer.lineHeight(font))
 		);
 		cursor.initialize(p_renderer, p_view);
+		cursor.setVisible(false);
+
+		interactible = p_view.addInteractible(this);
 	}
 
 	public override RealSize layout(SizeRequest p_request) 
@@ -169,11 +177,15 @@ final class TextInput : Widget
 		cursor.layout(SizeRequest(Bounds(2), Bounds.none));
 		cursor.position = view.getCursorPosition(mesh, cast(string) text, index);
 
-		return view.textBoundingBox(mesh);
+		RealSize textSize = view.textBoundingBox(mesh);
+		view.setInteractSize(interactible, textSize);
+
+		return textSize;
 	}
 
 	public override void prepareRender(ivec2 p_pen) 
 	{
+		view.setInteractPosition(interactible, p_pen);
 		view.translateTextMesh(mesh, p_pen);
 		cursor.prepareRender(cursor.position + p_pen);
 	}
@@ -200,12 +212,17 @@ final class TextInput : Widget
 		view.requestUpdate();
 	}
 
+	public void insert(char c)
+	{
+		insert([c]);
+	}
+
 	public void insert(char[] str)
 	{
 		import std.format;
 		text.length += str.length;
 
-		for(ulong i = text.length-1; i > index + str.length; i--)
+		for(ulong i = text.length-1; i > index + str.length-1; i--)
 		{
 			text[i] = text[i-str.length];
 		}
@@ -237,5 +254,29 @@ final class TextInput : Widget
 	public string getTextCopy()
 	{
 		return cast(string) text.dup();
+	}
+
+	public override short priority()
+	{
+		return 2;
+	}
+	/// Interactible methods
+	public override void focus(){}
+
+	public override void unfocus(){}
+
+	public override void drag(ivec2 _) {}
+
+	public override void interact()
+	{
+		view.renderer.setTextFocus(this);
+		view.setTextColor(mesh, focusColor);
+		cursor.setVisible(true);
+	}
+
+	public void removeTextFocus()
+	{
+		cursor.setVisible(false);
+		view.setTextColor(mesh, regularColor);
 	}
 }

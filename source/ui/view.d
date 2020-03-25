@@ -960,6 +960,11 @@ public final class UIView
 			meshIndex -= 2;
 			offset.x = 0;
 		}
+		else if(p_text[p_index].isWhite())
+		{
+			meshIndex -= 2;
+			offset.x = 0;
+		}
 
 		ivec2 pos = vertpos[meshIndex] + offset;
 		return pos;

@@ -116,6 +116,7 @@ int main()
 	SDL_StartTextInput();
 	while(!ww.state[WindowState.CLOSED])
 	{
+		float delta = ww.delta_ms/1000.0;
 		frame ++;
 		ww.pollEvents(&ii);
 
@@ -124,24 +125,7 @@ int main()
 			ui.setSize(ww.getSize());
 		}
 
-		if(ii.keyboard.isJustPressed(SDL_SCANCODE_LEFT))
-		{
-			testText.cursorLeft();
-		}
-		if(ii.keyboard.isJustPressed(SDL_SCANCODE_RIGHT))
-		{
-			testText.cursorRight();
-		}
-		if(ii.keyboard.text.length != 0)
-		{
-			testText.insert(ii.keyboard.text);
-		}
-		if(ii.keyboard.isJustPressed(SDL_SCANCODE_BACKSPACE))
-		{
-			testText.backSpace();
-		}
-
-		ui.updateInteraction(&ii);
+		ui.updateInteraction(delta, &ii);
 		ui.updateLayout();
 
 		ww.begin_frame();

@@ -8,6 +8,7 @@ import std.format;
 import std.math:floor;
 debug import std.stdio;
 
+import bindbc.sdl;
 import derelict.freetype;
 
 import gl3n.linalg: vec2, vec3, Vector;
@@ -86,6 +87,18 @@ public final class UIRenderer
 
 	/// Package style
 	private UIStyle m_style;
+
+	// Text input stuff
+	package TextInput currentInput;
+
+	/// How long to hold the arrow button to start going
+	private enum TIME_ARROW_FIRST = 0.3f;
+	/// How long frequently to move arrows after holding for TIME_ARROW_FIRST
+	private enum TIME_ARROW_NEXT = 0.05f;
+
+	private float arrowTimer;
+
+	private bool arrowHeld = false;
 
 	/++++++++++++++++++++++++++++++++++++++
 		FreeType data
@@ -228,7 +241,7 @@ public final class UIRenderer
 
 	}
 
-	public void updateInteraction(Input* p_input)
+	public void updateInteraction(float delta, Input* p_input)
 	{
 		Interactible newFocus = null;
 		if(!focused)
@@ -256,23 +269,96 @@ public final class UIRenderer
 			}
 		}
 
-		//if(focused)
-		//{
-		//	if(p_input.is_just_pressed(Input.Action.UI_INTERACT))
-		//	{
-		//		focused.interact();
-		//	}
-		//	else if(p_input.is_pressed(Input.Action.UI_INTERACT))
-		//	{
-		//		ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
-		//		focused.drag(drag);
-		//	}
-		//	else if(!newFocus || p_input.is_just_released(Input.Action.UI_INTERACT))
-		//	{
-		//		focused.unfocus();
-		//		focused = null;
-		//	}
-		//}
+		if(focused)
+		{
+			if(p_input.isJustClicked(Input.Mouse.Left))
+			{
+				focused.interact();
+				if(focused != currentInput)
+				{
+					setTextFocus(null);
+				}
+			}
+			else if(p_input.isClicked(Input.Mouse.Left))
+			{
+				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, cast(int) p_input.mouse_movement.y);
+				focused.drag(drag);
+			}
+			else if(!newFocus || p_input.isJustReleased(Input.Mouse.Left))
+			{
+				focused.unfocus();
+				focused = null;
+			}
+		}
+
+		if(currentInput && currentInput.isVisible() && currentInput.view.isVisible())
+		{
+			bool arrowPressed = false;
+			bool goleft = false;
+			
+			if(p_input.keyboard.isPressed(SDL_SCANCODE_LEFT))
+			{
+				arrowPressed = true;
+				if(p_input.keyboard.isJustPressed(SDL_SCANCODE_LEFT))
+				{
+					currentInput.cursorLeft();
+					arrowTimer = 0;
+					arrowHeld = false;
+				}
+				goleft = true;
+			}
+			
+			if(p_input.keyboard.isPressed(SDL_SCANCODE_RIGHT))
+			{
+				arrowPressed = true;
+				if(p_input.keyboard.isJustPressed(SDL_SCANCODE_RIGHT))
+				{
+					currentInput.cursorRight();
+					arrowTimer = 0;
+					arrowHeld = false;
+				}
+				goleft = false;
+			}
+
+			if(arrowPressed)
+			{
+				arrowTimer += delta;
+				if(arrowTimer >= TIME_ARROW_FIRST)
+				{
+					arrowHeld = true;
+				}
+				if(arrowHeld && arrowTimer >= TIME_ARROW_NEXT)
+				{
+					arrowTimer = 0;
+					if(goleft)
+					{
+						currentInput.cursorLeft();
+					}
+					else
+					{
+						currentInput.cursorRight();
+					}
+				}
+			}
+
+			if(p_input.keyboard.text.length != 0)
+				currentInput.insert(p_input.keyboard.text);
+
+			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_RETURN))
+				currentInput.insert('\n');
+
+			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_BACKSPACE))
+				currentInput.backSpace();
+		}
+	}
+
+	public void setTextFocus(TextInput p_input)
+	{
+		if(currentInput)
+		{
+			currentInput.removeTextFocus();
+		}
+		currentInput = p_input;
 	}
 
 	@property public UIStyle style() @nogc 

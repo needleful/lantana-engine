@@ -308,7 +308,7 @@ void uiMain()
 			showDialog = true;
 		}
 
-		g_ui.updateInteraction(&events.input);
+		g_ui.updateInteraction(events.delta, &events.input);
 
 		dialogWidget.setVisible(showDialog);
 

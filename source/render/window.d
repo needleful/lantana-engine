@@ -155,6 +155,7 @@ struct Window
 		input.mouse_movement = vec2(0,0);
 		input.keyboard.pressedLast = input.keyboard.pressed;
 		input.keyboard.text.length = 0;
+		input.mouseLast = input.mouse;
 
 		while(SDL_PollEvent(&event))
 		{
@@ -199,18 +200,9 @@ struct Window
 			}
 		}
 
-		int mouse = SDL_GetMouseState(&(input.mouse_position.x()), &(input.mouse_position.y()));
+		input.mouse = SDL_GetMouseState(&(input.mouse_position.x()), &(input.mouse_position.y()));
 		// SDL has flipped coordinates for y-axis
 		input.mouse_position.y = getSize().height - input.mouse_position.y;
-
-		//if(mouse & SDL_BUTTON_LMASK)
-		//{
-		//	input.press(Input.Action.UI_INTERACT);
-		//}
-		//else if(input.is_pressed(Input.Action.UI_INTERACT))
-		//{
-		//	input.release(Input.Action.UI_INTERACT);
-		//}
 	}
 
 	public RealSize getSize() nothrow
