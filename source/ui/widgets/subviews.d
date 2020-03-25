@@ -221,7 +221,7 @@ public class Panned : Widget, Interactible
 		childView = p_view.addView(Rect.init);
 		childView.setRootWidget(widget);
 
-		pan = childView.addInteractible(this);
+		pan = view.addInteractible(this);
 	}
 
 	public override RealSize layout(SizeRequest p_request)
@@ -239,8 +239,8 @@ public class Panned : Widget, Interactible
 
 	public override void prepareRender(ivec2 p_pen)
 	{
-		childView.setInteractSize(pan, viewSize);
-		childView.setInteractPosition(pan, p_pen);
+		view.setInteractSize(pan, viewSize);
+		view.setInteractPosition(pan, p_pen);
 		childView.setRect(Rect(p_pen, viewSize));
 	}
 

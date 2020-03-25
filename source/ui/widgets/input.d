@@ -130,6 +130,7 @@ final class TextInput : Widget, Interactible
 		text.length = p_text.length;
 		text[] = p_text[];
 		index = cast(ushort)(text.length);
+		withBounds(Bounds(40,double.infinity), Bounds(20, double.infinity));
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
@@ -171,7 +172,7 @@ final class TextInput : Widget, Interactible
 		cursor.position = view.getCursorPosition(mesh, cast(string) text, index);
 
 		RealSize textSize = view.textBoundingBox(mesh);
-		view.setInteractSize(interactible, textSize);
+		view.setInteractSize(interactible, textSize.constrained(req));
 
 		return textSize;
 	}

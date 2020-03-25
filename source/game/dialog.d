@@ -29,7 +29,7 @@ public final class Dialog
 	string getTag()
 	{
 		import std.format;
-		return format("%X", (cast(long) cast(void*)this) & 0xFFFFF);
+		return format("%X", cast(void*)this);
 	}
 }
 
@@ -46,7 +46,6 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 
 	string start = file.expectTagValue!string("start");
 	p_start = start;
-	writeln("start: ",start);
 
 	foreach(d; file.tags["dialog"])
 	{
@@ -79,7 +78,12 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		dialog.responses.reserve(responses.length);
 		foreach(resp; responses)
 		{
-			dialog.responses ~= map[resp.get!string()];
+			string key = resp.get!string();
+			if(key !in map)
+			{
+				writefln("Warning: missing response %s", key);
+			}
+			dialog.responses ~= map[key];
 		}
 	}
 

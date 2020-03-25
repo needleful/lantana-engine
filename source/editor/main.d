@@ -49,7 +49,7 @@ int main()
 		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
 		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
 		button.mesh = new PatchRectStyle(button.normal, Pad(6));
-		button.pad = Pad(8, 8, 12, 12);
+		button.pad = Pad(8);
 		
 		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
@@ -64,8 +64,8 @@ int main()
 		defaultFontColor = vec3(0.0, 0.583, 1);
 
 		textInput.cursor = AlphaColor(255);
-		textInput.focused = defaultFontColor;
-		textInput.normal = vec3(0.3);
+		textInput.focused = vec3(1, 0.5, 0.9);
+		textInput.normal = vec3(0.9, 0.5, 0.4);
 	}
 
 	ww.grab_mouse(false);
@@ -82,12 +82,13 @@ int main()
 
 	string start;
 	auto dmap = loadDialog("data/dialog_edit.sdl", start);
+	writeln("start: ",dmap[start].getTag());
 
 	DialogNode[Dialog] nodeMap;
 
 	foreach(dialog; dmap)
 	{
-		auto node = new DialogNode(dialog);
+		auto node = new DialogNode(ui, dialog);
 		nodes ~= node;
 		nodeMap[dialog] = node;
 	}

@@ -13,12 +13,6 @@ import game.dialog;
 import ui;
 
 version(lantana_editor)
-final class DialogWindow : Widget
-{
-	
-}
-
-version(lantana_editor)
 final class DialogNode : Padding, Interactible
 {
 	Dialog dialog;
@@ -38,6 +32,8 @@ final class DialogNode : Padding, Interactible
 
 	ivec2 lineStart, lineEnd;
 
+	RealSize size;
+
 	DialogNode[] responses;
 	/// Lines to responses
 	Line[] lines;
@@ -45,12 +41,12 @@ final class DialogNode : Padding, Interactible
 	// For dragging the window around
 	InteractibleId bar;
 
-	this(Dialog p_dialog = new Dialog("Put your text here!", 0, []))
+	this(UIRenderer p_ui, Dialog p_dialog = new Dialog("Put your text here!", 0, []))
 	{
 		box = new VBox([], 6);
 		box.withBounds(Bounds(0, 300), Bounds.none);
 
-		super(new HBox([box], 12, Alignment.CENTER), Pad(6));
+		super(new HBox([box], 12, Alignment.CENTER), Pad(6), new ImageBox(p_ui, color(120, 120, 255, 80), RealSize(1)));
 		dialog = p_dialog;
 		position = dialog.edit_position;
 	}
@@ -90,11 +86,9 @@ final class DialogNode : Padding, Interactible
 
 	public override RealSize layout(SizeRequest p_request)
 	{
-		RealSize rs = super.layout(p_request);
-		view.setInteractSize(bar, rs);
-		lineStart = ivec2(rs.width, rs.height/2);
-		lineEnd = ivec2(0, rs.height - 20);
-		return rs;
+		size = super.layout(p_request);
+		view.setInteractSize(bar, size);
+		return size;
 	}
 
 	public override void prepareRender(ivec2 p_pen)
@@ -102,8 +96,10 @@ final class DialogNode : Padding, Interactible
 		dialog.edit_position = p_pen;
 		super.prepareRender(p_pen);
 		view.setInteractPosition(bar, p_pen);
-		lineStart += p_pen;
-		lineEnd += p_pen;
+		
+		lineStart = ivec2(size.width, size.height/2) + p_pen;
+		lineEnd = ivec2(0, size.height - 20) + p_pen;
+
 		foreach(line; lines)
 		{
 			line.prepareRender(ivec2(0));
@@ -112,7 +108,16 @@ final class DialogNode : Padding, Interactible
 
 	public void addResponse(DialogNode node)
 	{
-		auto line = new Line(AlphaColor(255), Thunk!ivec2(&lineStart), Thunk!ivec2(&(node.lineEnd)));
+		auto line = new Line(AlphaColor(255), 
+			Thunk!ivec2(()
+			{
+				return lineStart;
+			}), 
+			Thunk!ivec2(()
+			{
+				return node.lineEnd;
+			})
+		);
 		if(view)
 		{
 			line.initialize(view.renderer, view);
