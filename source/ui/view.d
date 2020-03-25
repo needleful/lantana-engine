@@ -939,7 +939,7 @@ public final class UIView
 	public ivec2 getCursorPosition(TextId p_id, string p_text, uint p_index)
 	{
 		import std.uni: isWhite;
-		uint meshIndex = p_index*4 + textMeshes[p_id].offset;
+		uint meshIndex = p_index*4 + elemText[textMeshes[p_id].offset];
 
 		ivec2 offset = ivec2(-2, -4);
 

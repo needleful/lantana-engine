@@ -12,6 +12,9 @@ import deimos.freeimage;
 import derelict.freetype;
 import gl3n.linalg;
 
+import editor.graph;
+import game.dialog;
+
 import lanlib.types;
 import lanlib.file.gltf2;
 import lanlib.file.lgbt;
@@ -59,6 +62,10 @@ int main()
 
 		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 		defaultFontColor = vec3(0.0, 0.583, 1);
+
+		textInput.cursor = AlphaColor(255);
+		textInput.focused = defaultFontColor;
+		textInput.normal = vec3(0.3);
 	}
 
 	ww.grab_mouse(false);
@@ -69,9 +76,7 @@ int main()
 	auto title = new TextBox("Lantana Editor", 64);
 	bool pressed = false;
 
-	TextInput testText = new TextInput(AlphaColor(255),
-				256, "Hullo, love!",
-				FontId.invalid, vec3(0.3));
+	TextInput testText = new TextInput(256, "Hullo, love!");
 
 	ui.setRootWidgets([
 		new Anchor(
@@ -84,7 +89,10 @@ int main()
 			vec2(0, 0)
 		),
 		new Anchor(
-			title,
+			new VBox([
+					title,
+					new DialogNode(ivec2(0), loadDialog("data/testDialog.sdl"))
+				]),
 			vec2(0.27, 1-0.048),
 			vec2(0, 1)
 		),

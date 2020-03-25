@@ -6,7 +6,7 @@ module ui.style;
 
 import gl3n.linalg : vec3;
 
-import lanlib.types : ivec2, svec2;
+import lanlib.types;
 
 import ui.layout;
 import ui.render;
@@ -72,6 +72,12 @@ struct ScrollbarStyle
 	ubyte width;
 }
 
+struct TextInputStyle
+{
+	AlphaColor cursor;
+	vec3 focused, normal;
+}
+
 final class UIStyle
 {
 	public ButtonStyle button;
@@ -79,4 +85,5 @@ final class UIStyle
 	public ScrollbarStyle scrollbar;
 	public FontId defaultFont;
 	public vec3 defaultFontColor;
+	public TextInputStyle textInput;
 }

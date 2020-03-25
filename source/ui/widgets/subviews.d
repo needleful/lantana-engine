@@ -90,8 +90,8 @@ public final class Scrolled : Widget
 		scrollbar.initialize(p_ui, p_view);
 		scrollbarHandle.initialize(p_ui, p_view);
 
-		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 1));
-		idPan = p_view.addInteractible(new ScrollGrab(this, true, 0));
+		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 4));
+		idPan = p_view.addInteractible(new ScrollGrab(this, true, 3));
 
 		scrollTo(scrollPercent);
 	}

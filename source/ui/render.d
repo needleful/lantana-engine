@@ -92,13 +92,15 @@ public final class UIRenderer
 	package TextInput currentInput;
 
 	/// How long to hold the arrow button to start going
-	private enum TIME_ARROW_FIRST = 0.3f;
-	/// How long frequently to move arrows after holding for TIME_ARROW_FIRST
-	private enum TIME_ARROW_NEXT = 0.05f;
+	private enum TIME_HOLD_START = 0.3f;
+	/// How long frequently to move arrows after holding for TIME_HOLD_START
+	private enum TIME_HOLD_NEXT = 0.05f;
 
 	private float arrowTimer;
-
 	private bool arrowHeld = false;
+
+	private float deleteTimer;
+	private bool deleteHeld = false;
 
 	/++++++++++++++++++++++++++++++++++++++
 		FreeType data
@@ -323,11 +325,11 @@ public final class UIRenderer
 			if(arrowPressed)
 			{
 				arrowTimer += delta;
-				if(arrowTimer >= TIME_ARROW_FIRST)
+				if(arrowTimer >= TIME_HOLD_START)
 				{
 					arrowHeld = true;
 				}
-				if(arrowHeld && arrowTimer >= TIME_ARROW_NEXT)
+				if(arrowHeld && arrowTimer >= TIME_HOLD_NEXT)
 				{
 					arrowTimer = 0;
 					if(goleft)
@@ -347,8 +349,27 @@ public final class UIRenderer
 			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_RETURN))
 				currentInput.insert('\n');
 
-			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_BACKSPACE))
-				currentInput.backSpace();
+			if(p_input.keyboard.isPressed(SDL_SCANCODE_BACKSPACE))
+			{
+				if(p_input.keyboard.isJustPressed(SDL_SCANCODE_BACKSPACE))
+				{
+					currentInput.backSpace();
+					deleteTimer = 0;
+					deleteHeld = false;
+				}
+
+				deleteTimer += delta;
+				if(deleteTimer >= TIME_HOLD_START)
+				{
+					deleteTimer = 0;
+					deleteHeld = true;
+				}
+				if(deleteHeld && deleteTimer >= TIME_HOLD_NEXT)
+				{
+					deleteTimer = 0;
+					currentInput.backSpace();
+				}
+			}
 		}
 	}
 

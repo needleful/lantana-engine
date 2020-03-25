@@ -265,7 +265,7 @@ public class AnchoredBox : MultiContainer
 	}
 }
 
-public final class Padding : SingularContainer
+public class Padding : SingularContainer
 {
 	// Padding, in pixels
 	Pad pad;

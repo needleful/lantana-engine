@@ -5,7 +5,7 @@
 module ui.widgets.input;
 
 import gl3n.linalg: vec2, vec3;
-import lanlib.types : ivec2, AlphaColor;
+import lanlib.types;
 import ui.interaction;
 import ui.layout;
 import ui.render;
@@ -75,7 +75,7 @@ public class Button: MultiContainer, Interactible
 
 	public override short priority()
 	{
-		return 1;
+		return 10;
 	}
 	/// Interactible methods
 	public override void focus()
@@ -109,49 +109,33 @@ final class TextInput : Widget, Interactible
 	FontId font;
 	char[] text;
 	TextId mesh;
-	vec3 regularColor;
-	vec3 focusColor;
 
 	RectWidget cursor;
-	AlphaColor cursorColor;
 	ushort index = 0;
 
 	InteractibleId interactible;
 
-	public this(AlphaColor p_cursor,
-		uint p_capacity = 256, string p_text = "",
-		FontId p_font = FontId.invalid, vec3 p_color = vec3(-1))
+	public this(uint p_capacity = 256, string p_text = "")
 	{
 		text.reserve(p_capacity);
 		text.length = p_text.length;
 		text[] = p_text[];
-		font = p_font;
-		regularColor = p_color;
-		cursorColor = p_cursor;
 		index = cast(ushort)(text.length);
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
-		if(regularColor == vec3(-1))
-		{
-			regularColor = p_renderer.style.defaultFontColor;
-		}
-		if(font == FontId.invalid)
-		{
-			font = p_renderer.style.defaultFont;
-		}
 
-		focusColor = p_renderer.style.defaultFontColor;
+		font = p_renderer.style.defaultFont;
 
 		mesh = p_view.addTextMesh(font, cast(string)text, cast(int)text.capacity);
 		view.setTextVisiblePercent(mesh, 1);
-		view.setTextColor(mesh, regularColor);
+		view.setTextColor(mesh, p_renderer.style.textInput.normal);
 
 		cursor = new ImageBox(
 			p_renderer,
-			cursorColor,
+			p_renderer.style.textInput.cursor,
 			RealSize(1, p_renderer.lineHeight(font))
 		);
 		cursor.initialize(p_renderer, p_view);
@@ -258,7 +242,7 @@ final class TextInput : Widget, Interactible
 
 	public override short priority()
 	{
-		return 2;
+		return 5;
 	}
 	/// Interactible methods
 	public override void focus(){}
@@ -270,13 +254,13 @@ final class TextInput : Widget, Interactible
 	public override void interact()
 	{
 		view.renderer.setTextFocus(this);
-		view.setTextColor(mesh, focusColor);
+		view.setTextColor(mesh, view.renderer.style.textInput.focused);
 		cursor.setVisible(true);
 	}
 
 	public void removeTextFocus()
 	{
 		cursor.setVisible(false);
-		view.setTextColor(mesh, regularColor);
+		view.setTextColor(mesh, view.renderer.style.textInput.normal);
 	}
 }

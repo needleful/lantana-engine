@@ -19,6 +19,12 @@ public final class Dialog
 		responses = p_responses;
 		date = p_date;
 	}
+
+	string getTag()
+	{
+		import std.format;
+		return format("%X", (cast(long) cast(void*)this) & 0xFFFFF);
+	}
 }
 
 import std.stdio;
@@ -65,15 +71,9 @@ public Dialog loadDialog(string p_file)
 
 public void storeDialog(string p_file, Dialog p_dialog)
 {
-	string getKey(Dialog p_dl)
-	{
-		import std.format;
-		return format("%X", (cast(long) cast(void*)p_dl) & 0xFFFFF);
-	}
-
 	void addToMap(ref Dialog[string] p_map, Dialog p_dl)
 	{
-		string key = getKey(p_dl);
+		string key = p_dl.getTag();
 
 		if(key in p_map)
 			return;
@@ -97,7 +97,7 @@ public void storeDialog(string p_file, Dialog p_dialog)
 
 		foreach(resp; d.responses)
 		{
-			string respKey = getKey(resp);
+			string respKey = resp.getTag();
 			assert(respKey in map);
 			responses ~= Value(respKey);
 		}
@@ -112,7 +112,7 @@ public void storeDialog(string p_file, Dialog p_dialog)
 		//file.add(t);
 	}
 
-	file.add(new Tag(null, "start", [Value(getKey(p_dialog))], null, []));
+	file.add(new Tag(null, "start", [Value(p_dialog.getTag())], null, []));
 
 	File output = File(p_file, "w");
 	output.write(file.toSDLDocument());

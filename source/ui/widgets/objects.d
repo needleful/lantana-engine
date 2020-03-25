@@ -316,7 +316,7 @@ public class TextBox: Widget
 		
 		view.setTextMesh(mesh, font, text, req.width, true);
 
-		return view.textBoundingBox(mesh);
+		return view.textBoundingBox(mesh).constrained(req);
 	}
 
 	public override void prepareRender(ivec2 p_pen) 
