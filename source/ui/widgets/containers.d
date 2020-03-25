@@ -34,16 +34,15 @@ public class HodgePodge : MultiContainer
 
 		ivec2 top_right;
 
+		auto childRequest = SizeRequest(Bounds(0, request.width.max), Bounds(0, request.height.max));
+
 		foreach(child; children)
 		{
-			child.position = ivec2(0,0);
-			RealSize csize = child.layout(request);
-
-			// Calculating the bounding box for the hodgepodge
+			RealSize csize = child.layout(childRequest);
 			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
 		}
 
-		return visible? RealSize(top_right.x, top_right.y): RealSize(0);
+		return RealSize(top_right.x, top_right.y).constrained(request);
 	}
 }
 

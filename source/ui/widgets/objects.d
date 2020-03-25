@@ -334,6 +334,16 @@ public class TextBox: Widget
 		}
 	}
 
+	public void setColor(vec3 p_color)
+	{
+		if(p_color == color)
+		{
+			return;
+		}
+		color = p_color;
+		view.setTextColor(mesh, color);
+	}
+
 	public FontId getFont()
 	{
 		return font;

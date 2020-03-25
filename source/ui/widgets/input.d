@@ -15,6 +15,7 @@ import ui.widgets;
 public class Button: MultiContainer, Interactible
 {
 	public Interactible.Callback onPressed;
+	public Interactible.DragCallback onDragged = null;
 	private InteractibleId id;
 	private bool pressed;
 	private HFlags flags;
@@ -90,7 +91,13 @@ public class Button: MultiContainer, Interactible
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 	}
 
-	public override void drag(ivec2 _) {}
+	public override void drag(ivec2 p_drag) 
+	{
+		if(onDragged)
+		{
+			onDragged(p_drag);
+		}
+	}
 
 	public override void interact()
 	{
@@ -110,6 +117,7 @@ final class TextInput : Widget, Interactible
 	char[] text;
 	TextId mesh;
 
+	ushort capacity;
 	RectWidget cursor;
 	ushort index = 0;
 
@@ -118,6 +126,7 @@ final class TextInput : Widget, Interactible
 	public this(uint p_capacity = 256, string p_text = "")
 	{
 		text.reserve(p_capacity);
+		capacity = cast(ushort)p_capacity;
 		text.length = p_text.length;
 		text[] = p_text[];
 		index = cast(ushort)(text.length);
@@ -204,6 +213,10 @@ final class TextInput : Widget, Interactible
 	public void insert(char[] str)
 	{
 		import std.format;
+		if(text.length + str.length > capacity)
+		{
+			return;
+		}
 		text.length += str.length;
 
 		for(ulong i = text.length-1; i > index + str.length-1; i--)
@@ -217,21 +230,19 @@ final class TextInput : Widget, Interactible
 		view.requestUpdate();
 	}
 
-	public void backSpace(ushort p_back = 1)
+	public void backSpace()
 	{
 		if(index == 0)
 		{
 			return;
 		}
 
-		ushort movement = cast(ushort)(p_back - 1);
-
-		for(ulong i = index; i < text.length - movement; i++)
+		for(ulong i = index; i < text.length; i++)
 		{
-			text[i-p_back] = text[i];
+			text[i-1] = text[i];
 		}
-		text.length -= p_back;
-		index-= p_back;
+		text.length --;
+		index -- ;
 		view.requestUpdate();
 	}
 

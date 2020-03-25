@@ -78,45 +78,17 @@ int main()
 
 	TextInput testText = new TextInput(256, "Hullo, love!");
 
-	ui.setRootWidgets([
-		new Anchor(
-			testText,
-			vec2(0.98,0.98), vec2(1,1)
-		),
-		new Anchor(
-			new ImageBox(needlefulPNG),
-			vec2(0.027, 0.048),
-			vec2(0, 0)
-		),
-		new Anchor(
-			new VBox([
-					title,
-					new DialogNode(ivec2(0), loadDialog("data/testDialog.sdl"))
-				]),
-			vec2(0.27, 1-0.048),
-			vec2(0, 1)
-		),
-		new Anchor (
-			new Button(
-				ui,
-				new TextBox("Press Me!"),
-				(Widget source) 
-				{
-					pressed = !pressed;
-					if(pressed)
-					{
-						title.setText("Pressed the button!");
-					}
-					else
-					{
-						title.setText("Lantana Editor");
-					}
-				},
-			),
-			vec2(0.01, 0.9),
-			vec2(0, 1)
-		),
-	]);
+	Widget[] nodes;
+
+	string start;
+	auto dmap = loadDialog("data/testDialog.sdl", start);
+
+	foreach(dialog; dmap)
+	{
+		nodes ~= new DialogNode(dialog);
+	}
+
+	ui.setRootWidgets(nodes);
 
 	ui.initialize();
 

@@ -12,6 +12,12 @@ public final class Dialog
 	public string date;
 	public Dialog[] responses;
 
+	version(lantana_editor)
+	{
+		import lanlib.types: ivec2;
+		public ivec2 edit_position;
+	}
+
 	this(string p_message, float p_pause, Dialog[] p_responses, string p_date = "")
 	{
 		pauseTime = p_pause;
@@ -30,13 +36,16 @@ public final class Dialog
 import std.stdio;
 import sdlang;
 
-public Dialog loadDialog(string p_file)
+import lanlib.types : ivec2;
+
+public Dialog[string] loadDialog(string p_file, out string p_start)
 {
 	Dialog[string] map;
 
 	Tag file = parseFile(p_file);
 
 	string start = file.expectTagValue!string("start");
+	p_start = start;
 	writeln("start: ",start);
 
 	foreach(d; file.tags["dialog"])
@@ -47,6 +56,14 @@ public Dialog loadDialog(string p_file)
 		string date = d.getTagValue!string("date", "");
 
 		map[key] = new Dialog(message, pause, [], date);
+		version(lantana_editor)
+		{
+			Value[] pos = d.getTagValues("edit_position");
+			if(pos != null)
+			{
+				map[key].edit_position = ivec2(pos[0].get!int(), pos[1].get!int());
+			}
+		}
 	}
 
 	foreach(d; file.tags["dialog"])
@@ -66,7 +83,7 @@ public Dialog loadDialog(string p_file)
 		}
 	}
 
-	return map[start];
+	return map;
 }
 
 public void storeDialog(string p_file, Dialog p_dialog)
@@ -102,14 +119,27 @@ public void storeDialog(string p_file, Dialog p_dialog)
 			responses ~= Value(respKey);
 		}
 
-		Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
-		[
-			new Tag(null, "message", [Value(d.message)]),
-			new Tag(null, "pause", [Value(d.pauseTime)]),
-			new Tag(null, "date", [Value(d.date)]),
-			new Tag(null, "responses", responses)
-		]);
-		//file.add(t);
+		version(lantana_editor)
+		{
+			Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
+			[
+				new Tag(null, "message", [Value(d.message)]),
+				new Tag(null, "pause", [Value(d.pauseTime)]),
+				new Tag(null, "date", [Value(d.date)]),
+				new Tag(null, "responses", responses),
+				new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
+			]);
+		}
+		else
+		{
+			Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
+			[
+				new Tag(null, "message", [Value(d.message)]),
+				new Tag(null, "pause", [Value(d.pauseTime)]),
+				new Tag(null, "date", [Value(d.date)]),
+				new Tag(null, "responses", responses),
+			]);
+		}
 	}
 
 	file.add(new Tag(null, "start", [Value(p_dialog.getTag())], null, []));

@@ -227,7 +227,10 @@ void uiMain()
 
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
-	Dialog currentDialog = loadDialog("data/testDialog.sdl");
+	string start;
+	auto map = loadDialog("data/testDialog.sdl", start);
+	Dialog currentDialog = map[start];
+	
 	Widget dialogWidget = new Padding(
 		dialogbox, 
 		Pad(8), 

@@ -11,6 +11,7 @@ import ui.widgets;
 public interface Interactible
 {
 	alias Callback = void delegate(Widget source);
+	alias DragCallback = void delegate(ivec2 dragAmount);
 	
 	public void focus();
 
