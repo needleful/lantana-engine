@@ -72,14 +72,6 @@ int main()
 
 	ww.grab_mouse(false);
 
-	SpriteId needlefulPNG = ui.loadSprite("data/test/needleful.png");
-	SpriteId upclickSprite = ui.loadSprite("data/test/ui_sprites/upclick.png");
-
-	auto title = new TextBox("Lantana Editor", 64);
-	bool pressed = false;
-
-	TextInput testText = new TextInput(256, "Hullo, love!");
-
 	Widget[] nodes;
 
 	string start_;
