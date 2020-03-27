@@ -256,7 +256,7 @@ public final class UIRenderer
 				{
 					InteractibleId newId;
 
-					if(view.getFocusedObject(p_input, newId))
+					if(view.getFocusedObject(p_input.mouse_position, newId))
 					{
 						Interactible newObject = view.interactibles[newId];
 						if(!newFocus || newObject.priority() >= newFocus.priority())

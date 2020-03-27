@@ -10,6 +10,7 @@ import std.format;
 import gl3n.linalg : vec3;
 
 import lanlib.types;
+import lanlib.util.array;
 import game.dialog;
 import ui;
 
@@ -32,8 +33,6 @@ final class DialogNode : Padding, Interactible
 	VBox box;
 	// Press this to create new responses
 	Button sendButton;
-	// Press this for reasons
-	Button recieveButton;
 
 	ivec2 lineStart, lineEnd;
 
@@ -74,10 +73,6 @@ final class DialogNode : Padding, Interactible
 		super.initialize(p_renderer, p_view);
 
 		HBox hb = cast(HBox)getChild();
-		recieveButton = new Button(
-			p_renderer, new Spacer(RealSize(0, 100)), (Widget)
-			{
-			});
 		sendButton = new Button(
 			p_renderer, new Spacer(RealSize(0, 100)), 
 			(Widget)
@@ -94,7 +89,7 @@ final class DialogNode : Padding, Interactible
 				newResponseLine.prepareRender(ivec2(0));
 		};
 
-		hb.addChild(recieveButton);
+		hb.addChild(new Spacer(RealSize(12)));
 		hb.addChild(box);
 		hb.addChild(sendButton);
 
@@ -104,7 +99,7 @@ final class DialogNode : Padding, Interactible
 		requirements = new TextInput(512, dialog.requirements);
 		effects = new TextInput(512, dialog.effects);
 		date = new TextInput(64, dialog.date);
-		time = new TextInput(32, format("%f", dialog.pauseTime));
+		time = new TextInput(32, format("%.2f", dialog.pauseTime));
 
 		box.addChild(tag);
 		box.addChild(new HBox([
@@ -227,14 +222,31 @@ final class DialogNode : Padding, Interactible
 
 	public void createResponseEnd()
 	{
-		// TODO: how to handle existing dialog?
-		auto d = new Dialog("Put your text here!", 0, []);
-		d.edit_position = newResponseLine.end();
-		dialog.responses ~= d;
 
-		auto response = new DialogNode(view.renderer, d);
+		DialogNode response = null;
+		InteractibleId focus;
+		if(view.getFocusedObject(mousePosition, focus, priority()))
+		{
+			DialogNode focused = cast(DialogNode) view.getInteractible(focus);
+			if(focused && responses.indexOf(focused) == -1)
+			{
+				response = focused;
+				import std.stdio : writeln;
+				writeln("Adding to existing dialogNode: %s", response.dialog.getTag());
+			}
+		}
+
+		if(response is null)
+		{
+			auto d = new Dialog("Put your text here!", 0, []);
+			d.edit_position = newResponseLine.end();
+			response = new DialogNode(view.renderer, d);
+			parent.addChild(response);
+		}
+
 		responses ~= response;
+		dialog.responses ~= response.dialog;
 		newResponseLine.end = Thunk!ivec2(&response.lineEnd);
-		parent.addChild(response);
+		newResponseLine.prepareRender(ivec2(0));
 	}
 }

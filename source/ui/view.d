@@ -419,25 +419,38 @@ public final class UIView
 		interactAreas[p_id].pos = p_position;
 	}
 
-	package bool getFocusedObject(Input* p_input, ref InteractibleId id)
+	public bool getFocusedObject(ivec2 p_point, out InteractibleId id, short priority = short.max)
 	{
-		bool found = false;
-		if(interactAreas.length > 0)
+		if(interactAreas.length == 0)
 		{
-			foreach(i, const ref Rect r; interactAreas)
+			return false;
+		}
+
+		bool found = false;
+		foreach(i, const Rect r; interactAreas)
+		{
+			if(r.contains(p_point - translation))
 			{
-				if(r.contains(p_input.mouse_position - translation))
+				if(interactibles[i].priority() == priority)
 				{
-					if(!found 
-						|| (found && interactibles[id].priority() < interactibles[i].priority()))
-					{
-						id = InteractibleId(cast(ubyte)i);
-						found = true;
-					}
+					found = true;
+					id = InteractibleId(cast(ubyte)i);
+					break;
+				}
+				else if(!found 
+					|| (found && interactibles[id].priority() < interactibles[i].priority()))
+				{
+					id = InteractibleId(cast(ubyte)i);
+					found = true;
 				}
 			}
 		}
 		return found;
+	}
+
+	public Interactible getInteractible(InteractibleId p_id)
+	{
+		return interactibles[p_id];
 	}
 
 	public MeshRef addSpriteQuad(SpriteId p_sprite) 

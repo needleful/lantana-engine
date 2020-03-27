@@ -11,7 +11,7 @@ long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
 {
 	foreach(i, ref val; list)
 	{
-		if(val == toFind)
+		if(val is toFind)
 		{
 			return i;
 		}
