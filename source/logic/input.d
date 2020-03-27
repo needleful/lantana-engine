@@ -31,6 +31,39 @@ struct Input
 
 	uint mouse, mouseLast;
 
+	this(ref Input rhs)
+	{
+		keyboard = rhs.keyboard;
+		analog_right = rhs.analog_right;
+		analog_left = rhs.analog_left;
+		mouse_movement = rhs.mouse_movement;
+		mouse_position = rhs.mouse_position;
+		mouse = rhs.mouse;
+		mouseLast = rhs.mouseLast;
+	}
+
+	this(Input* rhs)
+	{
+		keyboard = rhs.keyboard;
+		analog_right = rhs.analog_right;
+		analog_left = rhs.analog_left;
+		mouse_movement = rhs.mouse_movement;
+		mouse_position = rhs.mouse_position;
+		mouse = rhs.mouse;
+		mouseLast = rhs.mouseLast;
+	}
+
+	void apply(ref Input rhs)
+	{
+		keyboard = rhs.keyboard;
+		analog_right = rhs.analog_right;
+		analog_left = rhs.analog_left;
+		mouse_movement = rhs.mouse_movement;
+		mouse_position = rhs.mouse_position;
+		mouse = rhs.mouse;
+		mouseLast = rhs.mouseLast;
+	}
+
 	// Reset input, for example when re-entering the window
 	void clear() @safe nothrow
 	{

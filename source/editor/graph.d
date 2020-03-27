@@ -4,6 +4,7 @@
 
 module editor.graph;
 
+import std.conv;
 import std.format;
 
 import gl3n.linalg : vec3;
@@ -15,20 +16,24 @@ import ui;
 version(lantana_editor)
 final class DialogNode : Padding, Interactible
 {
+	static
+	{
+		Line newResponseLine;
+		ivec2 mousePosition;
+		MultiContainer parent;
+		DialogNode[] nodes;
+	}
 	Dialog dialog;
 
 	TextBox tag;
 
-	TextBox messageLabel;
-	TextBox dateLabel;
-	TextBox timeLabel;
-
-	TextInput message;
-	TextInput date;
-	TextInput time;
+	TextInput message, date, time, requirements, effects;
 
 	VBox box;
-	Button responseButton;
+	// Press this to create new responses
+	Button sendButton;
+	// Press this for reasons
+	Button recieveButton;
 
 	ivec2 lineStart, lineEnd;
 
@@ -46,9 +51,22 @@ final class DialogNode : Padding, Interactible
 		box = new VBox([], 6);
 		box.withBounds(Bounds(0, 300), Bounds.none);
 
-		super(new HBox([box], 12, Alignment.CENTER), Pad(6), new ImageBox(p_ui, color(120, 120, 255, 80), RealSize(1)));
+		super(new HBox([], 12, Alignment.CENTER), Pad(6), new ImageBox(p_ui, color(120, 120, 255, 80), RealSize(1)));
 		dialog = p_dialog;
 		position = dialog.edit_position;
+		nodes ~= this;
+	}
+
+	public void updateDialog()
+	{
+		dialog.edit_position = position;
+
+		dialog.date = date.text.dup();
+		dialog.pauseTime = time.text.to!float();
+
+		dialog.requirements = requirements.text.dup();
+		dialog.effects = effects.text.dup();
+		dialog.message = message.text.dup();
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
@@ -56,23 +74,57 @@ final class DialogNode : Padding, Interactible
 		super.initialize(p_renderer, p_view);
 
 		HBox hb = cast(HBox)getChild();
-		responseButton = new Button(p_renderer, new Spacer(RealSize(0, 100)), (Widget) {});
-		hb.addChild(responseButton);
+		recieveButton = new Button(
+			p_renderer, new Spacer(RealSize(0, 100)), (Widget)
+			{
+			});
+		sendButton = new Button(
+			p_renderer, new Spacer(RealSize(0, 100)), 
+			(Widget)
+			{
+				createResponseEnd();
+			});
+		sendButton.onPressed = (Widget)
+			{
+				createResponseStart();
+			};
+		sendButton.onDragged = (ivec2 _)
+		{
+			if(newResponseLine)
+				newResponseLine.prepareRender(ivec2(0));
+		};
+
+		hb.addChild(recieveButton);
+		hb.addChild(box);
+		hb.addChild(sendButton);
 
 		tag = new TextBox(dialog.getTag());
 
-		messageLabel = new TextBox("Message:");
-		dateLabel = new TextBox("Date:");
-		timeLabel = new TextBox("Pause Time:");
-
 		message = new TextInput(1024, dialog.message);
+		requirements = new TextInput(512, dialog.requirements);
+		effects = new TextInput(512, dialog.effects);
 		date = new TextInput(64, dialog.date);
 		time = new TextInput(32, format("%f", dialog.pauseTime));
 
 		box.addChild(tag);
-		box.addChild(new HBox([timeLabel.withBounds(Bounds(120), Bounds.none), time]));
-		box.addChild(new HBox([dateLabel.withBounds(Bounds(120), Bounds.none), date]));
-		box.addChild(messageLabel.withBounds(Bounds(120), Bounds.none));
+		box.addChild(new HBox([
+			new TextBox("Pause Time:").withBounds(Bounds(120), Bounds.none), 
+			time])
+		);
+		box.addChild(new HBox([
+			new TextBox("Date:").withBounds(Bounds(120), Bounds.none),
+			date])
+		);
+		box.addChild(new HBox([
+			new TextBox("Requirements:").withBounds(Bounds(120), Bounds.none),
+			requirements])
+		);
+		box.addChild(new HBox([
+			new TextBox("Effects:").withBounds(Bounds(120), Bounds.none),
+			effects])
+		);
+
+		box.addChild(new TextBox("Message:"));
 		box.addChild(message);
 
 		bar = view.addInteractible(this);
@@ -108,7 +160,7 @@ final class DialogNode : Padding, Interactible
 
 	public void addResponse(DialogNode node)
 	{
-		auto line = new Line(AlphaColor(255), 
+		auto line = new Line(
 			Thunk!ivec2(()
 			{
 				return lineStart;
@@ -150,5 +202,39 @@ final class DialogNode : Padding, Interactible
 	public Dialog getDialog()
 	{
 		return dialog;
+	}
+
+	public void createResponseStart()
+	{
+		newResponseLine = new Line(
+			Thunk!ivec2(()
+			{
+				return lineStart;
+			}),
+			Thunk!ivec2(()
+			{
+				return mousePosition - view.getTranslation();
+			}));
+
+		if(view)
+		{
+			newResponseLine.initialize(view.renderer, view);
+			newResponseLine.prepareRender(ivec2(0));
+		}
+		lines ~= newResponseLine;
+
+	}
+
+	public void createResponseEnd()
+	{
+		// TODO: how to handle existing dialog?
+		auto d = new Dialog("Put your text here!", 0, []);
+		d.edit_position = newResponseLine.end();
+		dialog.responses ~= d;
+
+		auto response = new DialogNode(view.renderer, d);
+		responses ~= response;
+		newResponseLine.end = Thunk!ivec2(&response.lineEnd);
+		parent.addChild(response);
 	}
 }

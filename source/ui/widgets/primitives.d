@@ -17,14 +17,11 @@ public class Line : Widget
 	Thunk!ivec2 end;
 	float thickness;
 
-	AlphaColor color;
-
 	SpriteId sprite;
 	MeshRef mesh;
 
-	public this(AlphaColor p_color, Thunk!ivec2 p_start, Thunk!ivec2 p_end, float p_thickness = 2.5)
+	public this(Thunk!ivec2 p_start, Thunk!ivec2 p_end, float p_thickness = 2.5)
 	{
-		color = p_color;
 		start = p_start;
 		end = p_end;
 		thickness = p_thickness;
@@ -33,7 +30,7 @@ public class Line : Widget
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
-		sprite = p_renderer.addSinglePixel(color);
+		sprite = p_renderer.style.line;
 		mesh = view.addSpriteQuad(sprite);
 	}
 

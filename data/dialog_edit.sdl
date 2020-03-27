@@ -1,85 +1,113 @@
-dialog "1D655290AE0" {
-	message "how are you?"
-	pause 2F
-	date ""
-	responses "1D655290BA0"
-	edit_position 133 449
-}
-dialog "1D6552909C0" {
+dialog "255FA5A0B40" {
 	message "thinking of you"
 	pause 2F
 	date "3:05 AM"
-	responses "1D655290A20" "1D655290840" "1D6552908A0"
+	responses "255FA5A0960" "255FA5A0D80" "255FA5A0A20"
 	edit_position -572 241
 }
-dialog "1D655290960" {
-	message "its fine."
-	pause 2F
-	date ""
-	responses "1D655290900"
-	edit_position 819 259
-}
-dialog "1D655290B40" {
-	message "there was a problem"
-	pause 2F
-	date ""
-	responses
-	edit_position 1446 201
-}
-dialog "1D655290C00" {
-	message "I love you."
-	pause 0.8000000119F
-	date ""
-	responses
-	edit_position 1445 366
-}
-dialog "1D655290A80" {
+dialog "255FA5A0DE0" {
 	message "god dammit"
 	pause 1F
 	date ""
 	responses
 	edit_position 808 450
 }
-dialog "1D655290BA0" {
-	message "wait you can't send replies when i;m in space"
-	pause 4F
-	date ""
-	responses "1D655290A80" "1D655290960"
-	edit_position 417 437
-}
-dialog "1D6552908A0" {
-	message "the ship exploded."
-	pause 0.3000000119F
-	date "2:41 PM"
-	responses "1D655290C60"
-	edit_position -209 181
-}
-dialog "1D655290C60" {
-	message "it fucking exploded"
-	pause 0.6000000238F
-	date ""
-	responses
-	edit_position 88 125
-}
-dialog "1D655290840" {
+dialog "255FA5A0D80" {
 	message "Hi Boto"
 	pause 0.3000000119F
 	date "2:41 PM"
-	responses "1D655290900" "1D655290AE0"
+	responses "255FA5A0C60" "255FA5A0CC0"
 	edit_position -208 352
 }
-dialog "1D655290900" {
+dialog "255FA5A0D20" {
+	message "wait you can't send replies when i;m in space"
+	pause 4F
+	date ""
+	responses "255FA5A0DE0" "255FA5A0AE0"
+	edit_position 417 437
+}
+dialog "255FA5A09C0" {
+	message "it fucking exploded"
+	pause 0.6000000238F
+	date ""
+	responses "255FA5A0A80"
+	edit_position 65 -221
+}
+dialog "255FA5A0AE0" {
+	message "its fine."
+	pause 2F
+	date ""
+	responses "255FA5A0C60"
+	edit_position 811 264
+}
+dialog "255FA5A0A20" {
+	message "the ship exploded."
+	pause 0.3000000119F
+	date "2:41 PM"
+	responses "255FA5A09C0" "255FA698000"
+	edit_position -250 -209
+}
+dialog "255FA5A0BA0" {
+	message "I love you."
+	pause 0.8000000119F
+	date ""
+	responses
+	edit_position 1405 179
+}
+dialog "255FA5A0CC0" {
+	message "how are you?"
+	pause 2F
+	date ""
+	responses "255FA5A0D20"
+	edit_position 133 449
+}
+dialog "255FA5A0A80" {
+	message "i dont knwo what to do now"
+	pause 0.200000003F
+	date ""
+	responses "255FA5A0C00"
+	edit_position 347 -222
+}
+dialog "255FA5A0C00" {
+	message "im scared"
+	pause 0.1000000015F
+	date ""
+	responses
+	edit_position 681 -220
+}
+dialog "255FA5A0C60" {
 	message "i just wanted to say"
 	pause 1F
 	date ""
-	responses "1D655290C00" "1D655290B40"
-	edit_position 1129 299
+	responses "255FA5A0BA0" "255FA5A0900"
+	edit_position 1097 295
 }
-dialog "1D655290A20" {
+dialog "255FA5A0960" {
 	message "hey"
 	pause 0.3000000119F
 	date "2:41 PM"
-	responses
-	edit_position -211 1
+	responses "255FA60E000"
+	edit_position -225 182
 }
-start "1D6552909C0"
+dialog "255FA698000" {
+	message "i think the engine went critical. i don't even kno how that happens"
+	pause 0F
+	date ""
+	responses
+	edit_position 62 -437
+}
+dialog "255FA5A0900" {
+	message "there was a problem"
+	pause 2F
+	date ""
+	responses
+	edit_position 1407 368
+}
+dialog "255FA60E000" {
+	message "Put your text here!"
+	pause 0F
+	date ""
+	responses
+	edit_position 96 185
+}
+start "255FA5A0B40"

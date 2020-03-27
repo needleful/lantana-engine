@@ -10,6 +10,8 @@ public final class Dialog
 	public string message;
 	public float pauseTime;
 	public string date;
+	public string requirements;
+	public string effects;
 	public Dialog[] responses;
 
 	version(lantana_editor)
@@ -55,6 +57,10 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		string date = d.getTagValue!string("date", "");
 
 		map[key] = new Dialog(message, pause, [], date);
+
+		map[key].requirements = d.getTagValue!string("requirements", "");
+		map[key].effects = d.getTagValue!string("effects", "");
+
 		version(lantana_editor)
 		{
 			Value[] pos = d.getTagValues("edit_position");
@@ -130,6 +136,8 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
+				new Tag(null, "requirements", d.requirements),
+				new Tag(null, "effects", d.effects),
 				new Tag(null, "responses", responses),
 				new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
 			]);
@@ -141,6 +149,8 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
+				new Tag(null, "requirements", d.requirements),
+				new Tag(null, "effects", d.effects),
 				new Tag(null, "responses", responses),
 			]);
 		}

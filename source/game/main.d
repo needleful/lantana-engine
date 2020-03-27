@@ -10,6 +10,8 @@ import std.format;
 import std.math;
 import std.stdio;
 
+import bindbc.sdl;
+
 import audio;
 import game.dialog;
 import game.skybox;
@@ -27,14 +29,12 @@ import render;
 
 import ui;
 
+enum MAX_MEMORY = 1024*1024*64;
 enum cam_speed = 1;
 
-float g_timescale = 1;
-
+float timescale = 1;
 float oxygen = 21.2;
 float oxygenDrain = 0.027;
-
-enum MAX_MEMORY = 1024*1024*64;
 
 version(lantana_game)
 int main()
@@ -43,6 +43,8 @@ int main()
 	RealSize ws = window.getSize();
 	g_ui = new UIRenderer(ws);
 
+	Input input = Input();
+	g_uiInput = new Input(input);
 	auto uiThread = spawn(&uiMain);
 
 	//AudioManager audio = AudioManager(16);
@@ -103,17 +105,23 @@ int main()
 	float accumDelta_ms = 0;
 	bool paused = false;
 
-	Input input = Input();
 	uint frame = 0;
 
 	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 	string oxygenFormat = "Oxygen: %.2f%%";
 
-	receiveOnly!UIReady();
+	receive(
+			(UIReady _){},
+			(UICancel _){
+				throw new Exception("Failed to launch UI");
+			}
+		);
+
 	g_ui.initialize();
 
 	float delta = 0.001f;
-	uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+
+	uiThread.send(UIEvents(delta, window.state, window.getSize()));
 
 	vec2 velCamRot = vec2(0);
 	float accelCamRot = 60;
@@ -131,7 +139,7 @@ int main()
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
-		delta = g_timescale*delta_ms/1000.0;
+		delta = timescale*delta_ms/1000.0;
 	
 		window.pollEvents(&input);
 
@@ -141,7 +149,7 @@ int main()
 			camera.setProjection(cast(float)ws.width/ws.height, 60);
 		}
 
-		if(input.is_just_pressed(Input.Action.PAUSE))
+		if(input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
 		{
 			paused = !paused;
 			window.grab_mouse(!paused);
@@ -197,7 +205,8 @@ int main()
 				time_accum = 0;
 			}
 
-			uiThread.send(UIEvents(delta, input, window.state, window.getSize()));
+			g_uiInput.apply(input);
+			uiThread.send(UIEvents(delta, window.state, window.getSize()));
 
 		window.end_frame();
 

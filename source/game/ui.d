@@ -105,14 +105,12 @@ struct UICancel{}
 struct UIEvents
 {
 	float delta;
-	Input input;
 	Bitfield!WindowState window;
 	RealSize size;
 
-	this(float p_delta, Input p_input, Bitfield!WindowState p_window, RealSize p_size)
+	this(float p_delta, Bitfield!WindowState p_window, RealSize p_size)
 	{
 		delta = p_delta;
-		input = p_input;
 		window = p_window;
 		size = p_size;
 	}
@@ -121,9 +119,11 @@ struct UIEvents
 __gshared UIRenderer g_ui;
 __gshared string g_frameTime;
 __gshared string g_oxygenText;
+__gshared Input* g_uiInput;
 
 void uiMain()
 {
+	scope(failure) ownerTid.send(UICancel());
 	with(g_ui.style)
 	{
 		button.normal = g_ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
@@ -228,7 +228,7 @@ void uiMain()
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
 	string start;
-	auto map = loadDialog("data/testDialog.sdl", start);
+	auto map = loadDialog("data/dialog_edit.sdl", start);
 	Dialog currentDialog = map[start];
 	
 	Widget dialogWidget = new Padding(
@@ -293,7 +293,7 @@ void uiMain()
 			g_ui.setSize(events.size);
 		}
 
-		if(events.input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
+		if(g_uiInput.keyboard.isJustPressed(SDL_SCANCODE_TAB))
 		{
 			paused = !paused;
 			if(paused)
@@ -311,7 +311,7 @@ void uiMain()
 			showDialog = true;
 		}
 
-		g_ui.updateInteraction(events.delta, &events.input);
+		g_ui.updateInteraction(events.delta, g_uiInput);
 
 		dialogWidget.setVisible(showDialog);
 

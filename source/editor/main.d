@@ -63,9 +63,11 @@ int main()
 		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
 		defaultFontColor = vec3(0.0, 0.583, 1);
 
-		textInput.cursor = AlphaColor(255);
+		textInput.cursor = ui.addSinglePixel(AlphaColor(255));
 		textInput.focused = vec3(1, 0.5, 0.9);
 		textInput.normal = vec3(0.9, 0.5, 0.4);
+
+		line = ui.addSinglePixel(AlphaColor(255));
 	}
 
 	ww.grab_mouse(false);
@@ -80,9 +82,10 @@ int main()
 
 	Widget[] nodes;
 
-	string start;
-	auto dmap = loadDialog("data/dialog_edit.sdl", start);
-	writeln("start: ",dmap[start].getTag());
+	string start_;
+	auto dmap = loadDialog("data/dialog_edit.sdl", start_);
+	Dialog start = dmap[start_];
+	writeln("start: ", start.getTag());
 
 	DialogNode[Dialog] nodeMap;
 
@@ -101,7 +104,9 @@ int main()
 		}
 	}
 
-	ui.setRootWidget(new Panned(nodes));
+	auto panned = new Panned(nodes);
+	DialogNode.parent = panned.container;
+	ui.setRootWidget(panned);
 
 	ui.initialize();
 
@@ -120,10 +125,15 @@ int main()
 
 		if(ii.keyboard.isJustPressed(SDL_SCANCODE_S) && ii.keyboard.isPressed(SDL_SCANCODE_LCTRL))
 		{
-			storeDialog("data/dialog_edit.sdl", dmap[start]);
+			foreach(node; DialogNode.nodes)
+			{
+				node.updateDialog();
+			}
+			storeDialog("data/dialog_edit.sdl", start);
 		}
 
 		ui.updateInteraction(delta, &ii);
+		DialogNode.mousePosition = ii.mouse_position;
 		ui.updateLayout();
 
 		ww.begin_frame();

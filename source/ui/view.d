@@ -366,6 +366,11 @@ public final class UIView
 		translation += mov;
 	}
 
+	public ivec2 getTranslation()
+	{
+		return translation;
+	}
+
 	public bool isVisible()  @nogc const
 	{
 		return visible;

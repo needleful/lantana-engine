@@ -14,18 +14,18 @@ import ui.widgets;
 
 public class Button: MultiContainer, Interactible
 {
-	public Interactible.Callback onPressed;
+	public Interactible.Callback onPressed, onReleased;
 	public Interactible.DragCallback onDragged = null;
 	private InteractibleId id;
 	private bool pressed;
 	private HFlags flags;
 
-	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onPressed, HFlags p_flags = HFlags.init)
+	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onReleased, HFlags p_flags = HFlags.init)
 	{
 		children.reserve(2);
 		children ~= p_renderer.style.button.mesh.create(p_renderer);
 		children ~= new Padding(p_child, p_renderer.style.button.pad);
-		onPressed = p_onPressed;
+		onReleased = p_onReleased;
 
 		children[0].position = ivec2(0,0);
 		children[1].position = ivec2(0,0);
@@ -86,7 +86,7 @@ public class Button: MultiContainer, Interactible
 
 	public override void unfocus()
 	{
-		if(pressed) onPressed(this);
+		if(pressed) onReleased(this);
 		pressed = false;
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 	}
@@ -101,6 +101,7 @@ public class Button: MultiContainer, Interactible
 
 	public override void interact()
 	{
+		if(onPressed) onPressed(this);
 		pressed = true;
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.pressed);
 	}
@@ -144,9 +145,7 @@ final class TextInput : Widget, Interactible
 		view.setTextColor(mesh, p_renderer.style.textInput.normal);
 
 		cursor = new ImageBox(
-			p_renderer,
-			p_renderer.style.textInput.cursor,
-			RealSize(1, p_renderer.lineHeight(font))
+			p_renderer.style.textInput.cursor
 		);
 		cursor.initialize(p_renderer, p_view);
 		cursor.setVisible(false);
@@ -168,7 +167,7 @@ final class TextInput : Widget, Interactible
 			mesh, font, cast(string) text,
 			req.width, true);
 
-		cursor.layout(SizeRequest(Bounds(2), Bounds.none));
+		cursor.layout(SizeRequest(Bounds(2), Bounds(view.renderer.lineHeight(font))));
 		cursor.position = view.getCursorPosition(mesh, cast(string) text, index);
 
 		RealSize textSize = view.textBoundingBox(mesh);

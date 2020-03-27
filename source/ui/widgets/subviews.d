@@ -205,7 +205,7 @@ public final class Scrolled : Widget
 public class Panned : Widget, Interactible
 {
 	UIView childView;
-	Widget widget;
+	MultiContainer widget;
 
 	RealSize viewSize;
 	InteractibleId pan;
@@ -242,6 +242,11 @@ public class Panned : Widget, Interactible
 		view.setInteractSize(pan, viewSize);
 		view.setInteractPosition(pan, p_pen);
 		childView.setRect(Rect(p_pen, viewSize));
+	}
+
+	public MultiContainer container()
+	{
+		return widget;
 	}
 
 	public override short priority()

@@ -74,7 +74,7 @@ struct ScrollbarStyle
 
 struct TextInputStyle
 {
-	AlphaColor cursor;
+	SpriteId cursor;
 	vec3 focused, normal;
 }
 
@@ -86,4 +86,5 @@ final class UIStyle
 	public FontId defaultFont;
 	public vec3 defaultFontColor;
 	public TextInputStyle textInput;
+	public SpriteId line; 
 }
