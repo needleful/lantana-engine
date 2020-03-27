@@ -26,6 +26,8 @@ public final class Dialog
 		message = p_message;
 		responses = p_responses;
 		date = p_date;
+		requirements = "";
+		effects = "";
 	}
 
 	string getTag()
@@ -136,8 +138,8 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
-				new Tag(null, "requirements", d.requirements),
-				new Tag(null, "effects", d.effects),
+				new Tag(null, "requirements", [Value(d.requirements)]),
+				new Tag(null, "effects", [Value(d.effects)]),
 				new Tag(null, "responses", responses),
 				new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
 			]);
@@ -149,8 +151,8 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
-				new Tag(null, "requirements", d.requirements),
-				new Tag(null, "effects", d.effects),
+				new Tag(null, "requirements", [Value(d.requirements)]),
+				new Tag(null, "effects", [Value(d.effects)]),
 				new Tag(null, "responses", responses),
 			]);
 		}

@@ -1,113 +1,181 @@
-dialog "255FA5A0B40" {
-	message "thinking of you"
-	pause 2F
-	date "3:05 AM"
-	responses "255FA5A0960" "255FA5A0D80" "255FA5A0A20"
-	edit_position -572 241
-}
-dialog "255FA5A0DE0" {
-	message "god dammit"
-	pause 1F
+dialog "1B46D236E80" {
+	message "i think the engine went critical"
+	pause 0.400000006F
 	date ""
-	responses
-	edit_position 808 450
+	requirements ""
+	effects ""
+	responses "1B46D301080"
+	edit_position 63 -418
 }
-dialog "255FA5A0D80" {
-	message "Hi Boto"
-	pause 0.3000000119F
-	date "2:41 PM"
-	responses "255FA5A0C60" "255FA5A0CC0"
-	edit_position -208 352
-}
-dialog "255FA5A0D20" {
-	message "wait you can't send replies when i;m in space"
-	pause 4F
-	date ""
-	responses "255FA5A0DE0" "255FA5A0AE0"
-	edit_position 417 437
-}
-dialog "255FA5A09C0" {
-	message "it fucking exploded"
-	pause 0.6000000238F
-	date ""
-	responses "255FA5A0A80"
-	edit_position 65 -221
-}
-dialog "255FA5A0AE0" {
-	message "its fine."
-	pause 2F
-	date ""
-	responses "255FA5A0C60"
-	edit_position 811 264
-}
-dialog "255FA5A0A20" {
-	message "the ship exploded."
-	pause 0.3000000119F
-	date "2:41 PM"
-	responses "255FA5A09C0" "255FA698000"
-	edit_position -250 -209
-}
-dialog "255FA5A0BA0" {
-	message "I love you."
-	pause 0.8000000119F
-	date ""
-	responses
-	edit_position 1405 179
-}
-dialog "255FA5A0CC0" {
-	message "how are you?"
-	pause 2F
-	date ""
-	responses "255FA5A0D20"
-	edit_position 133 449
-}
-dialog "255FA5A0A80" {
-	message "i dont knwo what to do now"
-	pause 0.200000003F
-	date ""
-	responses "255FA5A0C00"
-	edit_position 347 -222
-}
-dialog "255FA5A0C00" {
-	message "im scared"
-	pause 0.1000000015F
-	date ""
-	responses
-	edit_position 681 -220
-}
-dialog "255FA5A0C60" {
-	message "i just wanted to say"
-	pause 1F
-	date ""
-	responses "255FA5A0BA0" "255FA5A0900"
-	edit_position 1097 295
-}
-dialog "255FA5A0960" {
-	message "hey"
-	pause 0.3000000119F
-	date "2:41 PM"
-	responses "255FA60E000"
-	edit_position -225 182
-}
-dialog "255FA698000" {
-	message "i think the engine went critical. i don't even kno how that happens"
-	pause 0F
-	date ""
-	responses
-	edit_position 62 -437
-}
-dialog "255FA5A0900" {
+dialog "1B46D236F00" {
 	message "there was a problem"
 	pause 2F
 	date ""
+	requirements ""
+	effects ""
 	responses
-	edit_position 1407 368
+	edit_position 1567 424
 }
-dialog "255FA60E000" {
+dialog "1B46D236B00" {
+	message "its fine."
+	pause 2F
+	date ""
+	requirements ""
+	effects ""
+	responses "1B46D236D80"
+	edit_position 887 282
+}
+dialog "1B46D236F80" {
 	message "Put your text here!"
 	pause 0F
 	date ""
+	requirements ""
+	effects ""
 	responses
-	edit_position 96 185
+	edit_position 76 140
 }
-start "255FA5A0B40"
+dialog "1B46D236E00" {
+	message "hey"
+	pause 0.3000000119F
+	date "2:41 PM"
+	requirements ""
+	effects ""
+	responses "1B46D236F80"
+	edit_position -223 134
+}
+dialog "1B46D236980" {
+	message "Hi Boto"
+	pause 0.3000000119F
+	date "2:41 PM"
+	requirements ""
+	effects ""
+	responses "1B46D236D80" "1B46D236C00"
+	edit_position -225 410
+}
+dialog "1B46D236A00" {
+	message "wait you can't send replies when i;m in space"
+	pause 4F
+	date ""
+	requirements ""
+	effects ""
+	responses "1B46D236900" "1B46D236B00"
+	edit_position 431 525
+}
+dialog "1B46D236C00" {
+	message "how are you?"
+	pause 2F
+	date ""
+	requirements ""
+	effects ""
+	responses "1B46D236A00"
+	edit_position 110 535
+}
+dialog "1B46D2E2080" {
+	message "Put your text here!"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 1120 573
+}
+dialog "1B46D236D00" {
+	message "im scared"
+	pause 0.1000000015F
+	date ""
+	requirements ""
+	effects "fear + 3"
+	responses "1B46D2B3880"
+	edit_position 765 -160
+}
+dialog "1B46D2B3880" {
+	message "Put your text here!"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 1073 -156
+}
+dialog "1B46D236D80" {
+	message "i just wanted to say"
+	pause 1F
+	date ""
+	requirements ""
+	effects ""
+	responses "1B46D236880" "1B46D236F00"
+	edit_position 1215 323
+}
+dialog "1B46D236C80" {
+	message "i dont knwo what to do now"
+	pause 0.200000003F
+	date ""
+	requirements ""
+	effects "fear + 2; anger + 1"
+	responses "1B46D236D00"
+	edit_position 376 -159
+}
+dialog "1B46D236880" {
+	message "I love you."
+	pause 0.8000000119F
+	date ""
+	requirements ""
+	effects "anger - 2; fear - 1"
+	responses "1B46D31D080"
+	edit_position 1508 156
+}
+dialog "1B46D236800" {
+	message "thinking of you"
+	pause 2F
+	date "3:05 AM"
+	requirements ""
+	effects ""
+	responses "1B46D236E00" "1B46D236980" "1B46D236B80"
+	edit_position -572 241
+}
+dialog "1B46D31D080" {
+	message "Put your text here!"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 1904 47
+}
+dialog "1B46D301080" {
+	message "i dont evn know how that happens"
+	pause 1F
+	date ""
+	requirements ""
+	effects "anger + 1"
+	responses
+	edit_position 448 -437
+}
+dialog "1B46D236A80" {
+	message "it fucking exploded"
+	pause 0.6000000238F
+	date ""
+	requirements ""
+	effects "anger + 3"
+	responses "1B46D236C80"
+	edit_position 61 -165
+}
+dialog "1B46D236900" {
+	message "god dammit"
+	pause 1F
+	date ""
+	requirements ""
+	effects "anger + 1"
+	responses "1B46D2E2080"
+	edit_position 819 573
+}
+dialog "1B46D236B80" {
+	message "the ship exploded."
+	pause 0.3000000119F
+	date "2:41 PM"
+	requirements ""
+	effects ""
+	responses "1B46D236A80" "1B46D236E80"
+	edit_position -249 -161
+}
+start "1B46D236800"

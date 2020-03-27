@@ -116,7 +116,7 @@ final class DialogNode : Padding, Interactible
 			date])
 		);
 		box.addChild(new HBox([
-			new TextBox("Requirements:").withBounds(Bounds(120), Bounds.none),
+			new TextBox("Requirements:").withBounds(Bounds(120, double.infinity), Bounds.none),
 			requirements])
 		);
 		box.addChild(new HBox([
