@@ -141,13 +141,13 @@ void uiMain()
 		scrollbar.upArrow = g_ui.loadSprite("data/ui/sprites/arrow-up.png");
 		scrollbar.downArrow = g_ui.loadSprite("data/ui/sprites/arrow-down.png");
 
-		defaultFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+		defaultFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 20);
 		defaultFontColor = vec3(0.0, 0.583, 1);
 	}
 
-	Message.font = g_ui.loadFont("data/ui/fonts/averia/Averia-Bold.ttf", 20);
+	Message.font = g_ui.loadFont("data/ui/fonts/ClearSans-Bold.ttf", 20);
 
-	FontId sysFont = g_ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 14);
+	FontId sysFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 14);
 
 	/// BEGIN - Dialog initialization
 	DialogState ds;

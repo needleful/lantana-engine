@@ -37,7 +37,7 @@ int main()
 	FreeImage_Initialise(true);
 	scope(exit) FreeImage_DeInitialise();
 
-	Window ww = Window(screen_w, screen_h, "Lantana Editor");
+	Window ww = Window(screen_w, screen_h, "Dialog Editor");
 	Input ii = Input();
 	
 	auto mm = BaseRegion(MAX_MEMORY);
@@ -60,14 +60,14 @@ int main()
 		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
 
-		defaultFont = ui.loadFont("data/ui/fonts/averia/Averia-Regular.ttf", 20);
+		defaultFont = ui.loadFont("data/ui/fonts/ClearSans.ttf", 16);
 		defaultFontColor = vec3(0.0, 0.583, 1);
 
 		textInput.cursor = ui.addSinglePixel(AlphaColor(255));
 		textInput.focused = vec3(1, 0.5, 0.9);
 		textInput.normal = vec3(0.9, 0.5, 0.4);
 
-		line = ui.addSinglePixel(AlphaColor(255));
+		line = ui.addSinglePixel(color(255, 255, 255, 120));
 	}
 
 	ww.grab_mouse(false);
