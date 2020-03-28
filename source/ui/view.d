@@ -215,10 +215,15 @@ public final class UIView
 			return rect.size;
 
 		RealSize cs = root.layout(p_request);
-		root.prepareRender(ivec2(0,0));
+		prepareRender();
 
 		invalidated[ViewState.Layout] = false;
 		return cs;
+	}
+
+	public void prepareRender()
+	{
+		root.prepareRender(ivec2(0,0));
 	}
 
 	package void updateBuffers()

@@ -45,6 +45,8 @@ final class DialogNode : Padding, Interactible
 	// For dragging the window around
 	InteractibleId bar;
 
+	bool pressed;
+
 	this(UIRenderer p_ui, Dialog p_dialog = new Dialog("Put your text here!", 0, []))
 	{
 		box = new VBox([], 6);
@@ -176,17 +178,36 @@ final class DialogNode : Padding, Interactible
 	public override void focus(){}
 	public override void unfocus() 
 	{
-		tag.setColor(view.renderer.style.defaultFontColor);
+		if(pressed)
+		{
+			tag.setColor(view.renderer.style.defaultFontColor);
+			// Call layout() properly to fix anything prepareRender() missed
+			view.requestUpdate();
+			pressed = false;
+		}
 	}
 	public override void interact()
 	{
+		pressed = true;
 		tag.setColor(vec3(1));
 	}
 
 	public override void drag(ivec2 p_dragAmount)
 	{
+		if(p_dragAmount.x == 0 && p_dragAmount.y == 0)
+		{
+			return;
+		}
+		auto hb = cast(HBox)getChild();
+		// Rect widgets calculate their vertex positions in layout(),
+		// and translate those vertices in prepareRender().
+		// Because dragging skips layout(), we need to un-translate the verts
+		panel.prepareRender(-dialog.edit_position - panel.position);
+		sendButton.prepareRender(-dialog.edit_position -hb.position -sendButton.position);
+
 		position += p_dragAmount;
-		view.requestUpdate();
+		dialog.edit_position += p_dragAmount;
+		prepareRender(dialog.edit_position);
 	}
 
 	public override short priority()

@@ -198,8 +198,7 @@ public class ImageBox : RectWidget
 
 	public override void prepareRender(ivec2 p_pen) 
 	{
-		ivec2 p = ivec2(p_pen.x, p_pen.y);
-		view.translateMesh(vertices, p);
+		view.translateMesh(vertices, p_pen);
 	}
 
 	public override void setSprite(SpriteId p_sprite) 
