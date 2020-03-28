@@ -33,9 +33,6 @@ int main()
 {
 	ushort screen_w = 720;
 	ushort screen_h = 512;
-	
-	FreeImage_Initialise(true);
-	scope(exit) FreeImage_DeInitialise();
 
 	Window ww = Window(screen_w, screen_h, "Dialog Editor");
 	Input ii = Input();
