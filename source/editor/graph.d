@@ -238,7 +238,7 @@ final class DialogNode : Padding, Interactible
 
 		if(response is null)
 		{
-			auto d = new Dialog("Put your text here!", 0, []);
+			auto d = new Dialog("Put your text here!", 0.75, []);
 			d.edit_position = newResponseLine.end();
 			response = new DialogNode(view.renderer, d);
 			parent.addChild(response);

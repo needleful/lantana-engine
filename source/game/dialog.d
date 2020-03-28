@@ -55,7 +55,7 @@ public final class Dialog
 	void setRequirements(const(string) req)
 	{
 		requirements = [];
-		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[=<>!]+)\s*(?P<value>[-\d\.]+)\s*(?P<next>[,;]?)`;
+		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[=<>!]+)\s*(?P<value>[\-\d\.]+?)\s*(?P<next>[,;]?)`;
 		foreach(m; req.matchAll(rx))
 		{
 			if(m["key"].length == 0)
@@ -127,7 +127,7 @@ public final class Dialog
 	public void setEffects(string str)
 	{
 		effects = [];
-		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[+\-*/:=]+?)\s*(?P<value>[-\d\.]+?)\s*;?`;
+		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[+\-*/:=]+?)\s*(?P<value>[\-\d\.]+)\s*;?`;
 
 		foreach(m; str.matchAll(rx))
 		{
