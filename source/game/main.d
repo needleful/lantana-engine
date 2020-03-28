@@ -47,8 +47,8 @@ int main()
 	g_uiInput = new Input(input);
 	auto uiThread = spawn(&uiMain);
 
-	//AudioManager audio = AudioManager(16);
-	//audio.startMusic("data/audio/music/floating-full.ogg", 0);
+	AudioManager audio = AudioManager(16);
+	audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(MAX_MEMORY);
 	auto camera = LongRangeOrbitalCamera(vec3(0), cast(float)ws.width/ws.height, 60, vec2(20, 0));
