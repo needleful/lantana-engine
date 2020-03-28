@@ -6,12 +6,16 @@ module game.dialog;
 
 public final class Dialog
 {
+	import std.conv;
+	import std.regex;
+
 	alias Callback = void delegate(Dialog message);
 	public string message;
 	public float pauseTime;
 	public string date;
+
 	public Requirement[] requirements;
-	public string effects;
+	public Effect[] effects;
 	public Dialog[] responses;
 
 	version(lantana_editor)
@@ -40,6 +44,10 @@ public final class Dialog
 		foreach(req; requirements)
 		{
 			s ~= req.toString();
+			if(req.next != Requirement.Next.None)
+			{
+				s ~= ' ';
+			}
 		}
 		return s;
 	}
@@ -47,9 +55,7 @@ public final class Dialog
 	void setRequirements(const(string) req)
 	{
 		requirements = [];
-		import std.conv;
-		import std.regex;
-		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[=<>!]+)\s*(?P<value>[\d\.]+)\s*(?P<next>[,;]?)`;
+		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[=<>!]+)\s*(?P<value>[-\d\.]+)\s*(?P<next>[,;]?)`;
 		foreach(m; req.matchAll(rx))
 		{
 			if(m["key"].length == 0)
@@ -104,7 +110,70 @@ public final class Dialog
 		}
 	}
 
+	public string getEffects()
+	{
+		string s = "";
+		foreach(i, effect; effects)
+		{
+			s ~= effect.toString();
+			if(i < effects.length - 1)
+			{
+				s ~= "; ";
+			}
+		}
+		return s;
+	}
+
+	public void setEffects(string str)
+	{
+		effects = [];
+		static auto rx = ctRegex!`(?P<key>\S*?)\s*(?P<op>[+\-*/:=]+?)\s*(?P<value>[-\d\.]+?)\s*;?`;
+
+		foreach(m; str.matchAll(rx))
+		{
+			if(m["key"].length == 0)
+			{
+				writefln("Missing key for effect: %s", m.hit);
+				continue;
+			}
+
+			Effect.Op op;
+			float value = m["value"].to!float();
+
+			switch(m["op"])
+			{
+				case "=":
+				case ":=":
+					op = Effect.Op.Set;
+					break;
+				case "+":
+				case "+=":
+					op = Effect.Op.Add;
+					break;
+				case "-":
+				case "-=":
+					op = Effect.Op.Subtract;
+					break;
+				case "*":
+				case "*=":
+					op = Effect.Op.Multiply;
+					break;
+				case "/":
+				case "/=":
+					op = Effect.Op.Divide;
+					break;
+				default:
+					op = Effect.Op.Add;
+					writefln("WARNING: unknown op '%s' in effect: '%s'", m["op"], m.hit);
+					break;
+			}
+
+			effects ~= Effect(m["key"], op, value);
+		}
+	}
 }
+
+import std.format;
 
 struct Requirement
 {
@@ -138,9 +207,27 @@ struct Requirement
 		next = p_next;
 	}
 
+	public bool opCall(float test)
+	{
+		switch(op)
+		{
+			case Op.Equal:
+				return test == value;
+			case Op.Less:
+				return test < value;
+			case Op.Greater:
+				return test > value;
+			case Op.Geq:
+				return test >= value;
+			case Op.Leq:
+				return test <= value;
+			default:
+				return false;
+		}
+	}
+
 	public string toString()
 	{
-		import std.format;
 		string strOp, strNext;
 		switch(op)
 		{
@@ -188,6 +275,62 @@ struct Requirement
 	}
 }
 
+struct Effect
+{
+	enum Op
+	{
+		// = or :=
+		Set,
+		// + or +=
+		Add,
+		// - or -=
+		Subtract,
+		// * or *=
+		Multiply,
+		// `/` or `/=`
+		Divide
+	}
+
+	string key;
+	Op op;
+	float value;
+
+	this(string p_key, Op p_op, float p_value)
+	{
+		key = p_key;
+		op = p_op;
+		value = p_value;
+	}
+
+	public string toString()
+	{
+		string strOp;
+		switch(op)
+		{
+			case Op.Set:
+				strOp = ":=";
+				break;
+			case Op.Add:
+				strOp = "+";
+				break;
+			case Op.Subtract:
+				strOp = "-";
+				break;
+			case Op.Multiply:
+				strOp = "*";
+				break;
+			case Op.Divide:
+				strOp = "/";
+				break;
+			default:
+				writefln("WARNING: Unknown Effect Op: %s", op);
+				break;
+		}
+
+		return format("%s %s %s", key, strOp, value);
+	}
+}
+
 import std.stdio;
 import sdlang;
 
@@ -212,7 +355,7 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		map[key] = new Dialog(message, pause, [], date);
 
 		map[key].setRequirements(d.getTagValue!string("requirements", ""));
-		map[key].effects = d.getTagValue!string("effects", "");
+		map[key].setEffects(d.getTagValue!string("effects", ""));
 
 		version(lantana_editor)
 		{
@@ -290,7 +433,7 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
 				new Tag(null, "requirements", [Value(d.getRequirements())]),
-				new Tag(null, "effects", [Value(d.effects)]),
+				new Tag(null, "effects", [Value(d.getEffects())]),
 				new Tag(null, "responses", responses),
 				new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
 			]);
@@ -303,7 +446,7 @@ public void storeDialog(string p_file, Dialog p_dialog)
 				new Tag(null, "pause", [Value(d.pauseTime)]),
 				new Tag(null, "date", [Value(d.date)]),
 				new Tag(null, "requirements", [Value(d.getRequirements())]),
-				new Tag(null, "effects", [Value(d.effects)]),
+				new Tag(null, "effects", [Value(d.getEffects())]),
 				new Tag(null, "responses", responses),
 			]);
 		}

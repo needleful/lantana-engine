@@ -50,7 +50,7 @@ final class DialogButton : Button
 	public void setDialog(Dialog p_dialog)
 	{
 		dialog = p_dialog;
-		(cast(TextBox)getChild()).setText(p_dialog.message, true);
+		(cast(TextBox)getChild()).setText(p_dialog.message);
 	}
 
 	public override string toString()
@@ -97,6 +97,7 @@ struct DialogState
 	DialogButton[] buttons;
 	VBox messageBox;
 	float timer;
+	float[string] flags;
 }
 
 struct UIReady{}
@@ -157,7 +158,35 @@ void uiMain()
 
 	void dialogCallback(Dialog p_dialog)
 	{
-		assert(p_dialog.responses.length <= ds.buttons.length);
+		foreach(effect; p_dialog.effects)
+		{
+			if(effect.key !in ds.flags)
+			{
+				ds.flags[effect.key] = 0;
+			}
+			switch(effect.op)
+			{
+				case Effect.Op.Set:
+					ds.flags[effect.key] = effect.value;
+					break;
+				case Effect.Op.Add:
+					ds.flags[effect.key] += effect.value;
+					break;
+				case Effect.Op.Subtract:
+					ds.flags[effect.key] -= effect.value;
+					break;
+				case Effect.Op.Multiply:
+					ds.flags[effect.key] *= effect.value;
+					break;
+				case Effect.Op.Divide:
+					ds.flags[effect.key] /= effect.value;
+					break;
+				default:
+					writefln("WARNING: Unknown op '%s' in effect '%s'", effect.op, effect);
+					break;
+			}
+		}
+
 		ds.current = p_dialog;
 
 		if(p_dialog.date != "")
@@ -167,13 +196,54 @@ void uiMain()
 
 		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
 
-		foreach(i, resp; p_dialog.responses)
+		bool reqsMet(Dialog p_response)
 		{
-			ds.buttons[i].setVisible(true);
-			ds.buttons[i].setDialog(resp);
+			if(p_response.requirements.length == 0)
+			{
+				return true;
+			}
+			bool reqMet = true;
+			Requirement.Next rcont = Requirement.Next.None;
+			foreach(req; p_response.requirements)
+			{
+				if(req.key !in ds.flags)
+				{
+					ds.flags[req.key] = 0;
+				}
+
+				float test = ds.flags[req.key];
+				switch(rcont)
+				{
+					case Requirement.Next.None:
+						reqMet = req(test);
+						break;
+					case Requirement.Next.Or:
+						reqMet = reqMet || req(test);
+						break;
+					case Requirement.Next.And:
+						reqMet = reqMet && req(test);
+						break;
+					default:
+						writefln("WARNING: unknown continuation '%s' in requirement '%s'", rcont, req);
+						break;
+				}
+				rcont = req.next;
+			}
+			return reqMet;
 		}
 
-		for(ulong i = p_dialog.responses.length; i < ds.buttons.length; i++)
+		int setButtons = 0;
+		foreach(resp; p_dialog.responses)
+		{
+			if(reqsMet(resp))
+			{
+				ds.buttons[setButtons].setVisible(true);
+				ds.buttons[setButtons].setDialog(resp);
+				setButtons ++;
+			}
+		}
+
+		for(ulong i = setButtons; i < ds.buttons.length; i++)
 		{
 			ds.buttons[i].setVisible(false);
 		}
@@ -237,7 +307,7 @@ void uiMain()
 		g_ui.style.panel.mesh.create(g_ui));
 	/// END - Dialog initialization
 
-	TextBox frameTime = new TextBox("Getting data...", 64, vec3(0.5));
+	TextBox frameTime = new TextBox(sysFont, "Getting data...", 64, vec3(0.5));
 	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
 
 	Modal uiModal = new Modal([
@@ -262,21 +332,22 @@ void uiMain()
 			vec2(0.02,0.02),
 			vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
-
-		new Anchor(
-			new HBox([
-				//new TextBox("Frame Time\nMax\nAverage", vec3(0.5)), 
-				//frameTime
-			], 5),
-			vec2(0.99, 0.01),
-			vec2(1, 0)
-		),
+		new HodgePodge([])
 	]);
+
+	TextBox[string] debugMap;
+	VBox debugBox = new VBox([
+			new HBox([
+				new TextBox(sysFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
+				frameTime,
+			], 5),
+		], 6);
 
 	g_ui.setRootWidget(
 		new HodgePodge([
 			uiModal, 
-			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1))
+			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1)),
+			new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
 		]));
 
 	// Needs to be run after initialization
@@ -309,13 +380,30 @@ void uiMain()
 		if((ds.timer += events.delta) >= ds.current.pauseTime)
 		{
 			showDialog = true;
+			foreach(string key, float value; ds.flags)
+			{
+				if(key !in debugMap)
+				{
+					TextBox t = new TextBox(sysFont, format("%s", value), 12, vec3(0.5));
+					debugMap[key] = t;
+					debugBox.addChild(new HBox([
+							new TextBox(sysFont, key, vec3(0.5)).withBounds(Bounds(100, double.infinity), Bounds.none),
+							t
+						])
+					);
+				}
+				else
+				{
+					debugMap[key].setText(format("%s", value));
+				}
+			}
 		}
 
 		g_ui.updateInteraction(events.delta, g_uiInput);
 
 		dialogWidget.setVisible(showDialog);
 
-		//frameTime.setText(g_frameTime);
+		frameTime.setText(g_frameTime);
 		o2Text.setText(g_oxygenText);
 
 		g_ui.updateLayout();

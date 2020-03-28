@@ -64,7 +64,7 @@ final class DialogNode : Padding, Interactible
 		dialog.pauseTime = time.text.to!float();
 
 		dialog.setRequirements(cast(string)requirements.text);
-		dialog.effects = effects.text.dup();
+		dialog.setEffects(cast(string)effects.text);
 		dialog.message = message.text.dup();
 	}
 
@@ -97,9 +97,9 @@ final class DialogNode : Padding, Interactible
 
 		message = new TextInput(1024, dialog.message);
 		requirements = new TextInput(512, dialog.getRequirements());
-		effects = new TextInput(512, dialog.effects);
+		effects = new TextInput(512, dialog.getEffects());
 		date = new TextInput(64, dialog.date);
-		time = new TextInput(32, format("%.2f", dialog.pauseTime));
+		time = new TextInput(32, format("%s", dialog.pauseTime));
 
 		box.addChild(tag);
 		box.addChild(new HBox([

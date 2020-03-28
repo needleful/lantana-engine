@@ -324,11 +324,10 @@ public class TextBox: Widget
 		view.translateTextMesh(mesh, p_pen);
 	}
 
-	public void setText(string p_text, bool p_show = false) 
+	public void setText(string p_text) 
 	{
 		if(text != p_text)
 		{
-			if(p_show) writeln("Set text: "~p_text);
 			text = p_text;
 			view.requestUpdate();
 		}
