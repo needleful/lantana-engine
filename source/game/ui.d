@@ -156,6 +156,10 @@ void uiMain()
 	bool showDialog = true;
 	ds.buttons.reserve(8);
 
+	int responseCount = 0;
+	string firstDate = "3:05 AM";
+	string secondDate = "2:41 PM";
+
 	void dialogCallback(Dialog p_dialog)
 	{
 		foreach(effect; p_dialog.effects)
@@ -189,10 +193,15 @@ void uiMain()
 
 		ds.current = p_dialog;
 
-		if(p_dialog.date != "")
+		if(responseCount == 0)
 		{
-			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~p_dialog.date), Pad(10, -10, 0, 0)));
+			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~firstDate), Pad(10, -10, 0, 0)));
 		}
+		else if(responseCount == 1)
+		{
+			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~secondDate), Pad(10, -10, 0, 0)));
+		}
+		responseCount ++;
 
 		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
 

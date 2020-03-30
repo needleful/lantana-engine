@@ -12,7 +12,6 @@ public final class Dialog
 	alias Callback = void delegate(Dialog message);
 	public string message;
 	public float pauseTime;
-	public string date;
 
 	public Requirement[] requirements;
 	public Effect[] effects;
@@ -24,12 +23,11 @@ public final class Dialog
 		public ivec2 edit_position;
 	}
 
-	this(string p_message, float p_pause, Dialog[] p_responses, string p_date = "")
+	this(string p_message, float p_pause, Dialog[] p_responses)
 	{
 		pauseTime = p_pause;
 		message = p_message;
 		responses = p_responses;
-		date = p_date;
 	}
 
 	string getTag()
@@ -350,10 +348,8 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		string key = d.expectValue!string();
 		string message = d.expectTagValue!string("message");
 		float pause = d.getTagValue!float("pause", 0.75);
-		string date = d.getTagValue!string("date", "");
 
-		map[key] = new Dialog(message, pause, [], date);
-
+		map[key] = new Dialog(message, pause, []);
 		map[key].setRequirements(d.getTagValue!string("requirements", ""));
 		map[key].setEffects(d.getTagValue!string("effects", ""));
 
@@ -431,7 +427,6 @@ public void storeDialog(string p_file, Dialog p_dialog)
 			[
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
-				new Tag(null, "date", [Value(d.date)]),
 				new Tag(null, "requirements", [Value(d.getRequirements())]),
 				new Tag(null, "effects", [Value(d.getEffects())]),
 				new Tag(null, "responses", responses),
@@ -444,7 +439,6 @@ public void storeDialog(string p_file, Dialog p_dialog)
 			[
 				new Tag(null, "message", [Value(d.message)]),
 				new Tag(null, "pause", [Value(d.pauseTime)]),
-				new Tag(null, "date", [Value(d.date)]),
 				new Tag(null, "requirements", [Value(d.getRequirements())]),
 				new Tag(null, "effects", [Value(d.getEffects())]),
 				new Tag(null, "responses", responses),

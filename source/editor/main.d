@@ -66,6 +66,7 @@ int main()
 
 		line = ui.addSinglePixel(color(255, 255, 255, 120));
 	}
+	DialogNode.lineFocused = ui.addSinglePixel(color(255, 20, 20, 220));
 
 	ww.grab_mouse(false);
 

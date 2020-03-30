@@ -23,12 +23,13 @@ final class DialogNode : Padding, Interactible
 		ivec2 mousePosition;
 		MultiContainer parent;
 		DialogNode[] nodes;
+		SpriteId lineFocused;
 	}
 	Dialog dialog;
 
 	TextBox tag;
 
-	TextInput message, date, time, requirements, effects;
+	TextInput message, time, requirements, effects;
 
 	VBox box;
 	// Press this to create new responses
@@ -61,8 +62,6 @@ final class DialogNode : Padding, Interactible
 	public void updateDialog()
 	{
 		dialog.edit_position = position;
-
-		dialog.date = date.text.dup();
 		dialog.pauseTime = time.text.to!float();
 
 		dialog.setRequirements(cast(string)requirements.text);
@@ -100,17 +99,12 @@ final class DialogNode : Padding, Interactible
 		message = new TextInput(1024, dialog.message);
 		requirements = new TextInput(512, dialog.getRequirements());
 		effects = new TextInput(512, dialog.getEffects());
-		date = new TextInput(64, dialog.date);
 		time = new TextInput(32, format("%s", dialog.pauseTime));
 
 		box.addChild(tag);
 		box.addChild(new HBox([
 			new TextBox("Pause Time:").withBounds(Bounds(120), Bounds.none), 
 			time])
-		);
-		box.addChild(new HBox([
-			new TextBox("Date:").withBounds(Bounds(120), Bounds.none),
-			date])
 		);
 		box.addChild(new HBox([
 			new TextBox("Requirements:").withBounds(Bounds(120, double.infinity), Bounds.none),
@@ -175,7 +169,13 @@ final class DialogNode : Padding, Interactible
 		lines ~= line;
 	}
 
-	public override void focus(){}
+	public override void focus()
+	{
+		foreach(line; lines)
+		{
+			line.setSprite(DialogNode.lineFocused);
+		}
+	}
 	public override void unfocus() 
 	{
 		if(pressed)
@@ -184,6 +184,10 @@ final class DialogNode : Padding, Interactible
 			// Call layout() properly to fix anything prepareRender() missed
 			view.requestUpdate();
 			pressed = false;
+		}
+		foreach(line; lines)
+		{
+			line.setSprite(view.renderer.style.line);
 		}
 	}
 	public override void interact()

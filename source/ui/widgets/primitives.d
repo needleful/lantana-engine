@@ -46,4 +46,9 @@ public class Line : Widget
 		else
 			view.setLineQuad(mesh, start(), end(), thickness);
 	}
+
+	public void setSprite(SpriteId p_sprite)
+	{
+		view.setSprite(mesh, p_sprite);
+	}
 }
