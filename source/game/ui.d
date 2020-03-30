@@ -30,7 +30,7 @@ import render;
 import ui;
 
 private static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
-private static immutable(vec3) botoColor = vec3(0.2, 0.75, 0.3);
+private static immutable(vec3) bardanColor = vec3(0.2, 0.75, 0.3);
 
 final class DialogButton : Button
 {
@@ -272,7 +272,7 @@ void uiMain()
 
 	Widget[] messages;
 	string kitty = "Kitty:";
-	string boto = "Boto:";
+	string bardan = "Bardan:";
 	foreach(line; File("data/dialog.tsv", "r").byLine())
 	{
 		if(line.length == 0 || line[0] == '#')
@@ -291,7 +291,7 @@ void uiMain()
 		}
 		else
 		{
-			messages ~= new Message(boto, fields[1].dup, botoColor);
+			messages ~= new Message(bardan, fields[1].dup, bardanColor);
 		}
 	}
 

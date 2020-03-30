@@ -2,33 +2,27 @@
 
 K	this is kitty
 
-B	It works! So we can talk through this when you're on missions?
+B	I hear you. So we can talk through this when you're on missions?
 
-K	i can send messages to yo, but phones arent meant to send messages into space
+K	i can send messages to yo, but phones cant send messages into space
+K	*you
 
-K	*you 
+B	But you're recieving them now?
 
-B	Wait, so how are you receiving these?
+K	it works on the ground
+K	but once we Launch, its just the usual
 
-K	the reciever works on the ground
-
-K	but once we Launch, the only way to send messages to us is by central command.
-
-B	So once you're in space, you won't see any of these...
+B	So when you're in space, you won't see any of these
 
 K	Yeah.
-
 K	but i can send them. the transmitter's strong enough
 
 B	That sucks.
+B	Don't get me wrong, I'm extremely happy you can send updates
+B	But you know. It's two steps forward, one step back.
 
-B	I mean, it's nice that you can send updates,
-
-B	But you know.
-
-K	if it makes you feel better, you can e-mail cencom and th3'
-
-K	they'll pass it along with their usual payload
+K	you can still email cencom and th3'
+K	they'll pass it along
 
 B	TH3?
 
@@ -36,31 +30,45 @@ K	sorry, my fingers slipped
 K	that was "they'll"
 
 B	lol
-
-B	I thought there was some new, secret organization you were just casually dropping on me.
+B	I thought you were name-dropping some secret organization.
 
 K	haha
 K	its my spy network
 K	they;l hook you up
 
-B	To be honest, that'd be better than going through Cencom.
+B	That'd be better than going through Cencom, tbh.
 
-B	Those guys didn't keep me in the loop before, so who knows how often they'd send messages for long missions.
+K	theyre not so bad
 
-K	you've got a point.  they could be slow to pass it on.
+B	They are. You know they are.
+
+K	we should talk about this in private
+
+B	Private? Can Cencom read these or something?
+
+K	probably??
+
+B	Ah hell. Sorry. Talk to you later.
+
 
 %	sent July 2, 641
 
-K	see yu
+K	see yu in hell, gator
 
-B	Yea, good luck.
+B	Hope you fly straight into the sun ;P
+B	Good luck. I love you.
+
+K	love you too
+K	launching now
+K	we're landing in 4 hours. see you soon
+
+
+%	sent July 15, 641
+
+
+
 
 %	sent August 21, 641
-
-B	This mission's your longest ever, right?
-
-K	yea
-K	3 months
 
 B	I know you can do it
 B	Keep me posted, OK?

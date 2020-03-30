@@ -89,7 +89,7 @@ dialog "1E74BCEBC80" {
 	edit_position 719 -361
 }
 dialog "1E74BCEBF00" {
-	message "Boto. The ship exploded."
+	message "Bardan. The ship exploded."
 	pause 0F
 	date ""
 	requirements ""
@@ -188,7 +188,7 @@ dialog "1E74BCF8400" {
 	edit_position 1544 -322
 }
 dialog "1E74BCF8100" {
-	message "Hi Boto"
+	message "Hi Bardan"
 	pause 0.3000000119F
 	date "2:41 PM"
 	requirements ""
