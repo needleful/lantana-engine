@@ -1,0 +1,289 @@
+dialog "163E27FC780" {
+	message "hope your safe right now"
+	pause 1F
+	date ""
+	requirements ""
+	effects "anger - 3; fear - 1"
+	responses "163E27EB880" "163E27EB900"
+	edit_position 95 210
+}
+dialog "163E27FC400" {
+	message "thinking of you"
+	pause 2F
+	date "3:05 AM"
+	requirements ""
+	effects ""
+	responses "163E27EBE00" "163E27EBD00" "163E27FC100"
+	edit_position -1030 220
+}
+dialog "163E27EBF00" {
+	message "*know"
+	pause 3F
+	date ""
+	requirements "anger < 4"
+	effects "fear - 1; anger - 1"
+	responses "163E27FC280" "163E27EBB80"
+	edit_position 2514 342
+}
+dialog "163E27EBC80" {
+	message "its fine."
+	pause 2F
+	date ""
+	requirements ""
+	effects "anger - 0.5"
+	responses "163E27EB980"
+	edit_position -121 -375
+}
+dialog "163E27FC580" {
+	message "im not hurt. im sort of just floating in space"
+	pause 0.8000000119F
+	date ""
+	requirements ""
+	effects "anger - 1; fear - 1"
+	responses "163E27EBB80" "163E27EBE80"
+	edit_position 2201 -425
+}
+dialog "163E27FC700" {
+	message "i think the engine went critical"
+	pause 0.400000006F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27FC680" "163E27FC580"
+	edit_position 1581 -422
+}
+dialog "163E27EBA80" {
+	message "there was a problem"
+	pause 2F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EB900"
+	edit_position 676 -108
+}
+dialog "163E27EBB80" {
+	message "im scared"
+	pause 0.1000000015F
+	date ""
+	requirements ""
+	effects "fear + 3"
+	responses "163E27EBD80" "163E27FC480"
+	edit_position 2930 135
+}
+dialog "163E27FC000" {
+	message "Put your text here!"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 2362 -17
+}
+dialog "163E27EBB00" {
+	message "i dont knwo what to do now"
+	pause 0.200000003F
+	date ""
+	requirements ""
+	effects "fear + 2; anger + 1"
+	responses "163E27EBB80" "163E27EBF00" "163E27EBE80"
+	edit_position 2195 211
+}
+dialog "163E27EB900" {
+	message "the ship exploded"
+	pause 0.5F
+	date ""
+	requirements ""
+	effects "fear + 1"
+	responses "163E27FC600" "163E27FC700"
+	edit_position 1092 -157
+}
+dialog "163E27EBE00" {
+	message "hey"
+	pause 0.8000000119F
+	date "2:41 PM"
+	requirements ""
+	effects ""
+	responses "163E27FC780" "163E27FC380"
+	edit_position -688 166
+}
+dialog "163E27FC200" {
+	message "i just dont have aything better to do"
+	pause 0.75F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 3567 34
+}
+dialog "163E27FC680" {
+	message "i dont evn know how that happens"
+	pause 1F
+	date ""
+	requirements ""
+	effects "anger + 1"
+	responses "163E27EBB00" "163E27FC000"
+	edit_position 1883 -160
+}
+dialog "163E27EBD00" {
+	message "Hi Bardan"
+	pause 0.3000000119F
+	date "2:41 PM"
+	requirements ""
+	effects ""
+	responses "163E27EB980" "163E27FC380" "163E27FC780"
+	edit_position -710 433
+}
+dialog "163E27EB980" {
+	message "i just wanted to say"
+	pause 1F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EBA00" "163E27EBA80"
+	edit_position 318 -308
+}
+dialog "163E27FC080" {
+	message "Bardan. The ship exploded."
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27FC700" "163E27EBB00"
+	edit_position 1042 -550
+}
+dialog "163E27FC380" {
+	message "how are you?"
+	pause 2F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EB800" "163E27EB880"
+	edit_position 93 518
+}
+dialog "163E27EBC00" {
+	message "make something that can send messages to space??"
+	pause 0.75F
+	date ""
+	requirements ""
+	effects "anger + 1.2"
+	responses "163E27FC300" "163E27EBF80"
+	edit_position 1336 677
+}
+dialog "163E27FC280" {
+	message "i don;t know why i thought fixing a typo was important"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27FC200"
+	edit_position 3034 372
+}
+dialog "163E27FC300" {
+	message "or just give you a Cencom email, or let you use my emali"
+	pause 0.5500000119F
+	date ""
+	requirements ""
+	effects "anger + 1"
+	responses "163E27EBF80"
+	edit_position 1640 680
+}
+dialog "163E27EBD80" {
+	message "im just helpless"
+	pause 0F
+	date ""
+	requirements ""
+	effects ""
+	responses
+	edit_position 3582 298
+}
+dialog "163E27EBE80" {
+	message "how the fuck does thes even happen on a moder n god dam space ship?"
+	pause 2F
+	date ""
+	requirements ""
+	effects "anger + 3"
+	responses "163E27FC480"
+	edit_position 2817 -258
+}
+dialog "163E27EB880" {
+	message "im not doing so hot"
+	pause 0.200000003F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EB900" "163E27EBC80"
+	edit_position 664 -329
+}
+dialog "163E27FC480" {
+	message "im sorry. i shouldnt just blow up your phone freaking out"
+	pause 0.75F
+	date ""
+	requirements "fear < 5"
+	effects "fear - 1"
+	responses "163E27FC200"
+	edit_position 3195 -19
+}
+dialog "163E27FC600" {
+	message "it fucking exploded"
+	pause 0.6000000238F
+	date ""
+	requirements ""
+	effects "anger + 3"
+	responses "163E27EBB00"
+	edit_position 1728 333
+}
+dialog "163E27FC100" {
+	message "the ship exploded."
+	pause 0.3000000119F
+	date "2:41 PM"
+	requirements ""
+	effects "fear + 2"
+	responses "163E27FC600" "163E27FC700"
+	edit_position -686 -174
+}
+dialog "163E27FC500" {
+	message "god dammit"
+	pause 0.3000000119F
+	date ""
+	requirements ""
+	effects "anger + 1"
+	responses "163E27FC180" "163E27EB980"
+	edit_position 819 573
+}
+dialog "163E27EB800" {
+	message "wait you can't send replies when i;m in space"
+	pause 4F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27FC500" "163E27EBC80"
+	edit_position 431 525
+}
+dialog "163E27FC180" {
+	message "why cant they jyst "
+	pause 0.200000003F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EBC00"
+	edit_position 1111 585
+}
+dialog "163E27EBA00" {
+	message "I love you."
+	pause 0.8000000119F
+	date ""
+	requirements ""
+	effects "anger - 2; fear - 1"
+	responses "163E27FC080"
+	edit_position 659 -549
+}
+dialog "163E27EBF80" {
+	message "whatever. its beside the point"
+	pause 0.349999994F
+	date ""
+	requirements ""
+	effects ""
+	responses "163E27EB980"
+	edit_position 640 269
+}
+start "163E27FC400"
