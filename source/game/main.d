@@ -79,7 +79,7 @@ int main()
 
 	auto playerMesh = anim.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
 	auto pInstance = mainMem.makeList!(AnimMesh.Instance)(1);
-	pInstance[0] = AnimMesh.Instance(playerMesh, Transform(1, vec3(0, 0, 0), vec3(0, -40, 180)), mainMem);
+	pInstance[0] = AnimMesh.Instance(playerMesh, Transform(1, vec3(0), vec3(0, -40, 180)), mainMem);
 	pInstance[0].play("Idle", true);
 
 
