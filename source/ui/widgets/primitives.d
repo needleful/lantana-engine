@@ -41,6 +41,9 @@ public class Line : Widget
 
 	public override void prepareRender(ivec2 p_pen)
 	{
-		view.setLineQuad(mesh, start(), end(), thickness);
+		if(!isVisible())
+			view.setLineQuad(mesh, start(), start(), 0);
+		else
+			view.setLineQuad(mesh, start(), end(), thickness);
 	}
 }

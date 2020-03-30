@@ -222,16 +222,26 @@ final class DialogNode : Padding, Interactible
 
 	public void createResponseStart()
 	{
-		newResponseLine = new Line(
-			Thunk!ivec2(()
+		if(newResponseLine is null)
+		{
+			newResponseLine = new Line(
+				Thunk!ivec2(()
+				{
+					return lineStart;
+				}),
+				Thunk!ivec2(()
+				{
+					return mousePosition - view.getTranslation();
+				}));
+		}
+		else
+		{
+			newResponseLine.start = Thunk!ivec2(()
 			{
 				return lineStart;
-			}),
-			Thunk!ivec2(()
-			{
-				return mousePosition - view.getTranslation();
-			}));
-
+			});
+			newResponseLine.setVisible(true);
+		}
 		if(view)
 		{
 			newResponseLine.initialize(view.renderer, view);
@@ -243,7 +253,6 @@ final class DialogNode : Padding, Interactible
 
 	public void createResponseEnd()
 	{
-
 		DialogNode response = null;
 		InteractibleId focus;
 		if(view.getFocusedObject(mousePosition, focus, priority()))
@@ -255,6 +264,14 @@ final class DialogNode : Padding, Interactible
 				import std.stdio : writeln;
 				writeln("Adding to existing dialogNode: %s", response.dialog.getTag());
 			}
+		}
+
+		if(response is this)
+		{
+			newResponseLine.setVisible(false);
+			newResponseLine.prepareRender(ivec2(0));
+			lines = lines[0..$-1];
+			return;
 		}
 
 		if(response is null)
@@ -269,5 +286,7 @@ final class DialogNode : Padding, Interactible
 		dialog.responses ~= response.dialog;
 		newResponseLine.end = Thunk!ivec2(&response.lineEnd);
 		newResponseLine.prepareRender(ivec2(0));
+
+		newResponseLine = null;
 	}
 }
