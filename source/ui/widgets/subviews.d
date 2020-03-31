@@ -293,6 +293,15 @@ public final class Modal : Widget
 		views[currentMode].setVisible(true);
 	}
 
+	public void addMode(Widget w)
+	{
+		UIView v = view.addView(Rect(ivec2(0,0), view.renderer.getSize()));
+		v.setVisible(false);
+		v.setRootWidget(w);
+		widgets ~= w;
+		views ~= v;
+	}
+
 	public override RealSize layout(SizeRequest p_request) 
 	{
 		if(!visible || p_request == SizeRequest.hide)

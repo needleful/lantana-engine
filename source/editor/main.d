@@ -70,35 +70,64 @@ int main()
 
 	ww.grab_mouse(false);
 
-	Widget[] nodes;
+	string dialogFile = "";
+	Dialog start;
 
-	string start_;
-	auto dmap = loadDialog("data/dialog_edit.sdl", start_);
-	Dialog start = dmap[start_];
-	writeln("start: ", start.getTag());
-
-	DialogNode[Dialog] nodeMap;
-
-	foreach(dialog; dmap)
+	void loadEditor(string p_dialog)
 	{
-		auto node = new DialogNode(ui, dialog);
-		nodes ~= node;
-		nodeMap[dialog] = node;
-	}
+		Widget[] nodes;
+		dialogFile = p_dialog;
+		string start_;
+		auto dmap = loadDialog(dialogFile, start_);
 
-	foreach(node; nodeMap)
-	{	
-		foreach(response; node.getDialog().responses)
+		DialogNode[Dialog] nodeMap;
+
+		foreach(dialog; dmap)
 		{
-			node.addResponse(nodeMap[response]);
+			auto node = new DialogNode(ui, dialog);
+			nodes ~= node;
+			nodeMap[dialog] = node;
 		}
+
+		foreach(node; nodeMap)
+		{	
+			foreach(response; node.getDialog().responses)
+			{
+				node.addResponse(nodeMap[response]);
+			}
+		}
+
+		auto panned = new Panned(nodes);
+		DialogNode.parent = panned.container;
+
+		ui.setRootWidget(panned);
+
+		start = dmap[start_];
 	}
 
-	auto panned = new Panned(nodes);
-	DialogNode.parent = panned.container;
-	ui.setRootWidget(panned);
+	Widget loadBox;
+	{
+		string[] files = [
+			"data/dialog.sdl",
+			"data/outline.sdl"
+		];
+
+		Widget[] buttons;
+		buttons.reserve(files.length);
+		foreach(file; files)
+		{
+			buttons ~= new Button(ui, new TextBox(file), 
+				(Widget)
+				{
+					loadEditor(file);
+				}
+			).withBounds(Bounds(120, double.infinity), Bounds.none);
+		}
+		loadBox = new Anchor(new VBox(buttons, 8), vec2(0.01, 0.5), vec2(0, 0));
+	}
 
 	ui.initialize();
+	ui.setRootWidget(loadBox);
 
 	int frame = 0;
 	SDL_StartTextInput();
@@ -113,13 +142,15 @@ int main()
 			ui.setSize(ww.getSize());
 		}
 
-		if(ii.keyboard.isJustPressed(SDL_SCANCODE_S) && ii.keyboard.isPressed(SDL_SCANCODE_LCTRL))
+		if(ii.keyboard.isJustPressed(SDL_SCANCODE_S) 
+			&& ii.keyboard.isPressed(SDL_SCANCODE_LCTRL)
+			&& dialogFile != "")
 		{
 			foreach(node; DialogNode.nodes)
 			{
 				node.updateDialog();
 			}
-			storeDialog("data/dialog_edit.sdl", start);
+			storeDialog(dialogFile, start);
 		}
 
 		ui.updateInteraction(delta, &ii);
@@ -134,3 +165,4 @@ int main()
 	
 	return 0;
 }
+

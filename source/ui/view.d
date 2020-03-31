@@ -343,6 +343,10 @@ public final class UIView
 		UIView v = new UIView(this, p_rect);
 		renderer.views ~= v;
 		children ~= v;
+		if(renderer.initialized)
+		{
+			v.initBuffers();
+		}
 		return v;
 	}
 
@@ -1116,5 +1120,8 @@ public final class UIView
 		elemText.clear();
 		vertpos.clear();
 		uvs.clear();
+		interactibles.clear();
+		interactAreas.clear();
+		invalidated.setAll();
 	}
 }

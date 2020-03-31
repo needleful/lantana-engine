@@ -86,9 +86,9 @@ public class Button: MultiContainer, Interactible
 
 	public override void unfocus()
 	{
+		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 		if(pressed) onReleased(this);
 		pressed = false;
-		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 	}
 
 	public override void drag(ivec2 p_drag) 

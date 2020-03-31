@@ -24,7 +24,7 @@ void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 	emplace!(Type, A)(&list[index], args);
 }
 
-void clear(Type)(Type[] list) nothrow @safe
+void clear(Type)(ref Type[] list) nothrow @safe
 {
 	list.length = 0;
 }

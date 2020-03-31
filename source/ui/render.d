@@ -29,9 +29,7 @@ import ui.widgets;
 
 struct SpriteId
 {
-	// Limited to 255 sprites.
-	// This is meant for UI, not a 2D game.
-	mixin StrictAlias!ubyte;
+	mixin StrictAlias!ushort;
 }
 
 struct FontId
@@ -75,6 +73,8 @@ public final class UIRenderer
 	/++++++++++++++++++++++++++++++++++++++
 		UI Objects and State
 	+++++++++++++++++++++++++++++++++++++++/
+
+	package bool initialized;
 
 	Bitfield!AtlasState invalidated;
 
@@ -211,6 +211,7 @@ public final class UIRenderer
 		{
 			view.initBuffers();
 		}
+		initialized = true;
 	}
 
 	public void render() 
@@ -396,11 +397,13 @@ public final class UIRenderer
 
 	public void setRootWidget(Widget p_root)
 	{
+		focused = null;
 		views[0].setRootWidget(p_root);
 	}
 
 	public void setRootWidgets(Widget[] p_widgets)
 	{
+		focused = null;
 		views[0].setRootWidget(new HodgePodge(p_widgets));
 	}
 

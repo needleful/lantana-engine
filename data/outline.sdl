@@ -1,0 +1,9 @@
+dialog "281EFA60360" {
+	message "What do we need to establish?\n- Bardan's relationship with Kitty \n- Uhh..."
+	pause 0.75F
+	requirements "start = 0"
+	effects ""
+	responses
+	edit_position 3 290
+}
+start "281EFA60360"
