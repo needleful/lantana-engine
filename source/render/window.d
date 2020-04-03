@@ -75,7 +75,7 @@ struct Window
 
 		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		//SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -130,8 +130,7 @@ struct Window
 		glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
-		// Frame color is irrelevant, since it should never be seen in normal execution
-		glClearColor(0, 0, 0, 1);
+		glClearColor(0, 0, 0, 0);
 		glClearDepth(1.0f);
 
 		assert(glGetError() == GL_NO_ERROR);

@@ -26,6 +26,7 @@ import gl3n.linalg;
 
 import logic;
 import render;
+import render.buffer;
 
 import ui;
 
@@ -135,7 +136,9 @@ int main()
 
 	int runningFrame = 1;
 	float time_accum = 0;
+	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/buffer.frag", ws);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
+
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
@@ -147,6 +150,7 @@ int main()
 		{
 			ws = window.getSize();
 			camera.setProjection(cast(float)ws.width/ws.height, 60);
+			scene3D.resize(ws);
 		}
 
 		if(input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
@@ -162,10 +166,10 @@ int main()
 		velCamRot *= dampCamRot;
 		vec2 camRot = velCamRot*cam_speed*delta;
 		camRot.y *= -1;
+
 		camera.rotateDegrees(camRot);
-
 		window.begin_frame!false();
-
+		scene3D.bind();
 			float distance = camera.distance;
 			camera.distance = 0;
 			skyUni.projection = camera.vp();
@@ -185,30 +189,31 @@ int main()
 			sInstance[0].transform.translate(delta*shipVel);
 
 			sMesh.render(sGlobals, lights.palette, sInstance);
+		scene3D.unbind();
+		scene3D.render();
 
+		UIReady _ = receiveOnly!UIReady();
+		//g_ui.render();
 
-			UIReady _ = receiveOnly!UIReady();
-			g_ui.render();
+		time_accum += delta;
+		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
+		accumDelta_ms += delta_ms;
 
-			time_accum += delta;
-			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
-			accumDelta_ms += delta_ms;
+		g_oxygen -= g_oxygenDrain*delta;
 
-			g_oxygen -= g_oxygenDrain*delta;
+		if(time_accum >= 2.75)
+		{
+			g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
+			g_oxygenText = format(oxygenFormat, g_oxygen);
 
-			if(time_accum >= 2.75)
-			{
-				g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
-				g_oxygenText = format(oxygenFormat, g_oxygen);
+			runningMaxDelta_ms = delta_ms;
+			accumDelta_ms = delta_ms;
+			runningFrame = 1;
+			time_accum = 0;
+		}
 
-				runningMaxDelta_ms = delta_ms;
-				accumDelta_ms = delta_ms;
-				runningFrame = 1;
-				time_accum = 0;
-			}
-
-			g_uiInput.apply(input);
-			uiThread.send(UIEvents(delta, window.state, window.getSize()));
+		g_uiInput.apply(input);
+		uiThread.send(UIEvents(delta, window.state, window.getSize()));
 
 		window.end_frame();
 

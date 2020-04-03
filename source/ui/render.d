@@ -154,8 +154,8 @@ public final class UIRenderer
 
 	enum atlasSizeText = 256;
 	enum atlasSizeSprite = 512;
-	package TextureAtlas!(GlyphId, ubyte) atlasText;
-	package TextureAtlas!(SpriteId, AlphaColor) atlasSprite;
+	public TextureAtlas!(GlyphId, ubyte) atlasText;
+	public TextureAtlas!(SpriteId, AlphaColor) atlasSprite;
 
 	package SpriteId.dt spriteCount;
 
