@@ -130,7 +130,8 @@ struct Window
 		glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
-		glClearColor(0, 0, 0, 0);
+		// Frame color is irrelevant, since it should never be seen in normal execution
+		glClearColor(0, 0, 0, 1);
 		glClearDepth(1.0f);
 
 		assert(glGetError() == GL_NO_ERROR);

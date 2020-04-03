@@ -140,7 +140,7 @@ public final class UIView
 	package Rect rect;
 
 	// Translate the root item against the rectangle
-	private ivec2 translation;
+	package ivec2 translation;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -328,6 +328,7 @@ public final class UIView
 
 			renderer.matText.setUniform(renderer.uniText.translation, textRect.pos);
 			renderer.matText.setUniform(renderer.uniText.color, tm.color);
+			//assert(tm.color.y > 0, "uniforms not properly set on this one");
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -383,13 +384,6 @@ public final class UIView
 	public void translate(ivec2 mov) 
 	{
 		translation += mov;
-		renderer.invalidated[RenderState.FrameBuffer] = true;
-	}
-
-	public void setTranslation(ivec2 trans)
-	{
-		translation = trans;
-		renderer.invalidated[RenderState.FrameBuffer] = true;
 	}
 
 	public ivec2 getTranslation()
