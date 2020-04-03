@@ -46,8 +46,6 @@ final class DialogNode : Padding, Interactible
 	// For dragging the window around
 	InteractibleId bar;
 
-	bool pressed;
-
 	this(UIRenderer p_ui, Dialog p_dialog = new Dialog("Put your text here!", 0, []))
 	{
 		box = new VBox([], 6);
@@ -178,13 +176,6 @@ final class DialogNode : Padding, Interactible
 	}
 	public override void unfocus() 
 	{
-		if(pressed)
-		{
-			tag.setColor(view.renderer.style.defaultFontColor);
-			// Call layout() properly to fix anything prepareRender() missed
-			view.requestUpdate();
-			pressed = false;
-		}
 		foreach(line; lines)
 		{
 			line.setSprite(view.renderer.style.line);
@@ -192,8 +183,13 @@ final class DialogNode : Padding, Interactible
 	}
 	public override void interact()
 	{
-		pressed = true;
 		tag.setColor(vec3(1));
+	}
+	public override void release()
+	{
+		tag.setColor(view.renderer.style.defaultFontColor);
+		// Call layout() properly to fix anything prepareRender() missed
+		view.requestUpdate();
 	}
 
 	public override void drag(ivec2 p_dragAmount)

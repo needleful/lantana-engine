@@ -48,6 +48,13 @@ public final class Scrolled : Widget
 		{
 			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
 		}
+		public override void release()
+		{
+			if(pan)
+				parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
+			else
+				parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
+		}
 		public override short priority() 
 		{
 			return m_priority;
@@ -262,6 +269,7 @@ public class Panned : Widget, Interactible
 	public override void interact() {}
 	public override void unfocus() {}
 	public override void focus() {}
+	public override void release() {}
 }
 public final class Modal : Widget
 {

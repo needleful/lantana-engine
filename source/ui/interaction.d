@@ -17,6 +17,8 @@ public interface Interactible
 
 	public void unfocus();
 
+	public void release();
+
 	public void interact();
 
 	public void drag(ivec2 p_dragAmount);

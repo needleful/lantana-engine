@@ -249,7 +249,7 @@ public final class UIRenderer
 	public void updateInteraction(float delta, Input* p_input)
 	{
 		Interactible newFocus = null;
-		if(!focused)
+		if(!p_input.isClicked(Input.Mouse.Left))
 		{
 			foreach(view; views)
 			{
@@ -267,10 +267,11 @@ public final class UIRenderer
 					}
 				}
 			}
-			if(newFocus)
+			if(newFocus !is focused)
 			{
+				if(focused) focused.unfocus();
 				focused = newFocus;
-				focused.focus();
+				if(focused) focused.focus();
 			}
 		}
 
@@ -289,10 +290,9 @@ public final class UIRenderer
 				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, - cast(int) p_input.mouse_movement.y);
 				focused.drag(drag);
 			}
-			else if(!newFocus || p_input.isJustReleased(Input.Mouse.Left))
+			else if(p_input.isJustReleased(Input.Mouse.Left))
 			{
-				focused.unfocus();
-				focused = null;
+				focused.release();
 			}
 		}
 
