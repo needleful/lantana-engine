@@ -58,12 +58,10 @@ struct GlyphId
 	}
 }
 
-package enum RenderState
+package enum AtlasState
 {
-	TextAtlas,
-	SpriteAtlas,
-	FrameBuffer,
-	FrameBufferSize
+	Text,
+	Sprite,
 }
 
 
@@ -78,7 +76,7 @@ public final class UIRenderer
 
 	package bool initialized;
 
-	Bitfield!RenderState invalidated;
+	Bitfield!AtlasState invalidated;
 
 	package UIView[] views;
 
@@ -117,41 +115,8 @@ public final class UIRenderer
 	// How many founts are loaded
 	package FontId.dt fontCount;
 
-
 	/++++++++++++++++++++++++++++++++++++++
-		UI Framebuffer OpenGL data
-	+++++++++++++++++++++++++++++++++++++++/
-
-	// UI Frame buffer
-	private GLuint uiRenderBuffer, uiRenderTexture;
-	private Attr!Vert atrRenderTarget;
-	private Material uiRenderMaterial;
-	private UniformId uiRenderTextureUniform;
-
-	// The quad for rendering
-	private static immutable(ubyte[6]) uiRenderElems = [
-		0, 1, 2
-	];
-	private static immutable(vec2[4]) uiRenderVertices = [
-		vec2(-1,-2),
-		vec2( 3, 0),
-		vec2(-1, 2)
-	];
-	private static immutable(vec2[4]) uiRenderUVs = [
-		vec2(0, -0.5),
-		vec2(2, 0.5),
-		vec2(0, 1.5)
-	];
-
-	/// 0: elements
-	/// 1: vertices
-	/// 2: UVs
-	private GLuint[3] uiRenderVBO;
-	private GLuint uiRenderVAO;
-
-
-	/++++++++++++++++++++++++++++++++++++++
-		Other OpenGL data
+		OpenGL data
 	+++++++++++++++++++++++++++++++++++++++/
 
 	private struct Vert
@@ -210,7 +175,6 @@ public final class UIRenderer
 		fonts.reserve(5);
 
 		initMaterials();
-		initFramebuffer();
 
 		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeSprite));
 		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText));
@@ -232,10 +196,6 @@ public final class UIRenderer
 			FT_Done_Face(face);
 		}
 		FT_Done_FreeType(fontLibrary);
-
-		glDeleteFramebuffers(1, &uiRenderBuffer);
-		glDeleteBuffers(uiRenderVBO.length, uiRenderVBO.ptr);
-		glDeleteVertexArrays(1, &uiRenderVAO);
 	}
 
 	public void updateLayout()
@@ -256,78 +216,34 @@ public final class UIRenderer
 
 	public void render() 
 	{
-		int buffersChanged = 0;
 		foreach(view; views)
 		{
-			buffersChanged += view.updateBuffers();
+			view.updateBuffers();
 		}
-		if(buffersChanged > 0)
-		{
-			invalidated[RenderState.FrameBuffer] = true;
-		}
-
-		if(invalidated[RenderState.SpriteAtlas])
-		{
+		
+		if(invalidated[AtlasState.Sprite])
 			atlasSprite.reload();
-			invalidated[RenderState.FrameBuffer] = true;
-		}
 
-		if(invalidated[RenderState.TextAtlas])
-		{
+		if(invalidated[AtlasState.Text])
 			atlasText.reload();
-			invalidated[RenderState.FrameBuffer] = true;
-		}
-
-		if(invalidated[RenderState.FrameBufferSize])
-		{
-			updateRenderTarget();
-		}
-
-		glEnable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		if(invalidated[RenderState.FrameBuffer])
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
-
-			glClearColor(0,0,0,0);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glEnable(GL_SCISSOR_TEST);
-			foreach(v; views)
-			{
-				if(v.isVisible())
-				{
-					v.render(windowSize);
-				}
-			}
-			glDisable(GL_SCISSOR_TEST);
-
-			glcheck();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		uiRenderMaterial.enable();
-
-		glBindVertexArray(uiRenderVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-		uiRenderMaterial.setUniform(uiRenderTextureUniform, 0);
-
-		glDrawElements(
-			GL_TRIANGLES,
-			cast(int) uiRenderElems.length,
-			GL_UNSIGNED_BYTE,
-			cast(void*) 0);
-
-		glcheck();
-		glEnable(GL_CULL_FACE);
 
 		invalidated.clear();
+
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_SCISSOR_TEST);
+		foreach(v; views)
+		{
+			if(v.isVisible())
+			{
+				v.render(windowSize);
+			}
+		}
+		glDisable(GL_SCISSOR_TEST);
+		glEnable(GL_CULL_FACE);
+
 	}
 
 	public void updateInteraction(float delta, Input* p_input)
@@ -505,13 +421,8 @@ public final class UIRenderer
 
 	public void setSize(RealSize p_size) 
 	{
-		if(windowSize == p_size)
-		{
-			return;
-		}
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
-		invalidated[RenderState.FrameBufferSize] = true;
 	}
 
 	public RealSize getSize() 
@@ -545,7 +456,7 @@ public final class UIRenderer
 			else return SpriteId(0);
 		}
 
-		invalidated[RenderState.SpriteAtlas] = true;
+		invalidated[AtlasState.Sprite] = true;
 
 		return id;
 	}
@@ -630,93 +541,66 @@ public final class UIRenderer
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
-		private and package methods
+		public methods -- debug
 	+++++++++++++++++++++++++++++++++++++++/
-	private void initFramebuffer()
+
+	/// Renders the sprite and text atlases.
+	/// It also puts the renderer in an invalid state,
+	/// so only render this once.
+	debug public void debugRender()
 	{
-		initRenderTarget();
+		glcheck();
+		// We'll just render the atlases as quads
+		views[0].uvs.length = 8;
+		views[0].vertpos.length = 8;
+
+		views[0].uvs[0..$] = [
+			vec2(0,0),
+			vec2(0,1),
+			vec2(1,0),
+			vec2(1,1),
+
+			vec2(0,0),
+			vec2(0,1),
+			vec2(1,0),
+			vec2(1,1)
+		];
+
+		views[0].vertpos[0..$] = [
+			ivec2(0, 0),
+			ivec2(0, 256),
+			ivec2(256, 0),
+			ivec2(256, 256),
+
+			ivec2(256, 256),
+			ivec2(256, 256+1024),
+			ivec2(256+1024, 256),
+			ivec2(256+1024, 256+1024)
+		];
+
+		views[0].elemText.length = 6;
+		views[0].elemSprite.length = 6;
+
+		views[0].elemText[0..$] = [
+			0, 2, 1,
+			1, 2, 3
+		];
+
+		views[0].elemSprite[0..$] = [
+			4, 6, 5,
+			5, 6, 7
+		];
+		views[0].invalidated.setAll();
+		views[0].updateBuffers();
+
 		glcheck();
 
-		// Create VBO
-		glGenBuffers(uiRenderVBO.length, uiRenderVBO.ptr);
-		glGenVertexArrays(1, &uiRenderVAO);
-		glBindVertexArray(uiRenderVAO);
-
-		atrRenderTarget.enable();
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uiRenderVBO[0]);
-
-		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[1]);
-		glVertexAttribPointer(
-			atrRenderTarget.position,
-			2, GL_FLOAT,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[2]);
-		glVertexAttribPointer(
-			atrRenderTarget.uv,
-			2, GL_FLOAT,
-			GL_FALSE,
-			0,
-			cast(void*) 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uiRenderVBO[0]);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			uiRenderElems.length*ubyte.sizeof,
-			uiRenderElems.ptr,
-			GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[1]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			uiRenderVertices.length*vec2.sizeof,
-			uiRenderVertices.ptr,
-			GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[2]);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			uiRenderUVs.length*vec2.sizeof,
-			uiRenderUVs.ptr,
-			GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-
-		atrRenderTarget.disable();
-
-		glcheck();
+		render();
 	}
 
-	private void initRenderTarget()
-	{
-		glGenFramebuffers(1, &uiRenderBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
-
-		glGenTextures(1, &uiRenderTexture);
-		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-		assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		invalidated[RenderState.FrameBuffer] = true;
-	}
-
-	private void updateRenderTarget()
-	{
-		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-		invalidated[RenderState.FrameBuffer] = true;
-	}
+	/++++++++++++++++++++++++++++++++++++++
+		package methods
+	+++++++++++++++++++++++++++++++++++++++/
 
 	package void initMaterials()
 	{
@@ -739,8 +623,6 @@ public final class UIRenderer
 			compileShader("data/shaders/text2d.frag", GL_FRAGMENT_SHADER);
 		GLuint fragSprite = 
 			compileShader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
-		GLuint vertFrame =
-			 compileShader("data/shaders/uiRender.vert", GL_VERTEX_SHADER);
 
 		matText = _build(vert2d, fragText);
 		atrText = Attr!Vert(matText);
@@ -756,10 +638,6 @@ public final class UIRenderer
 		uniSprite.cam_resolution = matSprite.getUniformId("cam_resolution");
 		uniSprite.translation = matSprite.getUniformId("translation");
 		uniSprite.in_tex = matSprite.getUniformId("in_tex");
-
-		uiRenderMaterial = _build(vertFrame, fragSprite);
-		atrRenderTarget = Attr!Vert(uiRenderMaterial);
-		uiRenderTextureUniform = uiRenderMaterial.getUniformId("in_tex");
 
 		glDisable(GL_BLEND);
 		glcheck();

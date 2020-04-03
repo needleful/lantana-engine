@@ -138,8 +138,6 @@ int main()
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 	while(!window.state[WindowState.CLOSED])
 	{
-		assert(glDeleteTextures !is null);
-		assert(glDeleteFramebuffers !is null);
 		float delta_ms = window.delta_ms();
 		delta = g_timescale*delta_ms/1000.0;
 	

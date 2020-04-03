@@ -140,7 +140,7 @@ public final class UIView
 	package Rect rect;
 
 	// Translate the root item against the rectangle
-	private ivec2 translation;
+	package ivec2 translation;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -226,63 +226,52 @@ public final class UIView
 		root.prepareRender(ivec2(0,0));
 	}
 
-	package int updateBuffers()
+	package void updateBuffers()
 	{
-		int buffers = 0;
 		if(invalidated.realValue() == 0)
 		{
 			// Nothing to update
-			return 0;
+			return;
 		}
 
 		// If a buffer is fully invalidated, there's no reason to partially update it
 		if(invalidated[ViewState.TextEBO])
 		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
-			buffers ++;
 		}
 		else if(invalidated[ViewState.TextEBOPartial])
 		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText, textInvalid);
-			buffers ++;
 		}
 
 		if(invalidated[ViewState.SpriteEBO])
 		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite);
-			buffers ++;
 		}
 		else if(invalidated[ViewState.SpriteEBOPartial])
 		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite, spriteInvalid);
-			buffers ++;
 		}
 
 		if(invalidated[ViewState.PositionBuffer])
 		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos);
-			buffers ++;
 		}
 		else if(invalidated[ViewState.PositionBufferPartial])
 		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos, posInvalid);
-			buffers ++;
 		}
 
 		if(invalidated[ViewState.UVBuffer])
 		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[3], uvs);
-			buffers ++;
 		}
 		else if(invalidated[ViewState.UVBufferPartial])
 		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
-			buffers ++;
 		}
 
 		clearBufferInvalidation();
-
-		return buffers;
 	}
 
 	package void render(RealSize p_windowSize)
@@ -328,6 +317,7 @@ public final class UIView
 
 			renderer.matText.setUniform(renderer.uniText.translation, textRect.pos);
 			renderer.matText.setUniform(renderer.uniText.color, tm.color);
+			//assert(tm.color.y > 0, "uniforms not properly set on this one");
 			glDrawElements(
 				GL_TRIANGLES,
 				cast(int) floor(tm.length*tm.visiblePortion)*6,
@@ -383,13 +373,6 @@ public final class UIView
 	public void translate(ivec2 mov) 
 	{
 		translation += mov;
-		renderer.invalidated[RenderState.FrameBuffer] = true;
-	}
-
-	public void setTranslation(ivec2 trans)
-	{
-		translation = trans;
-		renderer.invalidated[RenderState.FrameBuffer] = true;
 	}
 
 	public ivec2 getTranslation()
@@ -901,7 +884,7 @@ public final class UIView
 			{
 				FT_Render_Glyph(face.glyph, FT_RENDER_MODE_NORMAL);
 				renderer.atlasText.texture.blit(node.size, node.position, ftGlyph.bitmap.buffer);
-				renderer.invalidated[RenderState.TextAtlas] = true;
+				renderer.invalidated[AtlasState.Text] = true;
 			}
 
 			// 1-------3   /\ +y
