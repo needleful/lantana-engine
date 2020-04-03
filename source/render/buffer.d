@@ -60,14 +60,14 @@ struct FrameBuffer
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_size.width, p_size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
 		glcheck();
 
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, p_size.width, p_size.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex[1], 0);
 		glcheck();
 
@@ -145,7 +145,7 @@ struct FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 		glDepthMask(GL_TRUE);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, size.width, size.height);
+		glViewport(0, 0, cast(int)(size.width*1.25), cast(int)(size.height*1.25));
 	}
 
 	public void render()
@@ -178,14 +178,15 @@ struct FrameBuffer
 	public void unbind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, size.width, size.height);
 	}
 
 	public void resize(RealSize p_size)
 	{
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_size.width, p_size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, p_size.width, p_size.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		size = p_size;
 	}
 }

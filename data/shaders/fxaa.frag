@@ -127,7 +127,7 @@ void main()
 	}
 
 	out_color = (
-			lineSample*(FXAA_SAMPLES-1)
+			lineSample*(FXAA_SAMPLES*2-1)
 			+ (sample1 + sample2 + sample3 + sample4 + sample5 + sample6 + sample7 + sample8)/8
-			)/FXAA_SAMPLES;
+			)/(FXAA_SAMPLES*2);
 }
