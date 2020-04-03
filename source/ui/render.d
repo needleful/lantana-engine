@@ -58,10 +58,11 @@ struct GlyphId
 	}
 }
 
-package enum AtlasState
+package enum RenderState
 {
-	Text,
-	Sprite,
+	TextAtlas,
+	SpriteAtlas,
+	FrameBuffer,
 }
 
 
@@ -76,7 +77,7 @@ public final class UIRenderer
 
 	package bool initialized;
 
-	Bitfield!AtlasState invalidated;
+	Bitfield!RenderState invalidated;
 
 	package UIView[] views;
 
@@ -115,8 +116,44 @@ public final class UIRenderer
 	// How many founts are loaded
 	package FontId.dt fontCount;
 
+
 	/++++++++++++++++++++++++++++++++++++++
-		OpenGL data
+		UI Framebuffer OpenGL data
+	+++++++++++++++++++++++++++++++++++++++/
+
+	// UI Frame buffer
+	private GLuint uiRenderBuffer, uiRenderTexture;
+	private Attr!Vert atrRenderTarget;
+	private Material uiRenderMaterial;
+	private UniformId uiRenderTextureUniform;
+
+	// The quad for rendering
+	private static immutable(ubyte[6]) uiRenderElems = [
+		0, 2, 1,
+		1, 2, 3
+	];
+	private static immutable(vec2[4]) uiRenderVertices = [
+		vec2(-1,-1),
+		vec2(-1, 1),
+		vec2( 1,-1),
+		vec2( 1, 1)
+	];
+	private static immutable(vec2[4]) uiRenderUVs = [
+		vec2(0, 0),
+		vec2(0, 1),
+		vec2(1, 0),
+		vec2(1, 1)
+	];
+
+	/// 0: elements
+	/// 1: vertices
+	/// 2: UVs
+	private GLuint[3] uiRenderVBO;
+	private GLuint uiRenderVAO;
+
+
+	/++++++++++++++++++++++++++++++++++++++
+		Other OpenGL data
 	+++++++++++++++++++++++++++++++++++++++/
 
 	private struct Vert
@@ -175,6 +212,7 @@ public final class UIRenderer
 		fonts.reserve(5);
 
 		initMaterials();
+		initFramebuffer();
 
 		atlasSprite = TextureAtlas!(SpriteId, AlphaColor)(RealSize(atlasSizeSprite));
 		atlasText   = TextureAtlas!(GlyphId, ubyte)(RealSize(atlasSizeText));
@@ -196,6 +234,10 @@ public final class UIRenderer
 			FT_Done_Face(face);
 		}
 		FT_Done_FreeType(fontLibrary);
+
+		glDeleteFramebuffers(1, &uiRenderBuffer);
+		glDeleteBuffers(uiRenderVBO.length, uiRenderVBO.ptr);
+		glDeleteVertexArrays(1, &uiRenderVAO);
 	}
 
 	public void updateLayout()
@@ -216,34 +258,71 @@ public final class UIRenderer
 
 	public void render() 
 	{
+		int buffersChanged = 0;
 		foreach(view; views)
 		{
-			view.updateBuffers();
+			buffersChanged += view.updateBuffers();
 		}
-		
-		if(invalidated[AtlasState.Sprite])
+		if(buffersChanged > 0)
+		{
+			invalidated[RenderState.FrameBuffer] = true;
+		}
+
+		if(invalidated[RenderState.SpriteAtlas])
+		{
 			atlasSprite.reload();
+			invalidated[RenderState.FrameBuffer] = true;
+		}
 
-		if(invalidated[AtlasState.Text])
+		if(invalidated[RenderState.TextAtlas])
+		{
 			atlasText.reload();
+			invalidated[RenderState.FrameBuffer] = true;
+		}
 
-		invalidated.clear();
-
-		glDisable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_SCISSOR_TEST);
-		foreach(v; views)
-		{
-			if(v.isVisible())
-			{
-				v.render(windowSize);
-			}
-		}
-		glDisable(GL_SCISSOR_TEST);
-		glEnable(GL_CULL_FACE);
 
+		if(invalidated[RenderState.FrameBuffer])
+		{
+			glDisable(GL_CULL_FACE);
+			glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			glEnable(GL_SCISSOR_TEST);
+			foreach(v; views)
+			{
+				if(v.isVisible())
+				{
+					v.render(windowSize);
+				}
+			}
+			glDisable(GL_SCISSOR_TEST);
+			glEnable(GL_CULL_FACE);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glcheck();
+		}
+
+		uiRenderMaterial.enable();
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glBindVertexArray(uiRenderVAO);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
+		uiRenderMaterial.setUniform(uiRenderTextureUniform, 1);
+
+		glDrawElements(
+			GL_TRIANGLES,
+			cast(int) uiRenderElems.length,
+			GL_UNSIGNED_BYTE,
+			cast(void*) 0);
+
+		glcheck();
+
+		invalidated.clear();
 	}
 
 	public void updateInteraction(float delta, Input* p_input)
@@ -423,6 +502,7 @@ public final class UIRenderer
 	{
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
+		updateRenderTarget();
 	}
 
 	public RealSize getSize() 
@@ -456,7 +536,7 @@ public final class UIRenderer
 			else return SpriteId(0);
 		}
 
-		invalidated[AtlasState.Sprite] = true;
+		invalidated[RenderState.SpriteAtlas] = true;
 
 		return id;
 	}
@@ -599,8 +679,95 @@ public final class UIRenderer
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
-		package methods
+		private and package methods
 	+++++++++++++++++++++++++++++++++++++++/
+	private void initFramebuffer()
+	{
+		glGenFramebuffers(1, &uiRenderBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
+
+		glGenTextures(1, &uiRenderTexture);
+		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		glcheck();
+
+		// Create VBO
+		glGenBuffers(uiRenderVBO.length, uiRenderVBO.ptr);
+		glGenVertexArrays(1, &uiRenderVAO);
+		glBindVertexArray(uiRenderVAO);
+
+		glEnableVertexAttribArray(atrRenderTarget.uv);
+		glEnableVertexAttribArray(atrRenderTarget.position);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uiRenderVBO[0]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[1]);
+		glVertexAttribPointer(
+			atrRenderTarget.position,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[2]);
+		glVertexAttribPointer(
+			atrRenderTarget.uv,
+			2, GL_FLOAT,
+			GL_FALSE,
+			0,
+			cast(void*) 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uiRenderVBO[0]);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			uiRenderElems.length*ubyte.sizeof,
+			uiRenderElems.ptr,
+			GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[1]);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			uiRenderVertices.length*vec2.sizeof,
+			uiRenderVertices.ptr,
+			GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[2]);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			uiRenderUVs.length*vec2.sizeof,
+			uiRenderUVs.ptr,
+			GL_STATIC_DRAW);
+
+		glBindVertexArray(0);
+
+		glDisableVertexAttribArray(atrRenderTarget.uv);
+		glDisableVertexAttribArray(atrRenderTarget.position);
+
+		glcheck();
+
+		updateRenderTarget();
+
+	}
+
+	private void updateRenderTarget() nothrow
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
+
+		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+
+		glViewport(0, 0, windowSize.width, windowSize.height);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		invalidated[RenderState.FrameBuffer] = true;
+	}
 
 	package void initMaterials()
 	{
@@ -623,6 +790,8 @@ public final class UIRenderer
 			compileShader("data/shaders/text2d.frag", GL_FRAGMENT_SHADER);
 		GLuint fragSprite = 
 			compileShader("data/shaders/sprite2d.frag", GL_FRAGMENT_SHADER);
+		GLuint vertFrame =
+			 compileShader("data/shaders/uiRender.vert", GL_VERTEX_SHADER);
 
 		matText = _build(vert2d, fragText);
 		atrText = Attr!Vert(matText);
@@ -638,6 +807,10 @@ public final class UIRenderer
 		uniSprite.cam_resolution = matSprite.getUniformId("cam_resolution");
 		uniSprite.translation = matSprite.getUniformId("translation");
 		uniSprite.in_tex = matSprite.getUniformId("in_tex");
+
+		uiRenderMaterial = _build(vertFrame, fragSprite);
+		atrRenderTarget = Attr!Vert(uiRenderMaterial);
+		uiRenderTextureUniform = uiRenderMaterial.getUniformId("in_tex");
 
 		glDisable(GL_BLEND);
 		glcheck();
