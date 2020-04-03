@@ -48,7 +48,7 @@ int main()
 	g_uiInput = new Input(input);
 	auto uiThread = spawn(&uiMain);
 
-	AudioManager audio = AudioManager(16);
+	AudioManager audio = AudioManager(32);
 	audio.startMusic("data/audio/music/floating-full.ogg", 0);
 
 	auto mainMem = BaseRegion(MAX_MEMORY);
@@ -107,7 +107,6 @@ int main()
 	bool paused = false;
 
 	uint frame = 0;
-
 	string debugFormat = ": %6.3f\n: %6.3f\n: %6.3f";
 	string oxygenFormat = "Oxygen: %.2f%%";
 
@@ -196,7 +195,7 @@ int main()
 		scene3D.render();
 
 		UIReady _ = receiveOnly!UIReady();
-		if(uiFrameTime >= uiFrameRate)
+		if(frame % 2 == 0 || uiFrameTime >= uiFrameRate)
 		{
 			g_ui.render();
 			uiFrameTime = 0;
