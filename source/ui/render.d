@@ -129,20 +129,17 @@ public final class UIRenderer
 
 	// The quad for rendering
 	private static immutable(ubyte[6]) uiRenderElems = [
-		0, 2, 1,
-		1, 2, 3
+		0, 1, 2
 	];
 	private static immutable(vec2[4]) uiRenderVertices = [
-		vec2(-1,-1),
-		vec2(-1, 1),
-		vec2( 1,-1),
-		vec2( 1, 1)
+		vec2(-1,-2),
+		vec2( 3, 0),
+		vec2(-1, 2)
 	];
 	private static immutable(vec2[4]) uiRenderUVs = [
-		vec2(0, 0),
-		vec2(0, 1),
-		vec2(1, 0),
-		vec2(1, 1)
+		vec2(0, -0.5),
+		vec2(2, 0.5),
+		vec2(0, 1.5)
 	];
 
 	/// 0: elements
@@ -282,13 +279,12 @@ public final class UIRenderer
 
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+		glDisable(GL_CULL_FACE);
 		if(invalidated[RenderState.FrameBuffer])
 		{
-			glDisable(GL_CULL_FACE);
 			glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
 			glClear(GL_COLOR_BUFFER_BIT);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glEnable(GL_SCISSOR_TEST);
 			foreach(v; views)
@@ -299,20 +295,18 @@ public final class UIRenderer
 				}
 			}
 			glDisable(GL_SCISSOR_TEST);
-			glEnable(GL_CULL_FACE);
 
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glcheck();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		uiRenderMaterial.enable();
 
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glBindVertexArray(uiRenderVAO);
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-		uiRenderMaterial.setUniform(uiRenderTextureUniform, 1);
+		uiRenderMaterial.setUniform(uiRenderTextureUniform, 0);
 
 		glDrawElements(
 			GL_TRIANGLES,
@@ -321,6 +315,7 @@ public final class UIRenderer
 			cast(void*) 0);
 
 		glcheck();
+		glEnable(GL_CULL_FACE);
 
 		invalidated.clear();
 	}
@@ -621,80 +616,11 @@ public final class UIRenderer
 	}
 
 	/++++++++++++++++++++++++++++++++++++++
-		public methods -- debug
-	+++++++++++++++++++++++++++++++++++++++/
-
-	/// Renders the sprite and text atlases.
-	/// It also puts the renderer in an invalid state,
-	/// so only render this once.
-	debug public void debugRender()
-	{
-		glcheck();
-		// We'll just render the atlases as quads
-		views[0].uvs.length = 8;
-		views[0].vertpos.length = 8;
-
-		views[0].uvs[0..$] = [
-			vec2(0,0),
-			vec2(0,1),
-			vec2(1,0),
-			vec2(1,1),
-
-			vec2(0,0),
-			vec2(0,1),
-			vec2(1,0),
-			vec2(1,1)
-		];
-
-		views[0].vertpos[0..$] = [
-			ivec2(0, 0),
-			ivec2(0, 256),
-			ivec2(256, 0),
-			ivec2(256, 256),
-
-			ivec2(256, 256),
-			ivec2(256, 256+1024),
-			ivec2(256+1024, 256),
-			ivec2(256+1024, 256+1024)
-		];
-
-		views[0].elemText.length = 6;
-		views[0].elemSprite.length = 6;
-
-		views[0].elemText[0..$] = [
-			0, 2, 1,
-			1, 2, 3
-		];
-
-		views[0].elemSprite[0..$] = [
-			4, 6, 5,
-			5, 6, 7
-		];
-		views[0].invalidated.setAll();
-		views[0].updateBuffers();
-
-		glcheck();
-
-		render();
-	}
-
-	/++++++++++++++++++++++++++++++++++++++
 		private and package methods
 	+++++++++++++++++++++++++++++++++++++++/
 	private void initFramebuffer()
 	{
-		glGenFramebuffers(1, &uiRenderBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
-
-		glGenTextures(1, &uiRenderTexture);
-		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
+		initRenderTarget();
 		glcheck();
 
 		// Create VBO
@@ -702,8 +628,7 @@ public final class UIRenderer
 		glGenVertexArrays(1, &uiRenderVAO);
 		glBindVertexArray(uiRenderVAO);
 
-		glEnableVertexAttribArray(atrRenderTarget.uv);
-		glEnableVertexAttribArray(atrRenderTarget.position);
+		atrRenderTarget.enable();
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uiRenderVBO[0]);
 
@@ -732,40 +657,57 @@ public final class UIRenderer
 
 		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[1]);
 		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
+			GL_ARRAY_BUFFER,
 			uiRenderVertices.length*vec2.sizeof,
 			uiRenderVertices.ptr,
 			GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, uiRenderVBO[2]);
 		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
+			GL_ARRAY_BUFFER,
 			uiRenderUVs.length*vec2.sizeof,
 			uiRenderUVs.ptr,
 			GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 
-		glDisableVertexAttribArray(atrRenderTarget.uv);
-		glDisableVertexAttribArray(atrRenderTarget.position);
+		atrRenderTarget.disable();
 
 		glcheck();
-
-		updateRenderTarget();
-
 	}
 
-	private void updateRenderTarget() nothrow
+	private void initRenderTarget()
 	{
+		glGenFramebuffers(1, &uiRenderBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
 
+		glGenTextures(1, &uiRenderTexture);
 		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 
-		glViewport(0, 0, windowSize.width, windowSize.height);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		invalidated[RenderState.FrameBuffer] = true;
+	}
 
+	private void updateRenderTarget()
+	{
+		glDeleteFramebuffers(1, &uiRenderBuffer);
+		glGenFramebuffers(1, &uiRenderBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		invalidated[RenderState.FrameBuffer] = true;
 	}
 

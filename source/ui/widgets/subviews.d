@@ -149,7 +149,7 @@ public final class Scrolled : Widget
 		if(scrollSpan < 0) scrollSpan = 0;
 
 		// Readjusting scroll to match old position as best as possible
-		childView.translation = ivec2(0, cast(int)(-scrollPercent* (widgetSize.height - childSize.height)));
+		childView.setTranslation(ivec2(0, cast(int)(-scrollPercent* (widgetSize.height - childSize.height))));
 
 		scrollbar.position = ivec2(childSize.width, 0);
 
@@ -203,7 +203,8 @@ public final class Scrolled : Widget
 	{
 		scrollPercent = p_position;
 
-		childView.translation.y = cast(int) (-scrollPercent*(widgetSize.height-childSize.height));
+		ivec2 newTrans = ivec2(childView.getTranslation().x, cast(int) (-scrollPercent*(widgetSize.height-childSize.height)));
+		childView.setTranslation(newTrans);
 		scrollbarHandle.position.y = drawPos.y + cast(int)(scrollPercent*scrollSpan);
 		scrollbarHandle.setPosition(scrollbarHandle.position);
 	}
@@ -263,7 +264,7 @@ public class Panned : Widget, Interactible
 
 	public override void drag(ivec2 p_dragAmount) 
 	{
-		childView.translation += p_dragAmount;
+		childView.translate(p_dragAmount);
 	}
 	
 	public override void interact() {}
