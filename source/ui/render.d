@@ -214,21 +214,24 @@ public final class UIRenderer
 		initialized = true;
 	}
 
-	public void render() 
+	public void render(bool update = true)() 
 	{
-		foreach(view; views)
+		static if(update)
 		{
-			view.updateBuffers();
+			foreach(view; views)
+			{
+				view.updateBuffers();
+			}
+			
+			if(invalidated[AtlasState.Sprite])
+				atlasSprite.reload();
+
+			if(invalidated[AtlasState.Text])
+				atlasText.reload();
+			
+			invalidated.clear();
 		}
 		
-		if(invalidated[AtlasState.Sprite])
-			atlasSprite.reload();
-
-		if(invalidated[AtlasState.Text])
-			atlasText.reload();
-
-		invalidated.clear();
-
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		glDepthMask(GL_FALSE);

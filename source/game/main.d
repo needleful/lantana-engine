@@ -134,15 +134,18 @@ int main()
 		frame_log.writeln("Frametime\tMax\tAverage");
 	}
 
+	enum uiFrameRate = 1/30.0;
+	float uiFrameTime = 0;
 	int runningFrame = 1;
 	float time_accum = 0;
-	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/buffer.frag", ws);
+	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
 		delta = g_timescale*delta_ms/1000.0;
+		uiFrameTime += delta;
 	
 		window.pollEvents(&input);
 
@@ -193,7 +196,15 @@ int main()
 		scene3D.render();
 
 		UIReady _ = receiveOnly!UIReady();
-		g_ui.render();
+		if(uiFrameTime >= uiFrameRate)
+		{
+			g_ui.render();
+			uiFrameTime = 0;
+		}
+		else
+		{
+			g_ui.render!false();
+		}
 
 		time_accum += delta;
 		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;

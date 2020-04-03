@@ -19,7 +19,7 @@ struct FrameBuffer
 		int position;
 	}
 	Material mat;
-	private UniformId uTex;
+	private UniformId uTex, uDepth, uResolution;
 	private GLuint buffer;
 	// 0: color
 	// 1: depth
@@ -58,7 +58,7 @@ struct FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_size.width, p_size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
@@ -83,6 +83,8 @@ struct FrameBuffer
 		attrib = Attr!Vert(mat);
 
 		uTex = mat.getUniformId("in_tex");
+		uDepth = mat.getUniformId("in_depth");
+		uResolution = mat.getUniformId("resolution");
 		assert(mat.canRender());
 
 		// Create VBO
@@ -158,6 +160,11 @@ struct FrameBuffer
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		mat.setUniform(uTex, 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex[1]);
+		mat.setUniform(uDepth, 1);
+		mat.setUniform(uResolution, vec2(size.width, size.height));
 
 		glDrawElements(
 			GL_TRIANGLES, 
