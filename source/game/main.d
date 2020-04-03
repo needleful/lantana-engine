@@ -32,9 +32,9 @@ import ui;
 enum MAX_MEMORY = 1024*1024*64;
 enum cam_speed = 1;
 
-float timescale = 1;
-float oxygen = 21.2;
-float oxygenDrain = 0.027;
+__gshared float g_timescale = 1;
+__gshared float g_oxygen = 21.2;
+__gshared float g_oxygenDrain = 0.027;
 
 version(lantana_game)
 int main()
@@ -135,11 +135,11 @@ int main()
 
 	int runningFrame = 1;
 	float time_accum = 0;
-	g_oxygenText = format(oxygenFormat, oxygen);
+	g_oxygenText = format(oxygenFormat, g_oxygen);
 	while(!window.state[WindowState.CLOSED])
 	{
 		float delta_ms = window.delta_ms();
-		delta = timescale*delta_ms/1000.0;
+		delta = g_timescale*delta_ms/1000.0;
 	
 		window.pollEvents(&input);
 
@@ -157,10 +157,12 @@ int main()
 
 		if(!paused)
 		{
-			velCamRot += input.mouse_movement*delta*accelCamRot;
+			velCamRot += input.mouseMove*delta*accelCamRot;
 		}
 		velCamRot *= dampCamRot;
-		camera.rotateDegrees(velCamRot*cam_speed*delta);
+		vec2 camRot = velCamRot*cam_speed*delta;
+		camRot.y *= -1;
+		camera.rotateDegrees(camRot);
 
 		window.begin_frame!false();
 
@@ -192,12 +194,12 @@ int main()
 			runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
 			accumDelta_ms += delta_ms;
 
-			oxygen -= oxygenDrain*delta;
+			g_oxygen -= g_oxygenDrain*delta;
 
 			if(time_accum >= 2.75)
 			{
 				g_frameTime = format(debugFormat, delta_ms, runningMaxDelta_ms, accumDelta_ms/runningFrame);
-				g_oxygenText = format(oxygenFormat, oxygen);
+				g_oxygenText = format(oxygenFormat, g_oxygen);
 
 				runningMaxDelta_ms = delta_ms;
 				accumDelta_ms = delta_ms;

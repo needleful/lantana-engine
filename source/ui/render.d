@@ -253,11 +253,11 @@ public final class UIRenderer
 		{
 			foreach(view; views)
 			{
-				if(view.isVisible() && view.rect.contains(p_input.mouse_position))
+				if(view.isVisible() && view.rect.contains(p_input.mousePos))
 				{
 					InteractibleId newId;
 
-					if(view.getFocusedObject(p_input.mouse_position, newId))
+					if(view.getFocusedObject(p_input.mousePos, newId))
 					{
 						Interactible newObject = view.interactibles[newId];
 						if(!newFocus || newObject.priority() >= newFocus.priority())
@@ -277,6 +277,18 @@ public final class UIRenderer
 
 		if(focused)
 		{
+			if(p_input.mouseWheel != ivec2(0))
+			{
+				// FIXME: BAD HACK! BAD HACK!! BAD HACK!!!
+				if(focused.priority() % 3 == 0)
+				{
+					focused.drag(p_input.mouseWheel*30);
+				}
+				else
+				{
+					focused.drag(ivec2(p_input.mouseWheel.x, -p_input.mouseWheel.y)*15);
+				}
+			}
 			if(p_input.isJustClicked(Input.Mouse.Left))
 			{
 				focused.interact();
@@ -287,7 +299,7 @@ public final class UIRenderer
 			}
 			else if(p_input.isClicked(Input.Mouse.Left))
 			{
-				ivec2 drag = ivec2(cast(int) p_input.mouse_movement.x, - cast(int) p_input.mouse_movement.y);
+				ivec2 drag = ivec2(cast(int) p_input.mouseMove.x, cast(int) p_input.mouseMove.y);
 				focused.drag(drag);
 			}
 			else if(p_input.isJustReleased(Input.Mouse.Left))

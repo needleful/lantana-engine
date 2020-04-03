@@ -22,54 +22,48 @@ struct Input
 	}
 
 	KeyboardInput keyboard;
-	// Currently held position of sticks
-	vec2 analog_left, analog_right;
 	// Relative mouse movement since last frame
-	vec2 mouse_movement;
+	vec2 mouseMove;
 	// Absolute position of the mouse
-	ivec2 mouse_position;
+	ivec2 mousePos, mouseWheel;
 
 	uint mouse, mouseLast;
 
 	this(ref Input rhs)
 	{
 		keyboard = rhs.keyboard;
-		analog_right = rhs.analog_right;
-		analog_left = rhs.analog_left;
-		mouse_movement = rhs.mouse_movement;
-		mouse_position = rhs.mouse_position;
+		mouseMove = rhs.mouseMove;
+		mousePos = rhs.mousePos;
 		mouse = rhs.mouse;
 		mouseLast = rhs.mouseLast;
+		mouseWheel = rhs.mouseWheel;
 	}
 
 	this(Input* rhs)
 	{
 		keyboard = rhs.keyboard;
-		analog_right = rhs.analog_right;
-		analog_left = rhs.analog_left;
-		mouse_movement = rhs.mouse_movement;
-		mouse_position = rhs.mouse_position;
+		mouseMove = rhs.mouseMove;
+		mousePos = rhs.mousePos;
 		mouse = rhs.mouse;
 		mouseLast = rhs.mouseLast;
+		mouseWheel = rhs.mouseWheel;
 	}
 
 	void apply(ref Input rhs)
 	{
 		keyboard = rhs.keyboard;
-		analog_right = rhs.analog_right;
-		analog_left = rhs.analog_left;
-		mouse_movement = rhs.mouse_movement;
-		mouse_position = rhs.mouse_position;
+		mouseMove = rhs.mouseMove;
+		mousePos = rhs.mousePos;
 		mouse = rhs.mouse;
 		mouseLast = rhs.mouseLast;
+		mouseWheel = rhs.mouseWheel;
 	}
 
 	// Reset input, for example when re-entering the window
 	void clear() @safe nothrow
 	{
-		analog_left = vec2(0,0);
-		analog_right = vec2(0,0);
-		mouse_movement = vec2(0,0);
+		mouseMove = vec2(0,0);
+		mouseWheel = ivec2(0,0);
 		keyboard.pressed.clearAll();
 		keyboard.text.length = 0;
 		mouse = 0;

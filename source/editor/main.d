@@ -155,7 +155,7 @@ int main()
 		}
 
 		ui.updateInteraction(delta, &ii);
-		DialogNode.mousePosition = ii.mouse_position;
+		DialogNode.mousePosition = ii.mousePos;
 		ui.updateLayout();
 
 		ww.begin_frame();

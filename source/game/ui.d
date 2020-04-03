@@ -15,6 +15,7 @@ import bindbc.sdl;
 
 import audio;
 import game.dialog;
+import game.main;
 import game.skybox;
 import lanlib.file.gltf2;
 import lanlib.math;
@@ -162,6 +163,7 @@ void uiMain()
 
 	void dialogCallback(Dialog p_dialog)
 	{
+		ds.flags["_oxygen"] = g_oxygen;
 		foreach(effect; p_dialog.effects)
 		{
 			if(effect.key !in ds.flags)
@@ -193,13 +195,12 @@ void uiMain()
 
 		ds.current = p_dialog;
 
-		if(responseCount == 0)
+		if(responseCount <= 1)
 		{
-			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~firstDate), Pad(10, -10, 0, 0)));
-		}
-		else if(responseCount == 1)
-		{
-			ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~secondDate), Pad(10, -10, 0, 0)));
+			if(responseCount == 0)
+				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~firstDate), Pad(10, -10, 0, 0)));
+			else
+				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~secondDate), Pad(10, -10, 0, 0)));
 		}
 		responseCount ++;
 

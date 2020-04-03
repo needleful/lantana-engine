@@ -152,7 +152,8 @@ struct Window
 	void pollEvents(Input* input)  nothrow
 	{
 		state.clear();
-		input.mouse_movement = vec2(0,0);
+		input.mouseMove = vec2(0);
+		input.mouseWheel = ivec2(0);
 		input.keyboard.pressedLast = input.keyboard.pressed;
 		input.keyboard.text.length = 0;
 		input.mouseLast = input.mouse;
@@ -188,7 +189,10 @@ struct Window
 					input.keyboard.release(event.key.keysym.scancode);
 					break;
 				case SDL_MOUSEMOTION:
-					input.mouse_movement = vec2(event.motion.xrel, event.motion.yrel);
+					input.mouseMove += vec2(event.motion.xrel, -event.motion.yrel);
+					break;
+				case SDL_MOUSEWHEEL:
+					input.mouseWheel += ivec2(event.wheel.x, -event.wheel.y);
 					break;
 				case SDL_TEXTINPUT:
 					import std.string : fromStringz;
@@ -200,9 +204,9 @@ struct Window
 			}
 		}
 
-		input.mouse = SDL_GetMouseState(&(input.mouse_position.x()), &(input.mouse_position.y()));
+		input.mouse = SDL_GetMouseState(&(input.mousePos.x()), &(input.mousePos.y()));
 		// SDL has flipped coordinates for y-axis
-		input.mouse_position.y = getSize().height - input.mouse_position.y;
+		input.mousePos.y = getSize().height - input.mousePos.y;
 	}
 
 	public RealSize getSize() nothrow
