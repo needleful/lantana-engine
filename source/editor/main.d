@@ -107,18 +107,19 @@ int main()
 
 	Widget loadBox;
 	{
-		string[] files = [
+		enum string[] files = [
 			"data/dialog.sdl",
 			"data/outline.sdl"
 		];
 
 		Widget[] buttons;
 		buttons.reserve(files.length);
-		foreach(file; files)
+		static foreach(file; files)
 		{
 			buttons ~= new Button(ui, new TextBox(file), 
 				(Widget)
 				{
+					writefln("Loading %s", file);
 					loadEditor(file);
 				}
 			).withBounds(Bounds(120, double.infinity), Bounds.none);

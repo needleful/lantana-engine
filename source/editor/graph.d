@@ -96,10 +96,10 @@ final class DialogNode : Padding, Interactible
 
 		tag = new TextBox(dialog.getTag());
 
-		message = new TextInput(1024, dialog.message);
-		requirements = new TextInput(512, dialog.getRequirements());
-		effects = new TextInput(512, dialog.getEffects());
-		time = new TextInput(32, format("%s", dialog.pauseTime));
+		message = new TextInput(512, dialog.message);
+		requirements = new TextInput(256, dialog.getRequirements());
+		effects = new TextInput(256, dialog.getEffects());
+		time = new TextInput(16, format("%s", dialog.pauseTime));
 
 		box.addChild(tag);
 		box.addChild(new HBox([

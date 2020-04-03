@@ -307,7 +307,7 @@ void uiMain()
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
 	string start;
-	auto map = loadDialog("data/dialog_edit.sdl", start);
+	auto map = loadDialog("data/dialog.sdl", start);
 	Dialog currentDialog = map[start];
 	
 	Widget dialogWidget = new Padding(
@@ -318,6 +318,16 @@ void uiMain()
 
 	TextBox frameTime = new TextBox(sysFont, "Getting data...", 64, vec3(0.5));
 	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
+
+	Widget hints = new Anchor(
+		new VBox([
+			new TextBox("When you run out of oxygen, you will die.", vec3(1)),
+			new TextBox("Use the mouse to look around", vec3(1)),
+			new TextBox("Press [TAB] to toggle your messenger", vec3(1))
+		], 6),
+		vec2(0.1, 0.5),
+		vec2(0, 0.5)
+	);
 
 	Modal uiModal = new Modal([
 		// Pause menu
@@ -341,7 +351,9 @@ void uiMain()
 			vec2(0.02,0.02),
 			vec2(0.2, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
-		new HodgePodge([])
+		new HodgePodge([
+			hints
+		])
 	]);
 
 	TextBox[string] debugMap;
@@ -379,6 +391,10 @@ void uiMain()
 			if(paused)
 			{
 				uiModal.setMode(0);
+				if(hints.isVisible())
+				{
+					hints.setVisible(false);
+				}
 			}
 			else
 			{
