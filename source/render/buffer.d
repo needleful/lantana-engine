@@ -141,18 +141,18 @@ struct FrameBuffer
 	public void bind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-		glClearDepth(1);
-		glClearColor(1, 0, 0, 1);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glDepthMask(GL_TRUE);
+		glClear(GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, size.width, size.height);
 	}
 
-	import ui.render;
 	public void render()
 	{
 		mat.enable();
 
 		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDisable(GL_BLEND);
 
 		glBindVertexArray(vao);
 		glActiveTexture(GL_TEXTURE0);
@@ -164,6 +164,8 @@ struct FrameBuffer
 			cast(int) s_triangle.length,
 			GL_UNSIGNED_BYTE,
 			cast(void*) 0);
+
+		glBindVertexArray(0);
 	}
 
 	public void unbind()

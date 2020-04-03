@@ -229,10 +229,12 @@ public final class UIRenderer
 
 		invalidated.clear();
 
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		glEnable(GL_SCISSOR_TEST);
 		foreach(v; views)
 		{
@@ -242,7 +244,6 @@ public final class UIRenderer
 			}
 		}
 		glDisable(GL_SCISSOR_TEST);
-		glEnable(GL_CULL_FACE);
 
 	}
 

@@ -193,7 +193,7 @@ int main()
 		scene3D.render();
 
 		UIReady _ = receiveOnly!UIReady();
-		//g_ui.render();
+		g_ui.render();
 
 		time_accum += delta;
 		runningMaxDelta_ms = delta_ms > runningMaxDelta_ms ? delta_ms : runningMaxDelta_ms;
