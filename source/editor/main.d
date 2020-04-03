@@ -158,6 +158,7 @@ int main()
 		DialogNode.mousePosition = ii.mousePos;
 		ui.updateLayout();
 
+		glClearColor(0.2, 0, 0, 1);
 		ww.begin_frame();
 		ui.render();
 		ww.end_frame();

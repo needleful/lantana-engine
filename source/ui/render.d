@@ -63,6 +63,7 @@ package enum RenderState
 	TextAtlas,
 	SpriteAtlas,
 	FrameBuffer,
+	FrameBufferSize
 }
 
 
@@ -277,13 +278,22 @@ public final class UIRenderer
 			invalidated[RenderState.FrameBuffer] = true;
 		}
 
+		if(invalidated[RenderState.FrameBufferSize])
+		{
+			updateRenderTarget();
+		}
+
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		if(invalidated[RenderState.FrameBuffer])
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
+
+			glClearColor(0,0,0,0);
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glEnable(GL_SCISSOR_TEST);
@@ -495,9 +505,13 @@ public final class UIRenderer
 
 	public void setSize(RealSize p_size) 
 	{
+		if(windowSize == p_size)
+		{
+			return;
+		}
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
-		updateRenderTarget();
+		invalidated[RenderState.FrameBufferSize] = true;
 	}
 
 	public RealSize getSize() 
@@ -699,15 +713,8 @@ public final class UIRenderer
 
 	private void updateRenderTarget()
 	{
-		glDeleteFramebuffers(1, &uiRenderBuffer);
-		glGenFramebuffers(1, &uiRenderBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, uiRenderBuffer);
-
+		glBindTexture(GL_TEXTURE_2D, uiRenderTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowSize.width, windowSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uiRenderTexture, 0);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		invalidated[RenderState.FrameBuffer] = true;
 	}
 
