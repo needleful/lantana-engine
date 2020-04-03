@@ -134,7 +134,7 @@ int main()
 		frame_log.writeln("Frametime\tMax\tAverage");
 	}
 
-	enum uiFrameRate = 1/30.0;
+	enum uiFrameRate = 1/45.0;
 	float uiFrameTime = 0;
 	int runningFrame = 1;
 	float time_accum = 0;
