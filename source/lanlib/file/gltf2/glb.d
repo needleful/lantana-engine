@@ -44,6 +44,22 @@ struct GLBLoadResults(Spec)
 	uint bufferSize;
 }
 
+struct GLBLoadMap(Spec)
+	if(isTemplateType!(MeshSpec, Spec))
+{
+	struct MeshData
+	{
+		static if(Spec.isAnimated)
+		{
+			GLBAnimation[] animations;
+			GLBNode[] bones;
+			GLBBufferView inverseBindMatrices;
+		}
+		Spec.accessor accessor;
+	}
+	MeshData[string] meshes;
+}
+
 //Check a binary gltf2 file
 auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
@@ -73,6 +89,11 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	input.rawRead(results.data);
 
 	return results;
+}
+
+GLBLoadMap!Spec glbLoadMulti(Spec)(string p_file, ref Region p_alloc)
+{
+
 }
 
 private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
