@@ -381,6 +381,10 @@ void uiMain()
 	bool paused = false;
 	void processEvents(UIEvents events)
 	{
+		// Cinematic mode
+		o2Text.setVisible(false);
+		debugBox.setVisible(false);
+
 		if(events.window[WindowState.RESIZED])
 		{
 			g_ui.setSize(events.size);

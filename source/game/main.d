@@ -153,6 +153,7 @@ int main()
 			ws = window.getSize();
 			camera.setProjection(cast(float)ws.width/ws.height, 60);
 			scene3D.resize(ws);
+			input.mouseMove = vec2(0);
 		}
 
 		if(input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
@@ -194,7 +195,10 @@ int main()
 		scene3D.unbind();
 		scene3D.render();
 
-		UIReady _ = receiveOnly!UIReady();
+		receive(
+			(UIReady _) {},
+			(UICancel _) {throw new Exception("An error occured in the UI system");}
+		);
 		if(frame % 2 == 0 || uiFrameTime >= uiFrameRate)
 		{
 			g_ui.render();
