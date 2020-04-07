@@ -249,33 +249,6 @@ public final class UIRenderer
 
 	public void updateInteraction(float delta, Input* p_input)
 	{
-		Interactible newFocus = null;
-		if(!p_input.isClicked(Input.Mouse.Left))
-		{
-			foreach(view; views)
-			{
-				if(view.isVisible() && view.rect.contains(p_input.mousePos))
-				{
-					InteractibleId newId;
-
-					if(view.getFocusedObject(p_input.mousePos, newId))
-					{
-						Interactible newObject = view.interactibles[newId];
-						if(!newFocus || newObject.priority() >= newFocus.priority())
-						{
-							newFocus = newObject;
-						}
-					}
-				}
-			}
-			if(newFocus !is focused)
-			{
-				if(focused) focused.unfocus();
-				focused = newFocus;
-				if(focused) focused.focus();
-			}
-		}
-
 		if(focused)
 		{
 			if(p_input.mouseWheel != ivec2(0))
@@ -387,14 +360,39 @@ public final class UIRenderer
 				}
 			}
 		}
+
+		Interactible newFocus = null;
+		if(!p_input.isClicked(Input.Mouse.Left))
+		{
+			foreach(view; views)
+			{
+				if(view.isVisible() && view.rect.contains(p_input.mousePos))
+				{
+					InteractibleId newId;
+
+					if(view.getFocusedObject(p_input.mousePos, newId))
+					{
+						Interactible newObject = view.interactibles[newId];
+						if(!newFocus || newObject.priority() >= newFocus.priority())
+							newFocus = newObject;
+					}
+				}
+			}
+			if(newFocus !is focused)
+			{
+				if(focused)
+					focused.unfocus();
+				focused = newFocus;
+				if(focused)
+					focused.focus();
+			}
+		}
 	}
 
 	public void setTextFocus(TextInput p_input)
 	{
 		if(currentInput)
-		{
 			currentInput.removeTextFocus();
-		}
 		currentInput = p_input;
 	}
 
