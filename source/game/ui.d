@@ -13,22 +13,21 @@ import std.string: split;
 
 import bindbc.sdl;
 
-import audio;
 import game.dialog;
 import game.main;
 import game.skybox;
-import lanlib.file.gltf2;
-import lanlib.math;
-import lanlib.types;
-import lanlib.file.lgbt;
-import lanlib.util.memory;
+
+import lantana.audio;
+import lantana.file.gltf2;
+import lantana.math;
+import lantana.types;
+import lantana.file.lgbt;
+
+import lantana.input;
+import lantana.render;
+import lantana.ui;
 
 import gl3n.linalg;
-
-import logic;
-import render;
-
-import ui;
 
 private static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
 private static immutable(vec3) bardanColor = vec3(0.2, 0.75, 0.3);

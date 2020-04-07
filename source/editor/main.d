@@ -15,16 +15,15 @@ import gl3n.linalg;
 import editor.graph;
 import game.dialog;
 
-import lanlib.types;
-import lanlib.file.gltf2;
-import lanlib.file.lgbt;
-import lanlib.util.memory;
-import logic.input;
-import render.gl;
-import render.material;
-import render.mesh;
-import render.window;
-import ui;
+import lantana.file.gltf2;
+import lantana.file.lgbt;
+import lantana.input;
+import lantana.render.gl;
+import lantana.render.material;
+import lantana.render.mesh;
+import lantana.render.window;
+import lantana.types;
+import lantana.ui;
 
 enum MAX_MEMORY = 1024*1024*8;
 

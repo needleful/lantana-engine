@@ -5,9 +5,9 @@
 module game.skybox;
 
 import gl3n.linalg;
-import lanlib.types;
-import render.mesh.generic;
-import render.textures;
+import lantana.render.mesh.generic;
+import lantana.render.textures;
+import lantana.types;
 
 struct SkyboxAttributes
 {

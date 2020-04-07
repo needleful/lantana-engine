@@ -9,10 +9,10 @@ import std.format;
 
 import gl3n.linalg : vec3;
 
-import lanlib.types;
-import lanlib.util.array;
+import lantana.types;
+import lantana.ui;
+
 import game.dialog;
-import ui;
 
 version(lantana_editor)
 final class DialogNode : Padding, Interactible
