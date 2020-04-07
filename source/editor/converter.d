@@ -5,9 +5,9 @@
 import std.stdio;
 import std.string;
 
-import lanlib.file.gltf2;
-import lanlib.file.lgbt;
-import lanlib.util.memory;
+import lantana.file.gltf2;
+import lantana.file.lgbt;
+import lantana.types.memory;
 
 version(lantana_converter)
 int main(string[] args)

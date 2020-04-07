@@ -12,23 +12,21 @@ import std.stdio;
 
 import bindbc.sdl;
 
-import audio;
+import lantana.audio;
+import lantana.file.gltf2;
+import lantana.file.lgbt;
+import lantana.input;
+import lantana.math;
+import lantana.render;
+import lantana.render.buffer;
+import lantana.types;
+import lantana.ui;
+
 import game.dialog;
 import game.skybox;
 import game.ui;
-import lanlib.file.gltf2;
-import lanlib.math;
-import lanlib.types;
-import lanlib.file.lgbt;
-import lanlib.util.memory;
-
 import gl3n.linalg;
 
-import logic;
-import render;
-import render.buffer;
-
-import ui;
 
 enum MAX_MEMORY = 1024*1024*64;
 enum cam_speed = 1;

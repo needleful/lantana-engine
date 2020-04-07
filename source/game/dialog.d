@@ -332,7 +332,7 @@ struct Effect
 import std.stdio;
 import sdlang;
 
-import lanlib.types : ivec2;
+import lantana.types : ivec2;
 
 public Dialog[string] loadDialog(string p_file, out string p_start)
 {
