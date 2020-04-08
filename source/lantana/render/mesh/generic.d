@@ -124,6 +124,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			Mesh*[string] result;
 			foreach(name, mesh; loaded.meshes)
 			{
+				writefln("::-- Mesh from %s: %s", p_filename, name);
 				if(currentImage != mesh.accessor.tex_albedo)
 				{
 					currentImage = mesh.accessor.tex_albedo;
@@ -205,7 +206,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 				glDrawElements(
 					GL_TRIANGLES, 
-					cast(int)inst.mesh.accessor.indices.byteLength,
+					cast(int)inst.mesh.accessor.indices.count(),
 					inst.mesh.accessor.indices.componentType,
 					cast(GLvoid*) inst.mesh.accessor.indices.byteOffset);
 				glcheck();

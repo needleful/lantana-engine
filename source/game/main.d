@@ -107,17 +107,23 @@ int main()
 	sGlobals.farPlane = camera.farPlane;
 
 	auto shipMesh = sMesh.loadMeshes("data/meshes/ship.glb", mainMem);
-	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(3);
+	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(5);
 	sInstance[] = [
 		StaticMesh.Instance(shipMesh["Ship"], Transform(1, vec3(10, 25, -30), vec3(12, 143, -90))),
-		StaticMesh.Instance(shipMesh["LargePanel"], Transform(1, vec3(12, 26, -31), vec3(12, 148, -90))),
-		StaticMesh.Instance(shipMesh["Corridor"], Transform(1, vec3(8, 9, -20), vec3(0, 29, 12)))
+		StaticMesh.Instance(shipMesh["LargePanel"], Transform(1, vec3(40, 30, -36), vec3(12, 148, -90))),
+		StaticMesh.Instance(shipMesh["Corridor"], Transform(1, vec3(-10, 9, -20), vec3(4, 23, 18))),
+		StaticMesh.Instance(shipMesh["Door1"], Transform(1, vec3(5, -2, 8), vec3(0))),
+		StaticMesh.Instance(shipMesh["Door2"], Transform(1, vec3(12, 2, 4), vec3(20)))
 	];
 
-	Velocity[] velocities = [
+	auto velocities = mainMem.makeList!Velocity(6);
+	velocities[] = [
 		Velocity(&(pInstance[0].transform), vec3(0), vec3(-0.1, 1.2, 0.71)),
 		Velocity(&(sInstance[0].transform), vec3(.3, .6, -1.2), vec3(2, -1, -2.5)),
-		Velocity(&(sInstance[1].transform), vec3(-.2, -.1, 2), vec3(4, -9, 1))
+		Velocity(&(sInstance[1].transform), vec3(-.1, .4, -2), vec3(4, -9, 1)),
+		Velocity(&(sInstance[2].transform), vec3(.2, .5, -.6), vec3(3, -2, -2)),
+		Velocity(&(sInstance[3].transform), vec3(.2, .3, .5), vec3(2, 1, 2)),
+		Velocity(&(sInstance[4].transform), vec3(.4, .28, .9), vec3(1.75, -1.25, 0))
 	];
 
 	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);

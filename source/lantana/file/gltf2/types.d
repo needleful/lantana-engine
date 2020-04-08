@@ -84,7 +84,7 @@ bool isCompatible(T)(GLBComponentType p_type) @nogc nothrow
 	}
 }
 
-uint size(GLBComponentType p_type)
+uint size(GLBComponentType p_type) pure nothrow @nogc @safe
 {
 	switch(p_type)
 	{
@@ -95,9 +95,8 @@ uint size(GLBComponentType p_type)
 		case GLBComponentType.UNSIGNED_BYTE:  return 1;
 		case GLBComponentType.UNSIGNED_SHORT: return 2;
 		default: 
-			debug throw new Exception(format("Invalid GLBComponentType: %u", p_type));
-			else
-				return -1;
+			debug printf("Invalid GLBComponentType: %u\n", p_type);
+			return -1;
 	}
 }
 
@@ -196,7 +195,7 @@ string toString(GLBDataType p_type)
 	}
 }
 
-uint componentCount(GLBDataType p_type)  nothrow
+uint componentCount(GLBDataType p_type) pure nothrow @nogc @safe
 {
 	switch(p_type)
 	{
@@ -232,9 +231,7 @@ struct GLBBufferView
 		debug assert(componentType.isCompatible!T(), format("Incompatible componentType: %s!%s versus %s", 
 			dataType.toString(), componentType.toString(), T.stringof));
 
-		auto len = byteLength/
-			(dataType.componentCount()*componentType.size());
-		return cast(immutable(T[])) (cast(T*)(&p_buffer[byteOffset]))[0..len];
+		return cast(immutable(T[])) (cast(T*)(&p_buffer[byteOffset]))[0..count()];
 	}
 
 	this(JSONValue p_access, JSONValue[] p_views)
@@ -251,6 +248,11 @@ struct GLBBufferView
 	const bool isCompatible(T)()  nothrow
 	{
 		return dataType.isCompatible!T() && componentType.isCompatible!T();
+	}
+
+	public uint count() const pure nothrow @nogc @safe
+	{
+		return byteLength/(dataType.componentCount()*componentType.size());
 	}
 }
 

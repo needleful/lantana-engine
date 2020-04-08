@@ -43,21 +43,9 @@ struct GLBLoadResults(Spec)
 }
 
 //Check a binary gltf2 file
-auto glbLoad(Spec)(string p_file, ref Region p_alloc)
+GLBLoadResults!Spec glbLoad(Spec)(string p_file, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
 {
-	auto res = glbLoadJson(p_file, p_alloc);
-
-	auto results = glbJsonParse!Spec(res.json, p_alloc);
-	results.data = res.data;
-
-	return results;
-}
-
-private auto glbLoadJson(string p_file, ref Region p_alloc)
-{
-	assert(p_file.exists(), "File does not exist: " ~ p_file);
-
 	auto input = File(p_file, "rb");
 	uint[3] header;
 	input.rawRead(header);
@@ -67,9 +55,11 @@ private auto glbLoadJson(string p_file, ref Region p_alloc)
 	input.rawRead(jsonHeader);
 
 	assert(jsonHeader[1] == GLBChunkType.JSON, "First chunk of a GLB file must be JSON");
-	char[] outjson;
-	outjson.length = jsonHeader[0];
-	input.rawRead(outjson);
+	char[] json;
+	json.length = jsonHeader[0];
+	input.rawRead(json);
+
+	auto results = glbJsonParse!Spec(json, p_alloc);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
@@ -77,12 +67,9 @@ private auto glbLoadJson(string p_file, ref Region p_alloc)
 	auto outdata = p_alloc.makeList!ubyte(binaryHeader[0]);
 	input.rawRead(outdata);
 
-	struct Result {
-		char[] json() { return outjson;}
-		ubyte[] data() {return outdata;}
-	}
+	results.data = outdata;
 
-	return Result();
+	return results;
 }
 
 private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
@@ -97,6 +84,10 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 	GLBLoadResults!Spec results;
 
 	int meshCount = 0;
+
+	auto access = scn["accessors"].array();
+	auto bufferViews = scn["bufferViews"].array();
+
 	foreach(JSONValue m; jMeshes)
 	{
 		GLBLoadResults!Spec.MeshData result;
@@ -117,19 +108,16 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 		else
 			result.accessor.name = p_alloc.copy(format("UnnamedMesh_%s", meshCount));
 
-		auto access = scn["accessors"].array();
-		auto bufferViews = scn["bufferViews"].array();
 
 		with(result.accessor)
 		{
 			auto ac_indeces = primitives["indices"].integer();
-
+			
 			indices = GLBBufferView(access[ac_indeces], bufferViews);
 			results.bufferSize = max(results.bufferSize, indices.byteOffset + indices.byteLength);
 
 			static foreach(field; Spec.attribType.fields)
 			{{
-				// Double brackets so the same name can be reused
 				auto ac = atr[mixin("Spec.loader."~field)].integer();
 
 				mixin(field) = GLBBufferView(access[ac], bufferViews);
