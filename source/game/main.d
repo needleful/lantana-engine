@@ -35,6 +35,20 @@ __gshared float g_timescale = 1;
 __gshared float g_oxygen = 21.2;
 __gshared float g_oxygenDrain = 0.027;
 
+struct Velocity
+{
+	Transform* transform;
+	vec3 translate;
+	vec3 rotate;
+
+	this(Transform* p_transform, vec3 p_translate, vec3 p_rotate)
+	{
+		transform = p_transform;
+		translate = p_translate;
+		rotate = p_rotate;
+	}
+}
+
 version(lantana_game)
 int main()
 {
@@ -82,7 +96,7 @@ int main()
 
 
 	auto sMesh = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
-	sMesh.reserveMeshes(mainMem, 8);
+	sMesh.reserveMeshes(mainMem, 5);
 
 	StaticMesh.Uniforms.global sGlobals;
 	sGlobals.light_direction = animGlobals.light_direction;
@@ -93,9 +107,18 @@ int main()
 	sGlobals.farPlane = camera.farPlane;
 
 	auto shipMesh = sMesh.loadMeshes("data/meshes/ship.glb", mainMem);
-	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(1);
-	sInstance[0] = StaticMesh.Instance(shipMesh["Ship"], Transform(1, vec3(10, 25, -30), vec3(12, 143, -90)));
-	vec3 shipVel = vec3(.3, .6, -1.2);
+	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(3);
+	sInstance[] = [
+		StaticMesh.Instance(shipMesh["Ship"], Transform(1, vec3(10, 25, -30), vec3(12, 143, -90))),
+		StaticMesh.Instance(shipMesh["LargePanel"], Transform(1, vec3(12, 26, -31), vec3(12, 148, -90))),
+		StaticMesh.Instance(shipMesh["Corridor"], Transform(1, vec3(8, 9, -20), vec3(0, 29, 12)))
+	];
+
+	Velocity[] velocities = [
+		Velocity(&(pInstance[0].transform), vec3(0), vec3(-0.1, 1.2, 0.71)),
+		Velocity(&(sInstance[0].transform), vec3(.3, .6, -1.2), vec3(2, -1, -2.5)),
+		Velocity(&(sInstance[1].transform), vec3(-.2, -.1, 2), vec3(4, -9, 1))
+	];
 
 	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);
 
@@ -167,6 +190,12 @@ int main()
 		vec2 camRot = velCamRot*cam_speed*delta;
 		camRot.y *= -1;
 
+		foreach(vel; velocities)
+		{
+			vel.transform.translate(vel.translate*delta);
+			vel.transform.rotateDegrees(vel.rotate*delta);
+		}
+
 		camera.rotateDegrees(camRot);
 		window.begin_frame!false();
 		scene3D.bind();
@@ -178,15 +207,12 @@ int main()
 
 
 			animGlobals.projection = camera.vp();
-			pInstance[0].transform.rotate_degrees(-0.1*delta, 1.2*delta, 0.71*delta);
 			anim.update(delta, pInstance);
 			anim.render(animGlobals, lights.palette, pInstance);
 
 
 			sGlobals.projection = animGlobals.projection;
 			sGlobals.area_ceiling = sInstance[0].transform._position.y;
-			sInstance[0].transform.rotate_degrees(2*delta, -0.1*delta, -2.5*delta);
-			sInstance[0].transform.translate(delta*shipVel);
 
 			sMesh.render(sGlobals, lights.palette, sInstance);
 		scene3D.unbind();

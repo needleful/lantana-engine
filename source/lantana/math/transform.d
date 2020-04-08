@@ -59,7 +59,12 @@ struct Transform
 		_position.z += v.z;
 	}
 
-	void rotate_degrees(float x, float y, float z)  @safe nothrow
+	void rotateDegrees(vec3 v) @safe nothrow
+	{
+		rotateDegrees(v.x, v.y, v.z);
+	}
+
+	void rotateDegrees(float x, float y, float z)  @safe nothrow
 	{
 		_rotation.x += x;
 		_rotation.y += y;
