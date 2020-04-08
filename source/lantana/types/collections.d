@@ -7,6 +7,15 @@ module lantana.types.collections;
 import std.conv: emplace;
 import std.traits: hasUDA;
 
+public auto first(T)(T collection)
+{
+	foreach(ref val; collection)
+	{
+		return val;
+	}
+	assert(false, "No elements in the collection");
+}
+
 /// Create a bitfield from an enum
 /// IMPORTANT: it assumes the enum is tightly packed, e.g it goes 0, 1, 2, etc
 struct Bitfield(Enum)

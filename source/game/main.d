@@ -55,17 +55,16 @@ int main()
 	camera.distance = 5;
 
 	auto skyBox = SkyMesh.System("data/shaders/skybox.vert", "data/shaders/skybox.frag");
-	skyBox.meshes = mainMem.makeOwnedList!(SkyMesh.Mesh)(1);
-	auto sky = skyBox.loadMesh("data/meshes/skybox.glb", mainMem);
+	skyBox.reserveMeshes(mainMem, 1);
+	auto sky = skyBox.loadMeshes("data/meshes/skybox.glb", mainMem);
 	SkyMesh.Instance[] skyMeshes = mainMem.makeList!(SkyMesh.Instance)(1);
-	skyMeshes[0] = SkyMesh.Instance(sky, Transform(0.5));
+	skyMeshes[0] = SkyMesh.Instance(sky.first(), Transform(0.5));
 
 	SkyMesh.Uniforms.global skyUni;
 	skyUni.gamma = 1.8;
 
-
 	auto anim = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
-	anim.meshes = mainMem.makeOwnedList!(AnimMesh.Mesh)(1);
+	anim.reserveMeshes(mainMem, 1);
 
 	AnimMesh.Uniforms.global animGlobals;
 	animGlobals.light_direction = vec3(-0.1,-0.3,0.9);
@@ -76,14 +75,14 @@ int main()
 	animGlobals.nearPlane = camera.nearPlane;
 	animGlobals.farPlane = camera.farPlane;
 
-	auto playerMesh = anim.loadMesh("data/meshes/kitty-astronaut.glb", mainMem);
+	auto pMeshes = anim.loadMeshes("data/meshes/kitty-astronaut.glb", mainMem);
 	auto pInstance = mainMem.makeList!(AnimMesh.Instance)(1);
-	pInstance[0] = AnimMesh.Instance(playerMesh, Transform(1, vec3(0), vec3(0, -40, 180)), mainMem);
+	pInstance[0] = AnimMesh.Instance(pMeshes.first(), Transform(1, vec3(0), vec3(0, -40, 180)), mainMem);
 	pInstance[0].play("Idle", true);
 
 
 	auto sMesh = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
-	sMesh.meshes = mainMem.makeOwnedList!(StaticMesh.Mesh)(1);
+	sMesh.reserveMeshes(mainMem, 8);
 
 	StaticMesh.Uniforms.global sGlobals;
 	sGlobals.light_direction = animGlobals.light_direction;
@@ -93,9 +92,9 @@ int main()
 	sGlobals.nearPlane = camera.nearPlane;
 	sGlobals.farPlane = camera.farPlane;
 
-	auto shipMesh = sMesh.loadMesh("data/meshes/ship.glb", mainMem);
+	auto shipMesh = sMesh.loadMeshes("data/meshes/ship.glb", mainMem);
 	auto sInstance = mainMem.makeList!(StaticMesh.Instance)(1);
-	sInstance[0] = StaticMesh.Instance(shipMesh, Transform(1, vec3(10, 25, -30), vec3(12, 143, -90)));
+	sInstance[0] = StaticMesh.Instance(shipMesh["Ship"], Transform(1, vec3(10, 25, -30), vec3(12, 143, -90)));
 	vec3 shipVel = vec3(.3, .6, -1.2);
 
 	auto lights = LightPalette("data/palettes/lightPalette.png", mainMem);

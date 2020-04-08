@@ -27,24 +27,6 @@ enum GLBChunkType : uint
 struct GLBLoadResults(Spec)
 	if(isTemplateType!(MeshSpec, Spec))
 {
-	static if(Spec.isAnimated)
-	{
-		GLBAnimation[] animations;
-		GLBNode[] bones;
-		GLBBufferView inverseBindMatrices;
-	}
-	ubyte[] data;
-	Spec.accessor accessor;
-
-	/// `data[0..bufferSize]` is what's put in the vertex buffer.
-	/// This will hopefully prevent junk like animations and textures from getting in the VBO,
-	/// without requiring the buffer to be chopped up and copied around.
-	uint bufferSize;
-}
-
-struct GLBLoadMap(Spec)
-	if(isTemplateType!(MeshSpec, Spec))
-{
 	struct MeshData
 	{
 		static if(Spec.isAnimated)
@@ -56,11 +38,23 @@ struct GLBLoadMap(Spec)
 		Spec.accessor accessor;
 	}
 	MeshData[string] meshes;
+	ubyte[] data;
+	uint bufferSize;
 }
 
 //Check a binary gltf2 file
 auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
+{
+	auto res = glbLoadJson(p_file, p_alloc);
+
+	auto results = glbJsonParse!Spec(res.json, p_alloc);
+	results.data = res.data;
+
+	return results;
+}
+
+private auto glbLoadJson(string p_file, ref Region p_alloc)
 {
 	assert(p_file.exists(), "File does not exist: " ~ p_file);
 
@@ -73,28 +67,25 @@ auto glbLoad(Spec)(string p_file, ref Region p_alloc)
 	input.rawRead(jsonHeader);
 
 	assert(jsonHeader[1] == GLBChunkType.JSON, "First chunk of a GLB file must be JSON");
-	char[] json;
-	json.length = jsonHeader[0];
-	input.rawRead(json);
-
-	auto results = glbJsonParse!Spec(json, p_alloc);
+	char[] outjson;
+	outjson.length = jsonHeader[0];
+	input.rawRead(outjson);
 
 	uint[2] binaryHeader;
 	input.rawRead(binaryHeader);
 	assert(binaryHeader[1] == GLBChunkType.BIN, "Second chunk of a GLB must be BIN");
-	
-	results.data = p_alloc.makeList!ubyte(binaryHeader[0]);
-	input.rawRead(results.data);
+	auto outdata = p_alloc.makeList!ubyte(binaryHeader[0]);
+	input.rawRead(outdata);
 
-	return results;
+	struct Result {
+		char[] json() { return outjson;}
+		ubyte[] data() {return outdata;}
+	}
+
+	return Result();
 }
 
-GLBLoadMap!Spec glbLoadMulti(Spec)(string p_file, ref Region p_alloc)
-{
-
-}
-
-private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
+private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 	if(isTemplateType!(MeshSpec, Spec))
 {
 	scope(failure) writeln(p_json);
@@ -102,143 +93,146 @@ private auto glbJsonParse(Spec)(char[] p_json, ref Region p_alloc)
 	assert(scn.type == JSONType.object);
 
 	auto jMeshes = scn["meshes"].array();
-	assert(jMeshes.length == 1, "Cannot process GLB files with multiple meshes");
 
-	GLBLoadResults!Spec result;
+	GLBLoadResults!Spec results;
 
-	auto m = jMeshes[0];
-
-	JSONValue primitives, atr;
+	int meshCount = 0;
+	foreach(JSONValue m; jMeshes)
 	{
-		auto prim_json = m["primitives"];
-		assert(prim_json.type == JSONType.array);
-		auto prim = prim_json.array();
-		assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
-		primitives = prim[0];
-
-		atr = primitives["attributes"];
-		assert(atr.type == JSONType.object);
-	}
-
-
-	if("name" in m)
-	{
-		result.accessor.name = p_alloc.copy(m["name"].str());
-	}
-
-	auto access = scn["accessors"].array();
-	auto bufferViews = scn["bufferViews"].array();
-
-	with(result.accessor)
-	{
-		auto ac_indeces = primitives["indices"].integer();
-
-		indices = GLBBufferView(access[ac_indeces], bufferViews);
-		result.bufferSize = max(result.bufferSize, indices.byteOffset + indices.byteLength);
-
-		static foreach(field; Spec.attribType.fields)
-		{{
-			// Double brackets so the same name can be reused
-			auto ac = atr[mixin("Spec.loader."~field)].integer();
-
-			mixin(field) = GLBBufferView(access[ac], bufferViews);
-			result.bufferSize = max(result.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
-		}}
-		
-		auto material = scn["materials"][primitives["material"].integer()];
-		auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
-		auto img_albedo = scn["images"][
-			scn["textures"][idx_texture]["source"].integer()
-		];
-
-		tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
-		auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
-		tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
-		tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
-	}
-
-	static if(Spec.isAnimated)
-	{
-		auto scn_index = scn["scene"].integer();
-		auto scene = scn["scenes"].array()[scn_index];
-		auto anims = scn["animations"].array();
-
-		result.animations = p_alloc.makeList!GLBAnimation(anims.length);
-
-		uint idx = 0;
-		foreach(animation; anims)
+		GLBLoadResults!Spec.MeshData result;
+		JSONValue primitives, atr;
 		{
-			result.animations[idx++] = animationFromJSON(p_alloc, animation, bufferViews, access);
+			auto prim_json = m["primitives"];
+			assert(prim_json.type == JSONType.array);
+			auto prim = prim_json.array();
+			assert(prim.length == 1, "Do not know how to handle glTF meshes with multiple primitive sets");
+			primitives = prim[0];
+
+			atr = primitives["attributes"];
+			assert(atr.type == JSONType.object);
 		}
 
-		auto nodes = scn["nodes"].array();
-		auto skin = scn["skins"].array()[0];
+		if("name" in m)
+			result.accessor.name = p_alloc.copy(m["name"].str());
+		else
+			result.accessor.name = p_alloc.copy(format("UnnamedMesh_%s", meshCount));
 
-		auto ibm_index = skin["inverseBindMatrices"].integer();
-		result.inverseBindMatrices = GLBBufferView(access[ibm_index], bufferViews);
-		auto joints = skin["joints"].array();
-		result.bones = p_alloc.makeList!GLBNode(joints.length);
+		auto access = scn["accessors"].array();
+		auto bufferViews = scn["bufferViews"].array();
 
-		idx = 0;
-		foreach(joint; joints)
+		with(result.accessor)
 		{
-			long node_idx = joint.integer();
-			auto node = nodes[node_idx];
+			auto ac_indeces = primitives["indices"].integer();
 
-			result.bones.place(idx++, node);
+			indices = GLBBufferView(access[ac_indeces], bufferViews);
+			results.bufferSize = max(results.bufferSize, indices.byteOffset + indices.byteLength);
 
-			auto result_bone = &result.bones[idx-1];
-			// slow, naive parent retrieval but I don't give a shit
-			foreach(n; 0..nodes.length)
+			static foreach(field; Spec.attribType.fields)
+			{{
+				// Double brackets so the same name can be reused
+				auto ac = atr[mixin("Spec.loader."~field)].integer();
+
+				mixin(field) = GLBBufferView(access[ac], bufferViews);
+				results.bufferSize = max(results.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
+			}}
+			
+			auto material = scn["materials"][primitives["material"].integer()];
+			auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+			auto img_albedo = scn["images"][
+				scn["textures"][idx_texture]["source"].integer()
+			];
+
+			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+			auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+		}
+
+		static if(Spec.isAnimated)
+		{
+			auto scn_index = scn["scene"].integer();
+			auto scene = scn["scenes"].array()[scn_index];
+			auto anims = scn["animations"].array();
+
+			result.animations = p_alloc.makeList!GLBAnimation(anims.length);
+
+			uint idx = 0;
+			foreach(animation; anims)
 			{
-				auto test_node = nodes[n];
-				if(n == node_idx || "children" !in test_node)
-				{
-					continue;
-				}
+				result.animations[idx++] = animationFromJSON(p_alloc, animation, bufferViews, access);
+			}
 
-				foreach(child; test_node["children"].array())
+			auto nodes = scn["nodes"].array();
+			auto skin = scn["skins"].array()[0];
+
+			auto ibm_index = skin["inverseBindMatrices"].integer();
+			result.inverseBindMatrices = GLBBufferView(access[ibm_index], bufferViews);
+			auto joints = skin["joints"].array();
+			result.bones = p_alloc.makeList!GLBNode(joints.length);
+
+			idx = 0;
+			foreach(joint; joints)
+			{
+				long node_idx = joint.integer();
+				auto node = nodes[node_idx];
+
+				result.bones.place(idx++, node);
+
+				auto result_bone = &result.bones[idx-1];
+				// slow, naive parent retrieval but I don't give a shit
+				foreach(n; 0..nodes.length)
 				{
-					// Current node has a parent
-					if(child.integer() == node_idx)
+					auto test_node = nodes[n];
+					if(n == node_idx || "children" !in test_node)
 					{
-						// is the parent part of the joints?
-						int parentJointIndex = -1;
-						foreach(j; 0..joints.length)
+						continue;
+					}
+
+					foreach(child; test_node["children"].array())
+					{
+						// Current node has a parent
+						if(child.integer() == node_idx)
 						{
-							if(joints[j].integer() == n)
+							// is the parent part of the joints?
+							int parentJointIndex = -1;
+							foreach(j; 0..joints.length)
 							{
-								parentJointIndex = cast(int)j;
+								if(joints[j].integer() == n)
+								{
+									parentJointIndex = cast(int)j;
+								}
+							}
+							if(parentJointIndex >= 0)
+							{
+								result_bone.parent = cast(byte)parentJointIndex;
 							}
 						}
-						if(parentJointIndex >= 0)
-						{
-							result_bone.parent = cast(byte)parentJointIndex;
-						}
 					}
 				}
 			}
-		}
-		// Convert animations bone indeces to skin indeces
-		foreach(ref anim; result.animations)
-		{
-			foreach(ref chan; anim.channels)
+			// Convert animations bone indeces to skin indeces
+			foreach(ref anim; result.animations)
 			{
-				auto targetBone = chan.targetBone;
-				ubyte jointIndex = 0;
-				foreach(ref j; joints)
+				foreach(ref chan; anim.channels)
 				{
-					if(j.integer() == targetBone)
+					auto targetBone = chan.targetBone;
+					ubyte jointIndex = 0;
+					foreach(ref j; joints)
 					{
-						chan.targetBone = jointIndex;
+						if(j.integer() == targetBone)
+						{
+							chan.targetBone = jointIndex;
+						}
+						jointIndex++;
 					}
-					jointIndex++;
 				}
 			}
 		}
+		results.meshes[result.accessor.name] = result;
+		meshCount++;
 	}
 
-	return result;
+	return results;
 }
 
 GLBAnimation animationFromJSON(ref Region p_alloc, JSONValue p_anim, JSONValue[] p_views, JSONValue[] access)

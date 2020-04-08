@@ -53,8 +53,10 @@ struct DefaultSettings
 template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
 {
 	alias settings = Settings;
+	alias texture = Texture!(Settings.textureType);
 
 	alias Spec = MeshSpec!(Attrib, Loader);
+	private alias MeshData = GLBLoadResults!Spec.MeshData;
 
 	struct InstanceUniforms
 	{
@@ -76,6 +78,9 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 	{
 		Spec.attribType atr;
 		OwnedList!Mesh meshes;
+		OwnedList!GLuint vbos;
+		OwnedList!texture textures;
+
 		Material mat;
 		Uniforms un;
 
@@ -90,12 +95,49 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			assert(mat.canRender());
 		}
 
-		Mesh* loadMesh(string p_filename, ref Region p_alloc)
+		~this()
 		{
+			clearMeshes();
+		}
+
+		void reserveMeshes(ref Region p_alloc, ushort p_count)
+		{
+			meshes = p_alloc.makeOwnedList!Mesh(p_count);
+			vbos = p_alloc.makeOwnedList!GLuint(p_count);
+			textures = p_alloc.makeOwnedList!texture(p_count);
+		}
+
+		Mesh*[string] loadMeshes(string p_filename, ref Region p_alloc)
+		{
+			glcheck();
+
 			GLBLoadResults!Spec loaded;
 			loaded = glbLoad!Spec(p_filename, p_alloc);
-			meshes.place(this, loaded, p_alloc);
-			return &meshes[$-1];
+
+			GLuint vbo;
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, loaded.bufferSize, loaded.data.ptr, GL_STATIC_DRAW);
+			vbos ~= vbo;
+
+			GLBImage currentImage;
+			Mesh*[string] result;
+			foreach(name, mesh; loaded.meshes)
+			{
+				if(currentImage != mesh.accessor.tex_albedo)
+				{
+					currentImage = mesh.accessor.tex_albedo;
+					with(mesh.accessor.tex_albedo)
+					{
+						textures.place(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
+					}
+				}
+				meshes.place(this, mesh, loaded.data, vbo, &textures[$-1]);
+
+				result[name] = &meshes[$-1];
+			}
+			glcheck();
+			return result;
 		}
 
 		void render(ref Uniforms.global p_globals, ref Texture!Color p_palette, Instance[] p_instances)
@@ -142,6 +184,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			GLuint current_vao = 0;
 			foreach(ref inst; p_instances)
 			{
+				glcheck();
 				inst.transform.computeMatrix();
 				mat.setUniform(un.i_transform(), inst.transform.matrix);
 
@@ -158,15 +201,18 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 					glActiveTexture(GL_TEXTURE1);
 					glBindTexture(GL_TEXTURE_2D, inst.mesh.tex_albedo.id);
 				}
+				glcheck();
 
 				glDrawElements(
 					GL_TRIANGLES, 
 					cast(int)inst.mesh.accessor.indices.byteLength,
 					inst.mesh.accessor.indices.componentType,
 					cast(GLvoid*) inst.mesh.accessor.indices.byteOffset);
+				glcheck();
 			}
 
 			glBindVertexArray(0);
+			glcheck();
 		}
 
 		static if(Spec.isAnimated)
@@ -210,20 +256,18 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		void clearMeshes() @nogc
 		{
+			glDeleteBuffers(vbos.length, vbos.ptr);
 			foreach(i; 0..meshes.length)
 			{
 				meshes[i].clear();
 			}
 			meshes.clearNoGC();
+			vbos.clearNoGC();
 		}
 	}
 
 	struct Mesh
 	{
-		alias texture = Texture!(Settings.textureType);
-
-		ubyte[] data;
-
 		static if(Spec.isAnimated)
 		{
 			GLBNode[] bones;
@@ -231,48 +275,39 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			mat4[] inverseBindMatrices;
 		}
 
+		ubyte[] data;
 		Spec.accessor accessor;
+		texture* tex_albedo;
+		GLuint vao;
 
-		texture tex_albedo;
-
-		GLuint vbo, vao;
-
-		this(ref System p_parent, GLBLoadResults!Spec p_loaded, ref Region p_alloc) 
+		this(ref System p_system, MeshData p_data, ubyte[] p_bytes, GLuint p_vbo, texture* p_texture)
 		{
-			data = p_loaded.data;
-			accessor = p_loaded.accessor;
+			glcheck();
+
+			data = p_bytes;
+			tex_albedo = p_texture;
+			accessor = p_data.accessor;
 
 			static if(Spec.isAnimated)
 			{
-				bones = p_loaded.bones;
-				animations = p_loaded.animations;
-				auto ibmStart = p_loaded.inverseBindMatrices.byteOffset;
-				auto ibmEnd = p_loaded.inverseBindMatrices.byteLength;
-				inverseBindMatrices = (cast(mat4*) &data[ibmStart])[0..ibmEnd/mat4.sizeof];
+				bones = p_data.bones;
+				animations = p_data.animations;
+				auto ibmStart = p_data.inverseBindMatrices.byteOffset;
+				auto ibmEnd = p_data.inverseBindMatrices.byteLength;
+				inverseBindMatrices = (cast(mat4*) &p_bytes[ibmStart])[0..ibmEnd/mat4.sizeof];
 			}
 
 			glcheck();
-			glGenBuffers(1, &vbo);
 			glGenVertexArrays(1, &vao);
-
 			glBindVertexArray(vao);
+			p_system.atr.enable();
 
-			p_parent.atr.enable();
-
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, p_loaded.bufferSize, data.ptr, GL_STATIC_DRAW);
-			
-			p_parent.atr.initialize(accessor);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, p_vbo);
+			p_system.atr.initialize(accessor);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, p_vbo);
 
 			glBindVertexArray(0);
-			p_parent.atr.disable();
-
-			with(accessor.tex_albedo)
-			{
-				tex_albedo = texture(type, data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
-			}
+			p_system.atr.disable();
 
 			glcheck();
 		}
@@ -285,7 +320,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			}
 
 			rhs.vao = 0;
-			rhs.vbo = 0;
 		}
 
 		~this() @nogc
@@ -295,7 +329,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		void clear() @nogc
 		{
-			glDeleteBuffers(1, &vbo);
 			glDeleteVertexArrays(1, &vao);
 			glcheck();
 		}
