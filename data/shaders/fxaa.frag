@@ -60,6 +60,7 @@ void main()
 	else if(depthEdge() == 0)
 	{
 		out_color = center;
+		return;
 	}
 
 	vec2 edgeDir = vec2(
@@ -67,7 +68,7 @@ void main()
 		abs(l1 - lc) + abs(l4 - lc)
 	);
 
-	edgeDir = vec2(edgeDir.x > edgeDir.y, edgeDir.x < edgeDir.y);
+	edgeDir = vec2(edgeDir.x > edgeDir.y, edgeDir.x < edgeDir.y)*length(edgeDir);
 
 	vec3 lineSample = vec3(0);
 
@@ -75,7 +76,7 @@ void main()
 	for(int i = 0; i < FXAA_SAMPLES; i++)
 	{
 		vec2 dir = edgeDir*(0.5 + i);
-		float factor = 1/i;
+		float factor = pow(0.9, i);
 
 		lineSample += texture(in_tex, vert_uv + dir/resolution).rgb*factor;
 		lineSample += texture(in_tex, vert_uv - dir/resolution).rgb*factor;
