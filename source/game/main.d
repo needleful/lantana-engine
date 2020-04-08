@@ -101,7 +101,8 @@ int main()
 	StaticMesh.Uniforms.global sGlobals;
 	sGlobals.light_direction = animGlobals.light_direction;
 	sGlobals.light_bias = animGlobals.light_bias;
-	sGlobals.area_span = 15;
+	sGlobals.area_span = 800;
+	sGlobals.area_ceiling = 0;
 	sGlobals.gamma = animGlobals.gamma;
 	sGlobals.nearPlane = camera.nearPlane;
 	sGlobals.farPlane = camera.farPlane;
@@ -112,7 +113,7 @@ int main()
 		StaticMesh.Instance(shipMesh["Ship"], Transform(1, vec3(10, 25, -30), vec3(12, 143, -90))),
 		StaticMesh.Instance(shipMesh["LargePanel"], Transform(1, vec3(40, 30, -36), vec3(12, 148, -90))),
 		StaticMesh.Instance(shipMesh["Corridor"], Transform(1, vec3(-10, 9, -20), vec3(4, 23, 18))),
-		StaticMesh.Instance(shipMesh["Door1"], Transform(1, vec3(5, -2, 8), vec3(0))),
+		StaticMesh.Instance(shipMesh["Door1"], Transform(1, vec3(-9, 10.5, -18), vec3(0))),
 		StaticMesh.Instance(shipMesh["Door2"], Transform(1, vec3(12, 2, 4), vec3(20)))
 	];
 
@@ -122,7 +123,7 @@ int main()
 		Velocity(&(sInstance[0].transform), vec3(.3, .6, -1.2), vec3(2, -1, -2.5)),
 		Velocity(&(sInstance[1].transform), vec3(-.1, .4, -2), vec3(4, -9, 1)),
 		Velocity(&(sInstance[2].transform), vec3(.2, .5, -.6), vec3(3, -2, -2)),
-		Velocity(&(sInstance[3].transform), vec3(.2, .3, .5), vec3(2, 1, 2)),
+		Velocity(&(sInstance[3].transform), vec3(-.05, .73, -.4), vec3(2, 1, 2)),
 		Velocity(&(sInstance[4].transform), vec3(.4, .28, .9), vec3(1.75, -1.25, 0))
 	];
 
@@ -163,7 +164,7 @@ int main()
 	float uiFrameTime = 0;
 	int runningFrame = 1;
 	float time_accum = 0;
-	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws);
+	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws, 1);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])
@@ -216,9 +217,7 @@ int main()
 			anim.update(delta, pInstance);
 			anim.render(animGlobals, lights.palette, pInstance);
 
-
 			sGlobals.projection = animGlobals.projection;
-			sGlobals.area_ceiling = sInstance[0].transform._position.y;
 
 			sMesh.render(sGlobals, lights.palette, sInstance);
 		scene3D.unbind();

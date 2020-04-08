@@ -124,7 +124,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			Mesh*[string] result;
 			foreach(name, mesh; loaded.meshes)
 			{
-				writefln("::-- Mesh from %s: %s", p_filename, name);
 				if(currentImage != mesh.accessor.tex_albedo)
 				{
 					currentImage = mesh.accessor.tex_albedo;

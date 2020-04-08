@@ -368,7 +368,7 @@ void uiMain()
 		new HodgePodge([
 			uiModal, 
 			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1)),
-			new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
+			//new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
 		]));
 
 	// Needs to be run after initialization
@@ -381,8 +381,8 @@ void uiMain()
 	void processEvents(UIEvents events)
 	{
 		// Cinematic mode
-		o2Text.setVisible(false);
-		debugBox.setVisible(false);
+		//o2Text.setVisible(false);
+		//debugBox.setVisible(false);
 
 		if(events.window[WindowState.RESIZED])
 		{
@@ -409,30 +409,30 @@ void uiMain()
 		if((ds.timer += events.delta) >= ds.current.pauseTime)
 		{
 			showDialog = true;
-			foreach(string key, float value; ds.flags)
-			{
-				if(key !in debugMap)
-				{
-					TextBox t = new TextBox(sysFont, format("%s", value), 12, vec3(0.5));
-					debugMap[key] = t;
-					debugBox.addChild(new HBox([
-							new TextBox(sysFont, key, vec3(0.5)).withBounds(Bounds(100, double.infinity), Bounds.none),
-							t
-						])
-					);
-				}
-				else
-				{
-					debugMap[key].setText(format("%s", value));
-				}
-			}
+			//foreach(string key, float value; ds.flags)
+			//{
+			//	if(key !in debugMap)
+			//	{
+			//		TextBox t = new TextBox(sysFont, format("%s", value), 12, vec3(0.5));
+			//		debugMap[key] = t;
+			//		debugBox.addChild(new HBox([
+			//				new TextBox(sysFont, key, vec3(0.5)).withBounds(Bounds(100, double.infinity), Bounds.none),
+			//				t
+			//			])
+			//		);
+			//	}
+			//	else
+			//	{
+			//		debugMap[key].setText(format("%s", value));
+			//	}
+			//}
 		}
 
 		g_ui.updateInteraction(events.delta, g_uiInput);
 
 		dialogWidget.setVisible(showDialog);
 
-		frameTime.setText(g_frameTime);
+		//frameTime.setText(g_frameTime);
 		o2Text.setText(g_oxygenText);
 
 		g_ui.updateLayout();

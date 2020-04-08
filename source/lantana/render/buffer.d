@@ -47,11 +47,13 @@ struct FrameBuffer
 	];
 
 	private RealSize size;
+	private float scale;
 
 	@disable this();
 
-	public this(const string p_vert, const string p_frag, RealSize p_size)
+	public this(const string p_vert, const string p_frag, RealSize p_size, float p_scale = 1)
 	{
+		scale = p_scale;
 		glGenFramebuffers(1, &buffer);
 		glGenTextures(tex.length, tex.ptr);
 
@@ -60,14 +62,14 @@ struct FrameBuffer
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
 		glcheck();
 
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex[1], 0);
 		glcheck();
 
@@ -145,7 +147,7 @@ struct FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 		glDepthMask(GL_TRUE);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, cast(int)(size.width*1.25), cast(int)(size.height*1.25));
+		glViewport(0, 0, cast(int)(size.width*scale), cast(int)(size.height*scale));
 	}
 
 	public void render()
@@ -184,9 +186,9 @@ struct FrameBuffer
 	public void resize(RealSize p_size)
 	{
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*1.25), cast(int)(p_size.height*1.25), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		size = p_size;
 	}
 }
