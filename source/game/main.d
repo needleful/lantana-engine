@@ -164,7 +164,7 @@ int main()
 	float uiFrameTime = 0;
 	int runningFrame = 1;
 	float time_accum = 0;
-	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws, 1.2);
+	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws, 1.0);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])

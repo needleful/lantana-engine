@@ -13,10 +13,11 @@ out vec3 out_color;
 
 #define FXAA_LUMA_THRESHOLD 0.1
 #define FXAA_DEPTH_THRESHOLD 0.0
-#define FXAA_SUBPIX_TRIM 0.25
-#define FXAA_SUBPIX_TRIM_SCALE 1
+#define FXAA_SUBPIX_TRIM 0.0
+#define FXAA_SUBPIX_TRIM_SCALE 2
 #define FXAA_SUBPIX_CAP 0.75
-#define FXAA_SAMPLES 3
+#define FXAA_SAMPLES 5
+#define FXAA_SPAN 2.0
 
 float luma(vec3 color)
 {
@@ -51,15 +52,17 @@ void main()
 	float lmin = min(min(lc, min(l1, l2)), min(l3, l4));
 
 	float range = lmax - lmin;
+	vec3 dc = texture(in_depth, vert_uv).rgb;
 
-	if(range <= FXAA_LUMA_THRESHOLD)
+	out_color = center;
+	if(range <= FXAA_LUMA_THRESHOLD || lc == lmax)
 	{
-		out_color = center;
+		// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
 		return;
 	}
 	else if(depthEdge() == 0)
 	{
-		out_color = center;
+		// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
 		return;
 	}
 
@@ -68,20 +71,40 @@ void main()
 		abs(l1 - lc) + abs(l4 - lc)
 	);
 
-	edgeDir = vec2(edgeDir.x > edgeDir.y, edgeDir.x < edgeDir.y)*length(edgeDir);
+	float dirStrength = clamp((abs(abs(edgeDir.x) - abs(edgeDir.y))), 0.125, 1);
+	edgeDir = vec2(edgeDir.x > edgeDir.y, edgeDir.x < edgeDir.y);
 
 	vec3 lineSample = vec3(0);
 
 	float samples = 0;
-	for(int i = 0; i < FXAA_SAMPLES; i++)
+	bool doneP = false;
+	bool doneN = false;
+	float factor = 1;
+	for(float i = 0; i < FXAA_SAMPLES; i++)
 	{
-		vec2 dir = edgeDir*(0.5 + i);
-		float factor = pow(0.9, i);
+		factor = 1;
+		vec2 dir = edgeDir*(0.5 + i)*dirStrength*FXAA_SPAN;
+		if(!doneP)
+		{
+			vec3 sampleP = texture(in_tex, vert_uv + dir/resolution).rgb;
+			lineSample += sampleP*factor;
+			samples += factor;
 
-		lineSample += texture(in_tex, vert_uv + dir/resolution).rgb*factor;
-		lineSample += texture(in_tex, vert_uv - dir/resolution).rgb*factor;
+			doneP = abs(luma(sampleP) - lc) < FXAA_LUMA_THRESHOLD;
+		}
+		if(!doneN)
+		{
+			vec3 sampleN = texture(in_tex, vert_uv - dir/resolution).rgb;
+			lineSample += sampleN*factor;
+			samples += factor;
 
-		samples += 2*factor;
+			doneN = abs(luma(sampleN) - lc) < FXAA_LUMA_THRESHOLD;
+		}
+
+		if(doneN && doneP)
+		{
+			break;
+		}
 	}
 
 	lineSample = (lineSample + center)/(samples + 1);
@@ -93,5 +116,6 @@ void main()
 
 	vec3 localRGB = (sample1 + sample2 + sample3 + sample4 + center)/5;
 
-	out_color = lineSample;
+	out_color = mix(lineSample, localRGB, blendL);
+	// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
 }
