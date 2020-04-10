@@ -4,6 +4,7 @@ authors "Devin Hastings"
 license "GPL-3.0"
 
 dependency "bindbc-sdl" version=">=0.13.0"
+versions "SDL_204"
 versions "BindSDL_Mixer"
 
 dependency "derelict-ft" version=">=2.0.0-beta.5 <2.1.0-0"
@@ -15,6 +16,8 @@ dependency "gl3n" version="~>1.3.1"
 dependency "sdlang-d" version="~>0.10.5"
 
 libs "sdl2" "freetype" platform="posix"
+
+preGenerateCommands "copy game.exe.manifest bin\\game.exe.manifest" platform="windows" configuration="game"
 
 buildType "release-ultra" {
 	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "verbose" "stackStomping"

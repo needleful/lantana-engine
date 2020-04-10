@@ -82,7 +82,7 @@ struct Window
 			cast(int)SDL_WINDOWPOS_CENTERED, 
 			cast(int)SDL_WINDOWPOS_CENTERED, 
 			width, height, 
-			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
 		if(window == null)
 		{
@@ -172,7 +172,7 @@ struct Window
 							continue;
 						case SDL_WINDOWEVENT_SIZE_CHANGED:
 							int w, h;
-							window.SDL_GetWindowSize(&w, &h);
+							window.SDL_GL_GetDrawableSize(&w, &h);
 							glViewport(0, 0, w, h);
 							state[WindowState.RESIZED] = true;
 							break;
@@ -210,7 +210,7 @@ struct Window
 	public RealSize getSize() nothrow
 	{
 		int w, h;
-		window.SDL_GetWindowSize(&w, &h);
+		window.SDL_GL_GetDrawableSize(&w, &h);
 		return RealSize(w, h);
 	}
 
