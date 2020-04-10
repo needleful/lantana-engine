@@ -3,6 +3,7 @@
 // Licensed under GPL v3.0
 
 module game.main;
+version(lantana_game):
 
 import core.memory;
 import std.concurrency;
@@ -49,13 +50,20 @@ struct Velocity
 	}
 }
 
-version(Windows)
+version(lantana_useMain)
+{
+	int main()
+	{
+		writeln("Starting Lantana in main...");
+		return runGame();
+	}
+}
+else version(Windows)
 {
 	import core.runtime;
 	import core.sys.windows.windows;
 	import std.string : toStringz;
 
-	version(lantana_game)
 	extern(Windows)
 	int WinMain(HINSTANCE p_instance, HINSTANCE p_prev, LPSTR p_command, int p_show)
 	{
@@ -68,7 +76,9 @@ version(Windows)
 		}
 		catch(Throwable e)
 		{
-			//MessageBoxA(null, e.toString().toStringz(), null, MB_ICONEXCLAMATION);
+			auto msg = format("There was an error:\r\n%s"w, e);
+			msg ~= '\0';
+			MessageBoxW(null, msg.ptr, null, MB_ICONEXCLAMATION);
 			result = 0;
 		}
 		return result;
@@ -76,9 +86,9 @@ version(Windows)
 }
 else
 {
-	version(lantana_game)
 	int main()
 	{
+		writeln("Starting Lantana in main...");
 		return runGame();
 	}
 }
@@ -199,7 +209,7 @@ int runGame()
 	int runningFrame = 1;
 	float time_accum = 0;
 	float time = 0;
-	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/sprite2d.frag", ws, 1.0);
+	//FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/sprite2d.frag", ws, 1);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])
@@ -215,7 +225,7 @@ int runGame()
 		{
 			ws = window.getSize();
 			camera.setProjection(cast(float)ws.width/ws.height, 60);
-			scene3D.resize(ws);
+			//scene3D.resize(ws);
 			input.mouseMove = vec2(0);
 		}
 
@@ -241,7 +251,7 @@ int runGame()
 
 		camera.rotateDegrees(camRot);
 		window.begin_frame!false();
-		scene3D.bind();
+		//scene3D.bind();
 			float distance = camera.distance;
 			camera.distance = 0;
 			skyUni.projection = camera.vp();
@@ -256,8 +266,8 @@ int runGame()
 			sGlobals.projection = animGlobals.projection;
 
 			sMesh.render(sGlobals, lights.palette, sInstance);
-		scene3D.unbind();
-		scene3D.render();
+		//scene3D.unbind();
+		//scene3D.render();
 
 		receive(
 			(UIReady _) {},

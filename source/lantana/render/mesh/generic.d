@@ -52,7 +52,6 @@ struct DefaultSettings
 
 template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
 {
-	alias settings = Settings;
 	alias texture = Texture!(Settings.textureType);
 
 	alias Spec = MeshSpec!(Attrib, Loader);

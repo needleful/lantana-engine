@@ -72,6 +72,7 @@ struct Window
 
 		assert(width > 0 && height > 0 && name.length > 0);
 
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -129,7 +130,7 @@ struct Window
 		glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
-		glClearColor(0, 0, 0, 0);
+		glClearColor(0, 0, 0, 1);
 		glClearDepth(1.0f);
 
 		assert(glGetError() == GL_NO_ERROR);
@@ -216,6 +217,7 @@ struct Window
 
 	void begin_frame(bool clear_color = true)() 
 	{
+		glDepthMask(GL_TRUE);
 		assert(glGetError() == GL_NO_ERROR);
 		static if(clear_color)
 		{

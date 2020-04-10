@@ -60,14 +60,14 @@ struct FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
 		glcheck();
 
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex[1], 0);
