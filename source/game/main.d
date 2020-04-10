@@ -49,28 +49,41 @@ struct Velocity
 	}
 }
 
-//version(lantana_game)
-//int main()
-//{
-//	SDLSupport sdlresult = loadSDL();
-//	assert(sdlresult == sdlSupport, "Could not load SDL2");
+version(Windows)
+{
+	import core.runtime;
+	import core.sys.windows.windows;
+	import std.string : toStringz;
 
-//	SDL_Init(SDL_INIT_VIDEO);
-//	SDL_Window* window = SDL_CreateWindow(
-//			"Lantana Test", 
-//			cast(int)SDL_WINDOWPOS_CENTERED, 
-//			cast(int)SDL_WINDOWPOS_CENTERED, 
-//			1280, 720, 
-//			SDL_WINDOW_RESIZABLE);
+	version(lantana_game)
+	extern(Windows)
+	int WinMain(HINSTANCE p_instance, HINSTANCE p_prev, LPSTR p_command, int p_show)
+	{
+		int result;
+		try
+		{
+			Runtime.initialize();
+			result = runGame();
+			Runtime.terminate();
+		}
+		catch(Throwable e)
+		{
+			//MessageBoxA(null, e.toString().toStringz(), null, MB_ICONEXCLAMATION);
+			result = 0;
+		}
+		return result;
+	}
+}
+else
+{
+	version(lantana_game)
+	int main()
+	{
+		return runGame();
+	}
+}
 
-//	SDL_Delay(5000);
-//	SDL_DestroyWindow(window);
-//	SDL_Quit();
-//	return 0;
-//}
-
-version(lantana_game)
-int main()
+int runGame()
 {
 	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
@@ -185,7 +198,8 @@ int main()
 	float uiFrameTime = 0;
 	int runningFrame = 1;
 	float time_accum = 0;
-	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/fxaa.frag", ws, 1.0);
+	float time = 0;
+	FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/sprite2d.frag", ws, 1.0);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])
@@ -193,6 +207,7 @@ int main()
 		float delta_ms = window.delta_ms();
 		delta = g_timescale*delta_ms/1000.0;
 		uiFrameTime += delta;
+		time += delta;
 	
 		window.pollEvents(&input);
 
