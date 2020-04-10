@@ -8,8 +8,8 @@ in vec2 vert_uv;
 
 out vec3 out_color;
 
-// FXAA implemented with heavy reference to Timothy Lotte's original paper
-// Also with some reference to code by mattdesl
+// Some poor attempt at FXAA
+// Implemented with reference to Timothy Lotte's original paper and code by mattdesl
 
 #define FXAA_LUMA_THRESHOLD 0.1
 #define FXAA_DEPTH_THRESHOLD 0.0
@@ -55,14 +55,8 @@ void main()
 	vec3 dc = texture(in_depth, vert_uv).rgb;
 
 	out_color = center;
-	if(range <= FXAA_LUMA_THRESHOLD || lc == lmax)
+	if(range <= FXAA_LUMA_THRESHOLD || lc == lmax || depthEdge() == 0)
 	{
-		// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
-		return;
-	}
-	else if(depthEdge() == 0)
-	{
-		// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
 		return;
 	}
 
@@ -117,5 +111,4 @@ void main()
 	vec3 localRGB = (sample1 + sample2 + sample3 + sample4 + center)/5;
 
 	out_color = mix(lineSample, localRGB, blendL);
-	// out_color = vec3(dc.r, pow(2, dc.r)/2, 0);
 }

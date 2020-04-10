@@ -49,6 +49,26 @@ struct Velocity
 	}
 }
 
+//version(lantana_game)
+//int main()
+//{
+//	SDLSupport sdlresult = loadSDL();
+//	assert(sdlresult == sdlSupport, "Could not load SDL2");
+
+//	SDL_Init(SDL_INIT_VIDEO);
+//	SDL_Window* window = SDL_CreateWindow(
+//			"Lantana Test", 
+//			cast(int)SDL_WINDOWPOS_CENTERED, 
+//			cast(int)SDL_WINDOWPOS_CENTERED, 
+//			1280, 720, 
+//			SDL_WINDOW_RESIZABLE);
+
+//	SDL_Delay(5000);
+//	SDL_DestroyWindow(window);
+//	SDL_Quit();
+//	return 0;
+//}
+
 version(lantana_game)
 int main()
 {

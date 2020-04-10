@@ -19,7 +19,7 @@ public final class Dialog
 
 	version(lantana_editor)
 	{
-		import lanlib.types: ivec2;
+		import lantana.types: ivec2;
 		public ivec2 edit_position;
 	}
 

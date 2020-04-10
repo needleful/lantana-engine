@@ -78,8 +78,11 @@ struct Window
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 		window = SDL_CreateWindow(
-			name.ptr, cast(int)SDL_WINDOWPOS_CENTERED, cast(int)SDL_WINDOWPOS_CENTERED, 
-			width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+			name.ptr, 
+			cast(int)SDL_WINDOWPOS_CENTERED, 
+			cast(int)SDL_WINDOWPOS_CENTERED, 
+			width, height, 
+			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 		if(window == null)
 		{
@@ -209,13 +212,6 @@ struct Window
 		int w, h;
 		window.SDL_GetWindowSize(&w, &h);
 		return RealSize(w, h);
-	}
-
-	int[2] get_dimensions()
-	{
-		int w, h;
-		window.SDL_GetWindowSize(&w, &h);
-		return [w, h];
 	}
 
 	void begin_frame(bool clear_color = true)() 
