@@ -28,7 +28,7 @@ import game.skybox;
 import game.ui;
 import gl3n.linalg;
 
-
+private enum forcedMain = false;
 enum MAX_MEMORY = 1024*1024*64;
 enum cam_speed = 1;
 
@@ -50,7 +50,7 @@ struct Velocity
 	}
 }
 
-version(lantana_useMain)
+static if(forcedMain)
 {
 	int main()
 	{

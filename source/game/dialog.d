@@ -348,12 +348,12 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		string key = d.expectValue!string();
 		string message = d.expectTagValue!string("message");
 		float pause = d.getTagValue!float("pause", 0.75);
+		
+		auto dialog = new Dialog(message, pause, []);
+		map[key] = dialog;
 
-		map[key] = new Dialog(message, pause, []);
-		auto req = d.getTagValue!string("requirements", "");
-		map[key].setRequirements(req);
-		auto eff = d.getTagValue!string("effects", "");
-		map[key].setEffects(eff);
+		dialog.setRequirements(d.getTagValue!string("requirements", ""));
+		dialog.setEffects(d.getTagValue!string("effects", ""));
 
 		version(lantana_editor)
 		{

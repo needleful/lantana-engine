@@ -21,7 +21,7 @@ libs "user32" platform="windows"
 preGenerateCommands "copy game.exe.manifest bin\\game.exe.manifest" platform="windows" configuration="game"
 
 buildType "release-ultra" {
-	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "verbose" "stackStomping"
+	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "stackStomping"
 }
 
 configuration "game" {
