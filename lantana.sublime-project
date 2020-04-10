@@ -12,6 +12,17 @@
 			"working_dir": "$project_path"
 		},
 		{
+			"name": "Run Game (Release)",
+			"cmd":
+			[
+				"dub",
+				"run",
+				"--config=game",
+				"--build=release-debug"
+			],
+			"working_dir": "$project_path"
+		},
+		{
 			"name": "Run Editor",
 			"cmd":
 			[

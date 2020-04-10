@@ -209,7 +209,6 @@ int runGame()
 	int runningFrame = 1;
 	float time_accum = 0;
 	float time = 0;
-	//FrameBuffer scene3D = FrameBuffer("data/shaders/buffer.vert", "data/shaders/sprite2d.frag", ws, 1);
 	g_oxygenText = format(oxygenFormat, g_oxygen);
 
 	while(!window.state[WindowState.CLOSED])
@@ -225,7 +224,6 @@ int runGame()
 		{
 			ws = window.getSize();
 			camera.setProjection(cast(float)ws.width/ws.height, 60);
-			//scene3D.resize(ws);
 			input.mouseMove = vec2(0);
 		}
 
@@ -235,9 +233,13 @@ int runGame()
 			window.grab_mouse(!paused);
 		}
 
-		if(!paused)
+		if(!paused && frame > 16)
 		{
 			velCamRot += input.mouseMove*delta*accelCamRot;
+		}
+		else if(frame <= 16)
+		{
+			velCamRot += input.mouseMove*delta*accelCamRot*(frame/16.0);
 		}
 		velCamRot *= dampCamRot;
 		vec2 camRot = velCamRot*cam_speed*delta;
@@ -251,28 +253,25 @@ int runGame()
 
 		camera.rotateDegrees(camRot);
 		window.begin_frame!false();
-		//scene3D.bind();
-			float distance = camera.distance;
-			camera.distance = 0;
-			skyUni.projection = camera.vp();
-			skyBox.render(skyUni, lights.palette, skyMeshes);
-			camera.distance = distance;
 
+		float distance = camera.distance;
+		camera.distance = 0;
+		skyUni.projection = camera.vp();
+		skyBox.render(skyUni, lights.palette, skyMeshes);
+		camera.distance = distance;
 
-			animGlobals.projection = camera.vp();
-			anim.update(delta, pInstance);
-			anim.render(animGlobals, lights.palette, pInstance);
+		animGlobals.projection = camera.vp();
+		anim.update(delta, pInstance);
+		anim.render(animGlobals, lights.palette, pInstance);
 
-			sGlobals.projection = animGlobals.projection;
-
-			sMesh.render(sGlobals, lights.palette, sInstance);
-		//scene3D.unbind();
-		//scene3D.render();
+		sGlobals.projection = animGlobals.projection;
+		sMesh.render(sGlobals, lights.palette, sInstance);
 
 		receive(
 			(UIReady _) {},
-			(UICancel _) {throw new Exception("An error occured in the UI system");}
+			(UICancel c) {throw c.thrown;}
 		);
+
 		if(frame % 2 == 0 || uiFrameTime >= uiFrameRate)
 		{
 			g_ui.render();

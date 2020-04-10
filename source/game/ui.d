@@ -101,7 +101,14 @@ struct DialogState
 }
 
 struct UIReady{}
-struct UICancel{}
+struct UICancel
+{
+	immutable(Throwable) thrown;
+	this(Throwable t)
+	{
+		thrown = cast(immutable(Throwable))t;
+	}
+}
 
 struct UIEvents
 {
@@ -124,7 +131,20 @@ __gshared Input* g_uiInput;
 
 void uiMain()
 {
-	scope(failure) ownerTid.send(UICancel());
+	scope(failure) ownerTid.send(UICancel(new Exception("Unknown error")));
+	try
+	{
+		uiRun();
+		ownerTid.send(UIReady());
+	}
+	catch(Throwable e)
+	{
+		ownerTid.send(UICancel(e));
+	}
+}
+
+void uiRun()
+{
 	with(g_ui.style)
 	{
 		button.normal = g_ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
@@ -450,5 +470,4 @@ void uiMain()
 
 		ownerTid.send(UIReady());
 	}
-	ownerTid.send(UIReady());
 }

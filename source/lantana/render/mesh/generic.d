@@ -5,7 +5,7 @@
 module lantana.render.mesh.generic;
 
 import std.algorithm: endsWith;
-debug import std.format;
+import std.format;
 debug import std.stdio;
 import std.traits: FieldNameTuple;
 

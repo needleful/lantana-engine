@@ -5,7 +5,7 @@
 module lantana.file.gltf2.glb;
 
 import std.file;
-debug import std.format;
+import std.format;
 import std.json;
 import std.stdio;
 import std.typecons: tuple;

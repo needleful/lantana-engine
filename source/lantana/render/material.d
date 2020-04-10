@@ -142,7 +142,8 @@ struct Material
 	{
 		scope(failure)
 		{
-			writefln("Failed to set %s uniform: %s", T.stringof, p_value);
+			debug writefln("Failed to set %s uniform: %s", T.stringof, p_value);
+			else return false;
 		}
 		if(p_uniform == -1)
 		{
