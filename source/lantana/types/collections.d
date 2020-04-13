@@ -5,7 +5,7 @@
 module lantana.types.collections;
 
 import std.conv: emplace;
-import std.traits: hasUDA;
+import std.traits;
 
 public auto first(T)(T collection)
 {
@@ -335,5 +335,42 @@ class FreeList(Type, uint Count)
 			}
 		}
 		return cleaned;
+	}
+}
+
+struct SOA(Type)
+	if(is(Type == struct))
+{
+	import std.format;
+	import lantana.types.array;
+	import lantana.types.meta;
+
+	private enum fieldNames = FieldNameTuple!Type;
+
+	static foreach(i, type; Fields!Type)
+	{
+		mixin Import!type;
+		mixin(format("%s[] %s;", type.stringof, fieldNames[i]));
+	}
+
+	void opDispatch(string func)()
+	{
+		static foreach(field; fieldNames)
+		{
+			mixin(format("%s.%s();", field, func));
+		}
+	}
+
+	void opDispatch(string func, T)(T val)
+	{
+		static foreach(field; fieldNames)
+		{
+			mixin(format("%s.%s(val);", field, func));
+		}
+	}
+
+	void clear()
+	{
+		opDispatch!"clear"();
 	}
 }
