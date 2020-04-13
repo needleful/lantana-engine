@@ -78,6 +78,7 @@ public final class UIRenderer
 	package UIView[] views;
 
 	package RealSize windowSize;
+	private vec2 screenDPI;
 
 	/// The index of the focused interactive widget
 	package Interactible focused;
@@ -160,9 +161,10 @@ public final class UIRenderer
 		public methods -- basic
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public this(RealSize p_windowSize)
+	public this(RealSize p_windowSize, vec2 p_dpi)
 	{
 		FT_Error error = FT_Init_FreeType(&fontLibrary);
+		screenDPI = p_dpi;
 		if(error)
 		{
 			throw new Exception(format("FT failed to init library: %d", error));
@@ -193,6 +195,11 @@ public final class UIRenderer
 			FT_Done_Face(face);
 		}
 		FT_Done_FreeType(fontLibrary);
+	}
+
+	public vec2 getDPI()
+	{
+		return screenDPI;
 	}
 
 	public void updateLayout()
@@ -519,13 +526,14 @@ public final class UIRenderer
 	public FontId addFont(FT_Face p_face, ubyte p_size)
 	{
 		// Search if this font already exists
+		RealSize pxSize = RealSize(cast(int)(p_size*screenDPI.x/72f), cast(int)(p_size*screenDPI.y/72f));
 		auto f = fonts.indexOf(p_face);
 		if(f != -1)
 		{
 			return FontId(cast(ubyte) f);
 		}
 
-		FT_Set_Pixel_Sizes(p_face, 0, p_size);
+		FT_Set_Pixel_Sizes(p_face, pxSize.width, pxSize.height);
 
 		assert(fontCount < FontId.dt.max, "Exceeded allowed font count");
 		fonts ~= p_face;

@@ -162,13 +162,13 @@ void uiRun()
 		scrollbar.upArrow = g_ui.loadSprite("data/ui/sprites/arrow-up.png");
 		scrollbar.downArrow = g_ui.loadSprite("data/ui/sprites/arrow-down.png");
 
-		defaultFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 20);
+		defaultFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 13);
 		defaultFontColor = vec3(0.0, 0.583, 1);
 	}
 
-	Message.font = g_ui.loadFont("data/ui/fonts/ClearSans-Bold.ttf", 20);
+	Message.font = g_ui.loadFont("data/ui/fonts/ClearSans-Bold.ttf", 13);
 
-	FontId sysFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 14);
+	FontId sysFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 10);
 
 	/// BEGIN - Dialog initialization
 	DialogState ds;
@@ -297,7 +297,9 @@ void uiRun()
 
 	HFlags expand = HFlags(HFlag.Expand);
 
-	Widget dialogbox = new VBox(tmp_widgets, 0, HFlags(HFlag.Expand, HFlag.Center)).withBounds(Bounds(0, 400), Bounds.none);
+	Widget dialogbox = 
+		new VBox(tmp_widgets, 0, HFlags(HFlag.Expand, HFlag.Center))
+			.withBounds(Bounds(3.5*g_ui.getDPI().x, 5*g_ui.getDPI().x), Bounds.none);
 
 	Widget[] messages;
 	string kitty = "Kitty:";
@@ -369,7 +371,7 @@ void uiRun()
 			],
 
 			vec2(0.02,0.02),
-			vec2(0.2, .98),
+			vec2(0.25, .98),
 		).withBounds(Bounds(450, double.infinity), Bounds.none),
 		new HodgePodge([
 			hints

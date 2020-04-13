@@ -215,6 +215,24 @@ struct Window
 		return RealSize(w, h);
 	}
 
+	public vec2 getDPI() nothrow
+	{
+		vec2 defaultDPI;
+		version(Windows)
+		{
+			defaultDPI = vec2(96);
+		}
+		else
+		{
+			defaultDPI = vec2(72);
+		}
+
+		float dx, dy;
+		SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window), null, &dx, &dy);
+
+		return vec2(dx, dy);
+	}
+
 	void begin_frame(bool clear_color = true)() 
 	{
 		glDepthMask(GL_TRUE);

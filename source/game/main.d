@@ -98,7 +98,7 @@ int runGame()
 	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
 	RealSize ws = window.getSize();
 	assert(ws.width == 1280);
-	g_ui = new UIRenderer(ws);
+	g_ui = new UIRenderer(ws, window.getDPI());
 
 	Input input = Input();
 	g_uiInput = new Input(input);
