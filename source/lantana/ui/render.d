@@ -92,7 +92,7 @@ public final class UIRenderer
 	/// How long to hold the arrow button to start going
 	private enum TIME_HOLD_START = 0.3f;
 	/// How long frequently to move arrows after holding for TIME_HOLD_START
-	private enum TIME_HOLD_NEXT = 0.05f;
+	private enum TIME_HOLD_NEXT = 0.03f;
 
 	private float arrowTimer;
 	private bool arrowHeld = false;
@@ -218,40 +218,49 @@ public final class UIRenderer
 		initialized = true;
 	}
 
-	public void render(bool update = true)() 
+	public void render(bool update = true, bool alwaysRender = true)() 
 	{
+		int updated = 0;
 		static if(update)
 		{
 			foreach(view; views)
 			{
-				view.updateBuffers();
+				updated += view.updateBuffers();
 			}
 			
 			if(invalidated[AtlasState.Sprite])
+			{
+				updated ++;
 				atlasSprite.reload();
+			}
 
 			if(invalidated[AtlasState.Text])
+			{
+				updated ++;
 				atlasText.reload();
+			}
 			
 			invalidated.clear();
 		}
 		
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDepthMask(GL_FALSE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glEnable(GL_SCISSOR_TEST);
-		foreach(v; views)
+		if(alwaysRender || updated != 0)
 		{
-			if(v.isVisible())
-			{
-				v.render(windowSize);
-			}
-		}
-		glDisable(GL_SCISSOR_TEST);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			glDepthMask(GL_FALSE);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			glEnable(GL_SCISSOR_TEST);
+			foreach(v; views)
+			{
+				if(v.isVisible())
+				{
+					v.render(windowSize);
+				}
+			}
+			glDisable(GL_SCISSOR_TEST);
+		}
 	}
 
 	public void updateInteraction(float delta, Input* p_input)

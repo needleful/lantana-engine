@@ -38,7 +38,7 @@ int main()
 	
 	auto mm = BaseRegion(MAX_MEMORY);
 
-	UIRenderer ui = new UIRenderer(ww.getSize());
+	UIRenderer ui = new UIRenderer(ww.getSize(), ww.getDPI());
 	with(ui.style)
 	{
 		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
@@ -56,7 +56,7 @@ int main()
 		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
 
-		defaultFont = ui.loadFont("data/ui/fonts/ClearSans.ttf", 16);
+		defaultFont = ui.loadFont("data/ui/fonts/ClearSans.ttf", 12);
 		defaultFontColor = vec3(0.0, 0.583, 1);
 
 		textInput.cursor = ui.addSinglePixel(AlphaColor(255));
@@ -134,7 +134,6 @@ int main()
 	while(!ww.state[WindowState.CLOSED])
 	{
 		float delta = ww.delta_ms/1000.0;
-		frame ++;
 		ww.pollEvents(&ii);
 
 		if(ww.state[WindowState.RESIZED])
@@ -158,8 +157,12 @@ int main()
 		ui.updateLayout();
 
 		ww.begin_frame();
-		ui.render();
+		if(frame != 0)
+			ui.render!(true, false)();
+		else
+			ui.render();
 		ww.end_frame();
+		frame ++;
 	}
 	SDL_StopTextInput();
 	

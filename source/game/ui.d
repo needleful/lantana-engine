@@ -4,6 +4,8 @@
 
 module game.ui;
 
+version(lantana_game):
+
 import core.memory;
 import std.concurrency;
 import std.format;
@@ -156,7 +158,7 @@ void uiRun()
 		panel.sprite = g_ui.addSinglePixel(color(196, 247, 255));
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
 
-		scrollbar.width = 20;
+		scrollbar.width = cast(ubyte)(g_ui.getDPI().x/5.75);
 		scrollbar.trough.sprite = g_ui.addSinglePixel(color(0, 148, 255, 128));
 		scrollbar.trough.mesh = new SpriteQuadStyle(scrollbar.trough.sprite);
 		scrollbar.upArrow = g_ui.loadSprite("data/ui/sprites/arrow-up.png");
@@ -299,7 +301,7 @@ void uiRun()
 
 	Widget dialogbox = 
 		new VBox(tmp_widgets, 0, HFlags(HFlag.Expand, HFlag.Center))
-			.withBounds(Bounds(3.5*g_ui.getDPI().x, 5*g_ui.getDPI().x), Bounds.none);
+			.withBounds(Bounds(0, 4*g_ui.getDPI().x), Bounds.none);
 
 	Widget[] messages;
 	string kitty = "Kitty:";
@@ -312,18 +314,13 @@ void uiRun()
 		}
 		string[] fields = cast(string[]) line.split("\t");
 		assert(fields.length == 2);
+
 		if(fields[0] == "K")
-		{
 			messages ~= new Message(kitty, fields[1].dup, kittyColor);
-		}
 		else if(fields[0] == "%")
-		{
 			messages ~= new Padding(new TextBox(sysFont, fields[1].dup), Pad(10, -10, 0, 0));
-		}
 		else
-		{
 			messages ~= new Message(bardan, fields[1].dup, bardanColor);
-		}
 	}
 
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
@@ -338,7 +335,7 @@ void uiRun()
 		g_ui.style.panel.mesh.create(g_ui));
 	/// END - Dialog initialization
 
-	TextBox frameTime = new TextBox(sysFont, "Getting data...", 64, vec3(0.5));
+	debug TextBox frameTime = new TextBox(sysFont, "Getting data...", 64, vec3(0.5));
 	TextBox o2Text = new TextBox(sysFont, "Getting data...", 32, vec3(1));
 
 	Widget hints = new Anchor(
@@ -371,27 +368,36 @@ void uiRun()
 			],
 
 			vec2(0.02,0.02),
-			vec2(0.25, .98),
-		).withBounds(Bounds(450, double.infinity), Bounds.none),
-		new HodgePodge([
-			hints
-		])
+			vec2(0.28, .98),
+		).withBounds(Bounds(3.5*g_ui.getDPI().x, 6*g_ui.getDPI().x), Bounds.none),
+		hints
 	]);
 
-	TextBox[string] debugMap;
-	VBox debugBox = new VBox([
+	debug TextBox[string] debugMap;
+	debug VBox debugBox = new VBox([
 			new HBox([
 				new TextBox(sysFont, "Frame Time\nMax\nAverage", vec3(0.5)), 
 				frameTime,
 			], 5),
 		], 6);
 
-	g_ui.setRootWidget(
+	debug
+	{
+		g_ui.setRootWidget(
 		new HodgePodge([
 			uiModal, 
 			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1)),
-			//new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
+			new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
 		]));
+	}
+	else
+	{
+		g_ui.setRootWidget(
+		new HodgePodge([
+			uiModal, 
+			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1))
+		]));
+	}
 
 	// Needs to be run after initialization
 	dialogCallback(currentDialog);
@@ -404,7 +410,6 @@ void uiRun()
 	{
 		// Cinematic mode
 		//o2Text.setVisible(false);
-		//debugBox.setVisible(false);
 
 		if(events.window[WindowState.RESIZED])
 		{
@@ -431,30 +436,30 @@ void uiRun()
 		if((ds.timer += events.delta) >= ds.current.pauseTime)
 		{
 			showDialog = true;
-			//foreach(string key, float value; ds.flags)
-			//{
-			//	if(key !in debugMap)
-			//	{
-			//		TextBox t = new TextBox(sysFont, format("%s", value), 12, vec3(0.5));
-			//		debugMap[key] = t;
-			//		debugBox.addChild(new HBox([
-			//				new TextBox(sysFont, key, vec3(0.5)).withBounds(Bounds(100, double.infinity), Bounds.none),
-			//				t
-			//			])
-			//		);
-			//	}
-			//	else
-			//	{
-			//		debugMap[key].setText(format("%s", value));
-			//	}
-			//}
+			debug foreach(string key, float value; ds.flags)
+			{
+				if(key !in debugMap)
+				{
+					TextBox t = new TextBox(sysFont, format("%s", value), 12, vec3(0.5));
+					debugMap[key] = t;
+					debugBox.addChild(new HBox([
+							new TextBox(sysFont, key, vec3(0.5)).withBounds(Bounds(100, double.infinity), Bounds.none),
+							t
+						])
+					);
+				}
+				else
+				{
+					debugMap[key].setText(format("%s", value));
+				}
+			}
 		}
 
 		g_ui.updateInteraction(events.delta, g_uiInput);
 
 		dialogWidget.setVisible(showDialog);
 
-		//frameTime.setText(g_frameTime);
+		debug frameTime.setText(g_frameTime);
 		o2Text.setText(g_oxygenText);
 
 		g_ui.updateLayout();

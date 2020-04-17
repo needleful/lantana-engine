@@ -222,52 +222,62 @@ public final class UIView
 		root.prepareRender(ivec2(0,0));
 	}
 
-	package void updateBuffers()
+	package int updateBuffers()
 	{
+		int updated = 0;
 		if(invalidated.realValue() == 0)
 		{
 			// Nothing to update
-			return;
+			return 0;
 		}
 
 		// If a buffer is fully invalidated, there's no reason to partially update it
 		if(invalidated[ViewState.TextEBO])
 		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText);
+			updated++;
 		}
 		else if(invalidated[ViewState.TextEBOPartial])
 		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0], elemText, textInvalid);
+			updated++;
 		}
 
 		if(invalidated[ViewState.SpriteEBO])
 		{
 			replaceBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite);
+			updated++;
 		}
 		else if(invalidated[ViewState.SpriteEBOPartial])
 		{
 			updateBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1], elemSprite, spriteInvalid);
+			updated++;
 		}
 
 		if(invalidated[ViewState.PositionBuffer])
 		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos);
+			updated++;
 		}
 		else if(invalidated[ViewState.PositionBufferPartial])
 		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[2], vertpos, posInvalid);
+			updated++;
 		}
 
 		if(invalidated[ViewState.UVBuffer])
 		{
 			replaceBuffer(GL_ARRAY_BUFFER, vbo[3], uvs);
+			updated++;
 		}
 		else if(invalidated[ViewState.UVBufferPartial])
 		{
 			updateBuffer(GL_ARRAY_BUFFER, vbo[3], uvs, uvInvalid);
+			updated++;
 		}
 
 		clearBufferInvalidation();
+		return updated;
 	}
 
 	package void render(RealSize p_windowSize)
