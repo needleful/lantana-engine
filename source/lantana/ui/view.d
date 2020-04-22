@@ -416,7 +416,7 @@ public final class UIView
 	public InteractibleId addInteractible(Interactible p_source) 
 	{
 		assert(interactAreas.length == interactibles.length);
-		ubyte id = cast(ubyte) interactAreas.length;
+		auto id = cast(InteractibleId.dt) interactAreas.length;
 
 		interactAreas ~= Rect.init;
 		interactibles ~= p_source;
@@ -449,13 +449,13 @@ public final class UIView
 				if(interactibles[i].priority() == priority)
 				{
 					found = true;
-					id = InteractibleId(cast(ubyte)i);
+					id = InteractibleId(cast(InteractibleId.dt)i);
 					break;
 				}
 				else if(!found 
 					|| (found && interactibles[id].priority() < interactibles[i].priority()))
 				{
-					id = InteractibleId(cast(ubyte)i);
+					id = InteractibleId(cast(InteractibleId.dt)i);
 					found = true;
 				}
 			}
