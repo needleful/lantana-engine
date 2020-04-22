@@ -38,6 +38,4 @@ struct KeyboardInput
 	{
 		return !pressed[code] && pressedLast[code];
 	}
-
-
 }

@@ -7,8 +7,10 @@ module editor.graph;
 import std.conv;
 import std.format;
 
+import bindbc.sdl;
 import gl3n.linalg : vec3;
 
+import lantana.input;
 import lantana.types;
 import lantana.ui;
 
@@ -24,6 +26,7 @@ final class DialogNode : Padding, Interactible
 		MultiContainer parent;
 		DialogNode[] nodes;
 		SpriteId lineFocused;
+		Input* input;
 	}
 	Dialog dialog;
 
@@ -165,6 +168,7 @@ final class DialogNode : Padding, Interactible
 			line.prepareRender(ivec2(0));
 		}
 		lines ~= line;
+		responses ~= node;
 	}
 
 	public override void focus()
@@ -208,6 +212,15 @@ final class DialogNode : Padding, Interactible
 		position += p_dragAmount;
 		dialog.edit_position += p_dragAmount;
 		prepareRender(dialog.edit_position);
+
+		import std.stdio;
+		if(input.keyboard.isPressed(SDL_SCANCODE_LSHIFT))
+		{
+			foreach(resp; responses)
+			{
+				resp.drag(p_dragAmount);
+			}
+		}
 	}
 
 	public override short priority()
