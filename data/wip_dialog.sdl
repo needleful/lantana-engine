@@ -1,8 +1,321 @@
-dialog "1DC8D620420" {
+dialog "2619A190C00" {
+	message "the ship exploded."
+	pause 3F
+	requirements ""
+	effects ""
+	responses "2619A1A2780"
+	edit_position -603 202
+}
+dialog "2619A1908A0" {
+	message "i wanted to be an astronaut when i was little because i wanted to see this. i wanted to see the stars."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2060"
+	edit_position 1151 73
+}
+dialog "2619A1A26C0" {
+	message "i'm sorry im dumping this on you. i know you cant reply."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2540"
+	edit_position 160 5
+}
+dialog "2619A190C60" {
+	message "why am i scared? why should i be scared?"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190F00"
+	edit_position 1950 101
+}
+dialog "2619A1A2720" {
+	message "i 'm sorry i didn't say it very offen"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A25A0"
+	edit_position 360 20
+}
+dialog "2619A1A2120" {
+	message "its been so long since i just looked at the stars"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1908A0"
+	edit_position 420 20
+}
+dialog "2619A190CC0" {
+	message "hey gator"
+	pause 1F
+	requirements ""
+	effects ""
+	responses
+	edit_position -581 -416
+}
+dialog "2619A1A20C0" {
+	message "im out of oxygen."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 340 15
+}
+dialog "2619A190D80" {
+	message "oh god i'm gonna throw up"
+	pause 1F
+	requirements ""
+	effects ""
+	responses "2619A1A26C0"
+	edit_position 140 5
+}
+dialog "2619A190BA0" {
+	message "im not sad to die anymore. now im sad thinking about how sad youll be"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A24E0"
+	edit_position 3099 92
+}
+dialog "2619A1A2600" {
+	message "im gonna die. thats it"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190A20" "2619A190EA0"
+	edit_position 260 10
+}
+dialog "2619A190F00" {
+	message "is it you? am i scared for you? worried about how this'll hurt you?"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1909C0"
+	edit_position 2330 95
+}
+dialog "2619A190DE0" {
+	message "i wish you could reply. you'd know what to say. you 've seen this sortof shit before"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A20C0" "2619A190D20"
+	edit_position 320 15
+}
+dialog "2619A1A2660" {
+	message "can i even do anything here"
+	pause 2F
+	requirements ""
+	effects ""
+	responses "2619A190AE0"
+	edit_position 100 0
+}
+dialog "2619A1A2360" {
+	message "oh fuck"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190C00" "2619A190B40"
+	edit_position -988 83
+}
+dialog "2619A1A2540" {
+	message "its ok.  its gonna be ok. im not hurt.  im just sort of floating here"
+	pause 3.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2480"
+	edit_position 180 5
+}
+dialog "2619A1A2000" {
+	message "holy shit i have like a sliver of O2 left"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 240 5
+}
+dialog "2619A190A20" {
+	message "how do i even ..?? i cant! What the fuck do i do now?"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 280 10
+}
+dialog "2619A190E40" {
+	message "theres no way they could get a rescue launched in time"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2600"
+	edit_position 240 10
+}
+dialog "2619A1A2420" {
+	message "my oxygen's going down. its going down fast"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2000" "2619A190E40"
+	edit_position 220 5
+}
+dialog "2619A190960" {
+	message "its not fair"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190DE0"
+	edit_position 300 15
+}
+dialog "2619A190EA0" {
+	message "im sorry you have to read these"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190960"
+	edit_position 280 15
+}
+dialog "2619A1A25A0" {
+	message "you know how it is. i always gotta be so tough all the time and this is where it gets me."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190900"
+	edit_position 138 307
+}
+dialog "2619A1A23C0" {
 	message "thinking of you"
 	pause 0.75F
 	requirements ""
 	effects ""
-	edit_position 0 0
+	responses "2619A1A2360" "2619A190CC0" "2619A1A21E0"
+	edit_position -1392 86
 }
-start "1DC8D620420"
+dialog "2619A1A2060" {
+	message "we talked about this like a year ago. we always sort of knew i was gonna die out here."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190C60"
+	edit_position 1559 92
+}
+dialog "2619A1A2180" {
+	message "im scared.. i dont know what to do"
+	pause 1F
+	requirements ""
+	effects ""
+	responses "2619A1A2660"
+	edit_position 80 0
+}
+dialog "2619A190A80" {
+	message "but i just. i;m just floating out here. i have to do something"
+	pause 1F
+	requirements ""
+	effects ""
+	responses
+	edit_position 140 0
+}
+dialog "2619A1A24E0" {
+	message "dumb. its dumb"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A22A0"
+	edit_position 3488 121
+}
+dialog "2619A1A2240" {
+	message "maybe you can call cencom.  they could send like a rescue party"
+	pause 0.5F
+	requirements ""
+	effects ""
+	responses
+	edit_position 140 10
+}
+dialog "2619A1A21E0" {
+	message "hi bardan,"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position -558 543
+}
+dialog "2619A190900" {
+	message "its so beautiful out here.  "
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2120"
+	edit_position 400 20
+}
+dialog "2619A1A2300" {
+	message "see you later, gator"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 4517 132
+}
+dialog "2619A1A2780" {
+	message "it fuckin epxloded"
+	pause 1F
+	requirements ""
+	effects ""
+	responses "2619A1A2180"
+	edit_position -187 260
+}
+dialog "2619A1909C0" {
+	message "hate to see you see me go or some goofy sentimental shit like that."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190BA0"
+	edit_position 2702 91
+}
+dialog "2619A190B40" {
+	message "i cant. this is really happening"
+	pause 2F
+	requirements ""
+	effects ""
+	responses
+	edit_position -547 -131
+}
+dialog "2619A190AE0" {
+	message "i guess not"
+	pause 1F
+	requirements ""
+	effects ""
+	responses "2619A190A80" "2619A190D80" "2619A1A2240"
+	edit_position 120 0
+}
+dialog "2619A1A2480" {
+	message "cencom'll send a rescue ship. they have to. they have to. they  have to"
+	pause 3.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2420"
+	edit_position 200 5
+}
+dialog "2619A1A22A0" {
+	message "but im dumb. its ok to be dumb. its ok to be sad."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A190F60"
+	edit_position 3767 113
+}
+dialog "2619A190F60" {
+	message "i love you. i'll always love you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2300"
+	edit_position 4149 129
+}
+dialog "2619A190D20" {
+	message "i love you.  i love you so much bardan"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "2619A1A2720"
+	edit_position 340 20
+}
+start "2619A1A23C0"
