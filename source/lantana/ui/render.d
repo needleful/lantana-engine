@@ -38,7 +38,7 @@ struct FontId
 
 struct InteractibleId
 {
-	mixin StrictAlias!ubyte;
+	mixin StrictAlias!uint;
 }
 
 struct GlyphId
