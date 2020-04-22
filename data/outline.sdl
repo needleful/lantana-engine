@@ -1,116 +1,20 @@
-dialog "1F56E84A6C0" {
-	message "Kitty understands that she is going to die in space"
+dialog 1D {
+	message "Kitty weighs over if rescue is coming"
 	pause 0.75F
 	requirements ""
-	effects "DOOM := 1"
-	responses "1F56E84A600" "1F56E84A300" "1F56E84A660"
-	edit_position 3513 309
+	effects "RESCUE := 1"
+	responses 18D 9D 4D
+	edit_position 2220 332
 }
-dialog "1F56E84A720" {
-	message "she insists to herself that rescue has to be coming"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1F56E84A360"
-	edit_position 2676 34
-}
-dialog "1F56E84A360" {
-	message "she gives up the charade. rescue isn't coming"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1F56E84A6C0"
-	edit_position 3059 32
-}
-dialog "1F56E84A300" {
-	message "Kitty tries to think of courses of action she can take"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1F56E84A420" "1F56E84A060" "1F56E84A540"
-	edit_position 3947 681
-}
-dialog "1F56E84A120" {
-	message "with growing rage, she accuses Cencom of incompetence or outright sabotage"
-	pause 0.75F
-	requirements "anger > 1"
-	effects "anger + 1"
-	responses "1F56E84A4E0"
-	edit_position 1590 653
-}
-dialog "1F56E84A780" {
-	message "After admitting her circumstances, Kitty tries to  reason about the causes"
-	pause 0.75F
-	requirements ": = 1"
-	effects ""
-	responses "1F56E84A120" "1F56E84A000" "1F56E84A5A0"
-	edit_position 1205 387
-}
-dialog "1F56E84A540" {
-	message "she loses focus on her surroundings and just starts thinking about her life, and how she became an astronaut"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 4419 249
-}
-dialog "1F56E84A000" {
-	message "she tries to remain level-headed, but with growing panic  realizes she has no idea how something like this could have happened"
-	pause 0.75F
-	requirements "fear > 1"
-	effects ""
-	responses "1F56E84A4E0"
-	edit_position 1593 301
-}
-dialog "1F56E84A5A0" {
+dialog 2D {
 	message "she fails to come up with a complete picture, but has enough ideas about what happened to be satisfied"
 	pause 0.75F
 	requirements "fear < 1"
 	effects ""
-	responses "1F56E84A4E0"
+	responses 1D
 	edit_position 1586 -20
 }
-dialog "1F56E84A060" {
-	message "she spins her wheels until she runs out of oxygen"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 4395 660
-}
-dialog "1F56E84A3C0" {
-	message "in rage and paranoia, she insists Cencom wanted them all dead"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1F56E84A6C0"
-	edit_position 2674 269
-}
-dialog "1F56E84A180" {
-	message "give up, admit the ship exploded"
-	pause 0.75F
-	requirements ""
-	effects "anger - 1"
-	responses "1F56E84A780"
-	edit_position 861 64
-}
-dialog "1F56E84A1E0" {
-	message "she deduces from readings she remembers and the stars in the sky that she's very, very far away from home. Rescue is not coming."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1F56E84A6C0"
-	edit_position 2684 543
-}
-dialog "1F56E84A7E0" {
-	message "pretend nothing is wrong"
-	pause 0.75F
-	requirements ""
-	effects "fear + 1"
-	responses "1F56E84A180" "1F56E84A480"
-	edit_position 492 -26
-}
-dialog "1F56E84A420" {
+dialog 3D {
 	message "she beings to feel at peace. she has nothing to do, nothing to worry about, because this is the worst case scenario"
 	pause 0.75F
 	requirements ""
@@ -118,39 +22,143 @@ dialog "1F56E84A420" {
 	responses
 	edit_position 4389 925
 }
-dialog "1F56E84A240" {
+dialog 4D {
+	message "in rage and paranoia, she insists Cencom wanted them all dead"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 15D
+	edit_position 2674 269
+}
+dialog 5D {
+	message "she tries to remain level-headed, but with growing panic  realizes she has no idea how something like this could have happened"
+	pause 0.75F
+	requirements "fear > 1"
+	effects ""
+	responses 1D
+	edit_position 1593 301
+}
+dialog 6D {
 	message "immediately drop the news onto him"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1F56E84A780"
+	responses 14D
 	edit_position 497 479
 }
-dialog "1F56E84A4E0" {
-	message "Kitty weighs over if rescue is coming"
+dialog 7D {
+	message "Kitty tries to think of courses of action she can take"
 	pause 0.75F
 	requirements ""
-	effects "RESCUE := 1"
-	responses "1F56E84A720" "1F56E84A1E0" "1F56E84A3C0"
-	edit_position 2220 332
+	effects ""
+	responses 3D 11D 10D
+	edit_position 3947 681
 }
-dialog "1F56E84A0C0" {
+dialog 8D {
+	message "pretend nothing is wrong"
+	pause 0.75F
+	requirements ""
+	effects "fear + 1"
+	responses 12D 21D
+	edit_position 492 -26
+}
+dialog 9D {
+	message "she deduces from readings she remembers and the stars in the sky that she's very, very far away from home. Rescue is not coming."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 15D
+	edit_position 2684 543
+}
+dialog 10D {
+	message "she loses focus on her surroundings and just starts thinking about her life, and how she became an astronaut"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 4419 249
+}
+dialog 11D {
+	message "she spins her wheels until she runs out of oxygen"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 4395 660
+}
+dialog 12D {
+	message "give up, admit the ship exploded"
+	pause 0.75F
+	requirements ""
+	effects "anger - 1"
+	responses 14D
+	edit_position 861 64
+}
+dialog 13D {
 	message "try to ease him into the fact that  ship exploded"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1F56E84A780"
+	responses 14D
 	edit_position 489 216
 }
-dialog "1F56E84A600" {
+dialog 14D {
+	message "After admitting her circumstances, Kitty tries to  reason about the causes"
+	pause 0.75F
+	requirements ": = 1"
+	effects ""
+	responses 16D 5D 2D
+	edit_position 1205 387
+}
+dialog 15D {
+	message "Kitty understands that she is going to die in space"
+	pause 0.75F
+	requirements ""
+	effects "DOOM := 1"
+	responses 20D 7D 17D
+	edit_position 3513 309
+}
+dialog 16D {
+	message "with growing rage, she accuses Cencom of incompetence or outright sabotage"
+	pause 0.75F
+	requirements "anger > 1"
+	effects "anger + 1"
+	responses 1D
+	edit_position 1590 653
+}
+dialog 17D {
+	message "kitty rants and raves about all the people who've wronged her."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 10D
+	edit_position 3958 -19
+}
+dialog 18D {
+	message "she insists to herself that rescue has to be coming"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 22D
+	edit_position 2676 34
+}
+dialog 19D {
+	message "The ship has exploded.  Kitty's floating in space.  Bardan has no idea what's happening and can't send replies"
+	pause 0.75F
+	requirements ""
+	effects "START := 1"
+	responses 6D 13D 8D
+	edit_position 69 255
+}
+dialog 20D {
 	message "Kitty laments, wishing she'd done something else with her life"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1F56E84A540"
+	responses 10D
 	edit_position 3944 312
 }
-dialog "1F56E84A480" {
+dialog 21D {
 	message "\"For no particular reason\", Kitty decides to share a lot of her personal history with Bardan"
 	pause 0.75F
 	requirements ""
@@ -158,20 +166,12 @@ dialog "1F56E84A480" {
 	responses
 	edit_position 859 -237
 }
-dialog "1F56E84A2A0" {
-	message "The ship has exploded.  Kitty's floating in space.  Bardan has no idea what's happening and can't send replies"
-	pause 0.75F
-	requirements ""
-	effects "START := 1"
-	responses "1F56E84A240" "1F56E84A0C0" "1F56E84A7E0"
-	edit_position 69 255
-}
-dialog "1F56E84A660" {
-	message "kitty rants and raves about all the people who've wronged her."
+dialog 22D {
+	message "she gives up the charade. rescue isn't coming"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1F56E84A540"
-	edit_position 3958 -19
+	responses 15D
+	edit_position 3059 32
 }
-start "1F56E84A2A0"
+start 19D

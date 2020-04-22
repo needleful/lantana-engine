@@ -77,7 +77,7 @@ int main()
 	{
 		Widget[] nodes;
 		dialogFile = p_dialog;
-		string start_;
+		uint start_;
 		auto dmap = loadDialog(dialogFile, start_);
 
 		DialogNode[Dialog] nodeMap;

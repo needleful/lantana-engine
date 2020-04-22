@@ -412,7 +412,7 @@ void uiRun()
 
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
-	string start;
+	uint start;
 	auto map = loadDialog(dialogFile, start);
 	Dialog currentDialog = map[start];
 	

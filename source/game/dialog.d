@@ -10,8 +10,11 @@ public final class Dialog
 	import std.regex;
 
 	alias Callback = void delegate(Dialog message);
+	public static uint maxID = 0;
+
 	public string message;
 	public float pauseTime;
+	public uint id;
 
 	public Requirement[] requirements;
 	public Effect[] effects;
@@ -20,17 +23,28 @@ public final class Dialog
 	import lantana.types: ivec2;
 	public ivec2 edit_position;
 
-	this(string p_message, float p_pause, Dialog[] p_responses)
+	this(string p_message, float p_pause, Dialog[] p_responses, uint p_id = uint.max)
 	{
 		pauseTime = p_pause;
 		message = p_message;
 		responses = p_responses;
+
+		if(p_id == uint.max)
+		{
+			p_id = Dialog.maxID + 1;
+		}
+		id = p_id;
+
+		if(id > Dialog.maxID)
+		{
+			Dialog.maxID = id;
+		}
 	}
 
 	string getTag()
 	{
 		import std.format;
-		return format("%X", cast(void*)this);
+		return format("%s", id);
 	}
 
 	public string getRequirements()
@@ -331,22 +345,26 @@ import sdlang;
 
 import lantana.types : ivec2;
 
-public Dialog[string] loadDialog(string p_file, out string p_start)
+public Dialog[uint] loadDialog(string p_file, out uint p_start)
 {
-	Dialog[string] map;
+	Dialog[uint] map;
 
 	Tag file = parseFile(p_file);
 
-	string start = file.expectTagValue!string("start");
+	uint start = cast(uint) file.expectTagValue!double("start");
 	p_start = start;
 
 	foreach(d; file.tags["dialog"])
 	{
-		string key = d.expectValue!string();
+		uint key = cast(uint) d.expectValue!double();
+		if(key in map)
+		{
+			writefln("WARNING!! Duplicate key '%s' in '%s'", key, p_file);
+		}
 		string message = d.expectTagValue!string("message");
 		float pause = d.getTagValue!float("pause", 0.75);
 		
-		auto dialog = new Dialog(message, pause, []);
+		auto dialog = new Dialog(message, pause, [], key);
 		map[key] = dialog;
 
 		dialog.setRequirements(d.getTagValue!string("requirements", ""));
@@ -361,7 +379,7 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 
 	foreach(d; file.tags["dialog"])
 	{
-		Dialog dialog = map[d.expectValue!string()];
+		Dialog dialog = map[cast(uint) d.expectValue!double()];
 		Value[] responses = d.getTagValues("responses");
 
 		if(responses == null)
@@ -372,7 +390,7 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		dialog.responses.reserve(responses.length);
 		foreach(resp; responses)
 		{
-			string key = resp.get!string();
+			uint key = cast(uint) resp.get!double();
 			if(key !in map)
 			{
 				writefln("Warning: missing response %s", key);
@@ -386,9 +404,9 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 
 public void storeDialog(string p_file, Dialog p_dialog)
 {
-	void addToMap(ref Dialog[string] p_map, Dialog p_dl)
+	void addToMap(ref Dialog[uint] p_map, Dialog p_dl)
 	{
-		string key = p_dl.getTag();
+		int key = p_dl.id;
 
 		if(key in p_map)
 			return;
@@ -399,25 +417,25 @@ public void storeDialog(string p_file, Dialog p_dialog)
 			addToMap(p_map, r);
 	}
 
-	Dialog[string] map;
+	Dialog[uint] map;
 	addToMap(map, p_dialog);
 
 	Tag file = new Tag();
 
-	foreach(string key, Dialog value; map)
+	import std.algorithm.sorting;
+	foreach(uint key; sort(map.keys))
 	{
-		Dialog d = value;
+		Dialog d = map[key];
 		Value[] responses;
 		responses.reserve(d.responses.length);
 
 		foreach(resp; d.responses)
 		{
-			string respKey = resp.getTag();
-			assert(respKey in map);
-			responses ~= Value(respKey);
+			assert(resp.id in map);
+			responses ~= Value(cast(double) resp.id);
 		}
 
-		Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
+		Tag t = new Tag(file, null, "dialog", [Value(cast(double) key)], null, 
 		[
 			new Tag(null, "message", [Value(d.message)]),
 			new Tag(null, "pause", [Value(d.pauseTime)]),
@@ -428,7 +446,7 @@ public void storeDialog(string p_file, Dialog p_dialog)
 		]);
 	}
 
-	file.add(new Tag(null, "start", [Value(p_dialog.getTag())], null, []));
+	file.add(new Tag(null, "start", [Value(cast(double) p_dialog.id)], null, []));
 
 	File output = File(p_file, "w");
 	output.write(file.toSDLDocument());

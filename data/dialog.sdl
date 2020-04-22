@@ -1,9 +1,0 @@
-dialog "124A49A02A0" {
-	message "X"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 2 328
-}
-start "124A49A02A0"

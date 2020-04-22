@@ -1,313 +1,361 @@
-dialog "1FF8DFD2000" {
-	message "i wanted to be an astronaut when i was little because i wanted to see this. i wanted to see the stars."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E2D9000"
-	edit_position 440 20
-}
-dialog "1FF8E0EA000" {
-	message "its so beautiful out here.  "
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E0D3000"
-	edit_position 400 20
-}
-dialog "1FF8E5A7000" {
-	message "its not fair"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E5950C0"
-	edit_position 300 15
-}
-dialog "1FF8E11A060" {
-	message "hate to see you see me go or some goofy sentimental shit like that."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF83BD2000"
-	edit_position 520 20
-}
-dialog "1FF8E16E000" {
-	message "how do i even ..?? i cant! What the fuck do i do now?"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 280 10
-}
-dialog "1FF83BD7000" {
-	message "but i just. i;m just floating out here. i have to do something"
-	pause 1F
-	requirements ""
-	effects ""
-	responses
-	edit_position 140 0
-}
-dialog "1FF83BBF000" {
-	message "i guess not"
-	pause 1F
-	requirements ""
-	effects ""
-	responses "1FF83BD7000" "1FF83B40000" "1FF8E23C000"
-	edit_position 120 0
-}
-dialog "1FF83BAA000" {
-	message "i cant. this is really happening"
-	pause 2F
-	requirements ""
-	effects ""
-	responses
-	edit_position 40 5
-}
-dialog "1FF83BD2000" {
-	message "im not sad to die anymore. now im sad thinking about how sad youll be"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E279000"
-	edit_position 540 20
-}
-dialog "1FF83B06000" {
-	message "the ship exploded."
-	pause 3F
-	requirements ""
-	effects ""
-	responses "1FF83BD9000"
-	edit_position 40 0
-}
-dialog "1FF8E343000" {
-	message "why am i scared? why should i be scared?"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF83B75000"
-	edit_position 480 20
-}
-dialog "1FF83BDF000" {
-	message "hey gator"
-	pause 1F
-	requirements ""
-	effects ""
-	responses
-	edit_position 20 5
-}
-dialog "1FF8E1D3000" {
-	message "i love you.  i love you so much bardan"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF83B4C000"
-	edit_position 340 20
-}
-dialog "1FF83B40000" {
-	message "oh god i'm gonna throw up"
-	pause 1F
-	requirements ""
-	effects ""
-	responses "1FF8E5B6000"
-	edit_position 140 5
-}
-dialog "1FF8E5950C0" {
+dialog 26 {
 	message "i wish you could reply. you'd know what to say. you 've seen this sortof shit before"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1FF83B66000" "1FF8E1D3000"
-	edit_position 320 15
+	responses 23 34
+	edit_position 6137 1108
+	id 26D
 }
-dialog "1FF8E2DF000" {
-	message "theres no way they could get a rescue launched in time"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8DF63000"
-	edit_position 240 10
-}
-dialog "1FF8DF0C000" {
-	message "im sorry you have to read these"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E5A7000"
-	edit_position 280 15
-}
-dialog "1FF83B75000" {
+dialog 17 {
 	message "is it you? am i scared for you? worried about how this'll hurt you?"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses "1FF8E11A060"
-	edit_position 500 20
+	responses 35
+	edit_position 9535 1073
+	id 17D
 }
-dialog "1FF8E173000" {
-	message "i love you. i'll always love you"
+dialog 34 {
+	message "i love you.  i love you so much bardan"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses
-	edit_position 600 20
+	responses 12
+	edit_position 6573 1117
+	id 34D
 }
-dialog "1FF8E5E3000" {
-	message "holy shit i have like a sliver of O2 left"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 240 5
-}
-dialog "1FF8E2D9000" {
-	message "we talked about this like a year ago. we always sort of knew i was gonna die out here."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E343000"
-	edit_position 460 20
-}
-dialog "1FF83B66000" {
-	message "im out of oxygen."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 340 15
-}
-dialog "1FF8E0D3000" {
-	message "its been so long since i just looked at the stars"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8DFD2000"
-	edit_position 420 20
-}
-dialog "1FF83B0B000" {
-	message "im scared.. i dont know what to do"
-	pause 1F
-	requirements ""
-	effects ""
-	responses "1FF83BB0000"
-	edit_position 80 0
-}
-dialog "1FF83BDC000" {
-	message "hi bardan,"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses
-	edit_position 20 10
-}
-dialog "1FF8E23C000" {
+dialog 15 {
 	message "maybe you can call cencom.  they could send like a rescue party"
 	pause 0.5F
 	requirements ""
 	effects ""
 	responses
-	edit_position 140 10
+	edit_position 2751 186
+	id 15D
 }
-dialog "1FF8E50E000" {
-	message "but im dumb. its ok to be dumb. its ok to be sad."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E173000"
-	edit_position 580 20
-}
-dialog "1FF83B94000" {
-	message "oh fuck"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF83B06000" "1FF83BAA000"
-	edit_position 20 0
-}
-dialog "1FF83AF2060" {
-	message "thinking of you"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF83B94000" "1FF83BDF000" "1FF83BDC000"
-	edit_position 0 0
-}
-dialog "1FF8E31C000" {
-	message "my oxygen's going down. its going down fast"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E5E3000" "1FF8E2DF000"
-	edit_position 220 5
-}
-dialog "1FF8E569060" {
-	message "cencom'll send a rescue ship. they have to. they have to. they  have to"
-	pause 3.75F
-	requirements ""
-	effects ""
-	responses "1FF8E31C000"
-	edit_position 200 5
-}
-dialog "1FF8E279000" {
-	message "dumb. its dumb"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E50E000"
-	edit_position 560 20
-}
-dialog "1FF8E132060" {
-	message "its ok.  its gonna be ok. im not hurt.  im just sort of floating here"
-	pause 3.75F
-	requirements ""
-	effects ""
-	responses "1FF8E569060"
-	edit_position 180 5
-}
-dialog "1FF8E214000" {
-	message "you know how it is. i always gotta be so tough all the time and this is where it gets me."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E0EA000"
-	edit_position 380 20
-}
-dialog "1FF8DF63000" {
-	message "im gonna die. thats it"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E16E000" "1FF8DF0C000"
-	edit_position 260 10
-}
-dialog "1FF83BB0000" {
-	message "can i even do anything here"
-	pause 2F
-	requirements ""
-	effects ""
-	responses "1FF83BBF000"
-	edit_position 100 0
-}
-dialog "1FF8E5B6000" {
-	message "i'm sorry im dumping this on you. i know you cant reply."
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E132060"
-	edit_position 160 5
-}
-dialog "1FF83B4C000" {
-	message "i 'm sorry i didn't say it very offen"
-	pause 0.75F
-	requirements ""
-	effects ""
-	responses "1FF8E214000"
-	edit_position 360 20
-}
-dialog "1FF83BD9000" {
+dialog 24 {
 	message "it fuckin epxloded"
 	pause 1F
 	requirements ""
 	effects ""
-	responses "1FF83B0B000"
-	edit_position 60 0
+	responses 38
+	edit_position 1359 510
+	id 24D
 }
-start "1FF83AF2060"
+dialog 37 {
+	message "hey gator"
+	pause 1F
+	requirements ""
+	effects ""
+	responses
+	edit_position 1065 -85
+	id 37D
+}
+dialog 19 {
+	message "but i just. i;m just floating out here. i have to do something"
+	pause 1F
+	requirements ""
+	effects ""
+	responses
+	edit_position 2761 473
+	id 19D
+}
+dialog 28 {
+	message "oh god i'm gonna throw up"
+	pause 1F
+	requirements ""
+	effects ""
+	responses 21
+	edit_position 2769 764
+	id 28D
+}
+dialog 6 {
+	message "but im dumb. its ok to be dumb. its ok to be sad."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 20
+	edit_position 10972 1091
+	id 6D
+}
+dialog 33 {
+	message "why am i scared? why should i be scared?"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 17
+	edit_position 9155 1079
+	id 33D
+}
+dialog 10 {
+	message "theres no way they could get a rescue launched in time"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 36
+	edit_position 4693 899
+	id 10D
+}
+dialog 1 {
+	message "the ship exploded."
+	pause 3F
+	requirements ""
+	effects ""
+	responses 24
+	edit_position 1056 486
+	id 1D
+}
+dialog 8 {
+	message "i guess not"
+	pause 1F
+	requirements ""
+	effects ""
+	responses 19 28 15
+	edit_position 2408 527
+	id 8D
+}
+dialog 35 {
+	message "hate to see you see me go or some goofy sentimental shit like that."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 2
+	edit_position 9907 1069
+	id 35D
+}
+dialog 13 {
+	message "its been so long since i just looked at the stars"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 4
+	edit_position 7987 1107
+	id 13D
+}
+dialog 30 {
+	message "its not fair"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 26
+	edit_position 5886 1114
+	id 30D
+}
+dialog 39 {
+	message "how do i even ..?? i cant! What the fuck do i do now?"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 5440 685
+	id 39D
+}
+dialog 21 {
+	message "i'm sorry im dumping this on you. i know you cant reply."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 25
+	edit_position 3117 815
+	id 21D
+}
+dialog 38 {
+	message "im scared.. i dont know what to do"
+	pause 1F
+	requirements ""
+	effects ""
+	responses 18
+	edit_position 1628 500
+	id 38D
+}
+dialog 40 {
+	message "its so beautiful out here.  "
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 13
+	edit_position 7682 1146
+	id 40D
+}
+dialog 12 {
+	message "i 'm sorry i didn't say it very offen"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 27
+	edit_position 6926 1119
+	id 12D
+}
+dialog 14 {
+	message "dumb. its dumb"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 6
+	edit_position 10693 1099
+	id 14D
+}
+dialog 23 {
+	message "im out of oxygen."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 6574 783
+	id 23D
+}
+dialog 3 {
+	message "holy shit i have like a sliver of O2 left"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 4742 559
+	id 3D
+}
+dialog 22 {
+	message "thinking of you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 7 37 32
+	edit_position 303 385
+	id 22D
+}
+dialog 5 {
+	message "my oxygen's going down. its going down fast"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 3 10
+	edit_position 4250 785
+	id 5D
+}
+dialog 4 {
+	message "i wanted to be an astronaut when i was little because i wanted to see this. i wanted to see the stars."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 16
+	edit_position 8356 1051
+	id 4D
+}
+dialog 31 {
+	message "cencom'll send a rescue ship. they have to. they have to. they  have to"
+	pause 3.75F
+	requirements ""
+	effects ""
+	responses 5
+	edit_position 3872 780
+	id 31D
+}
+dialog 32 {
+	message "hi bardan,"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 1059 748
+	id 32D
+}
+dialog 20 {
+	message "i love you. i'll always love you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 29
+	edit_position 11354 1107
+	id 20D
+}
+dialog 7 {
+	message "oh fuck"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 1 9
+	edit_position 707 383
+	id 7D
+}
+dialog 11 {
+	message "im sorry you have to read these"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 30
+	edit_position 5431 1101
+	id 11D
+}
+dialog 16 {
+	message "we talked about this like a year ago. we always sort of knew i was gonna die out here."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 33
+	edit_position 8764 1070
+	id 16D
+}
+dialog 29 {
+	message "see you later, gator"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 11722 1110
+	id 29D
+}
+dialog 27 {
+	message "you know how it is. i always gotta be so tough all the time and this is where it gets me."
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 40
+	edit_position 7265 1100
+	id 27D
+}
+dialog 25 {
+	message "its ok.  its gonna be ok. im not hurt.  im just sort of floating here"
+	pause 3.75F
+	requirements ""
+	effects ""
+	responses 31
+	edit_position 3501 804
+	id 25D
+}
+dialog 2 {
+	message "im not sad to die anymore. now im sad thinking about how sad youll be"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 14
+	edit_position 10304 1070
+	id 2D
+}
+dialog 36 {
+	message "im gonna die. thats it"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 39 11
+	edit_position 5102 900
+	id 36D
+}
+dialog 18 {
+	message "can i even do anything here"
+	pause 2F
+	requirements ""
+	effects ""
+	responses 8
+	edit_position 2041 514
+	id 18D
+}
+dialog 9 {
+	message "i cant. this is really happening"
+	pause 2F
+	requirements ""
+	effects ""
+	responses
+	edit_position 1049 193
+	id 9D
+}
+start 22D
