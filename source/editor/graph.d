@@ -198,6 +198,11 @@ final class DialogNode : Padding, Interactible
 
 	public override void drag(ivec2 p_dragAmount)
 	{
+		_drag(p_dragAmount, true);
+	}
+
+	private void _drag(ivec2 p_dragAmount, bool recurse = false)
+	{
 		if(p_dragAmount.x == 0 && p_dragAmount.y == 0)
 		{
 			return;
@@ -213,12 +218,25 @@ final class DialogNode : Padding, Interactible
 		dialog.edit_position += p_dragAmount;
 		prepareRender(dialog.edit_position);
 
-		import std.stdio;
-		if(input.keyboard.isPressed(SDL_SCANCODE_LSHIFT))
+		if(recurse && input.keyboard.isPressed(SDL_SCANCODE_LSHIFT))
 		{
-			foreach(resp; responses)
+			void _add(ref DialogNode[uint] map, DialogNode node)
 			{
-				resp.drag(p_dragAmount);
+				foreach(resp; node.responses)
+				{
+					if(resp.dialog.id !in map)
+					{
+						map[resp.dialog.id] = resp;
+						_add(map, resp);
+					}
+				}
+			}
+			DialogNode[uint] respMap;
+			_add(respMap, this);
+
+			foreach(node; respMap)
+			{
+				node._drag(p_dragAmount);
 			}
 		}
 	}
