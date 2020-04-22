@@ -17,11 +17,8 @@ public final class Dialog
 	public Effect[] effects;
 	public Dialog[] responses;
 
-	version(lantana_editor)
-	{
-		import lantana.types: ivec2;
-		public ivec2 edit_position;
-	}
+	import lantana.types: ivec2;
+	public ivec2 edit_position;
 
 	this(string p_message, float p_pause, Dialog[] p_responses)
 	{
@@ -355,13 +352,10 @@ public Dialog[string] loadDialog(string p_file, out string p_start)
 		dialog.setRequirements(d.getTagValue!string("requirements", ""));
 		dialog.setEffects(d.getTagValue!string("effects", ""));
 
-		version(lantana_editor)
+		Value[] pos = d.getTagValues("edit_position");
+		if(pos != null)
 		{
-			Value[] pos = d.getTagValues("edit_position");
-			if(pos != null)
-			{
-				map[key].edit_position = ivec2(pos[0].get!int(), pos[1].get!int());
-			}
+			map[key].edit_position = ivec2(pos[0].get!int(), pos[1].get!int());
 		}
 	}
 
@@ -423,29 +417,15 @@ public void storeDialog(string p_file, Dialog p_dialog)
 			responses ~= Value(respKey);
 		}
 
-		version(lantana_editor)
-		{
-			Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
-			[
-				new Tag(null, "message", [Value(d.message)]),
-				new Tag(null, "pause", [Value(d.pauseTime)]),
-				new Tag(null, "requirements", [Value(d.getRequirements())]),
-				new Tag(null, "effects", [Value(d.getEffects())]),
-				new Tag(null, "responses", responses),
-				new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
-			]);
-		}
-		else
-		{
-			Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
-			[
-				new Tag(null, "message", [Value(d.message)]),
-				new Tag(null, "pause", [Value(d.pauseTime)]),
-				new Tag(null, "requirements", [Value(d.getRequirements())]),
-				new Tag(null, "effects", [Value(d.getEffects())]),
-				new Tag(null, "responses", responses),
-			]);
-		}
+		Tag t = new Tag(file, null, "dialog", [Value(key)], null, 
+		[
+			new Tag(null, "message", [Value(d.message)]),
+			new Tag(null, "pause", [Value(d.pauseTime)]),
+			new Tag(null, "requirements", [Value(d.getRequirements())]),
+			new Tag(null, "effects", [Value(d.getEffects())]),
+			new Tag(null, "responses", responses),
+			new Tag(null, "edit_position", [Value(d.edit_position.x), Value(d.edit_position.y)])
+		]);
 	}
 
 	file.add(new Tag(null, "start", [Value(p_dialog.getTag())], null, []));

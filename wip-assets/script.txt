@@ -15,10 +15,6 @@ Boto should have a better name.  Ideas from Noongar words:
 
 Boto is now named "Bardan"
 
-Noongar names:
-	Jubaitch
-
-
 
 -----------
 
@@ -109,6 +105,9 @@ Ive known for a long time i'd die out here. we talked about it
 	i guess i've finally come home. out in the stars
 	see you later, Bardan. I'll always love you.
 
+
+i wish i was better at my job.
+maybe id know why im here, what i'm doing
 
 -- Lore:
 

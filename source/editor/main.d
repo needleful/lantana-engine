@@ -107,7 +107,7 @@ int main()
 	Widget loadBox;
 	{
 		enum string[] files = [
-			"data/dialog.sdl",
+			"data/wip_dialog.sdl",
 			"data/outline.sdl"
 		];
 
@@ -157,10 +157,7 @@ int main()
 		ui.updateLayout();
 
 		ww.begin_frame();
-		if(frame != 0)
-			ui.render!(true, false)();
-		else
-			ui.render();
+		ui.render();
 		ww.end_frame();
 		frame ++;
 	}

@@ -31,6 +31,11 @@ public class Button: MultiContainer, Interactible
 		flags = p_flags;
 	}
 
+	this(UIRenderer p_renderer, string p_text, Interactible.Callback p_callback, HFlags p_flags = HFlags.init)
+	{
+		this(p_renderer, new TextBox(p_text), p_callback, p_flags);
+	}
+
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);

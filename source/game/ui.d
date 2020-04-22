@@ -34,6 +34,9 @@ import gl3n.linalg;
 private static immutable(vec3) kittyColor = vec3(0.8, 0.27, 0.83);
 private static immutable(vec3) bardanColor = vec3(0.2, 0.75, 0.3);
 
+enum dialogFile = "data/wip_dialog.sdl";
+enum wip_backup = "data/wip_dialog.backup.sdl";
+
 final class DialogButton : Button
 {
 	Dialog dialog;
@@ -90,6 +93,68 @@ final class Message : HBox
 			new TextBox(content)
 		];
 		super.initialize(p_renderer, p_view);
+	}
+}
+
+debug class InteractiveEditor : SingularContainer
+{
+	TextInput requirements, effects, time, message;
+
+	public Interactible.Callback onCancel;
+	public void delegate(Dialog) onComplete;
+
+	override void initialize(UIRenderer p_renderer, UIView p_view)
+	{
+		requirements = new TextInput(256);
+		effects = new TextInput(256);
+		time = new TextInput(16);
+		message = new TextInput(512);
+
+		child = new Padding(
+			new VBox([
+				new TextBox("Requirements"),
+				requirements,
+				new TextBox("Effects"),
+				effects,
+				new TextBox("Pause Time"),
+				time,
+				new TextBox("Message"),
+				message,
+				new HBox([
+					new Button(g_ui, "Cancel", onCancel),
+					new Button(g_ui, "Create", &createDialog)
+				], 20)
+			], 10),
+			Pad(10),
+			g_ui.style.panel.mesh.create(p_renderer));
+
+		super.initialize(p_renderer, p_view);
+	}
+
+	public override RealSize layout(SizeRequest p_request)
+	{
+		if(!visible)
+		{
+			return layoutEmpty();
+		}
+		return child.layout(p_request);
+	}
+
+	void createDialog(Widget _)
+	{
+		import std.conv;
+		Dialog d = new Dialog(
+			message.text.idup(),
+			time.text.to!float(),
+			[]
+		);
+		d.setRequirements(requirements.text.idup()),
+		d.setRequirements(effects.text.idup());
+
+		if(onComplete)
+		{
+			onComplete(d);
+		}
 	}
 }
 
@@ -166,6 +231,13 @@ void uiRun()
 
 		defaultFont = g_ui.loadFont("data/ui/fonts/ClearSans.ttf", 13);
 		defaultFontColor = vec3(0.0, 0.583, 1);
+
+		debug
+		{
+			textInput.cursor = g_ui.addSinglePixel(color(12, 12, 12, 255));
+			textInput.focused = vec3(1, 0.5, 0.9);
+			textInput.normal = vec3(0.9, 0.5, 0.4);
+		}
 	}
 
 	Message.font = g_ui.loadFont("data/ui/fonts/ClearSans-Bold.ttf", 13);
@@ -297,6 +369,21 @@ void uiRun()
 		tmp_widgets ~= button;
 	}
 
+	debug
+	{
+		InteractiveEditor iedit = new InteractiveEditor();
+
+		iedit.onCancel = (_)
+		{
+			iedit.setVisible(false);
+		};
+
+		tmp_widgets ~= new Button(g_ui, new TextBox("[+ Add Response +]"), (_) {
+			writeln("Wumbo");
+			iedit.setVisible(true);
+		});
+	}
+
 	HFlags expand = HFlags(HFlag.Expand);
 
 	Widget dialogbox = 
@@ -326,13 +413,33 @@ void uiRun()
 	ds.messageBox = new VBox(messages, 10, HFlags(HFlag.Expand));
 
 	string start;
-	auto map = loadDialog("data/dialog.sdl", start);
+	auto map = loadDialog(dialogFile, start);
 	Dialog currentDialog = map[start];
 	
 	Widget dialogWidget = new Padding(
 		dialogbox, 
 		Pad(8), 
 		g_ui.style.panel.mesh.create(g_ui));
+
+	debug iedit.onComplete = (Dialog d)
+	{
+		d.edit_position = 
+			ds.current.edit_position 
+			+ ivec2(20, cast(int)ds.current.responses.length * 5);
+
+		ds.current.responses ~= d;
+		ds.buttons[ds.current.responses.length - 1].setDialog(d);
+		ds.buttons[ds.current.responses.length - 1].setVisible(true);
+		iedit.setVisible(false);
+
+		import std.file;
+		if(dialogFile.exists())
+		{
+			copy(dialogFile, wip_backup);
+		}
+
+		storeDialog(dialogFile, map[start]);
+	};
 	/// END - Dialog initialization
 
 	debug TextBox frameTime = new TextBox(sysFont, "Getting data...", 64, vec3(0.5));
@@ -385,10 +492,12 @@ void uiRun()
 	{
 		g_ui.setRootWidget(
 		new HodgePodge([
-			uiModal, 
+			uiModal,
+			new Anchor(iedit, vec2(0.5), vec2(0.5)),
 			new Anchor(o2Text, vec2(0.5, 0.99), vec2(0.5, 1)),
 			new Anchor(debugBox, vec2(.98, 0.02), vec2(1, 0))
 		]));
+		iedit.setVisible(false);
 	}
 	else
 	{

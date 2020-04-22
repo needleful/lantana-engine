@@ -1,0 +1,25 @@
+dialog "26ADBEA2060" {
+	message "X"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "26ADBF75000"
+	edit_position 2 328
+}
+dialog "26ADBF75000" {
+	message "wumbo"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses "26ADBF57000"
+	edit_position 22 328
+}
+dialog "26ADBF57000" {
+	message "wumbo's older brother, jumbo"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 42 328
+}
+start "26ADBEA2060"

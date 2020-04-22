@@ -1,0 +1,8 @@
+dialog "1DC8D620420" {
+	message "thinking of you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	edit_position 0 0
+}
+start "1DC8D620420"
