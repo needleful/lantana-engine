@@ -36,7 +36,7 @@ dialog 5D {
 	requirements ""
 	effects ""
 	responses 3D 10D
-	edit_position 4250 785
+	edit_position 4305 780
 }
 dialog 6D {
 	message "but im dumb. its ok to be dumb. its ok to be sad."
@@ -115,8 +115,8 @@ dialog 15D {
 	pause 0.5F
 	requirements ""
 	effects ""
-	responses
-	edit_position 2751 186
+	responses 31D
+	edit_position 2928 472
 }
 dialog 16D {
 	message "we talked about this like a year ago. we always sort of knew i was gonna die out here."
@@ -148,7 +148,7 @@ dialog 19D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 2761 473
+	edit_position 2942 158
 }
 dialog 20D {
 	message "i love you. i'll always love you"
@@ -164,7 +164,7 @@ dialog 21D {
 	requirements ""
 	effects ""
 	responses 25D
-	edit_position 3117 815
+	edit_position 3123 924
 }
 dialog 22D {
 	message "thinking of you"
@@ -172,7 +172,7 @@ dialog 22D {
 	requirements ""
 	effects ""
 	responses 7D 37D 32D
-	edit_position 303 388
+	edit_position 303 389
 }
 dialog 23D {
 	message "im out of oxygen."
@@ -196,7 +196,7 @@ dialog 25D {
 	requirements ""
 	effects ""
 	responses 31D
-	edit_position 3501 804
+	edit_position 3515 965
 }
 dialog 26D {
 	message "i wish you could reply. you'd know what to say. you 've seen this sortof shit before"
@@ -244,14 +244,14 @@ dialog 31D {
 	requirements ""
 	effects ""
 	responses 5D
-	edit_position 3872 780
+	edit_position 3891 698
 }
 dialog 32D {
 	message "hi bardan,"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses
+	responses 43D 44D
 	edit_position 719 739
 }
 dialog 33D {
@@ -300,7 +300,7 @@ dialog 38D {
 	requirements ""
 	effects ""
 	responses 18D
-	edit_position 1628 500
+	edit_position 1633 516
 }
 dialog 39D {
 	message "how do i even ..?? i cant! What the fuck do i do now?"
@@ -333,5 +333,29 @@ dialog 42D {
 	effects ""
 	responses
 	edit_position 1268 -90
+}
+dialog 43D {
+	message "i'm not doing so hot right now"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 739 739
+}
+dialog 44D {
+	message "hope your doing good"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 45D
+	edit_position 739 744
+}
+dialog 45D {
+	message "um. i love you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses
+	edit_position 759 744
 }
 start 22D

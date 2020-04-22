@@ -4,7 +4,7 @@ dialog 1D {
 	requirements ""
 	effects ""
 	responses 24D
-	edit_position 1056 486
+	edit_position 1534 491
 }
 dialog 2D {
 	message "im not sad to die anymore. now im sad thinking about how sad youll be"
@@ -12,7 +12,7 @@ dialog 2D {
 	requirements ""
 	effects ""
 	responses 14D
-	edit_position 10304 1070
+	edit_position 10725 845
 }
 dialog 3D {
 	message "holy shit i have like a sliver of O2 left"
@@ -20,7 +20,7 @@ dialog 3D {
 	requirements ""
 	effects ""
 	responses 36D
-	edit_position 4683 544
+	edit_position 5144 513
 }
 dialog 4D {
 	message "i wanted to be an astronaut when i was little because i wanted to see this. i wanted to see the stars."
@@ -28,7 +28,7 @@ dialog 4D {
 	requirements ""
 	effects ""
 	responses 16D
-	edit_position 8356 1051
+	edit_position 8777 826
 }
 dialog 5D {
 	message "my oxygen's going down. its going down fast"
@@ -36,7 +36,7 @@ dialog 5D {
 	requirements ""
 	effects ""
 	responses 3D 10D
-	edit_position 4250 785
+	edit_position 4766 749
 }
 dialog 6D {
 	message "but im dumb. its ok to be dumb. its ok to be sad."
@@ -44,7 +44,7 @@ dialog 6D {
 	requirements ""
 	effects ""
 	responses 20D
-	edit_position 10972 1091
+	edit_position 11393 866
 }
 dialog 7D {
 	message "oh fuck"
@@ -60,15 +60,15 @@ dialog 8D {
 	requirements ""
 	effects ""
 	responses 19D 28D 15D
-	edit_position 2408 527
+	edit_position 2886 532
 }
 dialog 9D {
 	message "i cant. this is really happening"
 	pause 2F
 	requirements ""
 	effects ""
-	responses
-	edit_position 1049 193
+	responses 1D
+	edit_position 1114 227
 }
 dialog 10D {
 	message "theres no way they could get a rescue launched in time"
@@ -76,7 +76,7 @@ dialog 10D {
 	requirements ""
 	effects ""
 	responses 36D
-	edit_position 4693 899
+	edit_position 5154 868
 }
 dialog 11D {
 	message "im sorry you have to read these"
@@ -84,7 +84,7 @@ dialog 11D {
 	requirements ""
 	effects ""
 	responses 30D
-	edit_position 5431 1101
+	edit_position 5912 887
 }
 dialog 12D {
 	message "i 'm sorry i didn't say it very offen"
@@ -92,7 +92,7 @@ dialog 12D {
 	requirements ""
 	effects ""
 	responses 27D
-	edit_position 6926 1119
+	edit_position 7347 894
 }
 dialog 13D {
 	message "its been so long since i just looked at the stars"
@@ -100,7 +100,7 @@ dialog 13D {
 	requirements ""
 	effects ""
 	responses 4D
-	edit_position 7987 1107
+	edit_position 8408 882
 }
 dialog 14D {
 	message "dumb. its dumb"
@@ -108,15 +108,15 @@ dialog 14D {
 	requirements ""
 	effects ""
 	responses 6D
-	edit_position 10693 1099
+	edit_position 11114 874
 }
 dialog 15D {
 	message "maybe you can call cencom.  they could send like a rescue party"
 	pause 0.5F
 	requirements ""
 	effects ""
-	responses
-	edit_position 2751 186
+	responses 31D
+	edit_position 3584 462
 }
 dialog 16D {
 	message "we talked about this like a year ago. we always sort of knew i was gonna die out here."
@@ -124,7 +124,7 @@ dialog 16D {
 	requirements ""
 	effects ""
 	responses 33D
-	edit_position 8764 1070
+	edit_position 9185 845
 }
 dialog 17D {
 	message "is it you? am i scared for you? worried about how this'll hurt you?"
@@ -132,7 +132,7 @@ dialog 17D {
 	requirements ""
 	effects ""
 	responses 35D
-	edit_position 9535 1073
+	edit_position 9956 848
 }
 dialog 18D {
 	message "can i even do anything here"
@@ -140,7 +140,7 @@ dialog 18D {
 	requirements ""
 	effects ""
 	responses 8D
-	edit_position 2041 514
+	edit_position 2519 519
 }
 dialog 19D {
 	message "but i just. i;m just floating out here. i have to do something"
@@ -148,7 +148,7 @@ dialog 19D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 2761 473
+	edit_position 3279 182
 }
 dialog 20D {
 	message "i love you. i'll always love you"
@@ -156,7 +156,7 @@ dialog 20D {
 	requirements ""
 	effects ""
 	responses 29D
-	edit_position 11354 1107
+	edit_position 11775 882
 }
 dialog 21D {
 	message "i'm sorry im dumping this on you. i know you cant reply."
@@ -164,7 +164,7 @@ dialog 21D {
 	requirements ""
 	effects ""
 	responses 25D
-	edit_position 3117 815
+	edit_position 3522 929
 }
 dialog 22D {
 	message "thinking of you"
@@ -172,7 +172,7 @@ dialog 22D {
 	requirements ""
 	effects ""
 	responses 7D 37D 32D
-	edit_position 303 388
+	edit_position 303 389
 }
 dialog 23D {
 	message "im out of oxygen."
@@ -180,7 +180,7 @@ dialog 23D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 6574 783
+	edit_position 7002 627
 }
 dialog 24D {
 	message "it fuckin epxloded"
@@ -188,7 +188,7 @@ dialog 24D {
 	requirements ""
 	effects ""
 	responses 38D
-	edit_position 1359 510
+	edit_position 1837 515
 }
 dialog 25D {
 	message "its ok.  its gonna be ok. im not hurt.  im just sort of floating here"
@@ -196,7 +196,7 @@ dialog 25D {
 	requirements ""
 	effects ""
 	responses 31D
-	edit_position 3501 804
+	edit_position 3914 970
 }
 dialog 26D {
 	message "i wish you could reply. you'd know what to say. you 've seen this sortof shit before"
@@ -204,7 +204,7 @@ dialog 26D {
 	requirements ""
 	effects ""
 	responses 23D 34D
-	edit_position 6137 1108
+	edit_position 6558 883
 }
 dialog 27D {
 	message "you know how it is. i always gotta be so tough all the time and this is where it gets me."
@@ -212,7 +212,7 @@ dialog 27D {
 	requirements ""
 	effects ""
 	responses 40D
-	edit_position 7265 1100
+	edit_position 7686 875
 }
 dialog 28D {
 	message "oh god i'm gonna throw up"
@@ -220,7 +220,7 @@ dialog 28D {
 	requirements ""
 	effects ""
 	responses 21D
-	edit_position 2769 764
+	edit_position 3168 769
 }
 dialog 29D {
 	message "see you later, gator"
@@ -228,7 +228,7 @@ dialog 29D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 11722 1110
+	edit_position 12143 885
 }
 dialog 30D {
 	message "its not fair"
@@ -236,7 +236,7 @@ dialog 30D {
 	requirements ""
 	effects ""
 	responses 26D
-	edit_position 5886 1114
+	edit_position 6307 889
 }
 dialog 31D {
 	message "cencom'll send a rescue ship. they have to. they have to. they  have to"
@@ -244,15 +244,15 @@ dialog 31D {
 	requirements ""
 	effects ""
 	responses 5D
-	edit_position 3872 780
+	edit_position 4352 667
 }
 dialog 32D {
 	message "hi bardan,"
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses
-	edit_position 719 739
+	responses 43D 44D
+	edit_position 600 845
 }
 dialog 33D {
 	message "why am i scared? why should i be scared?"
@@ -260,7 +260,7 @@ dialog 33D {
 	requirements ""
 	effects ""
 	responses 17D
-	edit_position 9155 1079
+	edit_position 9576 854
 }
 dialog 34D {
 	message "i love you.  i love you so much bardan"
@@ -268,7 +268,7 @@ dialog 34D {
 	requirements ""
 	effects ""
 	responses 12D
-	edit_position 6573 1117
+	edit_position 6994 892
 }
 dialog 35D {
 	message "hate to see you see me go or some goofy sentimental shit like that."
@@ -276,7 +276,7 @@ dialog 35D {
 	requirements ""
 	effects ""
 	responses 2D
-	edit_position 9907 1069
+	edit_position 10328 844
 }
 dialog 36D {
 	message "im gonna die. thats it"
@@ -284,7 +284,7 @@ dialog 36D {
 	requirements ""
 	effects ""
 	responses 39D 11D
-	edit_position 5102 900
+	edit_position 5583 686
 }
 dialog 37D {
 	message "hey gator"
@@ -300,7 +300,7 @@ dialog 38D {
 	requirements ""
 	effects ""
 	responses 18D
-	edit_position 1628 500
+	edit_position 2111 521
 }
 dialog 39D {
 	message "how do i even ..?? i cant! What the fuck do i do now?"
@@ -308,7 +308,7 @@ dialog 39D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 5440 685
+	edit_position 5921 471
 }
 dialog 40D {
 	message "its so beautiful out here.  "
@@ -316,7 +316,7 @@ dialog 40D {
 	requirements ""
 	effects ""
 	responses 13D
-	edit_position 7682 1146
+	edit_position 8103 921
 }
 dialog 41D {
 	message "uh,, how are you?"
@@ -332,6 +332,38 @@ dialog 42D {
 	requirements ""
 	effects ""
 	responses
-	edit_position 1268 -90
+	edit_position 1269 -88
+}
+dialog 43D {
+	message "i'm not doing so hot right now"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 1D
+	edit_position 980 722
+}
+dialog 44D {
+	message "hope your doing good"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 45D
+	edit_position 982 989
+}
+dialog 45D {
+	message "um. i love you"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 46D
+	edit_position 1287 988
+}
+dialog 46D {
+	message "there was an accident or something"
+	pause 0.75F
+	requirements ""
+	effects ""
+	responses 1D
+	edit_position 1570 973
 }
 start 22D
