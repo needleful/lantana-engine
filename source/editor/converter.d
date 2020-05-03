@@ -10,7 +10,7 @@ import lantana.file.lgbt;
 import lantana.types.memory;
 
 version(lantana_converter)
-int main(string[] args)
+int run(string[] args)
 {
 	if(args.length != 2)
 	{
