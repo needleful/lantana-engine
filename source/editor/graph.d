@@ -4,7 +4,6 @@
 
 module editor.graph;
 
-import std.conv;
 import std.format;
 
 import bindbc.sdl;
@@ -63,7 +62,7 @@ final class DialogNode : Padding, Interactible
 	public void updateDialog()
 	{
 		dialog.edit_position = position;
-		dialog.pauseTime = time.text.to!float();
+		time.text.convert(dialog.pauseTime);
 
 		dialog.setRequirements(cast(string)requirements.text);
 		dialog.setEffects(cast(string)effects.text);

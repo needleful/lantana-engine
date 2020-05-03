@@ -4,9 +4,10 @@
 
 module game.dialog;
 
+import lantana.types.text;
+
 public final class Dialog
 {
-	import std.conv;
 	import std.regex;
 
 	alias Callback = void delegate(Dialog message);
@@ -75,7 +76,8 @@ public final class Dialog
 
 			Requirement.Op op;
 			Requirement.Next next;
-			float value = m["value"].to!float();
+			float value;
+			m["value"].convert(value);
 
 			switch(m["op"])
 			{
@@ -147,7 +149,8 @@ public final class Dialog
 			}
 
 			Effect.Op op;
-			float value = m["value"].to!float();
+			float value;
+			m["value"].convert(value);
 
 			switch(m["op"])
 			{

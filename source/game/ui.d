@@ -143,9 +143,11 @@ debug class InteractiveEditor : SingularContainer
 	void createDialog(Widget _)
 	{
 		import std.conv;
+		float time;
+		time.text.convert(time, 0.75f);
 		Dialog d = new Dialog(
 			message.text.idup(),
-			time.text.to!float(),
+			time,
 			[]
 		);
 		d.setRequirements(requirements.text.idup()),
