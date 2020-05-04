@@ -13,7 +13,7 @@ import gl3n.linalg;
 enum DEFAULT_NEAR_PLANE = 0.1;
 enum DEFAULT_FAR_PLANE = 1000;
 
-struct Camera
+struct FreeCamera
 {
 	mat4 projection;
 	vec3 pos;
@@ -88,7 +88,7 @@ struct Camera
 	}
 }
 
-struct LongRangeOrbitalCamera
+struct OrbitalCamera
 {
 	mat4 projection;
 	vec3 target;
