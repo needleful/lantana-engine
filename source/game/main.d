@@ -41,7 +41,7 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
-	Room world = Room(vec3(0), ivec2(-20), ivec2(20));
+	Room world = Room(vec3(0), ivec2(-50), ivec2(50));
 	Actor actor = Actor(&world);
 
 	// Loading the ground plane
@@ -49,10 +49,10 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(18);
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(2000);
 
 		stInst[0..3] = [
-			StaticMesh.Instance(worldMeshes["Floor"], Transform(4)),
+			StaticMesh.Instance(worldMeshes["Floor"], Transform(10)),
 			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
 			StaticMesh.Instance(worldMeshes["Actor"], Transform(1))
 		];

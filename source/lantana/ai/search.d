@@ -5,19 +5,19 @@
 module lantana.ai.search;
 
 /// A* search
-bool search(NodeSet, Node)(ref NodeSet set, ref Node start, ref Node end)
+bool search(Graph, Node)(ref Graph graph, ref Node start, ref Node end)
 {
-	start.open();
+	graph.open(&start);
 	start.ante = &start;
 	start.minCost = 0;
-	start.estimated = set.estimate(start, end);
+	start.estimated = graph.estimate(start, end);
 
 	Node* ante = &start;
 
 	float runningCost = 0;
 	while(true)
 	{
-		Node* n = set.minimumEstimated(ante, &end);
+		Node* n = graph.minimumEstimated(ante, &end);
 
 		if(n is null)
 		{
@@ -25,23 +25,23 @@ bool search(NodeSet, Node)(ref NodeSet set, ref Node start, ref Node end)
 		}
 		else if(n is &end)
 		{
-			n.close();
+			graph.close(n);
 			return true;
 		}
 
-		foreach(ref Node.Successor sc; set.successors(n))
+		foreach(ref Node.Successor sc; graph.successors(n))
 		{
 			float g = n.minCost + sc.cost;
 
 			if(!sc.node.closed() || sc.node.minCost > g)
 			{
-				sc.node.open();
 				sc.node.minCost = g;
 				sc.node.ante = n;
-				sc.node.estimated = g + set.estimate(*sc.node, end)/2;
+				sc.node.estimated = g + graph.estimate(*sc.node, end)/2;
+				graph.open(sc.node);
 			}
 		}
-		n.close();
+		graph.close(n);
 		ante = n;
 	}
 }

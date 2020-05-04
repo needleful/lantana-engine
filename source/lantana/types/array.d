@@ -19,6 +19,28 @@ long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
 	return -1;
 }
 
+void removeAt(Type)(ref Type[] list, ulong index)
+{
+	if(index == 0)
+	{
+		list = list[1..$];
+	}
+	else if(index == list.length - 1)
+	{
+		list = list[0..$-1];
+	}
+	else
+	{
+		auto tail = list[index+1..$];
+		list.length -= 1;
+		for(int i = 0; i < tail.length; i++)
+		{
+			list[index + i] = tail[i];
+		}
+		//list[index..$] = tail[];
+	}
+}
+
 void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);

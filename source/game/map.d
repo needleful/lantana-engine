@@ -45,19 +45,9 @@ struct Grid
 		int id;
 		Bitfield!Cn con;
 
-		void close() @nogc nothrow
-		{
-			con[Cn.S_OPEN] = false;
-		}
-
 		bool closed() @nogc nothrow const
 		{
 			return !con[Cn.S_OPEN];
-		}
-
-		void open() @nogc nothrow
-		{
-			con[Cn.S_OPEN] = true;
 		}
 
 		bool opened() @nogc nothrow const
@@ -75,66 +65,67 @@ struct Grid
 				node = p_node;
 			}
 		}
+	}
 
-		struct ScIterator
+	private struct ScIterator
+	{
+		Grid* grid;
+		Node* source;
+
+		this(Grid* p_grid, Node* p_source)
 		{
-			Grid* grid;
-			Node* source;
+			grid = p_grid;
+			source = p_source;
+		}
 
-			this(Grid* p_grid, Node* p_source)
+		int opApply(scope int delegate(ref Node.Successor) dg)
+		{
+			int result = 0;
+
+			Node.Successor sc;
+			if(source.con[Cn.UP])
 			{
-				grid = p_grid;
-				source = p_source;
+				sc = Node.Successor(&grid.nodes[source.id + grid.width()]);
+				result = dg(sc);
+				if(result)
+				{
+					return result;
+				}
+			}
+			if(source.con[Cn.DOWN])
+			{
+				sc = Node.Successor(&grid.nodes[source.id - grid.width()]);
+				result = dg(sc);
+				if(result)
+				{
+					return result;
+				}
+			}
+			if(source.con[Cn.LEFT])
+			{
+				sc = Node.Successor(&grid.nodes[source.id - 1]);
+				result = dg(sc);
+				if(result)
+				{
+					return result;
+				}
+			}
+			if(source.con[Cn.RIGHT])
+			{
+				sc = Node.Successor(&grid.nodes[source.id + 1]);
+				result = dg(sc);
+				if(result)
+				{
+					return result;
+				}
 			}
 
-			int opApply(scope int delegate(ref Successor) dg)
-			{
-				int result = 0;
-
-				Successor sc;
-				if(source.con[Cn.UP])
-				{
-					sc = Successor(&grid.nodes[source.id + grid.width()]);
-					result = dg(sc);
-					if(result)
-					{
-						return result;
-					}
-				}
-				if(source.con[Cn.DOWN])
-				{
-					sc = Successor(&grid.nodes[source.id - grid.width()]);
-					result = dg(sc);
-					if(result)
-					{
-						return result;
-					}
-				}
-				if(source.con[Cn.LEFT])
-				{
-					sc = Successor(&grid.nodes[source.id - 1]);
-					result = dg(sc);
-					if(result)
-					{
-						return result;
-					}
-				}
-				if(source.con[Cn.RIGHT])
-				{
-					sc = Successor(&grid.nodes[source.id + 1]);
-					result = dg(sc);
-					if(result)
-					{
-						return result;
-					}
-				}
-
-				return result;
-			}
+			return result;
 		}
 	}
 
 	Node[] nodes;
+	Node*[] openNodes;
 
 	// Bounds of the grid, inclusive
 	ivec2 lowBounds, highBounds;
@@ -249,9 +240,28 @@ struct Grid
 		        || (d1 == Dir.LEFT && d2 == Dir.RIGHT);
 	}
 
-	Node.ScIterator successors(Node* n)
+	void open(Node* n)
 	{
-		return Node.ScIterator(&this, n);
+		n.con[Cn.S_OPEN] = true;
+		//openNodes ~= n;
+	}
+
+	void close(Node* n)
+	{
+		import lantana.types.array;
+
+		n.con[Cn.S_OPEN] = false;
+
+		//auto index = openNodes.indexOf(n);
+		//if(index >= 0)
+		//{
+		//	openNodes.removeAt(index);
+		//}
+	}
+
+	ScIterator successors(Node* n)
+	{
+		return ScIterator(&this, n);
 	}
 
 	float estimate(const ref Node start, const ref Node end)
@@ -283,7 +293,7 @@ struct Grid
 	{
 		float min = float.infinity;
 		Node* found = null;
-		foreach(ref n; nodes)
+		foreach(ref Node n; nodes)
 		{
 			if(n.opened())
 			{
@@ -305,11 +315,12 @@ struct Grid
 	{
 		foreach(ref Node n; nodes)
 		{
-			n.close();
+			close(&n);
 			n.minCost = float.infinity;
 			n.estimated = float.infinity;
 			n.ante = null;
 		}
+		openNodes.length = 0;
 	}
 
 	private ivec2 fromIndex(int index) @nogc nothrow const
