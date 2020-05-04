@@ -8,6 +8,8 @@ import std.math: abs;
 import std.meta : AliasSeq;
 
 import gl3n.linalg: vec3;
+
+import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
 
 
@@ -29,7 +31,7 @@ struct Grid
 		DOWN = cast(uint)Dir.DOWN,
 		LEFT = cast(uint)Dir.LEFT,
 		RIGHT = cast(uint)Dir.RIGHT,
-		S_CLOSED
+		S_OPEN,
 	}
 	alias dirIter = AliasSeq!(Cn.RIGHT, Cn.LEFT, Cn.UP, Cn.DOWN);
 	alias inverseDirIter = AliasSeq!(Cn.LEFT, Cn.RIGHT, Cn.DOWN, Cn.UP);
@@ -38,13 +40,98 @@ struct Grid
 
 	struct Node
 	{
-		// Minimum cost to get from the start (infinity if no path)
-		float min_cost;
-
-		// Index of ancestor node in search (-1 if no path)
-		int ancestor;
-
+		Node* ante;
+		float minCost, estimated;
+		int id;
 		Bitfield!Cn con;
+
+		void close() @nogc nothrow
+		{
+			con[Cn.S_OPEN] = false;
+		}
+
+		bool closed() @nogc nothrow const
+		{
+			return !con[Cn.S_OPEN];
+		}
+
+		void open() @nogc nothrow
+		{
+			con[Cn.S_OPEN] = true;
+		}
+
+		bool opened() @nogc nothrow const
+		{
+			return con[Cn.S_OPEN];
+		}
+
+		struct Successor
+		{
+			enum cost = 1;
+			Node* node;
+
+			this(Node* p_node) @nogc nothrow
+			{
+				node = p_node;
+			}
+		}
+
+		struct ScIterator
+		{
+			Grid* grid;
+			Node* source;
+
+			this(Grid* p_grid, Node* p_source)
+			{
+				grid = p_grid;
+				source = p_source;
+			}
+
+			int opApply(scope int delegate(ref Successor) dg)
+			{
+				int result = 0;
+
+				Successor sc;
+				if(source.con[Cn.UP])
+				{
+					sc = Successor(&grid.nodes[source.id + grid.width()]);
+					result = dg(sc);
+					if(result)
+					{
+						return result;
+					}
+				}
+				if(source.con[Cn.DOWN])
+				{
+					sc = Successor(&grid.nodes[source.id - grid.width()]);
+					result = dg(sc);
+					if(result)
+					{
+						return result;
+					}
+				}
+				if(source.con[Cn.LEFT])
+				{
+					sc = Successor(&grid.nodes[source.id - 1]);
+					result = dg(sc);
+					if(result)
+					{
+						return result;
+					}
+				}
+				if(source.con[Cn.RIGHT])
+				{
+					sc = Successor(&grid.nodes[source.id + 1]);
+					result = dg(sc);
+					if(result)
+					{
+						return result;
+					}
+				}
+
+				return result;
+			}
+		}
 	}
 
 	Node[] nodes;
@@ -66,6 +153,7 @@ struct Grid
 			{
 				int i = x + y*w;
 				nodes[i].con.setAll();
+				nodes[i].id = i;
 				// Boundary checking
 				if(x == 0)
 				{
@@ -95,7 +183,7 @@ struct Grid
 		       && p_gridPos.y >= lowBounds.y && p_gridPos.y <= highBounds.y;
 	}
 
-	bool navigate(Grid.Dir p_dir, ivec2 p_start, ivec2 p_end, ref ivec2[] p_points)
+	bool navigate(ivec2 p_start, ivec2 p_end, ref ivec2[] p_points)
 	{
 		if(!inBounds(p_start) || !inBounds(p_end))
 		{
@@ -111,159 +199,27 @@ struct Grid
 
 		clearSearch();
 
-		this[p_start].ancestor = toIndex(p_start);
-		int requiredNodes = search(p_dir, p_start, p_end, 0);
-		if(requiredNodes == 0)
+		bool found = search(this, this[p_start], this[p_end]);
+
+		if(!found)
 		{
 			return false;
 		}
 
-		p_points.reserve(requiredNodes);
-		int idx = toIndex(p_end);
-		int startIdx = toIndex(p_start);
+		Node* startNode = &this[p_start];
+		Node* n = &this[p_end];
 
-		while(idx != startIdx)
+		while(n != startNode)
 		{
-			p_points ~= fromIndex(idx);
-
-			assert(idx > 0, "Invalid antecedent in search");
-
-			idx = nodes[idx].ancestor;
+			p_points ~= fromIndex(n.id);
+			assert(n.ante != null, "Point without antecedent!");
+			n = n.ante;
 		}
 
 		import std.algorithm : reverse;
 		p_points = p_points.reverse();
 
 		return true;
-	}
-
-	void removePoint(ivec2 point)
-	{
-		Node* n = &this[point];
-
-		static foreach(i, cndir; dirIter)
-		{
-			if(n.con[cndir])
-			{
-				ivec2 u = point + dirs[i];
-				Node* n2 = &this[u];
-
-				n2.con[inverseDirIter[i]] = false;
-			}
-		}
-
-		n.con.clear();
-	}
-
-	private void clearSearch()
-	{
-		foreach(ref Node n; nodes)
-		{
-			n.ancestor = -1;
-			n.min_cost = float.infinity;
-			n.con[Cn.S_CLOSED] = false;
-		}
-	}
-
-	private int search(Grid.Dir dir, ivec2 start, ivec2 target, float runningCost)
-	{
-		Node* n = &this[start];
-		assert(n.ancestor >= 0, "Invalid search order");
-		n.con[Cn.S_CLOSED] = true;
-
-		int connected = 0;
-		ivec2[4] successors;
-		float[4] expectedCost;
-		float[4] nodeCost;
-		Dir[4] nodeDir;
-
-		// Get the successors
-		static foreach(i, cndir; dirIter )
-		{
-			if(n.con[cndir])
-			{
-				ivec2 u = start + dirs[i];
-				Node* n2 = &this[u];
-				Dir d = cast(Dir) (cndir & 0xF);
-
-				// The cost to get here (increases slightly if we have to turn)
-				float cost;
-
-				if(dir == d)
-				{
-					cost = 1;
-				}
-				else if(opposingDirs(dir, d))
-				{
-					cost = 1.15; 
-				}
-				else
-				{
-					cost = 1.1;
-				}
-
-				if(n2.min_cost > cost + runningCost)
-				{
-					n2.min_cost = cost + runningCost;
-					n2.ancestor = toIndex(start);
-					n2.con[Cn.S_CLOSED] = false;
-				}
-
-				if(u == target)
-				{
-					n2.con[Cn.S_CLOSED] = true;
-					return 1;
-				}
-
-				// The likely total cost
-				float futureCost =  abs(u.x - target.x) + abs(u.y - target.y) + cost;
-				float evaluation = n2.min_cost + futureCost/2;
-
-				if(!n2.con[Cn.S_CLOSED])
-				{
-					nodeCost[connected] = cost;
-					successors[connected] = u;
-					expectedCost[connected] = evaluation;
-					nodeDir[connected] = d;
-					connected++;
-				}
-			}
-		}
-
-		// Sort the three lists based on expectedCost
-		for(int i = 1; i < connected; i++)
-		{
-			for(int j = i; j > 0 && expectedCost[j] < expectedCost[j-1]; j--)
-			{
-				float tmp_ec = expectedCost[j];
-				expectedCost[j] = expectedCost[j-1];
-				expectedCost[j-1] = tmp_ec;
-
-				float tmp_nc = nodeCost[j];
-				nodeCost[j] = nodeCost[j-1];
-				nodeCost[j-1] = tmp_nc;
-
-				ivec2 tmp_s = successors[j];
-				successors[j] = successors[j-1];
-				successors[j-1] = tmp_s;
-
-
-				Dir tmp_d = nodeDir[j];
-				nodeDir[j] = nodeDir[j-1];
-				nodeDir[j-1] = tmp_d;
-			}
-		}
-
-		for(int i = 0; i < connected; i++)
-		{
-			int s = search(nodeDir[i], successors[i], target, runningCost + nodeCost[i]);
-			if(s != 0)
-			{
-				return s+1;
-			}
-		}
-
-		return 0;
 	}
 
 	ref Node opIndex(ivec2 position)
@@ -291,6 +247,69 @@ struct Grid
 		}
 		return (d1 == Dir.UP && d2 == Dir.DOWN)
 		        || (d1 == Dir.LEFT && d2 == Dir.RIGHT);
+	}
+
+	Node.ScIterator successors(Node* n)
+	{
+		return Node.ScIterator(&this, n);
+	}
+
+	float estimate(const ref Node start, const ref Node end)
+	{
+		ivec2 s = fromIndex(start.id);
+		ivec2 e = fromIndex(end.id);
+
+		return abs(s.x - e.x) + abs(s.y - e.y);
+	}
+
+	void removePoint(ivec2 point)
+	{
+		Node* n = &this[point];
+
+		static foreach(i, cndir; dirIter)
+		{
+			if(n.con[cndir])
+			{
+				ivec2 u = point + dirs[i];
+				Node* n2 = &this[u];
+				n2.con[inverseDirIter[i]] = false;
+			}
+		}
+
+		n.con.clear();
+	}
+
+	Node* minimumEstimated(Node* source, Node* target)
+	{
+		float min = float.infinity;
+		Node* found = null;
+		foreach(ref n; nodes)
+		{
+			if(n.opened())
+			{
+				if(&n is target)
+				{
+					return &n;
+				}
+				if(n.estimated < min)
+				{
+					min = n.estimated;
+					found = &n;
+				}
+			}
+		}
+		return found;
+	}
+
+	private void clearSearch()
+	{
+		foreach(ref Node n; nodes)
+		{
+			n.close();
+			n.minCost = float.infinity;
+			n.estimated = float.infinity;
+			n.ante = null;
+		}
 	}
 
 	private ivec2 fromIndex(int index) @nogc nothrow const

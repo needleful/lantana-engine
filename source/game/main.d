@@ -49,7 +49,7 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(390);
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(18);
 
 		stInst[0..3] = [
 			StaticMesh.Instance(worldMeshes["Floor"], Transform(4)),
@@ -156,6 +156,8 @@ int runGame()
 
 				writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
 				stdout.flush();
+
+				searchTime.reset();
 
 				trTarget._position = world.getWorldPosition(targetPos);
 			}

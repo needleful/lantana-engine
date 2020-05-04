@@ -63,7 +63,7 @@ struct Bitfield(Enum)
 		data |= mask;
 	}
 
-	public bool opIndex(Enum p_index) @nogc nothrow
+	public bool opIndex(Enum p_index) @nogc nothrow const
 	{
 		dt mask = cast(dt)(1 << p_index);
 		return (data & mask) != 0;
