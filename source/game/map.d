@@ -48,6 +48,30 @@ struct Grid
 		{
 			return false;
 		}
+
+		p_points.length = 0;
+
+		while(p_start.x < p_end.x)
+		{
+			p_start.x += 1;
+			p_points ~= p_start;
+		}
+		while(p_start.x > p_end.x)
+		{
+			p_start.x -= 1;
+			p_points ~= p_start;
+		}
+		while(p_start.y < p_end.y)
+		{
+			p_start.y += 1;
+			p_points ~= p_start;
+		}
+		while(p_start.y > p_end.y)
+		{
+			p_start.y -= 1;
+			p_points ~= p_start;
+		}
+
 		return true;
 	}
 
