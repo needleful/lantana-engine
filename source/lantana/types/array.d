@@ -37,8 +37,19 @@ void removeAt(Type)(ref Type[] list, ulong index)
 		{
 			list[index + i] = tail[i];
 		}
-		//list[index..$] = tail[];
 	}
+}
+
+// Insert before the provided index
+void insert(Type)(ref Type[] list, ulong index, Type value)
+{
+	list.length += 1;
+
+	for(size_t i = list.length - 1; i > index; i--)
+	{
+		list[i] = list[i-1];
+	}
+	list[index] = value;
 }
 
 void place(Type, A...)(Type[] list, ulong index, auto ref A args)

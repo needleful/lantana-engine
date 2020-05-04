@@ -11,6 +11,7 @@ import gl3n.linalg: vec3;
 
 import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
+import lantana.types.array;
 
 
 // Grids are sets of points in an abstract space
@@ -242,21 +243,32 @@ struct Grid
 
 	void open(Node* n)
 	{
+		if(n.opened())
+		{
+			return;
+		}
 		n.con[Cn.S_OPEN] = true;
-		//openNodes ~= n;
+
+		foreach(i, Node* n2; openNodes)
+		{
+			if(n.estimated < n2.estimated)
+			{
+				openNodes.insert(i, n);
+				return;
+			}
+		}
+		openNodes ~= n;
 	}
 
 	void close(Node* n)
 	{
-		import lantana.types.array;
-
 		n.con[Cn.S_OPEN] = false;
 
-		//auto index = openNodes.indexOf(n);
-		//if(index >= 0)
-		//{
-		//	openNodes.removeAt(index);
-		//}
+		auto index = openNodes.indexOf(n);
+		if(index >= 0)
+		{
+			openNodes.removeAt(index);
+		}
 	}
 
 	ScIterator successors(Node* n)
@@ -291,31 +303,18 @@ struct Grid
 
 	Node* minimumEstimated(Node* source, Node* target)
 	{
-		float min = float.infinity;
-		Node* found = null;
-		foreach(ref Node n; nodes)
+		if(openNodes.length == 0)
 		{
-			if(n.opened())
-			{
-				if(&n is target)
-				{
-					return &n;
-				}
-				if(n.estimated < min)
-				{
-					min = n.estimated;
-					found = &n;
-				}
-			}
+			return null;
 		}
-		return found;
+		return openNodes[0];
 	}
 
 	private void clearSearch()
 	{
 		foreach(ref Node n; nodes)
 		{
-			close(&n);
+			n.con[Cn.S_OPEN] = false;
 			n.minCost = float.infinity;
 			n.estimated = float.infinity;
 			n.ante = null;
