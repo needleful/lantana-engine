@@ -31,6 +31,9 @@ struct Actor
 	// Distance covered to the next point on the plan
 	private float coveredDistance;
 
+	// Current direction
+	Grid.Dir direction;
+
 	this(Room* p_room)
 	{
 		coveredDistance = 0;
@@ -45,7 +48,8 @@ struct Actor
 			return true;
 		}
 
-		return room.grid.navigate(gridPos, target, plan);
+		assert(room.grid.navigate(direction, gridPos, target, plan));
+		return true;
 	}
 
 	void update(float delta)
@@ -59,6 +63,23 @@ struct Actor
 		ivec2 dir = plan[0]-gridPos;
 
 		assert(dir.length_squared() == 1, "Cannot navigate more than one tile at a time!");
+
+		if(dir.x > 0)
+		{
+			direction = Grid.Dir.RIGHT;
+		}
+		else if(dir.x < 0)
+		{
+			direction = Grid.Dir.LEFT;
+		}
+		else if(dir.y > 0)
+		{
+			direction = Grid.Dir.UP;
+		}
+		else if(dir.y < 0)
+		{
+			direction = Grid.Dir.DOWN;
+		}
 
 		vec3 move = vec3(dir.x, 0, dir.y)*speed*delta;
 
