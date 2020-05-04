@@ -23,7 +23,7 @@ import lantana.types.memory;
 // Force the game to run on main() instead of WinMain()
 enum forcedMain = true;
 
-enum MAIN_MEM_LIMIT = 1024*1024*8;
+enum MAIN_MEM_LIMIT = 1024*1024*16;
 
 // Degrees
 float camFOV = 70;
@@ -41,18 +41,39 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
+	Room world = Room(vec3(0), ivec2(-20), ivec2(20));
+	Actor actor = Actor(&world);
+
 	// Loading the ground plane
 		auto sMeshSys = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(3);
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(390);
 
-		stInst[0..$] = [
-			StaticMesh.Instance(worldMeshes["Floor"], Transform(1)),
+		stInst[0..3] = [
+			StaticMesh.Instance(worldMeshes["Floor"], Transform(4)),
 			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
 			StaticMesh.Instance(worldMeshes["Actor"], Transform(1))
 		];
+
+		import std.random;
+		auto rnd = Random(5033);
+		// Random obstacles
+		for(int i = 3; i < stInst.length; i++)
+		{
+			ivec2 p = ivec2(
+				uniform(world.grid.lowBounds.x, world.grid.highBounds.x, rnd),
+				uniform(world.grid.lowBounds.y, world.grid.highBounds.y, rnd)
+				);
+			if(p == ivec2(0,0))
+			{
+				p = ivec2(1,1);
+			}
+
+			world.grid.removePoint(p);
+			stInst[i] = StaticMesh.Instance(worldMeshes["Wall"], Transform(1, world.getWorldPosition(p)));
+		}
 
 		Transform* trTarget = &stInst[1].transform;
 		Transform* trActor = &stInst[2].transform;
@@ -72,11 +93,15 @@ int runGame()
 		auto palette = LightPalette("data/palettes/lightPalette.png", mainMem);
 	// end
 
-	Room world = Room(vec3(0), ivec2(-5), ivec2(5));
-	Actor actor = Actor(&world);
 	ivec2 targetPos;
 
+	float reset_timer = 0;
+	bool gave_up;
+	enum RESET_TIME = 3;
+
 	bool orbit = false;
+	import std.datetime.stopwatch;
+	StopWatch searchTime = StopWatch(AutoStart.no);
 	while(!window.state[WindowState.CLOSED])
 	{
 		// Fundamentals
@@ -119,20 +144,30 @@ int runGame()
 		// end camera controls
 
 		// Random target movement
-			if(actor.gridPos == targetPos)
+			if(actor.gridPos == targetPos || reset_timer >= RESET_TIME)
 			{
-				targetPos += ivec2(117, 31);
+				reset_timer = 0;
+				targetPos += ivec2(117, 69);
 				targetPos = ivec2(targetPos.x % world.grid.width(), targetPos.y % world.grid.height());
 				targetPos += world.grid.lowBounds;
-				actor.approach(targetPos);
+				searchTime.start();
+				gave_up = !actor.approach(targetPos);
+				searchTime.stop();
 
-				writeln(actor.plan);
+				writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
+				stdout.flush();
 
 				trTarget._position = world.getWorldPosition(targetPos);
 			}
 
 			actor.update(delta);
 			trActor._position = actor.worldPos();
+			camera.target = trActor._position;
+
+			if(gave_up)
+			{
+				reset_timer += delta;
+			}
 		// target end
 
 		window.beginFrame();

@@ -5,6 +5,7 @@
 module game.map;
 
 import std.math: abs;
+import std.meta : AliasSeq;
 
 import gl3n.linalg: vec3;
 import lantana.types : RealSize, ivec2, Bitfield;
@@ -20,6 +21,7 @@ struct Grid
 		LEFT,
 		RIGHT
 	}
+
 	// Connections in the node (and its search status)
 	private enum Cn
 	{
@@ -29,6 +31,10 @@ struct Grid
 		RIGHT = cast(uint)Dir.RIGHT,
 		S_CLOSED
 	}
+	alias dirIter = AliasSeq!(Cn.RIGHT, Cn.LEFT, Cn.UP, Cn.DOWN);
+	alias inverseDirIter = AliasSeq!(Cn.LEFT, Cn.RIGHT, Cn.DOWN, Cn.UP);
+
+	static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
 
 	struct Node
 	{
@@ -112,19 +118,41 @@ struct Grid
 			return false;
 		}
 
-		p_points.length = requiredNodes;
+		p_points.reserve(requiredNodes);
 		int idx = toIndex(p_end);
+		int startIdx = toIndex(p_start);
 
-		for(int i = requiredNodes - 1; i >= 0; i--)
+		while(idx != startIdx)
 		{
-			p_points[i] = fromIndex(idx);
+			p_points ~= fromIndex(idx);
 
 			assert(idx > 0, "Invalid antecedent in search");
 
 			idx = nodes[idx].ancestor;
 		}
 
+		import std.algorithm : reverse;
+		p_points = p_points.reverse();
+
 		return true;
+	}
+
+	void removePoint(ivec2 point)
+	{
+		Node* n = &this[point];
+
+		static foreach(i, cndir; dirIter)
+		{
+			if(n.con[cndir])
+			{
+				ivec2 u = point + dirs[i];
+				Node* n2 = &this[u];
+
+				n2.con[inverseDirIter[i]] = false;
+			}
+		}
+
+		n.con.clear();
 	}
 
 	private void clearSearch()
@@ -149,11 +177,8 @@ struct Grid
 		float[4] nodeCost;
 		Dir[4] nodeDir;
 
-		static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
-		import std.meta : AliasSeq;
-
 		// Get the successors
-		static foreach(i, cndir; AliasSeq!(Cn.RIGHT, Cn.LEFT, Cn.UP, Cn.DOWN) )
+		static foreach(i, cndir; dirIter )
 		{
 			if(n.con[cndir])
 			{
@@ -190,8 +215,9 @@ struct Grid
 					return 1;
 				}
 
-				// The likely future cost
-				float evaluation = abs(u.x - target.x) + abs(u.y - target.y) + cost;
+				// The likely total cost
+				float futureCost =  abs(u.x - target.x) + abs(u.y - target.y) + cost;
+				float evaluation = n2.min_cost + futureCost/2;
 
 				if(!n2.con[Cn.S_CLOSED])
 				{
@@ -233,7 +259,7 @@ struct Grid
 			int s = search(nodeDir[i], successors[i], target, runningCost + nodeCost[i]);
 			if(s != 0)
 			{
-				return s + 1;
+				return s+1;
 			}
 		}
 
