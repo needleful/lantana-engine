@@ -95,8 +95,8 @@ struct OrbitalCamera
 	vec2 angle;
 	// From the origin, facing it
 	float distance;
-	float nearPlane = 0.0001;
-	float farPlane = 150000;
+	float nearPlane = 0.00001;
+	float farPlane = 15000;
 
 	this(vec3 p_target, float aspect, float fov, vec2 p_angle = vec2(0)) @safe nothrow
 	{

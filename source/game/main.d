@@ -41,7 +41,7 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
-	Room world = Room(vec3(0), ivec2(-50), ivec2(50));
+	Room world = Room(vec3(0), ivec2(-500), ivec2(500));
 	Actor actor = Actor(&world);
 
 	// Loading the ground plane
@@ -49,10 +49,10 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(2000);
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(2500);
 
 		stInst[0..3] = [
-			StaticMesh.Instance(worldMeshes["Floor"], Transform(10)),
+			StaticMesh.Instance(worldMeshes["Floor"], Transform(100)),
 			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
 			StaticMesh.Instance(worldMeshes["Actor"], Transform(1))
 		];
@@ -73,6 +73,15 @@ int runGame()
 
 			world.grid.removePoint(p);
 			stInst[i] = StaticMesh.Instance(worldMeshes["Wall"], Transform(1, world.getWorldPosition(p)));
+
+			foreach(j; 0..100)
+			{
+				ivec2 p2 = ivec2(
+					uniform(world.grid.lowBounds.x, world.grid.highBounds.x, rnd),
+					uniform(world.grid.lowBounds.y, world.grid.highBounds.y, rnd)
+				);
+				world.grid.removePoint(p2);
+			}
 		}
 
 		Transform* trTarget = &stInst[1].transform;
@@ -147,9 +156,10 @@ int runGame()
 			if(actor.gridPos == targetPos || reset_timer >= RESET_TIME)
 			{
 				reset_timer = 0;
-				targetPos += ivec2(117, 69);
-				targetPos = ivec2(targetPos.x % world.grid.width(), targetPos.y % world.grid.height());
-				targetPos += world.grid.lowBounds;
+				targetPos = ivec2(
+					uniform(world.grid.lowBounds.x, world.grid.highBounds.x, rnd),
+					uniform(world.grid.lowBounds.y, world.grid.highBounds.y, rnd)
+				);
 				searchTime.start();
 				gave_up = !actor.approach(targetPos);
 				searchTime.stop();

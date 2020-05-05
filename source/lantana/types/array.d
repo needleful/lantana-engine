@@ -52,6 +52,58 @@ void insert(Type)(ref Type[] list, ulong index, Type value)
 	list[index] = value;
 }
 
+enum Compare
+{
+	LT,
+	GT,
+	EQ
+}
+
+// Binary search
+// If returns true, index is the index of the value
+// if returns false, index is a place to insert the item to be sorted
+bool binarySearch(alias fn, Type)(ref Type[] list, Type value, out size_t index)
+	if(is( typeof(fn(value, list[0])) == Compare ))
+{
+	auto search = list;
+	size_t start = 0;
+	while(search.length > 4)
+	{
+		size_t pivot = search.length/2;
+		auto c = fn(value, search[pivot]);
+
+		if(c == Compare.EQ)
+		{
+			index = start + pivot;
+			return true;
+		}
+		else if(c == Compare.GT)
+		{
+			search = search[0..pivot];
+		}
+		else
+		{
+			start += pivot + 1;
+			search = search[pivot + 1..$];
+		}
+	}
+
+	index = start;
+	foreach(id, ref Type v2; search)
+	{
+		auto c = fn(value, v2);
+
+		if(c == Compare.LT)
+			break;
+
+		index = id + start;
+
+		if(c == Compare.EQ)
+			return true;
+	}
+	return false;
+}
+
 void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);

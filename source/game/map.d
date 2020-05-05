@@ -38,6 +38,8 @@ struct Grid
 	alias inverseDirIter = AliasSeq!(Cn.LEFT, Cn.RIGHT, Cn.DOWN, Cn.UP);
 
 	static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
+	// How many open nodes before we start using binary search
+	enum binarySearchCutoff = 150;
 
 	struct Node
 	{
@@ -211,7 +213,26 @@ struct Grid
 		import std.algorithm : reverse;
 		p_points = p_points.reverse();
 
+		import std.stdio: writefln;
+		writefln("Opened %s nodes", openNodes.length);
+
 		return true;
+	}
+
+	static Compare estimateCmp(Node* a, Node* b)
+	{
+		if(a is b)
+		{
+			return Compare.EQ;
+		}
+		else if(a.estimated < b.estimated)
+		{
+			return Compare.LT;
+		}
+		else
+		{
+			return Compare.GT;
+		}
 	}
 
 	ref Node opIndex(ivec2 position)
@@ -249,26 +270,42 @@ struct Grid
 		}
 		n.con[Cn.S_OPEN] = true;
 
-		foreach(i, Node* n2; openNodes)
+		if(openNodes.length < binarySearchCutoff)
 		{
-			if(n.estimated < n2.estimated)
+			foreach(i, Node* n2; openNodes)
 			{
-				openNodes.insert(i, n);
-				return;
+				if(n.estimated < n2.estimated)
+				{
+					openNodes.insert(i, n);
+					return;
+				}
 			}
+			openNodes ~= n;
 		}
-		openNodes ~= n;
+		else
+		{
+			size_t index;
+			openNodes.binarySearch!estimateCmp(n, index);
+			openNodes.insert(index, n);
+		}
 	}
 
 	void close(Node* n)
 	{
 		n.con[Cn.S_OPEN] = false;
 
-		auto index = openNodes.indexOf(n);
-		if(index >= 0)
+		size_t index;
+		if(openNodes.length < binarySearchCutoff)
 		{
-			openNodes.removeAt(index);
+			long lindex = openNodes.indexOf(n);
+			assert(lindex >= 0);
+			index = lindex;
 		}
+		else
+		{
+			openNodes.binarySearch!estimateCmp(n, index);
+		}
+		openNodes.removeAt(index);
 	}
 
 	ScIterator successors(Node* n)
