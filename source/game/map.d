@@ -324,6 +324,7 @@ struct Grid
 
 	private void clearSearch()
 	{
+		knownMin = null;
 		foreach(ref Node n; nodes)
 		{
 			n.con[Cn.S_OPEN] = false;
