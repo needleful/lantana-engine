@@ -62,7 +62,7 @@ enum Compare
 // Binary search
 // If returns true, index is the index of the value
 // if returns false, index is a place to insert the item to be sorted
-bool binarySearch(alias fn, Type)(ref Type[] list, Type value, out size_t index)
+bool binarySearch(Type, alias fn)(ref Type[] list, Type value, out size_t index)
 	if(is( typeof(fn(value, list[0])) == Compare ))
 {
 	auto search = list;
@@ -77,7 +77,7 @@ bool binarySearch(alias fn, Type)(ref Type[] list, Type value, out size_t index)
 			index = start + pivot;
 			return true;
 		}
-		else if(c == Compare.GT)
+		else if(c == Compare.LT)
 		{
 			search = search[0..pivot];
 		}
@@ -88,19 +88,22 @@ bool binarySearch(alias fn, Type)(ref Type[] list, Type value, out size_t index)
 		}
 	}
 
-	index = start;
 	foreach(id, ref Type v2; search)
 	{
 		auto c = fn(value, v2);
 
 		if(c == Compare.LT)
-			break;
-
-		index = id + start;
-
-		if(c == Compare.EQ)
+		{
+			index = id + start;
+			return false;
+		}
+		else if(c == Compare.EQ)
+		{
+			index = id + start;
 			return true;
+		}
 	}
+	index = list.length;
 	return false;
 }
 

@@ -32,7 +32,7 @@ float camSpeed = 60;
 
 int runGame()
 {
-	Window window = Window(1280, 720, "Texting my Boyfriend while Dying in Space");
+	Window window = Window(1280, 720, "Bipples");
 	window.grabMouse(false);
 	Input input = Input();
 
@@ -41,7 +41,9 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
-	Room world = Room(vec3(0), ivec2(-500), ivec2(500));
+	int worldScale = 100;
+
+	Room world = Room(vec3(0), ivec2(-5*worldScale), ivec2(5*worldScale));
 	Actor actor = Actor(&world);
 
 	// Loading the ground plane
@@ -49,10 +51,10 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(2500);
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(.12*worldScale*worldScale));
 
 		stInst[0..3] = [
-			StaticMesh.Instance(worldMeshes["Floor"], Transform(100)),
+			StaticMesh.Instance(worldMeshes["Floor"], Transform(worldScale)),
 			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
 			StaticMesh.Instance(worldMeshes["Actor"], Transform(1))
 		];
@@ -164,7 +166,8 @@ int runGame()
 				gave_up = !actor.approach(targetPos);
 				searchTime.stop();
 
-				writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
+				//writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
+				writeln(searchTime.peek.total!"usecs"());
 				stdout.flush();
 
 				searchTime.reset();

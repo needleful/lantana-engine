@@ -11,7 +11,6 @@ import gl3n.linalg: vec3;
 
 import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
-import lantana.types.array;
 
 
 // Grids are sets of points in an abstract space
@@ -38,8 +37,6 @@ struct Grid
 	alias inverseDirIter = AliasSeq!(Cn.LEFT, Cn.RIGHT, Cn.DOWN, Cn.UP);
 
 	static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
-	// How many open nodes before we start using binary search
-	enum binarySearchCutoff = 150;
 
 	struct Node
 	{
@@ -129,6 +126,7 @@ struct Grid
 
 	Node[] nodes;
 	Node*[] openNodes;
+	Node* knownMin = null;
 
 	// Bounds of the grid, inclusive
 	ivec2 lowBounds, highBounds;
@@ -210,29 +208,10 @@ struct Grid
 			n = n.ante;
 		}
 
-		import std.algorithm : reverse;
+		import lantana.types.array : reverse;
 		p_points = p_points.reverse();
 
-		import std.stdio: writefln;
-		writefln("Opened %s nodes", openNodes.length);
-
 		return true;
-	}
-
-	static Compare estimateCmp(Node* a, Node* b)
-	{
-		if(a is b)
-		{
-			return Compare.EQ;
-		}
-		else if(a.estimated < b.estimated)
-		{
-			return Compare.LT;
-		}
-		else
-		{
-			return Compare.GT;
-		}
 	}
 
 	ref Node opIndex(ivec2 position)
@@ -264,48 +243,28 @@ struct Grid
 
 	void open(Node* n)
 	{
+		if(knownMin is null || n.estimated < knownMin.estimated)
+		{
+			knownMin = n;
+		}
 		if(n.opened())
 		{
 			return;
 		}
 		n.con[Cn.S_OPEN] = true;
 
-		if(openNodes.length < binarySearchCutoff)
-		{
-			foreach(i, Node* n2; openNodes)
-			{
-				if(n.estimated < n2.estimated)
-				{
-					openNodes.insert(i, n);
-					return;
-				}
-			}
-			openNodes ~= n;
-		}
-		else
-		{
-			size_t index;
-			openNodes.binarySearch!estimateCmp(n, index);
-			openNodes.insert(index, n);
-		}
+		openNodes ~= n;
 	}
 
 	void close(Node* n)
 	{
 		n.con[Cn.S_OPEN] = false;
-
-		size_t index;
-		if(openNodes.length < binarySearchCutoff)
+		if(n is knownMin)
 		{
-			long lindex = openNodes.indexOf(n);
-			assert(lindex >= 0);
-			index = lindex;
+			knownMin = null;
 		}
-		else
-		{
-			openNodes.binarySearch!estimateCmp(n, index);
-		}
-		openNodes.removeAt(index);
+		import lantana.types.array;
+		openNodes.removeAt(openNodes.indexOf(n));
 	}
 
 	ScIterator successors(Node* n)
@@ -344,7 +303,23 @@ struct Grid
 		{
 			return null;
 		}
-		return openNodes[0];
+		if(knownMin !is null)
+		{
+			return knownMin;
+		}
+
+		int id;
+		float newMin = float.infinity;
+		foreach(i, n; openNodes)
+		{
+			if(n.estimated < newMin)
+			{
+				newMin = n.estimated;
+			}
+		}
+
+		knownMin = openNodes[id];
+		return knownMin;
 	}
 
 	private void clearSearch()

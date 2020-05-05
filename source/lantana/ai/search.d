@@ -7,10 +7,10 @@ module lantana.ai.search;
 /// A* search
 bool search(Graph, Node)(ref Graph graph, ref Node start, ref Node end)
 {
-	graph.open(&start);
 	start.ante = &start;
 	start.minCost = 0;
 	start.estimated = graph.estimate(start, end);
+	graph.open(&start);
 
 	Node* ante = &start;
 
