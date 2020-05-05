@@ -13,6 +13,8 @@ import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
 
 
+enum useBitField = true;
+
 // Grids are sets of points in an abstract space
 struct Grid
 {
@@ -43,7 +45,10 @@ struct Grid
 		Node* ante;
 		float minCost, estimated;
 		int id;
-		Bitfield!Cn con;
+		static if(useBitField)
+			Bitfield!Cn con;
+		else
+			bool[Cn.max+1] con;
 
 		bool closed() @nogc nothrow const
 		{
@@ -53,6 +58,26 @@ struct Grid
 		bool opened() @nogc nothrow const
 		{
 			return con[Cn.S_OPEN];
+		}
+
+		void clear() @nogc nothrow
+		{
+			static if(useBitField)
+				con.clear();
+			else foreach(ref b; con)
+			{
+				b = false;
+			}
+		}
+
+		void activate() @nogc nothrow
+		{
+			static if(useBitField)
+				con.setAll();
+			else foreach(ref b; con)
+			{
+				b = true;
+			}
 		}
 
 		struct Successor
@@ -144,7 +169,7 @@ struct Grid
 			foreach(int y; 0..h)
 			{
 				int i = x + y*w;
-				nodes[i].con.setAll();
+				nodes[i].activate();
 				nodes[i].id = i;
 				// Boundary checking
 				if(x == 0)
@@ -294,7 +319,7 @@ struct Grid
 			}
 		}
 
-		n.con.clear();
+		n.clear();
 	}
 
 	Node* minimumEstimated(Node* source, Node* target)

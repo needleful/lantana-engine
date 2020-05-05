@@ -14,7 +14,7 @@ import game.map;
 struct Actor
 {
 	// Walking speed in meters per second
-	enum speed = 2.5;
+	enum speed = 1.5;
 
 	// Where the actor wants to go
 	ivec2[] plan;
