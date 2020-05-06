@@ -6,9 +6,8 @@ module game.map;
 
 import std.math: abs;
 import std.meta : AliasSeq;
-import std.stdio;
 
-import gl3n.linalg: vec3;
+import gl3n.linalg: vec2, vec3;
 
 import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
@@ -30,10 +29,39 @@ struct Grid
 		DOWN_RIGHT
 	}
 
-	alias dirIter = AliasSeq!(Dir.RIGHT, Dir.LEFT, Dir.UP, Dir.DOWN);
-	alias inverseDirIter = AliasSeq!(Dir.LEFT, Dir.RIGHT, Dir.DOWN, Dir.UP);
+	alias dirIter = AliasSeq!(
+		Dir.UP,
+		Dir.DOWN,
+		Dir.LEFT,
+		Dir.RIGHT,
 
-	static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
+		Dir.UP_LEFT,
+		Dir.UP_RIGHT,
+		Dir.DOWN_LEFT,
+		Dir.DOWN_RIGHT);
+
+	static immutable(ivec2[]) dirs = [
+		ivec2(0, 1),
+		ivec2(0, -1),
+		ivec2(-1, 0),
+		ivec2(1, 0),
+
+		ivec2(-1, 1),
+		ivec2(1, 1),
+		ivec2(-1, -1),
+		ivec2(1, -1)
+	];
+
+	alias inverseDirIter = AliasSeq!(
+		Dir.DOWN,
+		Dir.UP,
+		Dir.RIGHT,
+		Dir.LEFT,
+
+		Dir.DOWN_RIGHT,
+		Dir.DOWN_LEFT,
+		Dir.UP_RIGHT,
+		Dir.UP_LEFT);
 
 	struct Node
 	{
@@ -62,16 +90,18 @@ struct Grid
 		void activate() @nogc nothrow
 		{
 			con.setAll();
+			assert(con.realValue() == 255);
 		}
 
 		struct Successor
 		{
-			enum cost = 1;
 			Node* node;
+			float cost;
 
-			this(Node* p_node) @nogc nothrow
+			this(Node* p_node, float p_cost) @nogc nothrow
 			{
 				node = p_node;
+				cost = p_cost;
 			}
 		}
 	}
@@ -92,40 +122,19 @@ struct Grid
 			int result = 0;
 
 			Node.Successor sc;
-			if(source.con[Dir.UP])
+			static foreach(i, dir; dirIter)
 			{
-				sc = Node.Successor(&grid.get(source.pos + ivec2(0, 1)));
-				result = dg(sc);
-				if(result)
+				if(dir == Dir.DOWN_RIGHT)
 				{
-					return result;
+					result += 1;
 				}
-			}
-			if(source.con[Dir.LEFT])
-			{
-				sc = Node.Successor(&grid.get(source.pos + ivec2(-1, 0)),);
-				result = dg(sc);
-				if(result)
+				if(source.con[dir])
 				{
-					return result;
-				}
-			}
-			if(source.con[Dir.DOWN])
-			{
-				sc = Node.Successor(&grid.get(source.pos + ivec2(0, -1)));
-				result = dg(sc);
-				if(result)
-				{
-					return result;
-				}
-			}
-			if(source.con[Dir.RIGHT])
-			{
-				sc = Node.Successor(&grid.get(source.pos + ivec2(1, 0)),);
-				result = dg(sc);
-				if(result)
-				{
-					return result;
+					float cost = dirs[i].length();
+					sc = Node.Successor(&grid.get(source.pos + dirs[i]), cost);
+					result = dg(sc);
+					if(result != 0)
+						return result;
 				}
 			}
 
@@ -159,19 +168,27 @@ struct Grid
 				if(x == 0)
 				{
 					nodes[i].con[Dir.LEFT] = false;
+					nodes[i].con[Dir.UP_LEFT] = false;
+					nodes[i].con[Dir.DOWN_LEFT] = false;
 				}
 				else if(x == w-1)
 				{
 					nodes[i].con[Dir.RIGHT] = false;
+					nodes[i].con[Dir.UP_RIGHT] = false;
+					nodes[i].con[Dir.DOWN_RIGHT] = false;
 				}
 
 				if(y == 0)
 				{
 					nodes[i].con[Dir.DOWN] = false;
+					nodes[i].con[Dir.DOWN_LEFT] = false;
+					nodes[i].con[Dir.DOWN_RIGHT] = false;
 				}
 				else if(y == h-1)
 				{
 					nodes[i].con[Dir.UP] = false;
+					nodes[i].con[Dir.UP_LEFT] = false;
+					nodes[i].con[Dir.UP_RIGHT] = false;
 				}
 			}
 		}
@@ -210,8 +227,6 @@ struct Grid
 		Node* startNode = &get(p_start);
 		Node* n = &get(p_end);
 
-		writefln("$%.02f", n.minCost);
-
 		while(n != startNode)
 		{
 			p_points ~= n.pos;
@@ -240,18 +255,6 @@ struct Grid
 	int height() @nogc nothrow const
 	{
 		return (highBounds.y - lowBounds.y) + 1;
-	}
-
-	bool opposingDirs(Dir d1, Dir d2) @nogc nothrow const pure
-	{
-		if(d1 > d2)
-		{
-			Dir t = d1;
-			d1 = d2;
-			d2 = t;
-		}
-		return (d1 == Dir.UP && d2 == Dir.DOWN)
-		        || (d1 == Dir.LEFT && d2 == Dir.RIGHT);
 	}
 
 	void open(Node* n)
@@ -290,16 +293,17 @@ struct Grid
 		ivec2 s = start.pos;
 		ivec2 e = end.pos;
 
-		return abs(s.x - e.x) + abs(s.y - e.y);
+		float f = (s - e).length();
+		return f;
 	}
 
 	void removePoint(ivec2 point)
 	{
 		Node* n = &get(point);
 
-		static foreach(i, Dirdir; dirIter)
+		static foreach(i, dir; dirIter)
 		{
-			if(n.con[Dirdir])
+			if(n.con[dir])
 			{
 				ivec2 u = point + dirs[i];
 				Node* n2 = &get(u);
@@ -321,12 +325,13 @@ struct Grid
 			return knownMin;
 		}
 
-		int id;
+		size_t id;
 		float newMin = float.infinity;
 		foreach(i, n; openNodes)
 		{
 			if(n.estimated < newMin)
 			{
+				id = i;
 				newMin = n.estimated;
 			}
 		}
@@ -382,4 +387,29 @@ struct Room
 	{
 		return center + vec3(p_gridPos.x, 0, p_gridPos.y); 
 	}
+}
+
+
+static ivec2 fromDir(Grid.Dir d)
+{
+	static foreach(dir; Grid.dirIter)
+	{
+		if(dir == d)
+		{
+			return Grid.dirs[dir];
+		}
+	}
+	assert(false, "bad direction");
+}
+
+static Grid.Dir fromVector(ivec2 v)
+{
+	static foreach(dir; Grid.dirIter)
+	{
+		if(Grid.dirs[dir] == v)
+		{
+			return dir;
+		}
+	}
+	assert(false, "bad direction");
 }

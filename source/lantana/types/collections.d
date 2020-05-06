@@ -87,7 +87,7 @@ struct Bitfield(Enum)
 	public void setAll() @nogc nothrow
 	{
 		dt newval = dt.max;
-		data = cast(dt) (newval >>> (bits - Enum.max));
+		data = cast(dt) (newval >>> (bits - (Enum.max + 1)));
 	}
 
 	public void clear() @nogc nothrow

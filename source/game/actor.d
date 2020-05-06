@@ -6,7 +6,7 @@ module game.actor;
 
 import std.math : abs;
 
-import gl3n.linalg : vec3;
+import gl3n.linalg : vec2, vec3;
 import lantana.types : ivec2;
 
 import game.map;
@@ -29,7 +29,7 @@ struct Actor
 	private vec3 realPos;
 
 	// Distance covered to the next point on the plan
-	private float coveredDistance;
+	private float coveredDistance, targetDistance;
 
 	// Current direction
 	Grid.Dir direction;
@@ -48,7 +48,10 @@ struct Actor
 			return true;
 		}
 
-		return room.grid.navigate(direction, gridPos, target, plan);
+		auto res = room.grid.navigate(direction, gridPos, target, plan);
+		if(res)
+			getTargetDir();
+		return res;
 	}
 
 	void update(float delta)
@@ -59,38 +62,20 @@ struct Actor
 			return;
 		}
 
-		ivec2 dir = plan[0]-gridPos;
-
-		assert(dir.length_squared() == 1, "Cannot navigate more than one tile at a time!");
-
-		if(dir.x > 0)
-		{
-			direction = Grid.Dir.RIGHT;
-		}
-		else if(dir.x < 0)
-		{
-			direction = Grid.Dir.LEFT;
-		}
-		else if(dir.y > 0)
-		{
-			direction = Grid.Dir.UP;
-		}
-		else if(dir.y < 0)
-		{
-			direction = Grid.Dir.DOWN;
-		}
+		vec2 dir = vec2(plan[0]-gridPos);
+		dir = dir.normalized();
 
 		vec3 move = vec3(dir.x, 0, dir.y)*speed*delta;
+		coveredDistance += speed*delta;
 
-		// We know it's either all X or all Z
-		coveredDistance += abs(move.x) + abs(move.z);
-		// Movement between 1x1 grid points
-		if(coveredDistance >= 1)
+		if(coveredDistance >= targetDistance)
 		{
 			gridPos = plan[0];
 			realPos = room.getWorldPosition(gridPos);
 			coveredDistance = 0;
 			plan = plan[1..$];
+
+			getTargetDir();
 		}
 		else
 		{
@@ -101,5 +86,16 @@ struct Actor
 	vec3 worldPos()
 	{
 		return realPos;
+	}
+
+	private void getTargetDir()
+	{
+		if(plan.length == 0)
+			return;
+		ivec2 dir = plan[0]-gridPos;
+		direction = fromVector(dir);
+		targetDistance = dir.length();
+		import std.stdio;
+		writeln(direction);
 	}
 }

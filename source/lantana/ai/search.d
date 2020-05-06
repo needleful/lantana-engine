@@ -31,13 +31,14 @@ bool search(Graph, Node)(ref Graph graph, ref Node start, ref Node end)
 
 		foreach(ref Node.Successor sc; graph.successors(n))
 		{
+			assert(sc.cost >= 1);
 			float g = n.minCost + sc.cost;
 
 			if(!sc.node.closed() || sc.node.minCost > g)
 			{
 				sc.node.minCost = g;
 				sc.node.ante = n;
-				sc.node.estimated = g + graph.estimate(*sc.node, end)/2;
+				sc.node.estimated = g + graph.estimate(*sc.node, end);
 				graph.open(sc.node);
 			}
 		}

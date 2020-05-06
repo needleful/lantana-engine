@@ -52,7 +52,7 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 12*worldScale*worldScale));
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 20*worldScale*worldScale));
 
 		stInst[0..3] = [
 			StaticMesh.Instance(worldMeshes["Floor"], Transform(worldScale)),
@@ -156,16 +156,24 @@ int runGame()
 				);
 				assert(world.grid.inBounds(targetPos));
 				searchTime.start();
+				writeln("--");
 				gave_up = !actor.approach(targetPos);
 				searchTime.stop();
 
-				//writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
-				writeln(searchTime.peek.total!"usecs"());
+				writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
+				writeln(actor.plan);
+				//writeln(searchTime.peek.total!"usecs"());
 				stdout.flush();
 
 				searchTime.reset();
 
 				trTarget._position = world.getWorldPosition(targetPos);
+			}
+
+			if(input.keyboard.isJustPressed(SDL_SCANCODE_R))
+			{
+				actor.gridPos = ivec2(0,0);
+				gave_up = !actor.approach(targetPos);
 			}
 
 			actor.update(delta);
