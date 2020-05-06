@@ -21,7 +21,7 @@ import lantana.types.layout;
 import lantana.types.memory;
 
 // Force the game to run on main() instead of WinMain()
-enum forcedMain = false;
+enum forcedMain = true;
 enum followActor = false;
 
 enum MAIN_MEM_LIMIT = 1024*1024*16;
@@ -52,7 +52,7 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 1*worldScale*worldScale));
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 12*worldScale*worldScale));
 
 		stInst[0..3] = [
 			StaticMesh.Instance(worldMeshes["Floor"], Transform(worldScale)),

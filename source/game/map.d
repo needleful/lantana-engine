@@ -6,14 +6,13 @@ module game.map;
 
 import std.math: abs;
 import std.meta : AliasSeq;
+import std.stdio;
 
 import gl3n.linalg: vec3;
 
 import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield;
 
-
-enum useBitField = true;
 
 // Grids are sets of points in an abstract space
 struct Grid
@@ -44,11 +43,8 @@ struct Grid
 	{
 		Node* ante;
 		float minCost, estimated;
-		int id;
-		static if(useBitField)
-			Bitfield!Cn con;
-		else
-			bool[Cn.max+1] con;
+		ivec2 pos;
+		Bitfield!Cn con;
 
 		bool closed() @nogc nothrow const
 		{
@@ -62,22 +58,12 @@ struct Grid
 
 		void clear() @nogc nothrow
 		{
-			static if(useBitField)
-				con.clear();
-			else foreach(ref b; con)
-			{
-				b = false;
-			}
+			con.clear();
 		}
 
 		void activate() @nogc nothrow
 		{
-			static if(useBitField)
-				con.setAll();
-			else foreach(ref b; con)
-			{
-				b = true;
-			}
+			con.setAll();
 		}
 
 		struct Successor
@@ -110,16 +96,7 @@ struct Grid
 			Node.Successor sc;
 			if(source.con[Cn.UP])
 			{
-				sc = Node.Successor(&grid.nodes[source.id + grid.width()]);
-				result = dg(sc);
-				if(result)
-				{
-					return result;
-				}
-			}
-			if(source.con[Cn.DOWN])
-			{
-				sc = Node.Successor(&grid.nodes[source.id - grid.width()]);
+				sc = Node.Successor(&grid.get(source.pos + ivec2(0, 1)));
 				result = dg(sc);
 				if(result)
 				{
@@ -128,7 +105,16 @@ struct Grid
 			}
 			if(source.con[Cn.LEFT])
 			{
-				sc = Node.Successor(&grid.nodes[source.id - 1]);
+				sc = Node.Successor(&grid.get(source.pos + ivec2(-1, 0)),);
+				result = dg(sc);
+				if(result)
+				{
+					return result;
+				}
+			}
+			if(source.con[Cn.DOWN])
+			{
+				sc = Node.Successor(&grid.get(source.pos + ivec2(0, -1)));
 				result = dg(sc);
 				if(result)
 				{
@@ -137,7 +123,7 @@ struct Grid
 			}
 			if(source.con[Cn.RIGHT])
 			{
-				sc = Node.Successor(&grid.nodes[source.id + 1]);
+				sc = Node.Successor(&grid.get(source.pos + ivec2(1, 0)),);
 				result = dg(sc);
 				if(result)
 				{
@@ -170,7 +156,7 @@ struct Grid
 			{
 				int i = x + y*w;
 				nodes[i].activate();
-				nodes[i].id = i;
+				nodes[i].pos = ivec2(x, y) + lowBounds;
 				// Boundary checking
 				if(x == 0)
 				{
@@ -200,7 +186,7 @@ struct Grid
 		       && p_gridPos.y >= lowBounds.y && p_gridPos.y <= highBounds.y;
 	}
 
-	bool navigate(ivec2 p_start, ivec2 p_end, ref ivec2[] p_points)
+	bool navigate(Dir p_dir, ivec2 p_start, ivec2 p_end, ref ivec2[] p_points)
 	{
 		if(!inBounds(p_start) || !inBounds(p_end))
 		{
@@ -216,19 +202,21 @@ struct Grid
 
 		clearSearch();
 
-		bool found = search(this, this[p_start], this[p_end]);
+		bool found = search(this, get(p_start), get(p_end));
 
 		if(!found)
 		{
 			return false;
 		}
 
-		Node* startNode = &this[p_start];
-		Node* n = &this[p_end];
+		Node* startNode = &get(p_start);
+		Node* n = &get(p_end);
+
+		writefln("$%.02f", n.minCost);
 
 		while(n != startNode)
 		{
-			p_points ~= fromIndex(n.id);
+			p_points ~= n.pos;
 			assert(n.ante != null, "Point without antecedent!");
 			n = n.ante;
 		}
@@ -239,9 +227,11 @@ struct Grid
 		return true;
 	}
 
-	ref Node opIndex(ivec2 position)
+	ref Node get(ivec2 position)
 	{
-		return nodes[toIndex(position)];
+		auto id = toIndex(position);
+		assert(nodes[id].pos == position);
+		return nodes[id];
 	}
 
 	int width() @nogc nothrow const
@@ -299,22 +289,22 @@ struct Grid
 
 	float estimate(const ref Node start, const ref Node end)
 	{
-		ivec2 s = fromIndex(start.id);
-		ivec2 e = fromIndex(end.id);
+		ivec2 s = start.pos;
+		ivec2 e = end.pos;
 
 		return abs(s.x - e.x) + abs(s.y - e.y);
 	}
 
 	void removePoint(ivec2 point)
 	{
-		Node* n = &this[point];
+		Node* n = &get(point);
 
 		static foreach(i, cndir; dirIter)
 		{
 			if(n.con[cndir])
 			{
 				ivec2 u = point + dirs[i];
-				Node* n2 = &this[u];
+				Node* n2 = &get(u);
 				n2.con[inverseDirIter[i]] = false;
 			}
 		}

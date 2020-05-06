@@ -48,7 +48,7 @@ struct Actor
 			return true;
 		}
 
-		return room.grid.navigate(gridPos, target, plan);
+		return room.grid.navigate(direction, gridPos, target, plan);
 	}
 
 	void update(float delta)
