@@ -22,20 +22,16 @@ struct Grid
 		UP,
 		DOWN,
 		LEFT,
-		RIGHT
+		RIGHT,
+
+		UP_LEFT,
+		UP_RIGHT,
+		DOWN_LEFT,
+		DOWN_RIGHT
 	}
 
-	// Connections in the node (and its search status)
-	private enum Cn
-	{
-		UP = cast(uint)Dir.UP,
-		DOWN = cast(uint)Dir.DOWN,
-		LEFT = cast(uint)Dir.LEFT,
-		RIGHT = cast(uint)Dir.RIGHT,
-		S_OPEN,
-	}
-	alias dirIter = AliasSeq!(Cn.RIGHT, Cn.LEFT, Cn.UP, Cn.DOWN);
-	alias inverseDirIter = AliasSeq!(Cn.LEFT, Cn.RIGHT, Cn.DOWN, Cn.UP);
+	alias dirIter = AliasSeq!(Dir.RIGHT, Dir.LEFT, Dir.UP, Dir.DOWN);
+	alias inverseDirIter = AliasSeq!(Dir.LEFT, Dir.RIGHT, Dir.DOWN, Dir.UP);
 
 	static immutable(ivec2[]) dirs = [ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1)];
 
@@ -44,20 +40,22 @@ struct Grid
 		Node* ante;
 		float minCost, estimated;
 		ivec2 pos;
-		Bitfield!Cn con;
+		Bitfield!Dir con;
+		bool open;
 
 		bool closed() @nogc nothrow const
 		{
-			return !con[Cn.S_OPEN];
+			return !open;
 		}
 
 		bool opened() @nogc nothrow const
 		{
-			return con[Cn.S_OPEN];
+			return open;
 		}
 
 		void clear() @nogc nothrow
 		{
+			open = false;
 			con.clear();
 		}
 
@@ -94,7 +92,7 @@ struct Grid
 			int result = 0;
 
 			Node.Successor sc;
-			if(source.con[Cn.UP])
+			if(source.con[Dir.UP])
 			{
 				sc = Node.Successor(&grid.get(source.pos + ivec2(0, 1)));
 				result = dg(sc);
@@ -103,7 +101,7 @@ struct Grid
 					return result;
 				}
 			}
-			if(source.con[Cn.LEFT])
+			if(source.con[Dir.LEFT])
 			{
 				sc = Node.Successor(&grid.get(source.pos + ivec2(-1, 0)),);
 				result = dg(sc);
@@ -112,7 +110,7 @@ struct Grid
 					return result;
 				}
 			}
-			if(source.con[Cn.DOWN])
+			if(source.con[Dir.DOWN])
 			{
 				sc = Node.Successor(&grid.get(source.pos + ivec2(0, -1)));
 				result = dg(sc);
@@ -121,7 +119,7 @@ struct Grid
 					return result;
 				}
 			}
-			if(source.con[Cn.RIGHT])
+			if(source.con[Dir.RIGHT])
 			{
 				sc = Node.Successor(&grid.get(source.pos + ivec2(1, 0)),);
 				result = dg(sc);
@@ -160,20 +158,20 @@ struct Grid
 				// Boundary checking
 				if(x == 0)
 				{
-					nodes[i].con[Cn.LEFT] = false;
+					nodes[i].con[Dir.LEFT] = false;
 				}
 				else if(x == w-1)
 				{
-					nodes[i].con[Cn.RIGHT] = false;
+					nodes[i].con[Dir.RIGHT] = false;
 				}
 
 				if(y == 0)
 				{
-					nodes[i].con[Cn.DOWN] = false;
+					nodes[i].con[Dir.DOWN] = false;
 				}
 				else if(y == h-1)
 				{
-					nodes[i].con[Cn.UP] = false;
+					nodes[i].con[Dir.UP] = false;
 				}
 			}
 		}
@@ -266,14 +264,14 @@ struct Grid
 		{
 			return;
 		}
-		n.con[Cn.S_OPEN] = true;
+		n.open = true;
 
 		openNodes ~= n;
 	}
 
 	void close(Node* n)
 	{
-		n.con[Cn.S_OPEN] = false;
+		n.open = false;
 		if(n is knownMin)
 		{
 			knownMin = null;
@@ -299,9 +297,9 @@ struct Grid
 	{
 		Node* n = &get(point);
 
-		static foreach(i, cndir; dirIter)
+		static foreach(i, Dirdir; dirIter)
 		{
-			if(n.con[cndir])
+			if(n.con[Dirdir])
 			{
 				ivec2 u = point + dirs[i];
 				Node* n2 = &get(u);
@@ -342,7 +340,7 @@ struct Grid
 		knownMin = null;
 		foreach(ref Node n; nodes)
 		{
-			n.con[Cn.S_OPEN] = false;
+			n.open = false;
 			n.minCost = float.infinity;
 			n.estimated = float.infinity;
 			n.ante = null;
