@@ -17,7 +17,7 @@ struct Actor
 	enum speed = 1.5;
 
 	// Where the actor wants to go
-	ivec2[] plan;
+	ivec2[] path;
 
 	// The actor's current room
 	Room* room;
@@ -28,7 +28,7 @@ struct Actor
 	// The actor's world position
 	private vec3 realPos;
 
-	// Distance covered to the next point on the plan
+	// Distance covered to the next point on the path
 	private float coveredDistance, targetDistance;
 
 	// Current direction
@@ -48,7 +48,7 @@ struct Actor
 			return true;
 		}
 
-		auto res = room.grid.navigate(direction, gridPos, target, plan);
+		auto res = room.grid.navigate(direction, gridPos, target, path);
 		if(res)
 			getTargetDir();
 		return res;
@@ -56,13 +56,13 @@ struct Actor
 
 	void update(float delta)
 	{
-		if(plan.length == 0)
+		if(path.length == 0)
 		{
 			coveredDistance = 0;
 			return;
 		}
 
-		vec2 dir = vec2(plan[0]-gridPos);
+		vec2 dir = vec2(path[0]-gridPos);
 		dir = dir.normalized();
 
 		vec3 move = vec3(dir.x, 0, dir.y)*speed*delta;
@@ -70,10 +70,10 @@ struct Actor
 
 		if(coveredDistance >= targetDistance)
 		{
-			gridPos = plan[0];
+			gridPos = path[0];
 			realPos = room.getWorldPosition(gridPos);
 			coveredDistance = 0;
-			plan = plan[1..$];
+			path = path[1..$];
 
 			getTargetDir();
 		}
@@ -88,11 +88,16 @@ struct Actor
 		return realPos;
 	}
 
+	float facingAngle()
+	{
+		return Grid.dirAngles[direction];
+	}
+
 	private void getTargetDir()
 	{
-		if(plan.length == 0)
+		if(path.length == 0)
 			return;
-		ivec2 dir = plan[0]-gridPos;
+		ivec2 dir = path[0]-gridPos;
 		direction = fromVector(dir);
 		targetDistance = dir.length();
 		import std.stdio;

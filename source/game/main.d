@@ -24,7 +24,7 @@ import lantana.types.memory;
 enum forcedMain = true;
 enum followActor = false;
 
-enum MAIN_MEM_LIMIT = 1024*1024*16;
+enum MAIN_MEM_LIMIT = 1024*1024*8;
 
 // Degrees
 float camFOV = 70;
@@ -52,12 +52,13 @@ int runGame()
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
+		auto bMeshes = sMeshSys.loadMeshes("data/meshes/bipple-test.glb", mainMem);
 		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 20*worldScale*worldScale));
 
 		stInst[0..3] = [
 			StaticMesh.Instance(worldMeshes["Floor"], Transform(worldScale)),
 			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
-			StaticMesh.Instance(worldMeshes["Actor"], Transform(1))
+			StaticMesh.Instance(bMeshes["Body"], Transform(1))
 		];
 
 		import std.random;
@@ -103,8 +104,6 @@ int runGame()
 	enum RESET_TIME = 3;
 
 	bool orbit = false;
-	import std.datetime.stopwatch;
-	StopWatch searchTime = StopWatch(AutoStart.no);
 	while(!window.state[WindowState.CLOSED])
 	{
 		// Fundamentals
@@ -155,17 +154,8 @@ int runGame()
 					uniform(world.grid.lowBounds.y, world.grid.highBounds.y, rnd)
 				);
 				assert(world.grid.inBounds(targetPos));
-				searchTime.start();
-				writeln("--");
 				gave_up = !actor.approach(targetPos);
-				searchTime.stop();
-
-				writefln("Searched in %s usec. %s", searchTime.peek.total!"usecs"(), gave_up?"Failed" : "Found path");
-				writeln(actor.plan);
-				//writeln(searchTime.peek.total!"usecs"());
 				stdout.flush();
-
-				searchTime.reset();
 
 				trTarget._position = world.getWorldPosition(targetPos);
 			}
@@ -177,6 +167,7 @@ int runGame()
 			}
 
 			actor.update(delta);
+			trActor._rotation.y = actor.facingAngle();
 			trActor._position = actor.worldPos();
 			static if(followActor)
 			{

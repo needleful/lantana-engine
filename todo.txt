@@ -1,0 +1,48 @@
+Todo:
+
+Bipple Animations:
+	Walking
+
+	TurnRight45
+	TurnLeft45
+
+	TurnRight90
+	TurnLeft90
+
+	TurnRight135
+	TurnLeft135
+
+	TurnRight180
+	TurnLeft180
+
+	HoldItem (upper body)
+	EatSnack (upper body)
+	EatMeal (upper body)
+
+	DropItem
+
+	Sit
+	Stand
+
+	IdleSitting
+	IdleStanding
+
+	GetItemFromFridge
+
+	BakeInOven
+
+	PassOut
+	Die (Starvation)
+
+Models (With animations):
+	Fridge:
+		Open, Close
+	Oven:
+		Open, Close
+	Chair:
+		Sit, Stand
+
+Engine:
+	Add basic animation blending
+		Frame interpolation between animations
+		Different animations for different bones

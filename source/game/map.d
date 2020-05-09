@@ -5,7 +5,6 @@
 module game.map;
 
 import std.math: abs;
-import std.meta : AliasSeq;
 
 import gl3n.linalg: vec2, vec3;
 
@@ -29,7 +28,7 @@ struct Grid
 		DOWN_RIGHT
 	}
 
-	alias dirIter = AliasSeq!(
+	static immutable(Dir[]) dirIter = [
 		Dir.UP,
 		Dir.DOWN,
 		Dir.LEFT,
@@ -38,7 +37,7 @@ struct Grid
 		Dir.UP_LEFT,
 		Dir.UP_RIGHT,
 		Dir.DOWN_LEFT,
-		Dir.DOWN_RIGHT);
+		Dir.DOWN_RIGHT];
 
 	static immutable(ivec2[]) dirs = [
 		ivec2(0, 1),
@@ -52,7 +51,7 @@ struct Grid
 		ivec2(1, -1)
 	];
 
-	alias inverseDirIter = AliasSeq!(
+	static immutable(Dir[]) inverseDirIter = [
 		Dir.DOWN,
 		Dir.UP,
 		Dir.RIGHT,
@@ -61,7 +60,13 @@ struct Grid
 		Dir.DOWN_RIGHT,
 		Dir.DOWN_LEFT,
 		Dir.UP_RIGHT,
-		Dir.UP_LEFT);
+		Dir.UP_LEFT
+	];
+
+	static immutable(float[]) dirAngles = [
+		180, 0, 90, 270,
+		135, 225, 45, 315
+	];
 
 	struct Node
 	{
@@ -311,6 +316,40 @@ struct Grid
 			}
 		}
 
+		// Take care of corners
+		if(n.con[Dir.LEFT])
+		{
+			Node* n2 = &get(point + dirs[Dir.LEFT]);
+			if(n.con[Dir.UP])
+			{
+				Node* n3 = &get(point + dirs[Dir.UP]);
+				n2.con[Dir.UP_RIGHT] = false;
+				n3.con[Dir.DOWN_LEFT] = false;
+			}
+			if(n.con[Dir.DOWN])
+			{
+				Node* n3 = &get(point + dirs[Dir.DOWN]);
+				n2.con[Dir.DOWN_RIGHT] = false;
+				n3.con[Dir.UP_LEFT] = false;
+			}
+		}
+		if(n.con[Dir.RIGHT])
+		{
+			Node* n2 = &get(point + dirs[Dir.RIGHT]);
+			if(n.con[Dir.UP])
+			{
+				Node* n3 = &get(point + dirs[Dir.UP]);
+				n2.con[Dir.UP_LEFT] = false;
+				n3.con[Dir.DOWN_RIGHT] = false;
+			}
+			if(n.con[Dir.DOWN])
+			{
+				Node* n3 = &get(point + dirs[Dir.DOWN]);
+				n2.con[Dir.DOWN_LEFT] = false;
+				n3.con[Dir.UP_RIGHT] = false;
+			}
+		}
+
 		n.clear();
 	}
 
@@ -412,4 +451,9 @@ static Grid.Dir fromVector(ivec2 v)
 		}
 	}
 	assert(false, "bad direction");
+}
+
+static bool opposing(Grid.Dir a, Grid.Dir b)
+{
+	return Grid.inverseDirIter[a] == b;
 }
