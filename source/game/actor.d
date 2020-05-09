@@ -13,11 +13,19 @@ import game.map;
 
 struct Actor
 {
+	enum State
+	{
+		idle,
+		walking,
+		turning
+	}
 	// Walking speed in meters per second
-	enum speed = 1.5;
+	enum speed = 1.4;
 
 	// Where the actor wants to go
 	ivec2[] path;
+
+	string queuedAnimation = "";
 
 	// The actor's current room
 	Room* room;
@@ -33,6 +41,10 @@ struct Actor
 
 	// Current direction
 	Grid.Dir direction;
+
+	bool loopAnimation = false;
+	State state = State.idle;
+	bool forceUpdate = false;
 
 	this(Room* p_room)
 	{
@@ -50,7 +62,18 @@ struct Actor
 
 		auto res = room.grid.navigate(direction, gridPos, target, path);
 		if(res)
+		{
 			getTargetDir();
+			queuedAnimation = "WalkCycle";
+			loopAnimation = true;
+			forceUpdate = true;
+		}
+		else
+		{
+			queuedAnimation = "IdleStanding";
+			loopAnimation = true;
+			forceUpdate = true;
+		}
 		return res;
 	}
 
@@ -60,6 +83,16 @@ struct Actor
 		{
 			coveredDistance = 0;
 			return;
+		}
+		if(state == State.turning)
+		{
+			state = State.walking;
+		}
+		else if(state == State.walking)
+		{
+			queuedAnimation = "WalkCycle";
+			loopAnimation = true;
+			forceUpdate = false;
 		}
 
 		vec2 dir = vec2(path[0]-gridPos);
@@ -98,9 +131,27 @@ struct Actor
 		if(path.length == 0)
 			return;
 		ivec2 dir = path[0]-gridPos;
+		float angle1 = Grid.dirAngles[direction];
 		direction = fromVector(dir);
+		float angle2 = Grid.dirAngles[direction];
+
 		targetDistance = dir.length();
-		import std.stdio;
-		writeln(direction);
+		if((angle1 - angle2) % 360 == -45)
+		{
+			queuedAnimation = "Turn45Right";
+			loopAnimation = false;
+			forceUpdate = true;
+		}
+		else if((angle1 - angle2) % 360 == 45)
+		{
+			queuedAnimation = "Turn45Left";
+			loopAnimation = false;
+			forceUpdate = true;
+		}
+
+		if(angle1 != angle2)
+		{
+			state = State.turning;
+		}
 	}
 }

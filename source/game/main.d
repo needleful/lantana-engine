@@ -42,29 +42,27 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
-	int worldScale = 1;
+	int worldScale = 2;
 
 	Room world = Room(vec3(0), ivec2(-5*worldScale), ivec2(5*worldScale));
 	Actor actor = Actor(&world);
 
-	// Loading the ground plane
+	// Loading the meshes
 		auto sMeshSys = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
 		sMeshSys.reserveMeshes(mainMem, 5);
 
 		auto worldMeshes = sMeshSys.loadMeshes("data/meshes/test-world.glb", mainMem);
-		auto bMeshes = sMeshSys.loadMeshes("data/meshes/bipple-test.glb", mainMem);
-		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(3 + 20*worldScale*worldScale));
+		auto stInst = mainMem.makeList!(StaticMesh.Instance)(cast(ulong)(2 + 15*worldScale*worldScale));
 
-		stInst[0..3] = [
+		stInst[0..2] = [
 			StaticMesh.Instance(worldMeshes["Floor"], Transform(worldScale)),
-			StaticMesh.Instance(worldMeshes["Target"], Transform(1)),
-			StaticMesh.Instance(bMeshes["Body"], Transform(1))
+			StaticMesh.Instance(worldMeshes["Target"], Transform(1))
 		];
 
 		import std.random;
 		auto rnd = Random(5033);
 		// Random obstacles
-		for(int i = 3; i < stInst.length; i++)
+		for(int i = 2; i < stInst.length; i++)
 		{
 			ivec2 p = ivec2(
 				uniform(world.grid.lowBounds.x, world.grid.highBounds.x, rnd),
@@ -80,7 +78,6 @@ int runGame()
 		}
 
 		Transform* trTarget = &stInst[1].transform;
-		Transform* trActor = &stInst[2].transform;
 
 		StaticMesh.Uniforms.global stUniforms;
 		with(stUniforms)
@@ -95,6 +92,27 @@ int runGame()
 			tex_albedo = 0;
 		}
 		auto palette = LightPalette("data/palettes/lightPalette.png", mainMem);
+
+		auto anMeshSys = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
+		anMeshSys.reserveMeshes(mainMem, 1);
+
+		auto bMeshes = anMeshSys.loadMeshes("data/meshes/bipple-test.glb", mainMem);
+		auto anInst = mainMem.makeList!(AnimMesh.Instance)(1);
+		anInst[0] = AnimMesh.Instance(bMeshes["Body"], Transform(1), mainMem);
+		Transform* trActor = &anInst[0].transform;
+
+		AnimMesh.Uniforms.global anUniforms;
+		with(anUniforms)
+		{
+			light_direction = vec3(0, -1, -0.2);
+			light_bias = 0;
+			area_span = 3;
+			area_ceiling = -1.5;
+			gamma = 2.2;
+			nearPlane = camera.nearPlane;
+			farPlane = camera.farPlane;
+			tex_albedo = 0;
+		}
 	// end
 
 	ivec2 targetPos;
@@ -145,7 +163,7 @@ int runGame()
 			camera.distance += zoom;
 		// end camera controls
 
-		// Random target movement
+		// Target movement
 			if(actor.gridPos == targetPos || reset_timer >= RESET_TIME)
 			{
 				reset_timer = 0;
@@ -165,7 +183,9 @@ int runGame()
 				actor.gridPos = ivec2(0,0);
 				gave_up = !actor.approach(targetPos);
 			}
+		// target end
 
+		// Actor movement
 			actor.update(delta);
 			trActor._rotation.y = actor.facingAngle();
 			trActor._position = actor.worldPos();
@@ -178,15 +198,29 @@ int runGame()
 			{
 				reset_timer += delta;
 			}
-		// target end
+
+			if(actor.forceUpdate)
+			{
+				anInst[0].play(actor.queuedAnimation, actor.loopAnimation);
+				actor.forceUpdate = false;
+			}
+			else
+			{
+				anInst[0].queue(actor.queuedAnimation, actor.loopAnimation);
+			}
+		// end actor
+
+		anMeshSys.update(delta, anInst);
 
 		window.beginFrame();
 
 			auto vp = camera.vp();
 
 			stUniforms.projection = vp;
+			anUniforms.projection = vp;
 
 			sMeshSys.render(stUniforms, palette.palette, stInst);
+			anMeshSys.render(anUniforms, palette.palette, anInst);
 
 		window.endFrame();
 	}
