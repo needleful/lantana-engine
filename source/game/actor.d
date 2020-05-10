@@ -64,9 +64,6 @@ struct Actor
 		if(res)
 		{
 			getTargetDir();
-			queuedAnimation = "WalkCycle";
-			loopAnimation = true;
-			forceUpdate = true;
 		}
 		else
 		{
@@ -87,12 +84,6 @@ struct Actor
 		if(state == State.turning)
 		{
 			state = State.walking;
-		}
-		else if(state == State.walking)
-		{
-			queuedAnimation = "WalkCycle";
-			loopAnimation = true;
-			forceUpdate = false;
 		}
 
 		vec2 dir = vec2(path[0]-gridPos);
@@ -136,22 +127,28 @@ struct Actor
 		float angle2 = Grid.dirAngles[direction];
 
 		targetDistance = dir.length();
-		if((angle1 - angle2) % 360 == -45)
-		{
-			queuedAnimation = "Turn45Right";
-			loopAnimation = false;
-			forceUpdate = true;
-		}
-		else if((angle1 - angle2) % 360 == 45)
-		{
-			queuedAnimation = "Turn45Left";
-			loopAnimation = false;
-			forceUpdate = true;
-		}
 
-		if(angle1 != angle2)
+		float turn = (angle1 - angle2) % 360;
+
+		string oldQueue = queuedAnimation;
+		if(turn == 0)
+		{
+			if(queuedAnimation == "IdleStanding")
+				forceUpdate = true;
+			else
+				forceUpdate = false;
+			queuedAnimation = "Walk";
+			loopAnimation = true;
+			return;
+		}
+		else
 		{
 			state = State.turning;
+			loopAnimation = false;
+			forceUpdate = true;
+
+			import std.format;
+			queuedAnimation = format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left");
 		}
 	}
 }
