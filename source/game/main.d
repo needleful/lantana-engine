@@ -189,7 +189,7 @@ int runGame()
 			actor.update(delta);
 			trActor._rotation.y = actor.facingAngle();
 			trActor._position = actor.worldPos();
-			camera.target = trActor._position;
+			camera.target = trActor._position + vec3(0, -0.8, 0);
 			static if(followActor)
 			{
 				camera.target = trActor._position;
