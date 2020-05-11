@@ -17,6 +17,7 @@ import game.map;
 import lantana.input;
 import lantana.math;
 import lantana.render;
+import lantana.render.mesh.animation : AnimationSequence;
 import lantana.types.layout;
 import lantana.types.memory;
 
@@ -100,6 +101,12 @@ int runGame()
 		auto anInst = mainMem.makeList!(AnimMesh.Instance)(1);
 		anInst[0] = AnimMesh.Instance(bMeshes["Body"], Transform(1), mainMem);
 		Transform* trActor = &anInst[0].transform;
+
+		// Animation sequence
+		{
+			auto sq = AnimationSequence(&(anInst[0].anim), anInst[0].mesh.animations);
+			actor.sequence = &sq;
+		}
 
 		AnimMesh.Uniforms.global anUniforms;
 		with(anUniforms)
@@ -187,6 +194,8 @@ int runGame()
 
 		// Actor movement
 			actor.update(delta);
+			actor.sequence.update(delta);
+
 			trActor._rotation.y = actor.facingAngle();
 			trActor._position = actor.worldPos();
 			camera.target = trActor._position + vec3(0, -0.8, 0);
@@ -198,16 +207,6 @@ int runGame()
 			if(gave_up)
 			{
 				reset_timer += delta;
-			}
-
-			if(actor.forceUpdate)
-			{
-				anInst[0].play(actor.queuedAnimation, actor.loopAnimation);
-				actor.forceUpdate = false;
-			}
-			else
-			{
-				anInst[0].queue(actor.queuedAnimation, actor.loopAnimation);
 			}
 		// end actor
 

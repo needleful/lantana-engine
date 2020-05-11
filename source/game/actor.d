@@ -4,31 +4,28 @@
 
 module game.actor;
 
-import std.math : abs;
+import std.math : abs, sgn;
 
 import gl3n.linalg : vec2, vec3;
+
+import lantana.render.mesh.animation;
 import lantana.types : ivec2;
 
 import game.map;
 
 struct Actor
 {
-	enum State
-	{
-		idle,
-		walking,
-		turning
-	}
 	// Walking speed in meters per second
 	enum speed = 1.4;
 
 	// Where the actor wants to go
 	ivec2[] path;
 
-	string queuedAnimation = "";
-
 	// The actor's current room
 	Room* room;
+
+	// Sequencing animations for rendering
+	AnimationSequence* sequence;
 
 	// The actor's position on the room grid
 	ivec2 gridPos;
@@ -41,10 +38,6 @@ struct Actor
 
 	// Current direction
 	Grid.Dir direction;
-
-	bool loopAnimation = false;
-	State state = State.idle;
-	bool forceUpdate = false;
 
 	this(Room* p_room)
 	{
@@ -63,13 +56,18 @@ struct Actor
 		auto res = room.grid.navigate(direction, gridPos, target, path);
 		if(res)
 		{
+			sequence.clear();
+			sequence.add("Walk");
 			getTargetDir();
+			sequence.loopFinalAnimation = true;
+			sequence.restart();
 		}
 		else
 		{
-			queuedAnimation = "IdleStanding";
-			loopAnimation = true;
-			forceUpdate = true;
+			sequence.clear();
+			sequence.add("IdleStanding");
+			sequence.loopFinalAnimation = true;
+			sequence.restart();
 		}
 		return res;
 	}
@@ -80,10 +78,6 @@ struct Actor
 		{
 			coveredDistance = 0;
 			return;
-		}
-		if(state == State.turning)
-		{
-			state = State.walking;
 		}
 
 		vec2 dir = vec2(path[0]-gridPos);
@@ -119,36 +113,37 @@ struct Actor
 
 	private void getTargetDir()
 	{
+		sequence.loopFinalAnimation = true;
 		if(path.length == 0)
 			return;
+
 		ivec2 dir = path[0]-gridPos;
 		float angle1 = Grid.dirAngles[direction];
+
 		direction = fromVector(dir);
 		float angle2 = Grid.dirAngles[direction];
-
 		targetDistance = dir.length();
 
-		float turn = (angle1 - angle2) % 360;
+		float turn = angle1 - angle2;
 
-		string oldQueue = queuedAnimation;
-		if(turn == 0)
-		{
-			if(queuedAnimation == "IdleStanding")
-				forceUpdate = true;
-			else
-				forceUpdate = false;
-			queuedAnimation = "Walk";
-			loopAnimation = true;
-			return;
-		}
-		else
-		{
-			state = State.turning;
-			loopAnimation = false;
-			forceUpdate = true;
+		if(turn != 0)
+		{	
+			if(abs(turn) > 180)
+			{
+				turn -= sgn(turn)*180;
+				turn *= -1;
+			}
 
 			import std.format;
-			queuedAnimation = format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left");
+			with(sequence)
+			{
+				clear();
+				add(format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left"));
+				// Sync animation to start on other foot if turning left
+				float stime = (turn < 0) ? 0 : (8/30.0);
+				add("Walk", stime);
+				restart();
+			}
 		}
 	}
 }

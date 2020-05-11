@@ -68,6 +68,13 @@ struct AnimationInstance
 		}
 	}
 
+	void play(GLBAnimation* p_current, bool p_loop = false)
+	{
+		currentAnimation = p_current;
+		is_playing = true;
+		looping = p_loop;
+	}
+
 	void restart(GLBNode[] oldBones) 
 	{
 		time = 0;
@@ -179,6 +186,90 @@ public void updateAnimation(float p_delta, ref AnimationInstance inst, GLBNode[]
 			default:
 				debug writeln("Unsupported animation path: ", channel.path);
 				break;
+		}
+	}
+}
+
+/// A struct for composing animations sequentially
+struct AnimationSequence
+{
+	struct Element
+	{
+		GLBAnimation* animation;
+		// 0 for the real start
+		float startTime;
+		// float.infinity for the real end
+		float endTime;
+	}
+	AnimationInstance* instance;
+	GLBAnimation[] animations;
+	Element[] sequence;
+	// Current element of the sequence
+	private int current;
+	bool loopFinalAnimation;
+
+	@disable this();
+
+	this(AnimationInstance* p_instance, GLBAnimation[] p_animations) @nogc nothrow
+	{
+		instance = p_instance;
+		animations = p_animations;
+		current = 0;
+	}
+
+	void clear() 
+	{
+		sequence.length = 0;
+		current = 0;
+		instance.pause();
+	}
+
+	void add(string p_anim, float p_start= 0, float p_end = float.infinity)
+	{
+		Element e;
+
+		foreach(ref a; animations)
+		{
+			if(a.name == p_anim)
+			{
+				e.animation = &a;
+			}
+		}
+		if(e.animation !is null)
+		{
+			e.startTime = p_start;
+			e.endTime = p_end;
+
+			sequence ~= e;
+		}
+		else debug
+		{
+			import std.stdio;
+			writefln("Could not add '%s' to animation sequence", p_anim);
+		}
+	}
+
+	void restart()
+	{
+		current = 0;
+
+		instance.play(sequence[0].animation);
+		instance.time = sequence[current].startTime;
+	}
+
+	void update(float p_delta)
+	{
+		// Do nothing on last animation
+		if(current >= sequence.length - 1)
+			return;
+		if(!instance.is_playing || instance.time + p_delta >= sequence[current].endTime)
+		{
+			current += 1;
+			bool loop = false;
+			if(current == sequence.length - 1 && loopFinalAnimation)
+				loop = true;
+			instance.play(sequence[current].animation, loop);
+			instance.time = sequence[current].startTime;
 		}
 	}
 }

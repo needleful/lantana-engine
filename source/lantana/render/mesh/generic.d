@@ -346,7 +346,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		static if(Spec.isAnimated)
 		{
-			package AnimationInstance anim;
+			AnimationInstance anim;
 
 			this(Mesh* p_mesh, Transform p_transform, ref Region p_alloc) 
 			{
