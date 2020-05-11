@@ -23,7 +23,7 @@ import lantana.types.memory;
 
 // Force the game to run on main() instead of WinMain()
 enum forcedMain = true;
-enum followActor = false;
+enum followActor = true;
 
 enum MAIN_MEM_LIMIT = 1024*1024*8;
 
@@ -162,12 +162,13 @@ int runGame()
 				camera.rotateDegrees(camRot);
 			}
 			
-			float zoom = input.mouseWheel.y*80*delta;
-			if(camera.distance + zoom < 0 || camera.distance + zoom > 40)
+			import std.math: pow;
+			float zoom = pow(1.2, input.mouseWheel.y);
+			if(camera.distance*zoom < 0 || camera.distance*zoom > 40)
 			{
-				zoom = 0;
+				zoom = 1;
 			}
-			camera.distance += zoom;
+			camera.distance *= zoom;
 		// end camera controls
 
 		// Target movement

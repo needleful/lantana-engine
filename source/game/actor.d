@@ -56,11 +56,13 @@ struct Actor
 		auto res = room.grid.navigate(direction, gridPos, target, path);
 		if(res)
 		{
-			sequence.clear();
-			sequence.add("Walk");
-			getTargetDir();
-			sequence.loopFinalAnimation = true;
-			sequence.restart();
+			if(!getTargetDir())
+			{
+				sequence.clear();
+				sequence.add("Walk");
+				sequence.loopFinalAnimation = true;
+				sequence.restart();
+			}
 		}
 		else
 		{
@@ -111,11 +113,11 @@ struct Actor
 		return Grid.dirAngles[direction];
 	}
 
-	private void getTargetDir()
+	private bool getTargetDir()
 	{
 		sequence.loopFinalAnimation = true;
 		if(path.length == 0)
-			return;
+			return false;
 
 		ivec2 dir = path[0]-gridPos;
 		float angle1 = Grid.dirAngles[direction];
@@ -144,6 +146,8 @@ struct Actor
 				add("Walk", stime);
 				restart();
 			}
+			return true;
 		}
+		return false;
 	}
 }
