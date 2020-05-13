@@ -23,7 +23,7 @@ void main()
 {
 	vec4 world_pos = transform * vec4(position, 1.0);
 	gl_Position = projection * world_pos;
-	gl_Position.z = (2*log(nearPlane*gl_Position.w + 1)/log(nearPlane*farPlane + 1) - 1) * gl_Position.w;
+	//gl_Position.z = (2*log(nearPlane*gl_Position.w + 1)/log(nearPlane*farPlane + 1) - 1) * gl_Position.w;
 
 	vert_normal = (transform * vec4(normal, 0)).xyz;
 	vert_uv = uv;

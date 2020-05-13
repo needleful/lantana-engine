@@ -88,8 +88,11 @@ int runGame()
 			area_span = 3;
 			area_ceiling = -1.5;
 			gamma = 2.2;
-			nearPlane = camera.nearPlane;
-			farPlane = camera.farPlane;
+			static if(lnt_LogarithmicDepth)
+			{
+				nearPlane = camera.nearPlane;
+				farPlane = camera.farPlane;
+			}
 			tex_albedo = 0;
 		}
 		auto palette = LightPalette("data/palettes/lightPalette.png", mainMem);
@@ -116,8 +119,11 @@ int runGame()
 			area_span = 3;
 			area_ceiling = -1.5;
 			gamma = 2.2;
-			nearPlane = camera.nearPlane;
-			farPlane = camera.farPlane;
+			static if(lnt_LogarithmicDepth)
+			{
+				nearPlane = camera.nearPlane;
+				farPlane = camera.farPlane;
+			}
 			tex_albedo = 0;
 		}
 	// end

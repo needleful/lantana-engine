@@ -11,3 +11,5 @@ public import lantana.render.material;
 public import lantana.render.mesh;
 public import lantana.render.textures;
 public import lantana.render.window;
+
+public import lantana.render.mesh.generic : lnt_LogarithmicDepth;

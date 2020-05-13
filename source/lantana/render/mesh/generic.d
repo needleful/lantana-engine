@@ -25,6 +25,8 @@ import lantana.render.textures;
 
 import lantana.types;
 
+enum lnt_LogarithmicDepth = false;
+
 struct DefaultUniforms
 {
 	mat4 projection;
@@ -38,7 +40,10 @@ struct DefaultUniforms
 	int light_palette;
 	int tex_albedo;
 
-	float nearPlane, farPlane;
+	static if(lnt_LogarithmicDepth)
+	{
+		float nearPlane, farPlane;
+	}
 }
 
 struct DefaultSettings
