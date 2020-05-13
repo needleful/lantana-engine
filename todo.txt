@@ -1,19 +1,18 @@
 Todo:
 
 Bipple Animations:
-	Walking
-
-	TurnRight45
-	TurnLeft45
-
-	TurnRight90
-	TurnLeft90
-
-	TurnRight135
-	TurnLeft135
-
-	TurnRight180
-	TurnLeft180
+	Turn45RightStanding
+	Turn45LeftStanding
+	
+	Turn90RightStanding
+	Turn90LeftStanding
+	
+	Turn135RightStanding
+	Turn135LeftStanding
+	
+	Turn180RightStanding
+	Turn180LeftStanding
+	
 
 	HoldItem (upper body)
 	EatSnack (upper body)
@@ -25,7 +24,6 @@ Bipple Animations:
 	Stand
 
 	IdleSitting
-	IdleStanding
 
 	GetItemFromFridge
 
