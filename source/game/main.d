@@ -43,7 +43,7 @@ int runGame()
 	auto camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 	camera.distance = 9;
 
-	int worldScale = 2;
+	int worldScale = 10;
 
 	Room world = Room(vec3(0), ivec2(-5*worldScale), ivec2(5*worldScale));
 	Actor actor = Actor(&world);

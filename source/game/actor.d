@@ -121,6 +121,7 @@ struct Actor
 
 		ivec2 dir = path[0]-gridPos;
 		float angle1 = Grid.dirAngles[direction];
+		Grid.Dir oldDir = direction;
 
 		direction = fromVector(dir);
 		float angle2 = Grid.dirAngles[direction];
@@ -129,19 +130,17 @@ struct Actor
 		float turn = angle1 - angle2;
 
 		if(turn != 0)
-		{	
-			if(abs(turn) > 180)
-			{
-				turn -= sgn(turn)*180;
-				turn *= -1;
-			}
+		{
+			turn = (turn + sgn(turn)*180) % 360 - sgn(turn)*180;
 
 			import std.format;
 			with(sequence)
 			{
 				clear();
 				add(format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left"));
-				// Sync animation to start on other foot if turning left
+
+				// Sync animation to start on other foot, depending on the last frame of the turning animation
+				if(abs(turn) >= 134) turn *= -1; // Flip sign for wide turns
 				float stime = (turn < 0) ? 0 : (8/30.0);
 				add("Walk", stime);
 				restart();

@@ -253,7 +253,7 @@ struct AnimationSequence
 	{
 		current = 0;
 
-		instance.play(sequence[0].animation);
+		instance.play(sequence[current].animation, sequence.length == 1? loopFinalAnimation : false);
 		instance.time = sequence[current].startTime;
 	}
 
