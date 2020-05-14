@@ -1,0 +1,38 @@
+scene "test"
+
+// Animated defaults to false
+mesh "bipple" animated=true file="data/meshes/bipple-test.glb" node="Body"
+mesh "floor" file="data/meshes/test-world.glb" node="Floor"
+mesh "cube" file="data/meshes/test-world.glb" node="Wall"
+mesh "chair1" file="data/meshes/furniture/chair1.glb" node="Chair"
+
+grid {
+	position 0 0 0
+	start -10 -10
+	end 10 10
+}
+
+entity {
+	actor direction="UP"
+	position 0 0
+}
+
+entity {
+	prop direction="DOWN"
+	position 10 10
+	mesh-instance "chair1"
+}
+
+entity {
+	prop
+	position -2 -2
+	mesh-instance "cube"
+}
+
+entity {
+	decoration
+	// Decorations are positioned in world space, not grid space
+	position 0 0 0
+	scale 2
+	mesh-instance "floor"
+}

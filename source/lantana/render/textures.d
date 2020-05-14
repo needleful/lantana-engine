@@ -78,7 +78,7 @@ struct Texture(TextureDataType)
 	GLuint id;
 	RealSize size;
 
-	this(ImageType p_type, ubyte[] p_data, ref Region p_alloc, Filter p_filter) 
+	this(ImageType p_type, ubyte[] p_data, ref Region p_alloc, Filter p_filter, bool p_keepBuffer = true) 
 	{
 		FREE_IMAGE_FORMAT format;
 		switch(p_type)
@@ -93,6 +93,8 @@ struct Texture(TextureDataType)
 				debug printf("Unsupported image format: %u\n", p_type);
 				assert(false);
 		}
+
+		auto bufferSize = p_alloc.spaceUsed();
 
 		FIMEMORY* mem = FreeImage_OpenMemory(p_data.ptr, cast(uint)p_data.length);
 		scope(exit) FreeImage_CloseMemory(mem);
@@ -123,10 +125,18 @@ struct Texture(TextureDataType)
 		}
 
 		initialize(p_filter);
+
+		if(!p_keepBuffer)
+		{
+			buffer = null;
+			p_alloc.wipeAllBut(bufferSize);
+		}
 	}
 
-	this(string p_filename, ref Region p_alloc, Filter p_filter) 
+	this(string p_filename, ref Region p_alloc, Filter p_filter, bool p_keepBuffer = true) 
 	{
+		auto bufferSize = p_alloc.spaceUsed();
+		
 		Bitmap!tex b = Bitmap!tex(p_filename);
 		size = b.size;
 		// Copy loaded bitmap
@@ -150,6 +160,12 @@ struct Texture(TextureDataType)
 		}
 
 		initialize(p_filter);
+
+		if(!p_keepBuffer)
+		{
+			buffer = null;
+			p_alloc.wipeAllBut(bufferSize);
+		}
 	}
 
 	this(RealSize p_size, tex* p_buffer, Filter p_filter) 

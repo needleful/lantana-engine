@@ -414,8 +414,6 @@ struct Room
 	// Position (0,0) of the grid in world space
 	vec3 center;
 
-	@disable this();
-
 	this(vec3 p_center, ivec2 lowBounds, ivec2 highBounds)
 	{
 		grid = Grid(lowBounds, highBounds);

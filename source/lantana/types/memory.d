@@ -72,11 +72,11 @@ T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
 
 struct OwnedList(Type)
 {
-	private Type* m_ptr;
-	private ushort m_length;
-	private ushort m_capacity;
+	private Type* m_ptr = null;
+	private uint m_length = 0;
+	private uint m_capacity = 0;
 
-	this(Type* p_ptr, ushort p_cap) @nogc nothrow @safe
+	this(Type* p_ptr, uint p_cap) @nogc nothrow @safe
 	{
 		m_ptr = p_ptr;
 		m_capacity = p_cap;
@@ -109,12 +109,12 @@ struct OwnedList(Type)
 		return m_ptr;
 	}
 
-	@property ushort length()  nothrow const @safe
+	@property uint length()  nothrow const @safe
 	{
 		return m_length;
 	}
 
-	@property ushort capacity()  nothrow const @safe
+	@property uint capacity()  nothrow const @safe
 	{
 		return m_capacity;
 	}
@@ -321,6 +321,14 @@ struct Region
 	void wipe() @nogc nothrow
 	{
 		setSpaceUsed(minimumSize);
+	}
+
+	// Wipe all data except for `used` bytes.
+	// Make sure you know what you're doing!
+	void wipeAllBut(size_t used) @nogc nothrow
+	{
+		assert(used >= minimumSize && used <= spaceUsed());
+		setSpaceUsed(used);
 	}
 
 	private void* alloc(size_t bytes) @nogc

@@ -133,7 +133,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 					currentImage = mesh.accessor.tex_albedo;
 					with(mesh.accessor.tex_albedo)
 					{
-						textures.place(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
+						textures.place(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter, false);
 					}
 				}
 				meshes.place(this, mesh, loaded.data, vbo, &textures[$-1]);

@@ -16,6 +16,49 @@ public auto first(T)(T collection)
 	assert(false, "No elements in the collection");
 }
 
+struct Stack(T)
+{
+	T[] list;
+
+	void reserve(size_t size)
+	{
+		list.reserve(size);
+	}
+
+	bool pop(out T value)
+	{
+		if(list.length == 0)
+			return false;
+
+		value = list[$-1];
+		list.length -= 1;
+		return true;
+	}
+
+	bool pop()
+	{
+		if(list.length == 0)
+			return false;
+		list.length -= 1;
+		return true;
+	}
+
+	void push(T value)
+	{
+		list ~= value;
+	}
+
+	T peek()
+	{
+		return list[$-1];
+	}
+
+	T peek(int d)
+	{
+		return list[$-d];
+	}
+}
+
 /// Create a bitfield from an enum
 /// IMPORTANT: it assumes the enum is tightly packed, e.g it goes 0, 1, 2, etc
 struct Bitfield(Enum)
