@@ -12,6 +12,7 @@ import gl3n.linalg : vec3, vec2;
 import sdlang;
 
 import game.actor;
+import game.bipple;
 import game.map;
 import game.systems;
 
@@ -31,7 +32,7 @@ float camSpeed = 60;
 
 final class SceneManager
 {
-	public alias ECSManager = Manager!(Actors, Animations, ActorTransforms); 
+	public alias ECSManager = Manager!(Bipples, Actors, Animations, ActorTransforms); 
 	ECSManager ecsManager;
 
 	StaticMesh.System staticMeshes;
@@ -159,17 +160,17 @@ final class SceneManager
 			stat[name] = staticLoaded[mesh.file][mesh.node];
 		}
 
-		ecsManager.reserve!ActorTransforms(memory, cast(uint) scl.actors.length);
+		ecsManager.reserve!Bipples(memory, cast(uint)scl.bipples.length);
 		ecsManager.reserve!Actors(memory, cast(uint)scl.actors.length);
+		ecsManager.reserve!ActorTransforms(memory, cast(uint) scl.actors.length);
 		ecsManager.reserve!Animations(memory, cast(uint) scl.actors.length);
 
 		for(uint i = 0; i < scl.entityCount; i++)
 		{
 			Transform getTransform(uint i)
 			{
-				Transform transform = Transform(1);
-				if(i in scl.scales)
-					transform.scale = scl.scales[i];
+				float s = i in scl.scales? scl.scales[i] : 1;
+				Transform transform = Transform(s);
 
 				if(i in scl.props)
 					transform._rotation.y = Grid.dirAngles[scl.props[i]];
@@ -180,6 +181,11 @@ final class SceneManager
 					transform._position = scl.worldPos[i];
 
 				return transform;
+			}
+
+			if(i in scl.bipples)
+			{
+				ecsManager.get!Bipples.add(Bipple(scl.bipples[i]));
 			}
 
 			if(i in scl.actors)
@@ -265,6 +271,7 @@ struct SceneLoader
 	ivec2[uint] gridPos;
 	vec3[uint] worldPos;
 	float[uint] scales;
+	ushort[uint] bipples;
 
 	string name;
 	RoomDescriptor room;
@@ -376,6 +383,12 @@ struct SceneLoader
 				}
 			}
 
+			int bipple = e.getTagValue!int("bipple", -1);
+			if(bipple >= 0)
+			{
+				scl.bipples[scl.entityCount] = cast(ushort) bipple;
+			}
+
 			Tag actor = e.getTag("actor");
 			if(actor !is null)
 			{
@@ -417,7 +430,12 @@ struct SceneLoader
 			if(scale !is null)
 			{
 				float s = cast(float) scale.getValue!double(1);
-				scl.scales[scl.entityCount] = s;
+				int si = scale.getValue!int(1);
+
+				if(s != 1)
+					scl.scales[scl.entityCount] = s;
+				else
+					scl.scales[scl.entityCount] = si;
 			}
 			scl.entityCount++;
 		}

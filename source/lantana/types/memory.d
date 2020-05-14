@@ -188,7 +188,7 @@ struct BaseRegion
 	this(size_t p_capacity) @nogc
 	{
 		ubyte* data = cast(ubyte*) MmapAllocator.instance.allocate(p_capacity).ptr;
-		//GC.addRange(data, p_capacity);
+		GC.addRange(data, p_capacity);
 
 		assert(data != null, "Failed to get memory for region");
 		region = Region(data, p_capacity);
@@ -200,7 +200,7 @@ struct BaseRegion
 		region.disable();
 
 		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
-		//GC.removeRange(region.data);
+		GC.removeRange(region.data);
 	}
 
 	SubRegion provideRemainder() 

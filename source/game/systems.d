@@ -10,6 +10,7 @@ import lantana.types.array;
 import lantana.types.memory : OwnedList;
 import lantana.render.mesh.animation : AnimationSequence;
 import game.actor;
+import game.bipple;
 
 
 mixin template OwnerSystem(Component)
@@ -46,6 +47,12 @@ struct Actors
 struct Animations
 {
 	mixin OwnerSystem!AnimationSequence;
+}
+
+@System(Bipple.stringof)
+struct Bipples
+{
+	mixin OwnerSystem!Bipple;
 }
 
 @System(Actor.stringof, Transform.stringof)
