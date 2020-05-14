@@ -3,8 +3,6 @@ scene "test"
 mesh "bipple" animated=true file="data/meshes/bipple-test.glb" node="Body"
 mesh "floor" file="data/meshes/test-world.glb" node="Floor"
 mesh "cube" file="data/meshes/test-world.glb" node="Wall"
-mesh "target" file="data/meshes/test-world.glb" node="Target"
-mesh "actor-test" file="data/meshes/test-world.glb" node="Actor"
 mesh "chair1" file="data/meshes/furniture/chair1.glb" node="Chair"
 
 grid {
@@ -20,7 +18,7 @@ entity {
 }
 
 entity {
-	prop direction="DOWN"
+	prop direction="LEFT"
 	position 5 5
 	mesh-instance "chair1"
 }

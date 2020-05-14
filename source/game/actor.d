@@ -78,8 +78,14 @@ struct Actor
 	void update(float delta)
 	{
 		if(path.length == 0)
-		{
+		{	
 			coveredDistance = 0;
+			if(sequence.sequence.length == 0)
+			{
+				sequence.add("IdleStanding");
+				sequence.loopFinalAnimation = true;
+				sequence.restart();
+			}
 			return;
 		}
 

@@ -139,7 +139,7 @@ final class SceneManager
 		AnimMesh.Mesh*[string] anim;
 		StaticMesh.Mesh*[string] stat;
 
-		animatedMeshes.reserveMeshes(memory, cast(uint)scl.animatedLoaders.length);
+		animatedMeshes.reserveMeshes(memory, cast(uint)scl.animatedLoaders.length + 3);
 		anInstances = memory.makeOwnedList!(AnimMesh.Instance)(cast(uint)scl.animatedInstances.length);
 
 		foreach(name, mesh; scl.animatedLoaders)
@@ -149,7 +149,7 @@ final class SceneManager
 			anim[name] = animLoaded[mesh.file][mesh.node];
 		}
 
-		staticMeshes.reserveMeshes(memory, cast(uint)scl.staticLoaders.length);
+		staticMeshes.reserveMeshes(memory, cast(uint)scl.staticLoaders.length + 3);
 		stInstances = memory.makeOwnedList!(StaticMesh.Instance)(cast(uint)scl.staticInstances.length);
 
 		foreach(name, mesh; scl.staticLoaders)
