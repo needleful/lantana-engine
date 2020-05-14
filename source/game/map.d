@@ -9,7 +9,7 @@ import std.math: abs;
 import gl3n.linalg: vec2, vec3;
 
 import lantana.ai.search;
-import lantana.types : RealSize, ivec2, Bitfield;
+import lantana.types : RealSize, ivec2, Bitfield, Region;
 
 
 // Grids are sets of points in an abstract space
@@ -37,7 +37,8 @@ struct Grid
 		Dir.UP_LEFT,
 		Dir.UP_RIGHT,
 		Dir.DOWN_LEFT,
-		Dir.DOWN_RIGHT];
+		Dir.DOWN_RIGHT
+	];
 
 	static immutable(ivec2[]) dirs = [
 		ivec2(0, 1),
@@ -159,7 +160,19 @@ struct Grid
 		lowBounds = low;
 		highBounds = high;
 		nodes.length = width() * height();
+		init();
+	}
 
+	this(ivec2 low, ivec2 high, ref Region p_alloc)
+	{
+		lowBounds = low;
+		highBounds = high;
+		nodes = p_alloc.makeList!Node(width()*height());
+		init();
+	}
+
+	private void init()
+	{
 		int w = width();
 		int h = height();
 		foreach(int x; 0..w)
@@ -420,6 +433,12 @@ struct Room
 		center = p_center;
 	}
 
+	this(vec3 p_center, ivec2 lowBounds, ivec2 highBounds, ref Region p_alloc)
+	{
+		grid = Grid(lowBounds, highBounds, p_alloc);
+		center = p_center;
+	}
+
 	vec3 getWorldPosition(ivec2 p_gridPos)
 	{
 		return center + vec3(p_gridPos.x, 0, p_gridPos.y); 
@@ -454,4 +473,22 @@ static Grid.Dir fromVector(ivec2 v)
 static bool opposing(Grid.Dir a, Grid.Dir b)
 {
 	return Grid.inverseDirIter[a] == b;
+}
+
+static Grid.Dir dirFromString(string s)
+{
+	switch(s)
+	{
+		case "UP": return Grid.Dir.UP;
+		case "DOWN": return Grid.Dir.DOWN;
+		case "RIGHT": return Grid.Dir.RIGHT;
+		case "LEFT": return Grid.Dir.LEFT;
+
+		case "UP_RIGHT": return Grid.Dir.UP_RIGHT;
+		case "UP_LEFT": return Grid.Dir.UP_LEFT;
+		case "DOWN_RIGHT": return Grid.Dir.DOWN_RIGHT;
+		case "DOWN_LEFT": return Grid.Dir.DOWN_LEFT;
+
+		default: return Grid.Dir.UP;
+	}
 }

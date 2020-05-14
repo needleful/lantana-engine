@@ -39,8 +39,9 @@ struct Actor
 	// Current direction
 	Grid.Dir direction;
 
-	this(Room* p_room)
+	this(Room* p_room, ivec2 p_gridPos = ivec2(0))
 	{
+		gridPos = p_gridPos;
 		coveredDistance = 0;
 		room = p_room;
 		realPos = room.getWorldPosition(gridPos);

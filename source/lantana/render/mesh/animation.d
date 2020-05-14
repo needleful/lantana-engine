@@ -208,8 +208,6 @@ struct AnimationSequence
 	private int current;
 	bool loopFinalAnimation;
 
-	@disable this();
-
 	this(AnimationInstance* p_instance, GLBAnimation[] p_animations) @nogc nothrow
 	{
 		instance = p_instance;

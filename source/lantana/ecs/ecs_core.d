@@ -9,6 +9,7 @@ import std.meta;
 import std.traits;
 
 import lantana.types.meta;
+import lantana.types.memory : Region;
 
 struct EntityRef
 {
@@ -84,6 +85,7 @@ final class Manager(Systems...)
 
 	public void clear()
 	{
+		import lantana.types.array;
 		static foreach(S; Systems)
 		{{
 			auto s = &get!S();
@@ -92,5 +94,10 @@ final class Manager(Systems...)
 				s.clear();
 			}
 		}}
+	}
+
+	public void reserve(System)(Region p_alloc, uint count)
+	{
+		get!System().components.reserve(count);
 	}
 }

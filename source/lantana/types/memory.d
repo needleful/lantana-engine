@@ -149,11 +149,12 @@ struct OwnedList(Type)
 		m_length += 1;
 	}
 
-	void place(A...)(auto ref A args)
+	Type* place(A...)(auto ref A args)
 	{
 		assert(m_length + 1 <= m_capacity, "Capacity exceeded");
 		emplace!(Type, A)(&m_ptr[m_length], args);
 		m_length += 1;
+		return &m_ptr[m_length-1];
 	}
 
 	@property int opDollar()  const nothrow @safe
@@ -279,7 +280,7 @@ struct Region
 		return (cast(T*)alloc(T.sizeof*count))[0..count];
 	}
 
-	OwnedList!T makeOwnedList(T)(ushort p_size)
+	OwnedList!T makeOwnedList(T)(uint p_size)
 	{
 		//return OwnedList!T((cast(T*)allocAligned!(AlignT!T)(T.sizeof * p_size)), p_size);
 		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);

@@ -6,6 +6,7 @@ module game.systems;
 
 import lantana.ecs.core;
 import lantana.math: Transform;
+import lantana.types.array;
 import lantana.types.memory : OwnedList;
 import lantana.render.mesh.animation : AnimationSequence;
 import game.actor;
@@ -13,7 +14,8 @@ import game.actor;
 
 mixin template OwnerSystem(Component)
 {
-	OwnedList!Component components;
+	alias component = Component;
+	Component[] components;
 	void update(float delta)
 	{
 		foreach(ref c; components)
@@ -61,7 +63,9 @@ struct ActorTransforms
 		}
 	}
 
-	OwnedList!TransformUpdate components;
+	alias component = TransformUpdate;
+
+	TransformUpdate[] components;
 	void update()
 	{
 		foreach(ref c; components)

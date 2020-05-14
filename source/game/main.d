@@ -19,7 +19,7 @@ import lantana.types.memory;
 // Force the game to run on main() instead of WinMain()
 enum forcedMain = true;
 
-enum MAIN_MEM_LIMIT = 1024*1024*8;
+enum MAIN_MEM_LIMIT = 1024*1024*24;
 
 int runGame()
 {

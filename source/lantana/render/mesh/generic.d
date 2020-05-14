@@ -104,7 +104,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			clearMeshes();
 		}
 
-		void reserveMeshes(ref Region p_alloc, ushort p_count)
+		void reserveMeshes(ref Region p_alloc, uint p_count)
 		{
 			meshes = p_alloc.makeOwnedList!Mesh(p_count);
 			vbos = p_alloc.makeOwnedList!GLuint(p_count);

@@ -1,9 +1,10 @@
 scene "test"
 
-// Animated defaults to false
 mesh "bipple" animated=true file="data/meshes/bipple-test.glb" node="Body"
 mesh "floor" file="data/meshes/test-world.glb" node="Floor"
 mesh "cube" file="data/meshes/test-world.glb" node="Wall"
+mesh "target" file="data/meshes/test-world.glb" node="Target"
+mesh "actor-test" file="data/meshes/test-world.glb" node="Actor"
 mesh "chair1" file="data/meshes/furniture/chair1.glb" node="Chair"
 
 grid {
@@ -15,11 +16,12 @@ grid {
 entity {
 	actor direction="UP"
 	position 0 0
+	mesh-instance "bipple"
 }
 
 entity {
 	prop direction="DOWN"
-	position 10 10
+	position 5 5
 	mesh-instance "chair1"
 }
 
@@ -30,8 +32,6 @@ entity {
 }
 
 entity {
-	decoration
-	// Decorations are positioned in world space, not grid space
 	position 0 0 0
 	scale 2
 	mesh-instance "floor"
