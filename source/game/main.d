@@ -79,10 +79,13 @@ int runGame()
 	scene.load("data/scenes/test.sdl");
 
 	bool orbit = false;
+	enum uiUpdateTime = 1;
+	float uiUpdateTimer = uiUpdateTime;
 	while(!window.state[WindowState.CLOSED])
 	{
 		window.pollEvents(&input);
 		float delta = window.delta_ms()/1000;
+		uiUpdateTimer += delta;
 
 		if(window.state[WindowState.RESIZED])
 		{
@@ -119,9 +122,13 @@ int runGame()
 
 		scene.update(delta);
 
-		with(scene.ecs.get!Bipples[0])
+		if(uiUpdateTimer >= uiUpdateTime)
 		{
-			bippleStatus.setText(format(statusFormat, needs[0].value, needs[1].value));
+			with(scene.ecs.get!Bipples[0])
+			{
+				bippleStatus.setText(format(statusFormat, needs[0].value, needs[1].value));
+			}
+			uiUpdateTimer = 0;
 		}
 
 		ui.updateInteraction(delta, &input);

@@ -422,6 +422,7 @@ struct Grid
 
 struct Room
 {
+	import swi.prolog : PL_new_atom_nchars;
 	// The backing grid
 	Grid grid;
 
@@ -470,10 +471,18 @@ struct Room
 		else
 			return dir_usables[object];
 	}
+	ivec2 usablePos(string object)
+	{
+		return usablePos(PL_new_atom_nchars(object.length, object.ptr));
+	}
+
+	Grid.Dir usableDir(string object)
+	{
+		return usableDir(PL_new_atom_nchars(object.length, object.ptr));
+	}
 
 	void addUsable(string name, ivec2 position, Grid.Dir direction)
 	{
-		import swi.prolog : PL_new_atom_nchars;
 		atom_t atom = PL_new_atom_nchars(name.length, name.ptr);
 		dir_usables[atom] = direction;
 		pos_usables[atom] = position + Grid.dirs[direction];

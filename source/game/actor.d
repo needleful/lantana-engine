@@ -166,18 +166,32 @@ struct Actor
 
 	private void start()
 	{
-		printf("Running action: %s/%d\n", PL_atom_chars(currentAction.name), currentAction.arity);
-
 		bool res = false;
 		if(currentAction.name == Action.move)
 			res = approach(currentAction.arguments[1]);
 		else if(currentAction.name == Action.sit)
 		{
+			writeln("Sitting");
+			direction = Grid.inverseDirIter[room.usableDir("chair")];
 			sequence.clear();
 			sequence.add("Sit");
-			sequence.add("IdleSitting");
+			sequence.add("IdleSitting", 0, 10);
+			sequence.onTransition = (int c) {
+				if(c == 0)
+				{
+					writeln("Sat down");
+					gridPos += Grid.dirs[direction];
+					realPos = room.getWorldPosition(gridPos);
+					direction = Grid.inverseDirIter[direction];
+				}
+				if(c == 1)
+				{
+					state = State.idle;
+				}
+			};
 			sequence.restart();
 			state = State.inProgress;
+			res = true;
 		}
 		else
 			printf("Action not implemented: %s/%d\n", PL_atom_chars(currentAction.name), currentAction.arity);

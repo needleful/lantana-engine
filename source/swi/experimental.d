@@ -105,6 +105,13 @@ struct Term
 		return t;
 	}
 
+	static Term copy(term_t t2) @nogc nothrow
+	{
+		Term t;
+		t.term = PL_copy_term_ref(t2);
+		return t;
+	}
+
 	this(string s) @nogc nothrow
 	{
 		term = PL_new_term_ref();

@@ -204,9 +204,10 @@ struct AnimationSequence
 	AnimationInstance* instance;
 	GLBAnimation[] animations;
 	Element[] sequence;
+	void delegate(int) onTransition;
 	// Current element of the sequence
 	private int current;
-	bool loopFinalAnimation;
+	bool loopFinalAnimation, completed;
 
 	this(AnimationInstance* p_instance, GLBAnimation[] p_animations) @nogc nothrow
 	{
@@ -217,6 +218,7 @@ struct AnimationSequence
 
 	void clear() 
 	{
+		onTransition = null;
 		sequence.length = 0;
 		current = 0;
 		instance.pause();
@@ -250,24 +252,30 @@ struct AnimationSequence
 	void restart()
 	{
 		current = 0;
-
+		completed = false;
 		instance.play(sequence[current].animation, sequence.length == 1? loopFinalAnimation : false);
 		instance.time = sequence[current].startTime;
 	}
 
 	void update(float p_delta)
 	{
-		// Do nothing on last animation
-		if(current >= sequence.length - 1)
-			return;
 		if(!instance.is_playing || instance.time + p_delta >= sequence[current].endTime)
 		{
-			current += 1;
-			bool loop = false;
-			if(current == sequence.length - 1 && loopFinalAnimation)
-				loop = true;
-			instance.play(sequence[current].animation, loop);
-			instance.time = sequence[current].startTime;
+			if(!completed && onTransition !is null)
+				onTransition(current);
+			if(current < sequence.length - 1)
+			{
+				current += 1;
+				bool loop = false;
+				if(current == sequence.length - 1 && loopFinalAnimation)
+					loop = true;
+				instance.play(sequence[current].animation, loop);
+				instance.time = sequence[current].startTime;
+			}
+			else
+			{
+				completed = true;
+			}
 		}
 	}
 }

@@ -14,7 +14,7 @@ import game.actor;
 struct Bipple
 {
 	enum ideal = 100;
-	enum sitEnergy = 10;
+	enum sitEnergy = 1.5;
 	struct need
 	{
 		// The actual value of the need from 0 to 100 and beyond
@@ -51,7 +51,7 @@ struct Bipple
 	{
 		needs[] =  [
 			need(ushort.max, 0, 90),
-			need(100, 1.5, 85)
+			need(100, 1, 85)
 		];
 
 		plan = [];
@@ -75,22 +75,19 @@ struct Bipple
 			}
 		}
 
-		if(plan.length != 0)
+		if(actor !is null && actor.state == Actor.State.inProgress)
 		{
-			if(actor is null)
-				return;
-			if(actor.state == Actor.State.inProgress)
-			{
-				if(actor.currentAction.name == Action.sit)
-					needs[NeedType.energy].value += sitEnergy*delta;
-				return;
-			}
+			if(actor.currentAction.name == Action.sit)
+				needs[NeedType.energy].value += sitEnergy*delta;
+		}
+		else if(plan.length != 0)
+		{
 			actor.setAction(plan[0]);
 			plan = plan[1..$];
 		}
-		else if(actor.state != Actor.State.inProgress && priority >= 0)
+		else if(priority >= 0)
 		{
-			engine.fulfill(needToSatisfy, this);
+			engine.fulfill(needToSatisfy, this);		
 		}
 	}
 
@@ -185,20 +182,20 @@ final class BippleEngine
 
 		if(pl_fulfill(a0) == TRUE)
 		{
-			Term list = Term.args(2);
-			PL_get_list(a0+3, list, list+1);
+			Term head = Term.empty();
+			Term list = Term.copy(a0+3);
 
-			do
+			while(PL_get_list(list, head, list))
 			{
 				Action a;
-				PL_get_name_arity(list, &a.name, &a.arity);
+				PL_get_name_arity(head, &a.name, &a.arity);
 
 				assert(a.arity <= 2, "No support for actions with more than two arguments");
 
 				Term arg = Term.empty();
 				foreach(i; 0..a.arity)
 				{
-					PL_get_arg(i+1, list, arg);
+					PL_get_arg(i+1, head, arg);
 					if(!PL_is_atom(arg))
 					{
 						writeln("WARNING: only atoms are supported as arguments for actions!  Found arg type %s",PL_term_type(arg));
@@ -207,14 +204,10 @@ final class BippleEngine
 						a.arguments[i] = nil;
 					}
 					else
-					{
 						PL_get_atom(arg, &a.arguments[i]);
-					}
 				}
-
 				b.plan ~= a;
-				PL_get_list(list+1, list, list+1);
-			} while(PL_term_type(list+1) != PL_NIL);
+			}
 			return true;
 		}
 		else
