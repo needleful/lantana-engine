@@ -16,7 +16,7 @@ fulfill(State, Desires, Target, Plan) :-
 	reverse(RPlan, Plan).
 
 search(((State, Desires), RunningStates, RunningActions, Count, KnownMin), TargetState, Results) :-
-	CountCost is Count*0.2,
+	CountCost is Count*1,
 	CountCost < KnownMin,
 	\+member(State, RunningStates),
 	(

@@ -57,8 +57,8 @@ int runGame()
 		defaultFontColor = vec3(0.8, 0.8, 0.8);
 	}
 
-	string statusFormat = "\n%.02f\n%.02f";
-	TextBox bippleStatus = new TextBox("", 10);
+	string statusFormat = "\n%3.02f\n%3.02f";
+	TextBox bippleStatus = new TextBox("", 16);
 	ui.setRootWidget(
 		new Anchor(
 			new HBox([

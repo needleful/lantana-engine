@@ -9,11 +9,15 @@ import std.stdio;
 
 import swi.experimental;
 
+import game.actor;
+
 struct Bipple
 {
+	enum ideal = 100;
+	enum sitEnergy = 10;
 	struct need
 	{
-		// The actual value of the need from 0 up (but typically no greater than 1)
+		// The actual value of the need from 0 to 100 and beyond
 		float value;
 		// How quickly it drains per real-time second
 		float drain;
@@ -27,7 +31,7 @@ struct Bipple
 			priority = p_rank;
 			drain = p_drain;
 			tolerance = p_tolerance;
-			value = 1;
+			value = ideal;
 		}
 	}
 
@@ -39,25 +43,22 @@ struct Bipple
 
 	static BippleEngine engine;
 
+	Action[] plan;
+	Actor* actor;
 	need[NeedType.max + 1] needs;
-
-	Term plan;
 
 	this(ushort seed)
 	{
 		needs[] =  [
-			need(ushort.max, 1.0/(12*60), 0.9),
-			need(100, 1.0/(4*60), 0.6)
+			need(ushort.max, 0, 90),
+			need(100, 1.5, 85)
 		];
 
-		plan = Term.nil();
+		plan = [];
 	}
 
 	void update(float delta)
 	{
-		if(PL_term_type(plan) != PL_NIL)
-			return;
-
 		NeedType needToSatisfy;
 		int priority = -1;
 		foreach(i, ref n; needs)
@@ -73,7 +74,21 @@ struct Bipple
 				priority = n.priority;
 			}
 		}
-		if(priority >= 0)
+
+		if(plan.length != 0)
+		{
+			if(actor is null)
+				return;
+			if(actor.state == Actor.State.inProgress)
+			{
+				if(actor.currentAction.name == Action.sit)
+					needs[NeedType.energy].value += sitEnergy*delta;
+				return;
+			}
+			actor.setAction(plan[0]);
+			plan = plan[1..$];
+		}
+		else if(actor.state != Actor.State.inProgress && priority >= 0)
 		{
 			engine.fulfill(needToSatisfy, this);
 		}
@@ -82,13 +97,9 @@ struct Bipple
 	void onZero(NeedType nType)
 	{
 		if(nType == NeedType.food)
-		{
 			writeln("This bipple has starved to death.");
-		}
 		else if(nType == NeedType.energy)
-		{
 			writeln("This bipple has passed out.");
-		}
 	}
 }
 
@@ -115,6 +126,8 @@ final class BippleEngine
 		nil = PL_new_atom("nil");
 		food = PL_new_atom("food");
 		energy = PL_new_atom("energy");
+
+		Action.loadAtoms();
 	}
 
 	bool fulfill(Bipple.NeedType need, ref Bipple b)
@@ -139,8 +152,8 @@ final class BippleEngine
 
 		res = PL_unify_term(a0+1,
 			PL_FUNCTOR, desires,
-				PL_FLOAT, b.needs[0],
-				PL_FLOAT, b.needs[1]
+				PL_FLOAT, Bipple.ideal - b.needs[0].value,
+				PL_FLOAT, Bipple.ideal - b.needs[1].value
 			);
 
 		if(res != TRUE)
@@ -172,7 +185,36 @@ final class BippleEngine
 
 		if(pl_fulfill(a0) == TRUE)
 		{
-			PL_put_term(b.plan, a0+3);
+			Term list = Term.args(2);
+			PL_get_list(a0+3, list, list+1);
+
+			do
+			{
+				Action a;
+				PL_get_name_arity(list, &a.name, &a.arity);
+
+				assert(a.arity <= 2, "No support for actions with more than two arguments");
+
+				Term arg = Term.empty();
+				foreach(i; 0..a.arity)
+				{
+					PL_get_arg(i+1, list, arg);
+					if(!PL_is_atom(arg))
+					{
+						writeln("WARNING: only atoms are supported as arguments for actions!  Found arg type %s",PL_term_type(arg));
+						Term.print(arg);
+						writeln();
+						a.arguments[i] = nil;
+					}
+					else
+					{
+						PL_get_atom(arg, &a.arguments[i]);
+					}
+				}
+
+				b.plan ~= a;
+				PL_get_list(list+1, list, list+1);
+			} while(PL_term_type(list+1) != PL_NIL);
 			return true;
 		}
 		else

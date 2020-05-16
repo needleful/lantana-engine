@@ -5,23 +5,52 @@
 module game.actor;
 
 import std.math : abs, sgn;
+import std.stdio;
 
 import gl3n.linalg : vec2, vec3;
+import swi.prolog;
 
 import lantana.render.mesh.animation;
 import lantana.types : ivec2;
 
 import game.map;
 
-struct ActionState
+struct Action
 {
-	start,
-	inProgress,
-	completed
+	static atom_t
+		cook, //0
+		sit,  //0
+		stand,//0
+		drop, //1
+		move, //2
+		eat,  //1
+		get;  //1
+
+	atom_t name;
+	atom_t[2] arguments;
+	int arity;
+
+	static void loadAtoms()
+	{
+		cook = PL_new_atom("cook");
+		sit = PL_new_atom("sit");
+		stand = PL_new_atom("stand");
+		drop = PL_new_atom("drop");
+		move = PL_new_atom("move");
+		eat = PL_new_atom("eat");
+		get = PL_new_atom("get");
+	}
 }
 
 struct Actor
 {
+	enum State
+	{
+		idle,
+		inProgress,
+		starting,
+		failed
+	}
 	// Walking speed in meters per second
 	enum speed = 1.4;
 
@@ -46,8 +75,10 @@ struct Actor
 	// Current direction
 	Grid.Dir direction;
 
+	Action currentAction;
+
 	// State of the current action
-	ActionState status;
+	State state;
 
 	this(Room* p_room, ivec2 p_gridPos = ivec2(0))
 	{
@@ -55,7 +86,60 @@ struct Actor
 		coveredDistance = 0;
 		room = p_room;
 		realPos = room.getWorldPosition(gridPos);
-		status = ActionState.completed;
+		state = State.idle;
+	}
+
+	void update(float delta)
+	{
+		if((state == State.idle || state == State.failed) && sequence.sequence.length == 0)
+		{
+			sequence.add("IdleStanding");
+			sequence.loopFinalAnimation = true;
+			sequence.restart();
+			return;
+		}
+		else if(state == State.starting)
+			start();
+		else if(currentAction.name == Action.move)
+		{
+			if(path.length == 0)
+			{
+				state = State.idle;
+				coveredDistance = 0;
+				return;
+			}
+
+			vec2 dir = vec2(path[0]-gridPos);
+			dir = dir.normalized();
+
+			vec3 move = vec3(dir.x, 0, dir.y)*speed*delta;
+			coveredDistance += speed*delta;
+
+			if(coveredDistance >= targetDistance)
+			{
+				gridPos = path[0];
+				realPos = room.getWorldPosition(gridPos);
+				coveredDistance = 0;
+				path = path[1..$];
+
+				getTargetDir();
+			}
+			else
+			{
+				realPos += move;
+			}
+		}
+	}
+	bool approach(atom_t usable)
+	{
+		if(!room.has(usable))
+		{
+			return false;
+		}
+		else
+		{
+			return approach(room.usablePos(usable));
+		}
 	}
 
 	bool approach(ivec2 target)
@@ -75,54 +159,30 @@ struct Actor
 				sequence.loopFinalAnimation = true;
 				sequence.restart();
 			}
+			state = State.inProgress;
 		}
-		else
-		{
-			sequence.clear();
-			sequence.add("IdleStanding");
-			sequence.loopFinalAnimation = true;
-			sequence.restart();
-		}
-		status = ActionState.inProgress;
 		return res;
 	}
 
-	void update(float delta)
+	private void start()
 	{
-		if(status == ActionState.completed)
-			return;
-		if(path.length == 0)
+		printf("Running action: %s/%d\n", PL_atom_chars(currentAction.name), currentAction.arity);
+
+		bool res = false;
+		if(currentAction.name == Action.move)
+			res = approach(currentAction.arguments[1]);
+		else if(currentAction.name == Action.sit)
 		{
-			status = ActionState.completed;
-			coveredDistance = 0;
-			if(sequence.sequence.length == 0)
-			{
-				sequence.add("IdleStanding");
-				sequence.loopFinalAnimation = true;
-				sequence.restart();
-			}
-			return;
-		}
-
-		vec2 dir = vec2(path[0]-gridPos);
-		dir = dir.normalized();
-
-		vec3 move = vec3(dir.x, 0, dir.y)*speed*delta;
-		coveredDistance += speed*delta;
-
-		if(coveredDistance >= targetDistance)
-		{
-			gridPos = path[0];
-			realPos = room.getWorldPosition(gridPos);
-			coveredDistance = 0;
-			path = path[1..$];
-
-			getTargetDir();
+			sequence.clear();
+			sequence.add("Sit");
+			sequence.add("IdleSitting");
+			sequence.restart();
+			state = State.inProgress;
 		}
 		else
-		{
-			realPos += move;
-		}
+			printf("Action not implemented: %s/%d\n", PL_atom_chars(currentAction.name), currentAction.arity);
+		if(!res)
+			state = State.failed;
 	}
 
 	vec3 worldPos()
@@ -133,6 +193,13 @@ struct Actor
 	float facingAngle()
 	{
 		return Grid.dirAngles[direction];
+	}
+
+	void setAction(Action a)
+	{
+		assert(state != State.inProgress);
+		currentAction = a;
+		state = State.starting;
 	}
 
 	private bool getTargetDir()

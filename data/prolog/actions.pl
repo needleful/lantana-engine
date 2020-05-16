@@ -10,15 +10,15 @@
 need(energy, 1).
 need(food, 1).
 
-food(snack, 0.1).
-food(meal, 0.3).
+food(snack, 1).
+food(meal, 3).
 
 item(ingredients).
 item(I) :- food(I, _).
 
 object(chair).
-object(fridge).
-object(oven).
+%object(fridge).
+%object(oven).
 
 contains(fridge, snack).
 contains(fridge, ingredients).
@@ -29,17 +29,17 @@ contains(fridge, ingredients).
 action(	cook,
 		state(standing, at(oven), holding(ingredients), G),+
 		state(standing, at(oven), holding(meal), G),
-		[(energy, -1)]).
+		[(energy, -10)]).
 
 action(	sit,
 		state(standing, at(chair), H, _),
 		state(sitting, at(chair), H, gained(energy)),
-		[(energy, 2)]).
+		[(energy, 20)]).
 
 action( stand,
 		state(sitting, A, H, G),
 		state(standing, A, H, G),
-		[(energy, -0.2)]).
+		[(energy, -3)]).
 
 action(	drop(I),
 		state(standing, A, holding(I), G),
@@ -50,17 +50,17 @@ action(	drop(I),
 action(	move(Source, Destination),
 		state(standing, at(Source), H, G),
 		state(standing, at(Destination), H, G),
-		[(energy, -0.1)]
+		[(energy, -2)]
 	) :- object(Destination), (Source = nil; object(Source)), Source \= Destination.
 
 action(	eat(F), 
 		state(S, A, holding(F), _), 
 		state(S, A, holding(nil), gained(food)), 
-		[(food, Value), (energy, -0.1)]
+		[(food, Value), (energy, -1)]
 	) :- food(F, Value).
 
 action(	get(I),
 		state(S, at(O), holding(nil), G),
 		state(S, at(O), holding(I), G),
-		[(energy, -0.1)]
+		[(energy, -1)]
 	) :- item(I), object(O), contains(O, I).

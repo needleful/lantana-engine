@@ -7,6 +7,7 @@ module game.map;
 import std.math: abs;
 
 import gl3n.linalg: vec2, vec3;
+import swi.prolog : atom_t;
 
 import lantana.ai.search;
 import lantana.types : RealSize, ivec2, Bitfield, Region;
@@ -424,6 +425,12 @@ struct Room
 	// The backing grid
 	Grid grid;
 
+	// Map of entity ids to position of use location
+	ivec2[atom_t] pos_usables;
+
+	// Facing direction of the entity
+	Grid.Dir[atom_t] dir_usables;
+
 	// Position (0,0) of the grid in world space
 	vec3 center;
 
@@ -442,6 +449,34 @@ struct Room
 	vec3 getWorldPosition(ivec2 p_gridPos)
 	{
 		return center + vec3(p_gridPos.x, 0, p_gridPos.y); 
+	}
+
+	bool has(atom_t entity)
+	{
+		return (entity in pos_usables) !is null;
+	}
+
+	ivec2 usablePos(atom_t object)
+	{
+		if(object !in pos_usables)
+			return ivec2(0,0);
+		return pos_usables[object];
+	}
+
+	Grid.Dir usableDir(atom_t object)
+	{
+		if(object !in dir_usables)
+			return Grid.Dir.UP;
+		else
+			return dir_usables[object];
+	}
+
+	void addUsable(string name, ivec2 position, Grid.Dir direction)
+	{
+		import swi.prolog : PL_new_atom_nchars;
+		atom_t atom = PL_new_atom_nchars(name.length, name.ptr);
+		dir_usables[atom] = direction;
+		pos_usables[atom] = position + Grid.dirs[direction];
 	}
 }
 

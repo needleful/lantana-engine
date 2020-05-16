@@ -183,9 +183,22 @@ final class SceneManager
 				return transform;
 			}
 
-			if(i in scl.bipples)
+			if(i in scl.usables)
 			{
-				ecs.get!Bipples.add(Bipple(scl.bipples[i]));
+				ivec2 pos;
+				Grid.Dir dir;
+				
+				if(i !in scl.gridPos)
+					writefln("SCN_WARNING usable `%s` has no gridPos, using origin.", scl.usables[i]);
+				else
+					pos = scl.gridPos[i];
+				
+				if(i in scl.actors)
+					dir = scl.actors[i];
+				else if(i in scl.props)
+					dir = scl.props[i];
+
+				room.addUsable(scl.usables[i], pos, dir);
 			}
 
 			if(i in scl.actors)
@@ -216,7 +229,18 @@ final class SceneManager
 					auto inst = stInstances.place(stat[st], Transform(1));
 					ecs.get!ActorTransforms.add(a, &(inst.transform));
 				}
+				
+				if(i in scl.bipples)
+				{
+					auto b = ecs.get!Bipples.add(Bipple(scl.bipples[i]));
+					b.actor = a;
+				}
 			}
+			else if(i in scl.bipples)
+			{
+				ecs.get!Bipples.add(Bipple(scl.bipples[i]));
+			}
+
 			if(i in scl.props)
 			{
 				if(i in scl.gridPos)
@@ -268,6 +292,7 @@ struct SceneLoader
 	string[uint] animatedInstances;
 	Grid.Dir[uint] actors;
 	Grid.Dir[uint] props;
+	string[uint] usables;
 	ivec2[uint] gridPos;
 	vec3[uint] worldPos;
 	float[uint] scales;
@@ -436,6 +461,12 @@ struct SceneLoader
 					scl.scales[scl.entityCount] = s;
 				else
 					scl.scales[scl.entityCount] = si;
+			}
+
+			string usable = e.getTagValue("usable", "");
+			if(usable != "")
+			{
+				scl.usables[scl.entityCount] = usable;
 			}
 			scl.entityCount++;
 		}
