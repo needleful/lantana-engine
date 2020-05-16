@@ -4,10 +4,11 @@
 
 module swi.experimental;
 
+public import swi.prolog;
+
+import std.format;
 import std.stdio;
 import std.string;
-
-import swi.prolog;
 
 struct Predicate
 {
@@ -72,6 +73,7 @@ struct Query
 struct Term
 {
 	term_t term;
+	alias term this;
 
 	static Term variable() @nogc nothrow
 	{
@@ -85,6 +87,21 @@ struct Term
 	{
 		Term t;
 		t.term = PL_new_term_ref();
+		return t;
+	}
+
+	static Term args(int count) @nogc nothrow
+	{
+		Term t;
+		t.term = PL_new_term_refs(count);
+		return t;
+	}
+
+	static Term nil() @nogc nothrow
+	{
+		Term t;
+		t.term = PL_new_term_ref();
+		PL_put_nil(t);
 		return t;
 	}
 
@@ -299,6 +316,28 @@ struct Term
 				break;
 		}
 	}
+}
+
+template typeToPL(T)
+{
+	static if(is(T == atom_t))
+		enum typeToPL = PL_ATOM;
+	else static if(is(T == int) || is(T == long))
+		enum typeToPL = PL_INTEGER;
+	else static if(is(T == float) || is(T == double))
+		enum typeToPL = PL_FLOAT;
+	else static if(is(T == char*))
+		enum typeToPL = PL_STRING;
+	else static if(is(T == typeof(null)))
+		enum typeToPL = PL_NIL;
+	else static if(is(T == functor_t))
+		enum typeToPL = PL_FUNCTOR;
+	else static if(is(T == int))
+		enum typeToPL = PL_INTEGER;
+	else static if(is(T== void*))
+		enum typeToPL = PL_POINTER;
+	else
+		static assert(false, format("No support for PL type of %s", T.stringof));
 }
 
 struct Module

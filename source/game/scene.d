@@ -32,8 +32,7 @@ float camSpeed = 60;
 
 final class SceneManager
 {
-	public alias ECSManager = Manager!(Bipples, Actors, Animations, ActorTransforms); 
-	ECSManager ecsManager;
+	public alias ECSManager = Manager!(Bipples, Actors, Animations, ActorTransforms);
 
 	StaticMesh.System staticMeshes;
 	AnimMesh.System animatedMeshes;
@@ -52,11 +51,12 @@ final class SceneManager
 		string currentScene;
 		Room room;
 		OrbitalCamera camera;
+		ECSManager ecs;
 	}
 
 	public this(ref BaseRegion mainMem)
 	{
-		ecsManager = new ECSManager();
+		ecs = new ECSManager();
 		memory = mainMem.provideRemainder();
 
 		staticMeshes = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
@@ -97,7 +97,7 @@ final class SceneManager
 
 	public void update(float p_delta)
 	{
-		ecsManager.update(p_delta);
+		ecs.update(p_delta);
 		animatedMeshes.update(p_delta, anInstances.borrow());
 	}
 
@@ -126,7 +126,7 @@ final class SceneManager
 		staticMeshes.clearMeshes();
 		stInstances.clear();
 		anInstances.clear();
-		ecsManager.clear();
+		ecs.clear();
 		memory.wipe();
 
 		palette = LightPalette("data/palettes/lightPalette.png", memory);
@@ -160,10 +160,10 @@ final class SceneManager
 			stat[name] = staticLoaded[mesh.file][mesh.node];
 		}
 
-		ecsManager.reserve!Bipples(memory, cast(uint)scl.bipples.length);
-		ecsManager.reserve!Actors(memory, cast(uint)scl.actors.length);
-		ecsManager.reserve!ActorTransforms(memory, cast(uint) scl.actors.length);
-		ecsManager.reserve!Animations(memory, cast(uint) scl.actors.length);
+		ecs.reserve!Bipples(memory, cast(uint)scl.bipples.length);
+		ecs.reserve!Actors(memory, cast(uint)scl.actors.length);
+		ecs.reserve!ActorTransforms(memory, cast(uint) scl.actors.length);
+		ecs.reserve!Animations(memory, cast(uint) scl.actors.length);
 
 		for(uint i = 0; i < scl.entityCount; i++)
 		{
@@ -185,7 +185,7 @@ final class SceneManager
 
 			if(i in scl.bipples)
 			{
-				ecsManager.get!Bipples.add(Bipple(scl.bipples[i]));
+				ecs.get!Bipples.add(Bipple(scl.bipples[i]));
 			}
 
 			if(i in scl.actors)
@@ -194,17 +194,17 @@ final class SceneManager
 					writefln("SCN_WARNING actors ignore world position (3 values), use 2 values for grid position");
 
 				ivec2 pos = i in scl.gridPos? scl.gridPos[i] : ivec2(0);
-				auto a = ecsManager.get!Actors.add(Actor(&room, pos));
+				auto a = ecs.get!Actors.add(Actor(&room, pos));
 				a.direction = scl.actors[i];
 
 				if(i in scl.animatedInstances)
 				{
 					string an = scl.animatedInstances[i];
 					auto inst = anInstances.place(anim[an], Transform(1), memory);
-					a.sequence = ecsManager.get!Animations.add(
+					a.sequence = ecs.get!Animations.add(
 						AnimationSequence(&(inst.anim), inst.mesh.animations));
 
-					ecsManager.get!ActorTransforms.add(a, &(inst.transform));
+					ecs.get!ActorTransforms.add(a, &(inst.transform));
 				}
 				else
 				{
@@ -214,7 +214,7 @@ final class SceneManager
 				{
 					string st = scl.staticInstances[i];
 					auto inst = stInstances.place(stat[st], Transform(1));
-					ecsManager.get!ActorTransforms.add(a, &(inst.transform));
+					ecs.get!ActorTransforms.add(a, &(inst.transform));
 				}
 			}
 			if(i in scl.props)

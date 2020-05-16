@@ -4,14 +4,13 @@
 
 module game.prolog_engine;
 
-import swi.experimental;
-import swi.prolog;
+import std.file;
 import std.stdio;
+
+import swi.experimental;
 
 struct PrologInterface
 {
-	import std.file;
-	Module engine;
 	string save_path;
 	
 	@disable this();
@@ -42,8 +41,6 @@ struct PrologInterface
 		{
 			writeln("++ Initialized SWI-Prolog");
 		}
-
-		init_module();
 	}
 
 	bool save()
@@ -71,36 +68,5 @@ struct PrologInterface
 	~this()
 	{
 		PL_halt(PL_toplevel() ? 0 : 1);
-	}
-
-	/+++++++++++++++++++++++++++++++++++++++++++++
-	+          Engine Module Predicates          +
-	+                                            +
-	+ Foreign predicates that can be called from +
-	+ Prolog. Must match the ForeignPredicate or +
-	+ ForeignPredicateVariadic templates defined +
-	+ in the module `swi.experimental`           +
-	+                                            +
-	+ The predicates are all avaliable in the    +
-	+ "engine" module in Prolog                  +
-	++++++++++++++++++++++++++++++++++++++++++++++/
-
-	void init_module()
-	{
-		engine = Module("engine");
-		engine.addPredicates!(dummy)();
-	}
-
-	@variadic(2)
-	static extern(System) foreign_t dummy(term_t t0, int arity, void* context) @nogc nothrow
-	{
-		printf("engine:dummy/%d(", arity);
-
-		Term.print(t0);
-		printf(", ");
-		Term.print(t0+1);
-		puts(")");
-
-		return TRUE;
 	}
 }

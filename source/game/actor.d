@@ -13,6 +13,13 @@ import lantana.types : ivec2;
 
 import game.map;
 
+struct ActionState
+{
+	start,
+	inProgress,
+	completed
+}
+
 struct Actor
 {
 	// Walking speed in meters per second
@@ -39,12 +46,16 @@ struct Actor
 	// Current direction
 	Grid.Dir direction;
 
+	// State of the current action
+	ActionState status;
+
 	this(Room* p_room, ivec2 p_gridPos = ivec2(0))
 	{
 		gridPos = p_gridPos;
 		coveredDistance = 0;
 		room = p_room;
 		realPos = room.getWorldPosition(gridPos);
+		status = ActionState.completed;
 	}
 
 	bool approach(ivec2 target)
@@ -72,13 +83,17 @@ struct Actor
 			sequence.loopFinalAnimation = true;
 			sequence.restart();
 		}
+		status = ActionState.inProgress;
 		return res;
 	}
 
 	void update(float delta)
 	{
+		if(status == ActionState.completed)
+			return;
 		if(path.length == 0)
-		{	
+		{
+			status = ActionState.completed;
 			coveredDistance = 0;
 			if(sequence.sequence.length == 0)
 			{

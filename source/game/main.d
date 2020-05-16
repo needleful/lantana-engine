@@ -8,15 +8,18 @@ version(lantana_game):
 import std.format;
 import std.stdio;
 
-import gl3n.linalg : vec2;
+import gl3n.linalg;
 
+import game.bipple;
+import game.prolog_engine;
 import game.scene;
+import game.systems;
 
 import lantana.input;
 import lantana.math;
 import lantana.render;
-import lantana.types.layout;
-import lantana.types.memory;
+import lantana.types;
+import lantana.ui;
 
 // Force the game to run on main() instead of WinMain()
 enum forcedMain = true;
@@ -27,10 +30,51 @@ int runGame()
 {
 	Window window = Window(1280, 720, "Bipples");
 	window.grabMouse(false);
+
+	PrologInterface pl = PrologInterface("Bipples", "data/prolog/brain.save", "data/prolog/brain.pl");
+	scope(exit) pl.save();
+	Bipple.engine = new BippleEngine();
+
+	UIRenderer ui = new UIRenderer(window.getSize(), window.getDPI());
+	with(ui.style)
+	{
+		button.normal = ui.loadSprite("data/ui/sprites/rect-interact-normal.png");
+		button.pressed = ui.loadSprite("data/ui/sprites/rect-interact-clicked.png");
+		button.focused = ui.loadSprite("data/ui/sprites/rect-interact-focus.png");
+		button.mesh = new PatchRectStyle(button.normal, Pad(6));
+		button.pad = Pad(8, 8, 12, 12);
+		
+		panel.sprite = ui.addSinglePixel(color(196, 247, 255));
+		panel.mesh = new SpriteQuadStyle(panel.sprite);
+
+		scrollbar.width = cast(ubyte)(ui.getDPI().x/5.75);
+		scrollbar.trough.sprite = ui.addSinglePixel(color(0, 148, 255, 128));
+		scrollbar.trough.mesh = new SpriteQuadStyle(scrollbar.trough.sprite);
+		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
+		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
+
+		defaultFont = ui.loadFont("data/ui/fonts/ClearSans.ttf", 13);
+		defaultFontColor = vec3(0.8, 0.8, 0.8);
+	}
+
+	string statusFormat = "\n%.02f\n%.02f";
+	TextBox bippleStatus = new TextBox("", 10);
+	ui.setRootWidget(
+		new Anchor(
+			new HBox([
+					new TextBox("Status\nFood:\nEnergy:"),
+					bippleStatus
+				],
+				8
+			),
+			vec2(.95, .95),
+			vec2(1, 1)
+		)
+	);
+	ui.initialize();
+
 	Input input = Input();
-
 	auto mainMem = BaseRegion(MAIN_MEM_LIMIT);
-
 	auto scene = new SceneManager(mainMem);
 	scene.load("data/scenes/test.sdl");
 
@@ -43,6 +87,7 @@ int runGame()
 		if(window.state[WindowState.RESIZED])
 		{
 			RealSize ws = window.getSize();
+			ui.setSize(ws);
 			scene.camera.setProjection(ws.width/cast(float)ws.height, camFOV);
 		}
 
@@ -74,8 +119,17 @@ int runGame()
 
 		scene.update(delta);
 
+		with(scene.ecs.get!Bipples[0])
+		{
+			bippleStatus.setText(format(statusFormat, needs[0].value, needs[1].value));
+		}
+
+		ui.updateInteraction(delta, &input);
+		ui.updateLayout();
+
 		window.beginFrame();
 		scene.render();
+		ui.render();
 		window.endFrame();
 	}
 

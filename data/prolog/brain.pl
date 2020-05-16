@@ -1,18 +1,18 @@
 % brain.pl contains predicates for solving problems through actions.
 
-:- module(brain, [fulfill/3]).
+:- module(brain, [fulfill/4]).
 :- use_module(desires).
-:- use_module(environment).
+:- use_module(actions).
 
 %-----------------------------------------------------%
 %   Fulfill is the most important predicate here.
 %   It unifies a starting state, target goal, and
-%   a set of actions to achieve that goal (Plan).
+%   a set of actions to achieve that goal.
 %-----------------------------------------------------%
-fulfill(Start, Target, (State, Cost, Plan)) :-
-	Start = (state(_, _, _, _), D),
-	is_dict(D, desires),
-	search((Start, [], [], 0, 1.0Inf), Target, (State, RPlan, Cost)),
+fulfill(State, Desires, Target, Plan) :-
+	State = state(_, _, _, _),
+	compound_to_dict(Desires, DesireDict),
+	search(((State, DesireDict), [], [], 0, 1.0Inf), Target, (_, RPlan, _)),
 	reverse(RPlan, Plan).
 
 search(((State, Desires), RunningStates, RunningActions, Count, KnownMin), TargetState, Results) :-

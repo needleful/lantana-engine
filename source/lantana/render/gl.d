@@ -38,6 +38,8 @@ void glcheck() @nogc
 				return "Invalid Framebuffer Operation";
 			case GL_OUT_OF_MEMORY:
 				return "Out of Memory";
+			case 1282:
+				return "Invalid Operation";
 			default:
 				return "Unknown Error";
 		}

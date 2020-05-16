@@ -22,6 +22,7 @@ entity {
 	prop direction="LEFT"
 	position 3 4
 	mesh-instance "chair1"
+	usable "chair"
 }
 
 entity {

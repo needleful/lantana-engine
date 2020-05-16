@@ -35,6 +35,11 @@ mixin template OwnerSystem(Component)
 	{
 		components.clear();
 	}
+
+	ref Component opIndex(uint index)
+	{
+		return components[index];
+	}
 }
 
 @System(Actor.stringof)
