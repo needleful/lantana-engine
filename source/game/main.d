@@ -8,6 +8,7 @@ version(lantana_game):
 import std.format;
 import std.stdio;
 
+import bindbc.sdl;
 import gl3n.linalg;
 
 import game.bipple;
@@ -81,6 +82,9 @@ int runGame()
 	bool orbit = false;
 	enum uiUpdateTime = 1;
 	float uiUpdateTimer = uiUpdateTime;
+
+	bool followActor = true;
+	
 	while(!window.state[WindowState.CLOSED])
 	{
 		window.pollEvents(&input);
@@ -118,6 +122,17 @@ int runGame()
 			zoom = 1;
 		}
 		scene.camera.distance *= zoom;
+
+		if(input.keyboard.isJustPressed(SDL_SCANCODE_TAB))
+			followActor = !followActor;
+		if(input.keyboard.isJustPressed(SDL_SCANCODE_R))
+			scene.camera.target = vec3(0);
+
+		if(followActor)
+		{
+			with(scene.ecs.get!Actors[0])
+				scene.camera.target = worldPos() + vec3(0, -0.8, 0);
+		}
 		// end camera controls
 
 		scene.update(delta);

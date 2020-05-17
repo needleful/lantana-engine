@@ -51,7 +51,7 @@ struct Bipple
 	{
 		needs[] =  [
 			need(ushort.max, 0, 90),
-			need(100, 1, 85)
+			need(100, 1, 90)
 		];
 
 		plan = [];
