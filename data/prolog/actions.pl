@@ -8,10 +8,10 @@
 	]).
 
 need(energy, 1).
-need(food, 1).
+need(food, 1.5).
 
-food(snack, 1).
-food(meal, 3).
+food(snack, 5).
+food(meal, 10).
 
 item(ingredients).
 item(I) :- food(I, _).
