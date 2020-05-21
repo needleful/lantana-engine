@@ -358,7 +358,7 @@ struct GLBNode
 	vec3 scale;
 	quat rotation;
 	// -1 means it has no parent
-	byte parent;
+	short parent;
 
 	mat4 computeMatrix() 
 	{

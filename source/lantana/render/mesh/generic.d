@@ -277,6 +277,12 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			GLBNode[] bones;
 			GLBAnimation[] animations;
 			mat4[] inverseBindMatrices;
+			FixedMap!(string, ushort) boneIndex;
+
+			GLBNode getBone(string name)
+			{
+				return bones[boneIndex[name]];
+			}
 		}
 
 		ubyte[] data;
@@ -299,6 +305,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 				auto ibmStart = p_data.inverseBindMatrices.byteOffset;
 				auto ibmEnd = p_data.inverseBindMatrices.byteLength;
 				inverseBindMatrices = (cast(mat4*) &p_bytes[ibmStart])[0..ibmEnd/mat4.sizeof];
+				boneIndex = p_data.boneIndex;
 			}
 
 			glcheck();

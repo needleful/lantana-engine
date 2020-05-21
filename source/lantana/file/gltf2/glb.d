@@ -33,6 +33,7 @@ struct GLBLoadResults(Spec)
 		{
 			GLBAnimation[] animations;
 			GLBNode[] bones;
+			FixedMap!(string, ushort) boneIndex;
 			GLBBufferView inverseBindMatrices;
 		}
 		Spec.accessor accessor;
@@ -157,12 +158,16 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 			result.inverseBindMatrices = GLBBufferView(access[ibm_index], bufferViews);
 			auto joints = skin["joints"].array();
 			result.bones = p_alloc.makeList!GLBNode(joints.length);
+			result.boneIndex = FixedMap!(string, ushort)(p_alloc, cast(uint)joints.length);
 
 			idx = 0;
 			foreach(joint; joints)
 			{
 				long node_idx = joint.integer();
 				auto node = nodes[node_idx];
+
+				string name = p_alloc.copy(node["name"].str());
+				result.boneIndex[name] = cast(ushort)idx;
 
 				result.bones.place(idx++, node);
 

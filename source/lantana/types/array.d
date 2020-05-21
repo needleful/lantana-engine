@@ -45,7 +45,7 @@ void insert(Type)(ref Type[] list, ulong index, Type value)
 {
 	list.length += 1;
 
-	for(size_t i = list.length - 1; i > index; i--)
+	for(uint i = list.length - 1; i > index; i--)
 	{
 		list[i] = list[i-1];
 	}
@@ -62,7 +62,7 @@ enum Compare
 // Binary search
 // If returns true, index is the index of the value
 // if returns false, index is a place to insert the item to be sorted
-bool binarySearch(Type, alias fn)(ref Type[] list, Type value, out size_t index)
+bool binarySearch(alias fn, T, U)(T list, U value, out size_t index)
 	if(is( typeof(fn(value, list[0])) == Compare ))
 {
 	auto search = list;
@@ -88,7 +88,7 @@ bool binarySearch(Type, alias fn)(ref Type[] list, Type value, out size_t index)
 		}
 	}
 
-	foreach(id, ref Type v2; search)
+	foreach(id, ref v2; search)
 	{
 		auto c = fn(value, v2);
 

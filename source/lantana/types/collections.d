@@ -396,19 +396,11 @@ struct SOA(Type)
 		mixin(format("%s[] %s;", type.stringof, fieldNames[i]));
 	}
 
-	void opDispatch(string func)()
+	void opDispatch(string func, A...)(A args)
 	{
 		static foreach(field; fieldNames)
 		{
-			mixin(format("%s.%s();", field, func));
-		}
-	}
-
-	void opDispatch(string func, T)(T val)
-	{
-		static foreach(field; fieldNames)
-		{
-			mixin(format("%s.%s(val);", field, func));
+			mixin(format("%s.%s(args);", field, func));
 		}
 	}
 
