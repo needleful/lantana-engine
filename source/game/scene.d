@@ -34,6 +34,7 @@ final class SceneManager
 {
 	public alias ECSManager = Manager!(Bipples, Actors, Animations, ActorTransforms);
 
+public:
 	StaticMesh.System staticMeshes;
 	AnimMesh.System animatedMeshes;
 
@@ -46,13 +47,11 @@ final class SceneManager
 
 	SubRegion memory;
 
-	public
-	{
-		string currentScene;
-		Room room;
-		OrbitalCamera camera;
-		ECSManager ecs;
-	}
+	string currentScene;
+	Room room;
+	OrbitalCamera camera;
+	ECSManager ecs;
+
 
 	public this(ref BaseRegion mainMem)
 	{
@@ -173,12 +172,12 @@ final class SceneManager
 				Transform transform = Transform(s);
 
 				if(i in scl.props)
-					transform._rotation.y = Grid.dirAngles[scl.props[i]];
+					transform.rotateDegrees(0, Grid.dirAngles[scl.props[i]], 0);
 
 				if(i in scl.gridPos)
-					transform._position = room.getWorldPosition(scl.gridPos[i]);
+					transform.translate(room.getWorldPosition(scl.gridPos[i]));
 				else if(i in scl.worldPos)
-					transform._position = scl.worldPos[i];
+					transform.translate(scl.worldPos[i]);
 
 				return transform;
 			}
@@ -287,6 +286,8 @@ struct SceneLoader
 
 	uint[string] files;
 	
+	// Map of named entities
+	uint[string] entities;	
 	// Each of these takes an entity as key
 	string[uint] staticInstances;
 	string[uint] animatedInstances;

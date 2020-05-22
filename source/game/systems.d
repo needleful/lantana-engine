@@ -4,11 +4,13 @@
 
 module game.systems;
 
+import gl3n.linalg : vec3;
+
 import lantana.ecs.core;
 import lantana.math: Transform;
 import lantana.types.array;
 import lantana.types.memory : OwnedList;
-import lantana.render.mesh.animation : AnimationSequence;
+import lantana.render.mesh.animation;
 import game.actor;
 import game.bipple;
 
@@ -82,8 +84,10 @@ struct ActorTransforms
 	{
 		foreach(ref c; components)
 		{
-			c.actorTransform._rotation.y = c.actor.facingAngle();
-			c.actorTransform._position = c.actor.worldPos();
+			vec3 r = c.actorTransform.rotation();
+
+			c.actorTransform.setRotation(vec3(r.x, c.actor.facingAngle(), r.z));
+			c.actorTransform.setPosition(c.actor.worldPos());
 		}
 	}
 

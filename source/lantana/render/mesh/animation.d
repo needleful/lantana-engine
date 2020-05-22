@@ -279,3 +279,25 @@ struct AnimationSequence
 		}
 	}
 }
+
+/// Overlay an animation on top of a sequence, weighting the results on bones
+struct AnimationOverlay
+{
+	// 0 for the sequence, 1 for the overlay
+	float[] weights;
+	AnimationSequence* base;
+	AnimationInstance* overlay;
+
+	void clearOverlay()
+	{
+		weights[] = 0;
+	}
+
+	void update()
+	{
+		foreach(i, ref node; base.instance.bones)
+		{
+
+		}
+	}
+}

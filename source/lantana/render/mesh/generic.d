@@ -189,8 +189,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			foreach(ref inst; p_instances)
 			{
 				glcheck();
-				inst.transform.computeMatrix();
-				mat.setUniform(un.i_transform(), inst.transform.matrix);
+				mat.setUniform(un.i_transform(), inst.transform.computeMatrix());
 
 				static if(Spec.isAnimated)
 				{
