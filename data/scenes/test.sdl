@@ -4,6 +4,7 @@ mesh "bipple" animated=true file="data/meshes/bipple-test.glb" node="Body"
 mesh "floor" file="data/meshes/test-world.glb" node="Floor"
 mesh "cube" file="data/meshes/test-world.glb" node="Wall"
 mesh "chair1" file="data/meshes/furniture/chair1.glb" node="Chair"
+mesh "fridge1" animated=true file="data/meshes/furniture/fridge1.glb" node="Fridge"
 
 grid {
 	position 0 0 0
@@ -23,6 +24,13 @@ entity {
 	position 3 4
 	mesh-instance "chair1"
 	usable "chair"
+}
+
+entity {
+	prop direction="LEFT"
+	position 3 3
+	mesh-instance "fridge1"
+	usable "fridge"
 }
 
 entity {

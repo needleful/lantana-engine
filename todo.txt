@@ -12,20 +12,11 @@ Bipple Animations:
 	
 	Turn180RightStanding
 	Turn180LeftStanding
-	
 
-	HoldItem (upper body)
 	EatSnack (upper body)
 	EatMeal (upper body)
 
 	DropItem
-
-	Sit
-	Stand
-
-	IdleSitting
-
-	GetItemFromFridge
 
 	BakeInOven
 
@@ -33,14 +24,11 @@ Bipple Animations:
 	Die (Starvation)
 
 Models (With animations):
-	Fridge:
-		Open, Close
 	Oven:
 		Open, Close
-	Chair:
-		Sit, Stand
 
 Engine:
 	Add basic animation blending
-		Frame interpolation between animations
-		Different animations for different bones
+		Frame interpolation between animations ?
+		Different animations for different bones 
+		Parenting objects to bones
