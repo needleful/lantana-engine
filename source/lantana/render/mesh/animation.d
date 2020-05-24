@@ -116,7 +116,6 @@ public void updateAnimation(float p_delta, ref AnimationInstance inst, GLBNode[]
 		}
 		else
 		{
-			// TODO: interpolate to frame 0 if the animation loops?
 			interp = 0;
 		}
 

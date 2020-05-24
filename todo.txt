@@ -29,6 +29,13 @@ Models (With animations):
 
 Engine:
 	Add basic animation blending
-		Frame interpolation between animations ?
-		Different animations for different bones 
 		Parenting objects to bones
+			Mostly done.  Need a way to separate transforms from the matrix, though
+			How do other games implement transforms?  Translation is pretty easy, but rotations could be way less precise without euler angles.
+			I'll need to look into quaternions more.  They map to matrices pretty cleanly.
+		Frame interpolation between animations?
+		Different animations for different bones
+			I'll need to separate animations from animated meshes.
+			The mesh instance only cares about the bones.  It needs no awareness for how those bones are controlled.
+			Maybe this is the time to create a generic animation system.  I could have each channel separated out as a list of values, and have the keyframes to interpolate between them.  Having animation channels could be much faster if they're templated, instead of the accessors currently in use.
+		
