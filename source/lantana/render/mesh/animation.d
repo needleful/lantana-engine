@@ -14,6 +14,7 @@ import gl3n.linalg;
 import lantana.math.transform;
 import lantana.file.gltf2;
 import lantana.render.mesh.attributes;
+import lantana.types.memory;
 
 struct AnimationInstance
 {
@@ -24,6 +25,15 @@ struct AnimationInstance
 	bool is_updated;
 	bool looping;
 	bool is_playing;
+
+	this(GLBNode[] p_bones, ref Region p_alloc)
+	{
+		boneMatrices = p_alloc.makeList!mat4(p_bones.length);
+		bones = p_alloc.makeList!GLBNode(p_bones.length);
+		bones[0..$] = p_bones[0..$];
+		is_playing = false;
+		time = 0;
+	}
 
 	void pause()
 	{
@@ -279,13 +289,13 @@ struct AnimationSequence
 	}
 }
 
-/// Overlay an animation on top of a sequence, weighting the results on bones
+/// Overlay an animation on top of another, weighted per bone
 struct AnimationOverlay
 {
-	// 0 for the sequence, 1 for the overlay
+	GLBNode[] base;
+	GLBNode[] overlay;
+	// 0 for the base, 1 for the overlay
 	float[] weights;
-	AnimationSequence* base;
-	AnimationInstance* overlay;
 
 	void clearOverlay()
 	{
@@ -294,9 +304,16 @@ struct AnimationOverlay
 
 	void update()
 	{
-		foreach(i, ref node; base.instance.bones)
+		import lantana.math.func;
+		foreach(i, ref b; base)
 		{
-
+			float w = weights[i];
+			with(overlay[i])
+			{
+				b.translation = lerp(b.translation, translation, w);
+				b.scale = lerp(b.scale, scale, w);
+				b.rotation = qlerp(b.rotation, rotation, w);
+			}
 		}
 	}
 }

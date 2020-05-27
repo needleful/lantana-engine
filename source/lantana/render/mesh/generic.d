@@ -363,11 +363,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			{
 				mesh = p_mesh;
 				transform = p_transform;
-				anim.boneMatrices = p_alloc.makeList!mat4(p_mesh.bones.length);
-				anim.bones = p_alloc.makeList!GLBNode(p_mesh.bones.length);
-				anim.bones[0..$] = p_mesh.bones[0..$];
-				anim.is_playing = false;
-				anim.time = 0;
+				anim = AnimationInstance(p_mesh.bones, p_alloc);
 			}
 
 			bool play(string p_anim, bool loop = false)

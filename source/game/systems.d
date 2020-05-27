@@ -19,11 +19,15 @@ mixin template OwnerSystem(Component)
 {
 	alias component = Component;
 	Component[] components;
+
 	void update(float delta)
 	{
 		foreach(ref c; components)
 		{
-			c.update(delta);
+			static if(__traits(compiles, c.update(delta)))
+				c.update(delta);
+			else static if(__traits(compiles, c.update()))
+				c.update();
 		}
 	}
 
@@ -60,6 +64,12 @@ struct Animations
 struct Bipples
 {
 	mixin OwnerSystem!Bipple;
+}
+
+@System(AnimationOverlay.stringof)
+struct AnimOverlays
+{
+	mixin OwnerSystem!AnimationOverlay;
 }
 
 @System(Actor.stringof, Transform.stringof)
