@@ -16,11 +16,12 @@ import game.bipple;
 import game.map;
 import game.systems;
 
+import lantana.animation;
 import lantana.ecs.core;
 import lantana.input;
 import lantana.math;
 import lantana.render;
-import lantana.render.mesh.animation : AnimationSequence;
+import lantana.render.mesh.animation;
 import lantana.types.collections : Stack;
 import lantana.types.layout;
 import lantana.types.memory;
@@ -32,7 +33,7 @@ float camSpeed = 60;
 
 final class SceneManager
 {
-	public alias ECSManager = Manager!(Bipples, Actors, Animations, ActorTransforms);
+	public alias ECSManager = Manager!(Bipples, Actors, SkeletalSystem, ActorTransforms);
 
 public:
 	StaticMesh.System staticMeshes;
@@ -60,6 +61,7 @@ public:
 
 		staticMeshes = StaticMesh.System("data/shaders/worldspace3d.vert", "data/shaders/material3d.frag");
 		animatedMeshes = AnimMesh.System("data/shaders/animated3d.vert", "data/shaders/material3d.frag");
+		animatedMeshes.skeletal = &ecs.get!SkeletalSystem();
 		
 		camera = OrbitalCamera(vec3(0), 1280.0/720.0, camFOV, vec2(0, 60));
 		camera.distance = 9;
@@ -162,7 +164,8 @@ public:
 		ecs.reserve!Bipples(memory, cast(uint)scl.bipples.length);
 		ecs.reserve!Actors(memory, cast(uint)scl.actors.length);
 		ecs.reserve!ActorTransforms(memory, cast(uint) scl.actors.length);
-		ecs.reserve!Animations(memory, cast(uint) scl.actors.length);
+		//ecs.reserve!Sequences(memory, cast(uint) scl.actors.length);
+		//ecs.reserve!AnimOverlays(memory, cast(uint) scl.actors.length);
 
 		for(uint i = 0; i < scl.entityCount; i++)
 		{
@@ -212,9 +215,10 @@ public:
 				if(i in scl.animatedInstances)
 				{
 					string an = scl.animatedInstances[i];
-					auto inst = anInstances.place(anim[an], Transform(1), memory);
-					a.sequence = ecs.get!Animations.add(
-						AnimationSequence(&(inst.anim), inst.mesh.animations));
+					auto inst = anInstances.place(anim[an], Transform(1), memory, animatedMeshes);
+					a.meshInst = inst;
+					//a.sequence = ecs.get!Sequences.add(
+					//	AnimationSequence(&(inst.anim), inst.mesh.animations));
 
 					ecs.get!ActorTransforms.add(a, &(inst.transform));
 				}
@@ -258,7 +262,7 @@ public:
 				if(i in scl.animatedInstances)
 				{
 					string an = scl.animatedInstances[i];
-					anInstances.place(anim[an], getTransform(i), memory);
+					anInstances.place(anim[an], getTransform(i), memory, animatedMeshes);
 				}
 			}
 		}

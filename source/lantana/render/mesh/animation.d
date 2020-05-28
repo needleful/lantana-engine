@@ -16,82 +16,7 @@ import lantana.file.gltf2;
 import lantana.render.mesh.attributes;
 import lantana.types.memory;
 
-struct AnimationInstance
-{
-	GLBNode[] bones;
-	mat4[] boneMatrices;
-	const(GLBAnimation)* currentAnimation;
-	float time;
-	bool is_updated;
-	bool looping;
-	bool is_playing;
-
-	this(GLBNode[] p_bones, ref Region p_alloc)
-	{
-		boneMatrices = p_alloc.makeList!mat4(p_bones.length);
-		bones = p_alloc.makeList!GLBNode(p_bones.length);
-		bones[0..$] = p_bones[0..$];
-		is_playing = false;
-		time = 0;
-	}
-
-	void pause()
-	{
-		is_playing = false;
-	}
-
-	void play_current() 
-	{
-		is_playing = true;
-	}
-
-	/// Play an animation
-	/// Returns true if the animation could be started
-	bool playAnimation(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
-	{
-		is_updated = false;
-		foreach(ref a; p_animations)
-		{
-			if(a.name == p_name)
-			{
-				currentAnimation = &a;
-				time = 0;
-				is_playing = true;
-				looping = p_looping;
-				return true;
-			}
-		}
-		debug writeln("Failed to play animation: ", p_name);
-		is_playing = false;
-		return false;
-	}
-
-	bool queueAnimation(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
-	{
-		if(is_playing)
-		{
-			return false;
-		}
-		else 
-		{
-			return playAnimation(p_name, p_animations, p_looping);
-		}
-	}
-
-	void play(GLBAnimation* p_current, bool p_loop = false)
-	{
-		currentAnimation = p_current;
-		is_playing = true;
-		looping = p_loop;
-	}
-
-	void restart(GLBNode[] oldBones) 
-	{
-		time = 0;
-		bones[0..$] = oldBones[0..$];
-	}
-}
-
+/+
 public void updateAnimation(float p_delta, ref AnimationInstance inst, GLBNode[] oldBones, ubyte[] p_data) 
 {
 	inst.time += p_delta;
@@ -198,6 +123,7 @@ public void updateAnimation(float p_delta, ref AnimationInstance inst, GLBNode[]
 		}
 	}
 }
+
 
 /// A struct for composing animations sequentially
 struct AnimationSequence
@@ -317,3 +243,4 @@ struct AnimationOverlay
 		}
 	}
 }
++/

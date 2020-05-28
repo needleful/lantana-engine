@@ -10,7 +10,7 @@ import std.stdio;
 import gl3n.linalg : vec2, vec3;
 import swi.prolog;
 
-import lantana.render.mesh.animation;
+import lantana.render.mesh;
 import lantana.types : ivec2;
 
 import game.map;
@@ -61,7 +61,7 @@ struct Actor
 	Room* room;
 
 	// Sequencing animations for rendering
-	AnimationSequence* sequence;
+	AnimMesh.Instance* meshInst;
 
 	// The actor's position on the room grid
 	ivec2 gridPos;
@@ -91,11 +91,9 @@ struct Actor
 
 	void update(float delta)
 	{
-		if((state == State.idle || state == State.failed) && sequence.sequence.length == 0)
+		if((state == State.idle || state == State.failed))
 		{
-			sequence.add("IdleStanding");
-			sequence.loopFinalAnimation = true;
-			sequence.restart();
+			meshInst.play("IdleStanding", true);
 			return;
 		}
 		else if(state == State.starting)
@@ -154,10 +152,7 @@ struct Actor
 		{
 			if(!getTargetDir())
 			{
-				sequence.clear();
-				sequence.add("Walk");
-				sequence.loopFinalAnimation = true;
-				sequence.restart();
+				meshInst.play("Walk", true);
 			}
 			state = State.inProgress;
 		}
@@ -171,25 +166,7 @@ struct Actor
 			res = approach(currentAction.arguments[1]);
 		else if(currentAction.name == Action.sit)
 		{
-			writeln("Sitting");
-			direction = Grid.inverseDirIter[room.usableDir("chair")];
-			sequence.clear();
-			sequence.add("Sit");
-			sequence.add("IdleSitting", 0, 10);
-			sequence.onTransition = (int c) {
-				if(c == 0)
-				{
-					writeln("Sat down");
-					gridPos += Grid.dirs[direction];
-					realPos = room.getWorldPosition(gridPos);
-					direction = Grid.inverseDirIter[direction];
-				}
-				if(c == 1)
-				{
-					state = State.idle;
-				}
-			};
-			sequence.restart();
+			meshInst.play("Sit");
 			state = State.inProgress;
 			res = true;
 		}
@@ -218,7 +195,6 @@ struct Actor
 
 	private bool getTargetDir()
 	{
-		sequence.loopFinalAnimation = true;
 		if(path.length == 0)
 			return false;
 
@@ -237,17 +213,7 @@ struct Actor
 			turn = (turn + sgn(turn)*180) % 360 - sgn(turn)*180;
 
 			import std.format;
-			with(sequence)
-			{
-				clear();
-				add(format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left"));
-
-				// Sync animation to start on other foot, depending on the last frame of the turning animation
-				if(abs(turn) >= 134) turn *= -1; // Flip sign for wide turns
-				float stime = (turn < 0) ? 0 : (8/30.0);
-				add("Walk", stime);
-				restart();
-			}
+			meshInst.play(format("Turn%s%s", abs(turn), turn < 0? "Right" : "Left"));
 			return true;
 		}
 		return false;

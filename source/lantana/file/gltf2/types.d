@@ -222,7 +222,7 @@ struct GLBBufferView
 	GLBDataType dataType;
 	GLBComponentType componentType;
 
-	const immutable(T[]) asArray(T)(ubyte[] p_buffer)
+	T[] asArray(T)(ubyte[] p_buffer)
 	{
 		debug import std.format;
 		debug assert(dataType.isCompatible!T(), format("Incompatible dataType: %s!%s versus %s", 

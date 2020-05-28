@@ -182,6 +182,7 @@ struct OwnedList(Type)
 	void insert(uint index, Type value)
 	{
 		assert(m_length + 1 <= m_capacity, "List Capacity exceeded");
+		m_length++;
 		for(uint i = m_length; i > index; i--)
 		{
 			m_ptr[i] = m_ptr[i-1];
@@ -228,12 +229,19 @@ struct FixedMap(Key, Value)
 		return m_entries.borrow();
 	}
 
+	public bool opBinaryRight(string op)(Key key)
+		if(op == "in")
+	{
+		size_t i;
+		return binarySearch!keyCmp(entries, key, i);
+	}
+
 	ref Value opIndex(Key key)
 	{
 		size_t index;
 		bool res = binarySearch!keyCmp(entries, key, index);
 
-		assert(res);
+		assert(res, "Mising key in fixed map");
 		return entries[index].value;
 	}
 
@@ -380,6 +388,13 @@ struct Region
 	}
 
 	T[] copyList(T)(immutable(T)[] p_list)
+	{
+		auto newList = makeList!T(p_list.length);
+		newList.readData(p_list);
+		return newList;
+	}
+
+	T[] copyMutList(T)(T[] p_list)
 	{
 		auto newList = makeList!T(p_list.length);
 		newList.readData(p_list);

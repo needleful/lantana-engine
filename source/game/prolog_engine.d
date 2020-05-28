@@ -19,6 +19,7 @@ struct PrologInterface
 	{
 		char*[] argv = [
 			cast(char*) appName.ptr,
+			cast(char*) "-q",
 			cast(char*) "-g",
 			cast(char*) "true",
 			cast(char*) "-t",
@@ -30,7 +31,7 @@ struct PrologInterface
 		save_path = p_save_path;
 		if(save_path.exists)
 		{
-			argv ~= [cast(char*) "-x", cast(char*) save_path];
+			//argv ~= [cast(char*) "-x", cast(char*) save_path];
 		}
 
 		if(!PL_initialise(cast(int) argv.length, argv.ptr))

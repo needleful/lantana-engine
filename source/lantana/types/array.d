@@ -5,6 +5,37 @@
 module lantana.types.array;
 import std.conv : emplace;
 
+
+/// Describes part of an array, marking the start and end
+struct BufferRange
+{
+	uint start;
+	uint end;
+
+	this(int p_start, int p_end)  @safe
+	{
+		start = p_start;
+		end = p_end;
+	}
+
+	void clear()   @safe
+	{
+		start = uint.max;
+		end = uint.min;
+	}
+
+	void apply(BufferRange rhs)  @safe
+	{
+		apply(rhs.start, rhs.end);
+	}
+
+	void apply(uint p_start, uint p_end)  @safe
+	{
+		start = start < p_start? start : p_start;
+		end = end > p_end? end : p_end;
+	}
+}
+
 /// Linearly search a list for an item
 /// return the index or -1 if the item wasn't in the list
 long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
@@ -67,6 +98,7 @@ bool binarySearch(alias fn, T, U)(T list, U value, out size_t index)
 {
 	auto search = list;
 	size_t start = 0;
+
 	while(search.length > 4)
 	{
 		size_t pivot = search.length/2;
@@ -103,7 +135,7 @@ bool binarySearch(alias fn, T, U)(T list, U value, out size_t index)
 			return true;
 		}
 	}
-	index = list.length;
+	index = start + search.length;
 	return false;
 }
 

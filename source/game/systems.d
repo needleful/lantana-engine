@@ -54,11 +54,11 @@ struct Actors
 	mixin OwnerSystem!Actor;
 }
 
-@System(AnimationSequence.stringof)
-struct Animations
-{
-	mixin OwnerSystem!AnimationSequence;
-}
+//@System(AnimationSequence.stringof)
+//struct Sequences
+//{
+//	mixin OwnerSystem!AnimationSequence;
+//}
 
 @System(Bipple.stringof)
 struct Bipples
@@ -66,11 +66,11 @@ struct Bipples
 	mixin OwnerSystem!Bipple;
 }
 
-@System(AnimationOverlay.stringof)
-struct AnimOverlays
-{
-	mixin OwnerSystem!AnimationOverlay;
-}
+//@System(AnimationOverlay.stringof)
+//struct AnimOverlays
+//{
+//	mixin OwnerSystem!AnimationOverlay;
+//}
 
 @System(Actor.stringof, Transform.stringof)
 struct ActorTransforms

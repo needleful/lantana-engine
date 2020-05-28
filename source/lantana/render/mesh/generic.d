@@ -12,6 +12,7 @@ import std.traits: FieldNameTuple;
 import gl3n.interpolate;
 import gl3n.linalg;
 
+import lantana.animation;
 import lantana.file.gltf2;
 import lantana.file.lgbt;
 import lantana.math.transform;
@@ -55,7 +56,7 @@ struct DefaultSettings
 	alias textureType = Color;
 }
 
-template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
+template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings=DefaultSettings)
 {
 	alias texture = Texture!(Settings.textureType);
 
@@ -80,6 +81,10 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 	struct System
 	{
+		static if(Spec.isAnimated)
+		{
+			SkeletalSystem* skeletal;
+		}
 		Spec.attribType atr;
 		OwnedList!Mesh meshes;
 		OwnedList!GLuint vbos;
@@ -136,7 +141,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 						textures.place(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter, false);
 					}
 				}
-				meshes.place(this, mesh, loaded.data, vbo, &textures[$-1]);
+				meshes.place(p_alloc, this, mesh, loaded.data, vbo, &textures[$-1]);
 
 				result[name] = &meshes[$-1];
 			}
@@ -193,7 +198,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 				static if(Spec.isAnimated)
 				{
-					mat.setUniform(un.i_bones(), inst.anim.boneMatrices);
+					mat.setUniform(un.i_bones(), inst.boneMatrices);
 				}
 
 				if(current_vao != inst.mesh.vao)
@@ -221,20 +226,8 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		static if(Spec.isAnimated)
 		void update(float p_delta, Instance[] p_instances) 
 		{
-			glcheck();
-			debug uint inst_id = 0;
 			foreach(ref inst; p_instances)
 			{
-				if(inst.anim.is_updated && !inst.anim.is_playing)
-				{
-					continue;
-				}
-
-				if(inst.anim.is_playing)
-				{
-					updateAnimation(p_delta, inst.anim, inst.mesh.bones, inst.mesh.data);
-				}
-
 				mat4 applyParentTransform(ref GLBNode node, ref GLBNode[] nodes) 
 				{
 					if(node.parent >= 0)
@@ -249,12 +242,11 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 				foreach(ulong i; 0..inst.mesh.bones.length)
 				{
-					inst.anim.boneMatrices[i] = 
-						applyParentTransform(inst.anim.bones[i], inst.anim.bones) 
+					inst.boneMatrices[i] = 
+						applyParentTransform(inst.bones[i], inst.bones) 
 						* inst.mesh.inverseBindMatrices[i].transposed();
 				}
 			}
-			glcheck();
 		}
 
 		void clearMeshes() @nogc
@@ -274,9 +266,10 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		static if(Spec.isAnimated)
 		{
 			GLBNode[] bones;
-			GLBAnimation[] animations;
 			mat4[] inverseBindMatrices;
 			FixedMap!(string, ushort) boneIndex;
+			FixedMap!(string, SkeletalSystem.Bone[]) animations; 
+			System* system;
 
 			GLBNode getBone(string name)
 			{
@@ -289,7 +282,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		texture* tex_albedo;
 		GLuint vao;
 
-		this(ref System p_system, MeshData p_data, ubyte[] p_bytes, GLuint p_vbo, texture* p_texture)
+		this(ref Region p_alloc, ref System p_system, MeshData p_data, ubyte[] p_bytes, GLuint p_vbo, texture* p_texture)
 		{
 			glcheck();
 
@@ -299,8 +292,85 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 			static if(Spec.isAnimated)
 			{
+				system = &p_system;
 				bones = p_data.bones;
-				animations = p_data.animations;
+				animations = FixedMap!(string, SkeletalSystem.Bone[])(p_alloc, cast(uint) p_data.animations.length);
+
+				foreach(const anim; p_data.animations)
+				{
+					animations[anim.name] = p_alloc.makeList!(SkeletalSystem.Bone)(bones.length*3);
+					foreach(ref bone; animations[anim.name])
+					{
+						bone.translation = Animation!vec3.TrackId.invalid;
+						bone.rotation = Animation!quat.TrackId.invalid;
+						bone.scale = Animation!vec3.TrackId.invalid;
+					}
+				}
+				foreach(ref anim; p_data.animations)
+				{
+					foreach(ref channel; anim.channels)
+					{
+						auto times = anim.bufferViews[channel.timeBuffer].asArray!float(p_bytes);
+						auto val = anim.bufferViews[channel.valueBuffer];
+
+						switch(channel.path)
+						{
+							case GLBAnimationPath.TRANSLATION:
+								auto vals = val.asArray!vec3(p_bytes);
+								animations[anim.name][channel.targetBone].translation = p_system.skeletal.vectors.addTrack(vals, times);
+								break;
+							case GLBAnimationPath.SCALE:
+								auto vals = val.asArray!vec3(p_bytes);
+								animations[anim.name][channel.targetBone].scale = p_system.skeletal.vectors.addTrack(vals, times);
+								break;
+							case GLBAnimationPath.ROTATION:
+								void loadRotation(T)()
+								{
+									auto vals = p_alloc.makeList!quat(val.count());
+									auto rot = val.asArray!(Vector!(T, 4))(p_bytes);
+
+									foreach(i, ref v; vals)
+									{
+										v = getQuat(rot[i]);
+									}
+									animations[anim.name][channel.targetBone].rotation = p_system.skeletal.rotations.addTrack(vals, times);
+
+								}
+								switch(val.componentType)
+								{
+									case GLBComponentType.BYTE:
+										loadRotation!byte();
+										break;
+									case GLBComponentType.UNSIGNED_BYTE:
+										loadRotation!ubyte();
+										break;
+									case GLBComponentType.SHORT:
+										loadRotation!short();
+										break;
+									case GLBComponentType.UNSIGNED_SHORT:
+										loadRotation!ushort();
+										break;
+									case GLBComponentType.FLOAT:
+										auto floats = val.asArray!vec4(p_bytes);
+										auto quats = cast(quat[]) floats;
+										foreach(i, ref q; quats)
+										{
+											quat t = getQuat(floats[i]);
+											q = t;
+										}
+										animations[anim.name][channel.targetBone].rotation = p_system.skeletal.rotations.addTrack(quats, times);
+										break;
+									default:
+										break;
+								}
+								break;
+							default:
+								debug writefln("Unsupported animation path: %s", channel.path);
+								break;
+						}
+					}
+				}
+
 				auto ibmStart = p_data.inverseBindMatrices.byteOffset;
 				auto ibmEnd = p_data.inverseBindMatrices.byteLength;
 				inverseBindMatrices = (cast(mat4*) &p_bytes[ibmStart])[0..ibmEnd/mat4.sizeof];
@@ -357,38 +427,128 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		static if(Spec.isAnimated)
 		{
-			AnimationInstance anim;
+			GLBNode[] bones;
+			mat4[] boneMatrices;
+			BufferRange boneLocationPlayers;
+			BufferRange boneRotationPlayers;
+			BufferRange boneScalePlayers;
 
-			this(Mesh* p_mesh, Transform p_transform, ref Region p_alloc) 
+			this(Mesh* p_mesh, Transform p_transform, ref Region p_alloc, ref System p_sys) 
 			{
 				mesh = p_mesh;
 				transform = p_transform;
-				anim = AnimationInstance(p_mesh.bones, p_alloc);
+				boneMatrices = p_alloc.makeList!mat4(p_mesh.bones.length);
+				bones = p_alloc.copyMutList(p_mesh.bones);
+				
+				with(mesh.system.skeletal)			
+				{
+					// bone translation and scale
+					BufferRange v = vectors.allocPlayers(cast(uint) bones.length*2);
+
+					boneLocationPlayers = BufferRange(v.start, v.start + cast(uint) bones.length);
+					boneScalePlayers = BufferRange(boneLocationPlayers.end, boneLocationPlayers.end + cast(uint) bones.length);
+
+					// bone rotations
+					boneRotationPlayers = rotations.allocPlayers(cast(uint) bones.length);
+
+					foreach(i, ref bone; bones)
+					{
+						vectors.players[boneLocationPlayers.start + i].output = &(bone.translation);
+						vectors.players[boneScalePlayers.start + i].output = &(bone.scale);
+						rotations.players[boneRotationPlayers.start + i].output = &(bone.rotation);
+					}
+				}
+
 			}
 
 			bool play(string p_anim, bool loop = false)
 			{
-				return anim.playAnimation(p_anim, mesh.animations, loop);
-			}
+				import std.stdio;
+				if(p_anim !in mesh.animations)
+				{
+					writefln("Unknown animation: %s", p_anim);
+					return false;
+				}
+				writefln("Playing %s", p_anim);
+				SkeletalSystem.Bone[] boneTracks = mesh.animations[p_anim];
 
-			bool queue(string p_anim, bool loop = false)
-			{
-				return anim.queueAnimation(p_anim, mesh.animations, loop);
+				with(mesh.system.skeletal)			
+				{
+					foreach(i, ref bone; bones)
+					{
+						auto t = &vectors.players[boneLocationPlayers.start + i];
+						auto s = &vectors.players[boneScalePlayers.start + i];
+						auto r = &rotations.players[boneRotationPlayers.start + i];
+
+						t.trackId = boneTracks[i].translation;
+						s.trackId = boneTracks[i].scale;
+						r.trackId = boneTracks[i].rotation;
+
+						t.play = true;
+						s.play = true;
+						r.play = true;
+
+						t.loop = loop;
+						s.loop = loop;
+						r.loop = loop;
+
+						t.time = 0;
+						s.time = 0;
+						r.time = 0;
+					}
+				}
+				return true;
 			}
 
 			void pause()
 			{
-				anim.is_playing = false;
+				with(mesh.system.skeletal)			
+				{
+					foreach(i, ref bone; bones)
+					{
+						auto t = &vectors.players[boneLocationPlayers.start + i];
+						auto s = &vectors.players[boneScalePlayers.start + i];
+						auto r = &rotations.players[boneRotationPlayers.start + i];
+
+						t.play = false;
+						s.play = false;
+						r.play = false;
+					}
+				}
 			}
 
 			void resume() 
 			{
-				anim.is_playing = true;
+				with(mesh.system.skeletal)			
+				{
+					foreach(i, ref bone; bones)
+					{
+						auto t = &vectors.players[boneLocationPlayers.start + i];
+						auto s = &vectors.players[boneScalePlayers.start + i];
+						auto r = &rotations.players[boneRotationPlayers.start + i];
+
+						t.play = true;
+						s.play = true;
+						r.play = true;
+					}
+				}
 			}
 
 			void restart()
 			{
-				anim.restart(mesh.bones);
+				with(mesh.system.skeletal)			
+				{
+					foreach(i, ref bone; bones)
+					{
+						auto t = &vectors.players[boneLocationPlayers.start + i];
+						auto s = &vectors.players[boneScalePlayers.start + i];
+						auto r = &rotations.players[boneRotationPlayers.start + i];
+
+						t.time = 0;
+						s.time = 0;
+						r.time = 0;
+					}
+				}
 			}
 		}
 	}

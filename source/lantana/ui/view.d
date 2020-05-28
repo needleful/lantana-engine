@@ -82,37 +82,6 @@ package enum ViewState
 	UVBufferPartial,
 }
 
-/// Describes part of an array, marking the start and end
-/// This is used to describe the bounds of buffers that need to be reloaded.
-package struct BufferRange
-{
-	uint start;
-	uint end;
-
-	this(int p_start, int p_end)  @safe
-	{
-		start = p_start;
-		end = p_end;
-	}
-
-	void clear()   @safe
-	{
-		start = uint.max;
-		end = uint.min;
-	}
-
-	void apply(BufferRange rhs)  @safe
-	{
-		apply(rhs.start, rhs.end);
-	}
-
-	void apply(uint p_start, uint p_end)  @safe
-	{
-		start = start < p_start? start : p_start;
-		end = end > p_end? end : p_end;
-	}
-}
-
 /// Each UIView is responsible for rendering and processing its elements.
 /// A UIView can be the whole window, or contained within a widget such as Scrolled
 public final class UIView

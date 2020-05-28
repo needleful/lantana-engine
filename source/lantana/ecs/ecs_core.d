@@ -80,6 +80,10 @@ final class Manager(Systems...)
 			{
 				s.update();
 			}
+			else
+			{
+				pragma(msg, format("ECS WARNING: No update method for %s", S.stringof));
+			}
 		}}
 	}
 
