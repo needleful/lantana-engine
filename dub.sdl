@@ -5,7 +5,6 @@ license "GPL-3.0"
 
 dependency "bindbc-sdl" version=">=0.13.0"
 versions "SDL_204"
-versions "BindSDL_Mixer"
 
 dependency "derelict-ft" version=">=2.0.0-beta.5 <2.1.0-0"
 dependency "derelict-gl3" version=">=2.0.0-beta <2.1.0-0"
@@ -25,23 +24,4 @@ buildType "release-ultra" {
 	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "stackStomping"
 }
 
-configuration "game" {
-	versions "lantana_game"
-	targetType "executable"
-	targetPath "bin"
-	targetName "game"
-}
-
-configuration "editor" {
-	versions "lantana_editor"
-	targetType "executable"
-	targetPath "bin"
-	targetName "editor"
-}
-
-configuration "converter" {
-	versions "lantana_converter"
-	targetType "executable"
-	targetPath "bin"
-	targetName "converter"
-}
+targetType "library"

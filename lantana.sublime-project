@@ -2,74 +2,34 @@
 	"build_systems":
 	[
 		{
-			"name": "Run Game",
+			"name": "Dub Build Debug",
 			"cmd":
 			[
 				"dub",
 				"run",
-				"--config=game",
 				"--parallel"
 			],
 			"working_dir": "$project_path"
 		},
 		{
-			"name": "Run Game (Release)",
+			"name": "Dub Build Release",
 			"cmd":
 			[
 				"dub",
 				"run",
-				"--config=game",
 				"--build=release-debug",
 				"--parallel"
 			],
 			"working_dir": "$project_path"
 		},
 		{
-			"name": "Run Editor",
-			"cmd":
-			[
-				"dub",
-				"run",
-				"--config=editor",
-				"--parallel"
-			],
-			"working_dir": "$project_path"
-		},
-		{
-			"name": "Build Game",
-			"cmd":
-			[
-				"dub",
-				"build",
-				"--config=game",
-				"--arch=x86_64",
-				"--parallel"
-			],
-			"working_dir": "$project_path"
-		},
-		{
-			"name": "Build (Release)",
+			"name": "Dub Build Release-Ultra",
 			"cmd":
 			[
 				"dub",
 				"build",
 				"--build=release-ultra",
 				"--combined",
-				"--config=game",
-				"--arch=x86_64",
-				"--parallel"
-			],
-			"working_dir": "$project_path"
-		},
-		{
-			"name": "Profile Game",
-			"cmd":
-			[
-				"dub",
-				"build",
-				"--build=profile",
-				"--config=game",
-				"--arch=x86_64",
 				"--parallel"
 			],
 			"working_dir": "$project_path"
@@ -80,13 +40,5 @@
 		{
 			"path": "."
 		},
-	],
-	"settings":
-	{
-		"include_paths":
-		[
-			"/home/devin/OneDrive/Games/experiments/lantana/source/"
-		],
-		"package_file": "/home/devin/OneDrive/Games/experiments/lantana/dub.sdl"
-	}
+	]
 }
