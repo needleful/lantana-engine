@@ -215,6 +215,11 @@ public class Panned : Widget, Interactible
 	RealSize viewSize;
 	InteractibleId pan;
 
+	public this(MultiContainer p_widget)
+	{
+		widget = p_widget;
+	}
+
 	public this(Widget[] widgets)
 	{
 		widget = new HodgePodge(widgets);
@@ -247,6 +252,11 @@ public class Panned : Widget, Interactible
 		view.setInteractSize(pan, viewSize);
 		view.setInteractPosition(pan, p_pen);
 		childView.setRect(Rect(p_pen, viewSize));
+	}
+
+	public ivec2 dragPosition()
+	{
+		return childView.translation;
 	}
 
 	public MultiContainer container()

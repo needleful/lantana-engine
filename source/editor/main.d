@@ -73,7 +73,7 @@ int main()
 	string dialogFile = "";
 	Dialog start;
 
-	void loadEditor(string p_dialog)
+	void loadEditor(string p_dialog, ivec2 position = ivec2(0,0))
 	{
 		Widget[] nodes;
 		dialogFile = p_dialog;
@@ -101,6 +101,7 @@ int main()
 		DialogNode.parent = panned.container;
 
 		ui.setRootWidget(panned);
+		panned.drag(position);
 
 		start = dmap[start_];
 	}
@@ -142,15 +143,23 @@ int main()
 			ui.setSize(ww.getSize());
 		}
 
-		if(ii.keyboard.isJustPressed(SDL_SCANCODE_S) 
-			&& ii.keyboard.isPressed(SDL_SCANCODE_LCTRL)
+		if( ii.keyboard.isPressed(SDL_SCANCODE_LCTRL)
 			&& dialogFile != "")
 		{
-			foreach(node; DialogNode.nodes)
+			if(ii.keyboard.isJustPressed(SDL_SCANCODE_S))
 			{
-				node.updateDialog();
+				foreach(node; DialogNode.nodes)
+				{
+					node.updateDialog();
+				}
+				storeDialog(dialogFile, start);
 			}
-			storeDialog(dialogFile, start);
+			else if(ii.keyboard.isPressed(SDL_SCANCODE_R))
+			{
+				auto root = cast(Panned) ui.getRootWidget();
+				assert(root);
+				loadEditor(dialogFile, root.dragPosition);
+			}
 		}
 
 		ui.updateInteraction(delta, &ii);

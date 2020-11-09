@@ -255,52 +255,9 @@ void uiRun()
 	int responseCount = 0;
 	string firstDate = "3:05 AM";
 	string secondDate = "2:41 PM";
-
-	void dialogCallback(Dialog p_dialog)
+	
+	void showChildren(Dialog p_dialog)
 	{
-		ds.flags["_oxygen"] = g_oxygen;
-		foreach(effect; p_dialog.effects)
-		{
-			if(effect.key !in ds.flags)
-			{
-				ds.flags[effect.key] = 0;
-			}
-			switch(effect.op)
-			{
-				case Effect.Op.Set:
-					ds.flags[effect.key] = effect.value;
-					break;
-				case Effect.Op.Add:
-					ds.flags[effect.key] += effect.value;
-					break;
-				case Effect.Op.Subtract:
-					ds.flags[effect.key] -= effect.value;
-					break;
-				case Effect.Op.Multiply:
-					ds.flags[effect.key] *= effect.value;
-					break;
-				case Effect.Op.Divide:
-					ds.flags[effect.key] /= effect.value;
-					break;
-				default:
-					writefln("WARNING: Unknown op '%s' in effect '%s'", effect.op, effect);
-					break;
-			}
-		}
-
-		ds.current = p_dialog;
-
-		if(responseCount <= 1)
-		{
-			if(responseCount == 0)
-				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~firstDate), Pad(10, -10, 0, 0)));
-			else
-				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~secondDate), Pad(10, -10, 0, 0)));
-		}
-		responseCount ++;
-
-		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
-
 		bool reqsMet(Dialog p_response)
 		{
 			if(p_response.requirements.length == 0)
@@ -352,6 +309,54 @@ void uiRun()
 		{
 			ds.buttons[i].setVisible(false);
 		}
+	}
+
+	void dialogCallback(Dialog p_dialog)
+	{
+		ds.flags["_oxygen"] = g_oxygen;
+		foreach(effect; p_dialog.effects)
+		{
+			if(effect.key !in ds.flags)
+			{
+				ds.flags[effect.key] = 0;
+			}
+			switch(effect.op)
+			{
+				case Effect.Op.Set:
+					ds.flags[effect.key] = effect.value;
+					break;
+				case Effect.Op.Add:
+					ds.flags[effect.key] += effect.value;
+					break;
+				case Effect.Op.Subtract:
+					ds.flags[effect.key] -= effect.value;
+					break;
+				case Effect.Op.Multiply:
+					ds.flags[effect.key] *= effect.value;
+					break;
+				case Effect.Op.Divide:
+					ds.flags[effect.key] /= effect.value;
+					break;
+				default:
+					writefln("WARNING: Unknown op '%s' in effect '%s'", effect.op, effect);
+					break;
+			}
+		}
+
+		ds.current = p_dialog;
+
+		if(responseCount <= 1)
+		{
+			if(responseCount == 0)
+				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~firstDate), Pad(10, -10, 0, 0)));
+			else
+				ds.messageBox.addChild(new Padding(new TextBox(sysFont, "sent "~secondDate), Pad(10, -10, 0, 0)));
+		}
+		responseCount ++;
+
+		ds.messageBox.addChild(new Message("Kitty:", p_dialog.message, kittyColor));
+
+		showChildren(p_dialog);
 		ds.timer = 0;
 		showDialog = false;
 	}
@@ -542,6 +547,17 @@ void uiRun()
 			{
 				uiModal.setMode(1);
 			}
+		}
+
+		if(g_uiInput.keyboard.isPressed(SDL_SCANCODE_LCTRL)
+			&& g_uiInput.keyboard.isJustPressed(SDL_SCANCODE_R))
+		{
+			uint d_current = ds.current.id;
+			uint _s;
+			map = loadDialog(dialogFile, _s);
+			ds.current = map[d_current];
+
+			showChildren(ds.current);
 		}
 
 		if((ds.timer += events.delta) >= ds.current.pauseTime)

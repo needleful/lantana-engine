@@ -292,7 +292,7 @@ dialog 37D {
 	requirements ""
 	effects ""
 	responses 41D 44D 59D
-	edit_position 399 610
+	edit_position 387 607
 }
 dialog 38D {
 	message "im scared.. i dont know what to do"
@@ -324,7 +324,7 @@ dialog 41D {
 	requirements ""
 	effects ""
 	responses 42D 43D 45D
-	edit_position 791 629
+	edit_position 748 665
 }
 dialog 42D {
 	message "wait you cant send replies"
@@ -351,7 +351,7 @@ dialog 44D {
 	edit_position 747 990
 }
 dialog 45D {
-	message "um. i love you"
+	message "i love you"
 	pause 0.75F
 	requirements ""
 	effects ""
@@ -364,7 +364,7 @@ dialog 46D {
 	requirements ""
 	effects ""
 	responses 1D
-	edit_position 1340 974
+	edit_position 1380 959
 }
 dialog 47D {
 	message "i'm not hurt or anything. im sort of floating out here"
@@ -475,7 +475,15 @@ dialog 60D {
 	pause 0.75F
 	requirements ""
 	effects ""
-	responses
-	edit_position 1342 1228
+	responses 61D
+	edit_position 1308 1232
+}
+dialog 61D {
+	message "bardan. the ship exploded"
+	pause 1.25F
+	requirements ""
+	effects ""
+	responses 24D 47D
+	edit_position 1674 985
 }
 start 22D

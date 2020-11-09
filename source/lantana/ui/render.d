@@ -424,6 +424,8 @@ public final class UIRenderer
 
 	public void setRootWidget(Widget p_root)
 	{
+		views.length = 1;
+
 		focused = null;
 		views[0].setRootWidget(p_root);
 	}
@@ -432,6 +434,11 @@ public final class UIRenderer
 	{
 		focused = null;
 		views[0].setRootWidget(new HodgePodge(p_widgets));
+	}
+
+	public Widget getRootWidget()
+	{
+		return views[0].getRootWidget();
 	}
 
 	public void setSize(RealSize p_size) 

@@ -187,6 +187,7 @@ public final class UIView
 
 	public ~this() 
 	{
+		clearData();
 		glDeleteVertexArrays(vao.length, vao.ptr);
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
@@ -342,6 +343,11 @@ public final class UIView
 		root = p_root;
 		root.initialize(renderer, this);
 		invalidated[ViewState.Layout] = true;
+	}
+
+	public Widget getRootWidget()
+	{
+		return root;
 	}
 
 	public UIView addView(Rect p_rect) 
@@ -1119,7 +1125,7 @@ public final class UIView
 		glcheck();
 	}
 
-	private void clearData() 
+	package void clearData() 
 	{
 		textMeshes.clear();
 		elemSprite.clear();
