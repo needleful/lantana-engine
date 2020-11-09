@@ -19,6 +19,94 @@ long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
 	return -1;
 }
 
+void removeAt(Type)(ref Type[] list, ulong index)
+{
+	if(index == 0)
+	{
+		list = list[1..$];
+	}
+	else if(index == list.length - 1)
+	{
+		list = list[0..$-1];
+	}
+	else
+	{
+		auto tail = list[index+1..$];
+		list.length -= 1;
+		for(int i = 0; i < tail.length; i++)
+		{
+			list[index + i] = tail[i];
+		}
+	}
+}
+
+// Insert before the provided index
+void insert(Type)(ref Type[] list, ulong index, Type value)
+{
+	list.length += 1;
+
+	for(uint i = list.length - 1; i > index; i--)
+	{
+		list[i] = list[i-1];
+	}
+	list[index] = value;
+}
+
+enum Compare
+{
+	LT,
+	GT,
+	EQ
+}
+
+// Binary search
+// If returns true, index is the index of the value
+// if returns false, index is a place to insert the item to be sorted
+bool binarySearch(alias fn, T, U)(T list, U value, out size_t index)
+	if(is( typeof(fn(value, list[0])) == Compare ))
+{
+	auto search = list;
+	size_t start = 0;
+	while(search.length > 4)
+	{
+		size_t pivot = search.length/2;
+		auto c = fn(value, search[pivot]);
+
+		if(c == Compare.EQ)
+		{
+			index = start + pivot;
+			return true;
+		}
+		else if(c == Compare.LT)
+		{
+			search = search[0..pivot];
+		}
+		else
+		{
+			start += pivot + 1;
+			search = search[pivot + 1..$];
+		}
+	}
+
+	foreach(id, ref v2; search)
+	{
+		auto c = fn(value, v2);
+
+		if(c == Compare.LT)
+		{
+			index = id + start;
+			return false;
+		}
+		else if(c == Compare.EQ)
+		{
+			index = id + start;
+			return true;
+		}
+	}
+	index = list.length;
+	return false;
+}
+
 void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);

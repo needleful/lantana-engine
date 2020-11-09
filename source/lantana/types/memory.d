@@ -72,11 +72,11 @@ T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
 
 struct OwnedList(Type)
 {
-	private Type* m_ptr;
-	private ushort m_length;
-	private ushort m_capacity;
+	private Type* m_ptr = null;
+	private uint m_length = 0;
+	private uint m_capacity = 0;
 
-	this(Type* p_ptr, ushort p_cap) @nogc nothrow @safe
+	this(Type* p_ptr, uint p_cap) @nogc nothrow @safe
 	{
 		m_ptr = p_ptr;
 		m_capacity = p_cap;
@@ -109,12 +109,12 @@ struct OwnedList(Type)
 		return m_ptr;
 	}
 
-	@property ushort length()  nothrow const @safe
+	@property uint length()  nothrow const @safe
 	{
 		return m_length;
 	}
 
-	@property ushort capacity()  nothrow const @safe
+	@property uint capacity()  nothrow const @safe
 	{
 		return m_capacity;
 	}
@@ -149,11 +149,12 @@ struct OwnedList(Type)
 		m_length += 1;
 	}
 
-	void place(A...)(auto ref A args)
+	Type* place(A...)(auto ref A args)
 	{
 		assert(m_length + 1 <= m_capacity, "Capacity exceeded");
 		emplace!(Type, A)(&m_ptr[m_length], args);
 		m_length += 1;
+		return &m_ptr[m_length-1];
 	}
 
 	@property int opDollar()  const nothrow @safe
@@ -161,12 +162,12 @@ struct OwnedList(Type)
 		return m_length;
 	}
 
-	Type[] borrow() 
+	Type[] borrow() nothrow
 	{
 		return m_ptr[0..m_length];
 	}
 
-	int find(ref Type toFind)
+	int find(ref Type toFind) const nothrow
 	{
 		foreach(i; 0..m_length)
 		{
@@ -176,6 +177,74 @@ struct OwnedList(Type)
 			}
 		}
 		return -1;
+	}
+
+	void insert(uint index, Type value)
+	{
+		assert(m_length + 1 <= m_capacity, "List Capacity exceeded");
+		for(uint i = m_length; i > index; i--)
+		{
+			m_ptr[i] = m_ptr[i-1];
+		}
+		m_ptr[index] = value;
+	}
+}
+
+struct FixedMap(Key, Value)
+{
+	import lantana.types.array;
+
+	struct Entry
+	{
+		Key key;
+		Value value;
+
+		this(Key k, Value v)
+		{
+			key = k;
+			value = v;
+		}
+	}
+
+	private OwnedList!Entry m_entries;
+
+	this(Region p_alloc, uint p_count)
+	{
+		m_entries = p_alloc.makeOwnedList!Entry(p_count);
+	}
+
+	static Compare keyCmp(ref Key a, ref Entry b)
+	{
+		if(a == b.key)
+			return Compare.EQ;
+		else if(a < b.key)
+			return Compare.LT;
+		else
+			return Compare.GT;
+	}
+
+	public Entry[] entries()
+	{
+		return m_entries.borrow();
+	}
+
+	ref Value opIndex(Key key)
+	{
+		size_t index;
+		bool res = binarySearch!keyCmp(entries, key, index);
+
+		assert(res);
+		return entries[index].value;
+	}
+
+	void opIndexAssign(Value value, Key key)
+	{
+		size_t toInsert;
+		bool exists = binarySearch!keyCmp(entries, key, toInsert);
+		if(exists)
+			m_entries[cast(uint)toInsert].value = value;
+		else
+			m_entries.insert(cast(uint)toInsert, Entry(key, value));
 	}
 }
 
@@ -187,7 +256,7 @@ struct BaseRegion
 	this(size_t p_capacity) @nogc
 	{
 		ubyte* data = cast(ubyte*) MmapAllocator.instance.allocate(p_capacity).ptr;
-		//GC.addRange(data, p_capacity);
+		GC.addRange(data, p_capacity);
 
 		assert(data != null, "Failed to get memory for region");
 		region = Region(data, p_capacity);
@@ -199,7 +268,7 @@ struct BaseRegion
 		region.disable();
 
 		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
-		//GC.removeRange(region.data);
+		GC.removeRange(region.data);
 	}
 
 	SubRegion provideRemainder() 
@@ -279,7 +348,7 @@ struct Region
 		return (cast(T*)alloc(T.sizeof*count))[0..count];
 	}
 
-	OwnedList!T makeOwnedList(T)(ushort p_size)
+	OwnedList!T makeOwnedList(T)(uint p_size)
 	{
 		//return OwnedList!T((cast(T*)allocAligned!(AlignT!T)(T.sizeof * p_size)), p_size);
 		return OwnedList!T((cast(T*)alloc(T.sizeof * p_size)), p_size);
@@ -321,6 +390,14 @@ struct Region
 	void wipe() @nogc nothrow
 	{
 		setSpaceUsed(minimumSize);
+	}
+
+	// Wipe all data except for `used` bytes.
+	// Make sure you know what you're doing!
+	void wipeAllBut(size_t used) @nogc nothrow
+	{
+		assert(used >= minimumSize && used <= spaceUsed());
+		setSpaceUsed(used);
 	}
 
 	private void* alloc(size_t bytes) @nogc

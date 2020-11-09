@@ -16,6 +16,49 @@ public auto first(T)(T collection)
 	assert(false, "No elements in the collection");
 }
 
+struct Stack(T)
+{
+	T[] list;
+
+	void reserve(size_t size)
+	{
+		list.reserve(size);
+	}
+
+	bool pop(out T value)
+	{
+		if(list.length == 0)
+			return false;
+
+		value = list[$-1];
+		list.length -= 1;
+		return true;
+	}
+
+	bool pop()
+	{
+		if(list.length == 0)
+			return false;
+		list.length -= 1;
+		return true;
+	}
+
+	void push(T value)
+	{
+		list ~= value;
+	}
+
+	T peek()
+	{
+		return list[$-1];
+	}
+
+	T peek(int d)
+	{
+		return list[$-d];
+	}
+}
+
 /// Create a bitfield from an enum
 /// IMPORTANT: it assumes the enum is tightly packed, e.g it goes 0, 1, 2, etc
 struct Bitfield(Enum)
@@ -63,7 +106,7 @@ struct Bitfield(Enum)
 		data |= mask;
 	}
 
-	public bool opIndex(Enum p_index) @nogc nothrow
+	public bool opIndex(Enum p_index) @nogc nothrow const
 	{
 		dt mask = cast(dt)(1 << p_index);
 		return (data & mask) != 0;
@@ -87,7 +130,7 @@ struct Bitfield(Enum)
 	public void setAll() @nogc nothrow
 	{
 		dt newval = dt.max;
-		data = cast(dt) (newval >>> (bits - Enum.max));
+		data = cast(dt) (newval >>> (bits - (Enum.max + 1)));
 	}
 
 	public void clear() @nogc nothrow
@@ -353,19 +396,11 @@ struct SOA(Type)
 		mixin(format("%s[] %s;", type.stringof, fieldNames[i]));
 	}
 
-	void opDispatch(string func)()
+	void opDispatch(string func, A...)(A args)
 	{
 		static foreach(field; fieldNames)
 		{
-			mixin(format("%s.%s();", field, func));
-		}
-	}
-
-	void opDispatch(string func, T)(T val)
-	{
-		static foreach(field; fieldNames)
-		{
-			mixin(format("%s.%s(val);", field, func));
+			mixin(format("%s.%s(args);", field, func));
 		}
 	}
 
