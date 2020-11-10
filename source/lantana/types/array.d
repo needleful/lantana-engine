@@ -7,7 +7,7 @@ import std.conv : emplace;
 
 /// Linearly search a list for an item
 /// return the index or -1 if the item wasn't in the list
-long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
+long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow 
 {
 	foreach(i, ref val; list)
 	{
@@ -112,7 +112,7 @@ void place(Type, A...)(Type[] list, ulong index, auto ref A args)
 	emplace!(Type, A)(&list[index], args);
 }
 
-void clear(Type)(ref Type[] list) nothrow @safe
+void clear(Type)(ref Type[] list) nothrow 
 {
 	list.length = 0;
 }

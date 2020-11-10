@@ -60,7 +60,7 @@ struct Input
 	}
 
 	// Reset input, for example when re-entering the window
-	void clear() @safe nothrow
+	void clear()  nothrow
 	{
 		mouseMove = vec2(0,0);
 		mouseWheel = ivec2(0,0);

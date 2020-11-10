@@ -84,7 +84,7 @@ bool isCompatible(T)(GLBComponentType p_type) @nogc nothrow
 	}
 }
 
-uint size(GLBComponentType p_type) pure nothrow @nogc @safe
+uint size(GLBComponentType p_type) pure nothrow @nogc 
 {
 	switch(p_type)
 	{
@@ -154,8 +154,7 @@ bool isCompatible(T)(GLBDataType p_type)  nothrow
 }
 
 GLBDataType typeFromString(string p_type) 
-{
-	switch(p_type)
+{	switch(p_type)
 	{
 		case "SCALAR": return GLBDataType.SCALAR;
 		case "VEC2"  : return GLBDataType.VEC2;
@@ -165,7 +164,8 @@ GLBDataType typeFromString(string p_type)
 		case "MAT3"  : return GLBDataType.MAT3;
 		case "MAT4"  : return GLBDataType.MAT4;
 		default: 
-			debug throw new Exception("Invalid GLBDataType name: "~p_type);
+			debug
+				assert(false, "Invalid GLBDataType name: "~p_type);
 			else 
 				return GLBDataType.UNKNOWN;
 	}
@@ -195,7 +195,7 @@ string toString(GLBDataType p_type)
 	}
 }
 
-uint componentCount(GLBDataType p_type) pure nothrow @nogc @safe
+uint componentCount(GLBDataType p_type) pure nothrow @nogc 
 {
 	switch(p_type)
 	{
@@ -250,7 +250,7 @@ struct GLBBufferView
 		return dataType.isCompatible!T() && componentType.isCompatible!T();
 	}
 
-	public uint count() const pure nothrow @nogc @safe
+	public uint count() const pure nothrow @nogc 
 	{
 		return byteLength/(dataType.componentCount()*componentType.size());
 	}

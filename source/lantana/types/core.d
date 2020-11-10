@@ -107,17 +107,17 @@ mixin template StrictAlias(T)
 
 	@disable this(U)(U u);
 
-	this(T data)  @safe nothrow
+	this(T data)   nothrow
 	{
 		_handle = data;
 	}
 
-	T handle() const nothrow  @safe pure
+	T handle() const nothrow   pure
 	{
 		return _handle;
 	}
 
-	T* ptr() nothrow  pure
+	T* ptr() return nothrow pure
 	{
 		return &_handle;
 	}

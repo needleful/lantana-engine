@@ -209,7 +209,7 @@ struct Term
 				long l;
 				if(PL_get_int64(t, &l))
 				{
-					printf("%d", l);
+					printf("%lli", l);
 					break;
 				}
 				else
@@ -222,7 +222,7 @@ struct Term
 				double d;
 				if(PL_get_float(t, &d))
 				{
-					printf("%f", d);
+					printf("%lf", d);
 					break;
 				}
 				else
@@ -235,7 +235,7 @@ struct Term
 				size_t arity;
 				atom_t name;
 				PL_get_name_arity_sz(t, &name, &arity);
-				printf("%s/%d(", PL_atom_chars(name), arity);
+				printf("%s/%llu(", PL_atom_chars(name), arity);
 				term_t arg;
 				for(size_t i = 1; i <= arity; i++)
 				{
@@ -436,11 +436,11 @@ struct variadic
 template ForeignPredicate(uint Arity)
 {
 	import std.meta: Repeat;
-	alias ForeignPredicate = static extern(System) foreign_t function(Repeat!(Arity, term_t)) @nogc nothrow; 
+	alias ForeignPredicate = extern(System) foreign_t function(Repeat!(Arity, term_t)) @nogc nothrow; 
 }
 
 /// Variadic foreign predicate
-alias ForeignPredicateVariadic = static extern(System) foreign_t function(term_t, int, void*) @nogc nothrow;
+alias ForeignPredicateVariadic = extern(System) foreign_t function(term_t, int, void*) @nogc nothrow;
 
 private bool foreignIsVariadic(uint Arity)(ForeignPredicate!Arity func)
 {

@@ -51,22 +51,22 @@ struct Material
 {
 	MaterialId matId;
 
-	this(MaterialId p_matId) @safe  nothrow
+	this(MaterialId p_matId)  nothrow
 	{
 		matId = p_matId;
 	}
 
 	// Move constructors
 
-	this(ref Material p_rhs) @safe  nothrow
+	this(ref Material p_rhs)  nothrow
 	{
 		matId = p_rhs.matId;
 		p_rhs.matId = MaterialId(0u);
 	}
 
-	~this() @trusted  nothrow
+	~this() @trusted nothrow
 	{
-		debug printf("Destroying Material: %u\n", matId);
+		debug printf("Destroying Material: %lu\n", matId._handle);
 		if(matId)
 		{
 			matId.glDeleteProgram();
@@ -75,7 +75,7 @@ struct Material
 	}
 
 	// Move assignment
-	void OpAssign(ref Material p_rhs)  @safe nothrow
+	void OpAssign(ref Material p_rhs)  nothrow
 	{
 		matId = p_rhs.matId;
 		p_rhs.matId = MaterialId(0u);
@@ -112,7 +112,7 @@ struct Material
 				error.length = loglen;
 
 				matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
-				throw new Exception(format("Cannot render Material: %s", error));
+				assert(false, format("Cannot render Material: %s", error));
 			}
 			else
 			{
@@ -124,7 +124,7 @@ struct Material
 		}
 	}
 
-	UniformId getUniformId(string p_name)  const
+	UniformId getUniformId(string p_name) const
 	{
 		scope(exit)
 		{
@@ -170,7 +170,7 @@ struct Material
 			}
 		}
 	}
-	AttribId getAttribId(const string p_attrib)  const
+	AttribId getAttribId(const string p_attrib) const
 	{
 		scope(exit) glcheck();
 

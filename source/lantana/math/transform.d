@@ -18,7 +18,7 @@ struct Transform
 	vec3 _position;
 	vec3 _scale;
 
-	this(const float scale, const vec3 position = vec3(0), const vec3 rotation = vec3(180, 0, 0))  @safe nothrow
+	this(const float scale, const vec3 position = vec3(0), const vec3 rotation = vec3(180, 0, 0))   nothrow
 	{
 		_scale = vec3(scale);
 		_position = position;
@@ -26,7 +26,7 @@ struct Transform
 		computeMatrix();
 	}
 
-	void computeMatrix()  @safe nothrow
+	void computeMatrix()   nothrow
 	{
 		matrix = mat4(
 			vec4(_scale.x, 0.0f,     0.0f,     0),
@@ -40,31 +40,31 @@ struct Transform
 		matrix[2][3] = _position.z;
 	}
 
-	void scale(const float s)  @safe nothrow
+	void scale(const float s)   nothrow
 	{
 		_scale.x = s;
 		_scale.y = s;
 		_scale.z = s;
 	}
 
-	void scale(const vec3 scale)  @safe nothrow
+	void scale(const vec3 scale)   nothrow
 	{
 		_scale = scale;
 	}
 
-	void translate(const vec3 v)  @safe nothrow
+	void translate(const vec3 v)   nothrow
 	{
 		_position.x += v.x;
 		_position.y += v.y;
 		_position.z += v.z;
 	}
 
-	void rotateDegrees(vec3 v) @safe nothrow
+	void rotateDegrees(vec3 v)  nothrow
 	{
 		rotateDegrees(v.x, v.y, v.z);
 	}
 
-	void rotateDegrees(float x, float y, float z)  @safe nothrow
+	void rotateDegrees(float x, float y, float z)   nothrow
 	{
 		_rotation.x += x;
 		_rotation.y += y;
@@ -83,7 +83,7 @@ struct Transform
 		}
 	}
 
-	mat4 rotation_matrix()  @safe nothrow
+	mat4 rotation_matrix()   nothrow
 	{
 		float sx, sy, sz;
 		float cx, cy, cz;

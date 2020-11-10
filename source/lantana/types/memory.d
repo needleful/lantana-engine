@@ -76,7 +76,7 @@ struct OwnedList(Type)
 	private uint m_length = 0;
 	private uint m_capacity = 0;
 
-	this(Type* p_ptr, uint p_cap) @nogc nothrow @safe
+	this(Type* p_ptr, uint p_cap) @nogc nothrow
 	{
 		m_ptr = p_ptr;
 		m_capacity = p_cap;
@@ -99,22 +99,22 @@ struct OwnedList(Type)
 		}
 	}
 
-	void clearNoGC() @nogc nothrow @safe
+	void clearNoGC() @nogc nothrow
 	{
 		m_length = 0;
 	}
 
-	@property const(Type*) ptr()  nothrow const @safe
+	@property const(Type*) ptr()  nothrow const
 	{
 		return m_ptr;
 	}
 
-	@property uint length()  nothrow const @safe
+	@property uint length()  nothrow const
 	{
 		return m_length;
 	}
 
-	@property uint capacity()  nothrow const @safe
+	@property uint capacity()  nothrow const
 	{
 		return m_capacity;
 	}
@@ -157,7 +157,7 @@ struct OwnedList(Type)
 		return &m_ptr[m_length-1];
 	}
 
-	@property int opDollar()  const nothrow @safe
+	@property int opDollar()  const nothrow
 	{
 		return m_length;
 	}
@@ -279,7 +279,7 @@ struct BaseRegion
 
 	alias region this;
 
-	Region* ptr() @nogc nothrow
+	Region* ptr() return @nogc nothrow
 	{
 		return &region;
 	}
@@ -303,7 +303,7 @@ struct SubRegion
 
 	alias region this;
 
-	Region* ptr() @nogc nothrow
+	Region* ptr() return @nogc nothrow
 	{
 		return &region;
 	}
@@ -327,12 +327,12 @@ struct Region
 		setCapacity(p_capacity);
 		setSpaceUsed(2*size_t.sizeof);
 
-		debug printf("Creating Region with %u bytes\n", capacity());
+		debug printf("Creating Region with %llu bytes\n", capacity());
 	}
 
 	void disable() @nogc
 	{
-		debug printf("Deleting Region with %u/%u bytes allocated\n", spaceUsed(), capacity());
+		debug printf("Deleting Region with %llu/%llu bytes allocated\n", spaceUsed(), capacity());
 		setCapacity(0);
 		setSpaceUsed(0);
 		data = null;
@@ -405,7 +405,7 @@ struct Region
 		if((bytes + spaceUsed()) > capacity())
 		{
 			import std.stdio;
-			printf("Exceeded memory limits: %u > %u\n", bytes + spaceUsed(), capacity());
+			printf("Exceeded memory limits: %llu > %llu\n", bytes + spaceUsed(), capacity());
 			debug
 				assert(false, "Out of memory");
 			else

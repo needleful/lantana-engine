@@ -89,24 +89,24 @@ package struct BufferRange
 	uint start;
 	uint end;
 
-	this(int p_start, int p_end)  @safe
+	this(int p_start, int p_end)  
 	{
 		start = p_start;
 		end = p_end;
 	}
 
-	void clear()   @safe
+	void clear()   
 	{
 		start = uint.max;
 		end = uint.min;
 	}
 
-	void apply(BufferRange rhs)  @safe
+	void apply(BufferRange rhs)  
 	{
 		apply(rhs.start, rhs.end);
 	}
 
-	void apply(uint p_start, uint p_end)  @safe
+	void apply(uint p_start, uint p_end)  
 	{
 		start = start < p_start? start : p_start;
 		end = end > p_end? end : p_end;

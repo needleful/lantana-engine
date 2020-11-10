@@ -9,6 +9,7 @@ debug import std.stdio;
 
 import gl3n.linalg: vec2;
 
+import lantana.math.func: max;
 import lantana.types;
 import lantana.ui.interaction;
 import lantana.ui.render;
@@ -36,7 +37,7 @@ public class HodgePodge : MultiContainer
 		foreach(child; children)
 		{
 			RealSize csize = child.layout(childRequest);
-			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
+			top_right = ivec2(max(csize.width, top_right.x), max(csize.height, top_right.y));
 		}
 
 		return RealSize(top_right.x, top_right.y).constrained(request);
