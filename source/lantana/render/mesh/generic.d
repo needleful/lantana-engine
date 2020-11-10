@@ -362,12 +362,12 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 			bool play(string p_anim, bool loop = false)
 			{
-				return anim.playAnimation(p_anim, mesh.animations, loop);
+				return anim.play(p_anim, mesh.animations, loop);
 			}
 
 			bool queue(string p_anim, bool loop = false)
 			{
-				return anim.queueAnimation(p_anim, mesh.animations, loop);
+				return anim.queue(p_anim, mesh.animations, loop);
 			}
 
 			void pause()

@@ -37,7 +37,7 @@ struct SkeletalAnimationInstance
 
 	/// Play an animation
 	/// Returns true if the animation could be started
-	bool playAnimation(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
+	bool play(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
 	{
 		is_updated = false;
 		foreach(ref a; p_animations)
@@ -56,7 +56,16 @@ struct SkeletalAnimationInstance
 		return false;
 	}
 
-	bool queueAnimation(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
+	bool play(GLBAnimation* anim, bool p_looping = false) {
+		is_updated = false;
+		currentAnimation = anim;
+		is_playing = true;
+		time = 0;
+		looping = p_looping;
+		return true;
+	}
+
+	bool queue(string p_name, GLBAnimation[] p_animations, bool p_looping = false) 
 	{
 		if(is_playing)
 		{
@@ -64,7 +73,7 @@ struct SkeletalAnimationInstance
 		}
 		else 
 		{
-			return playAnimation(p_name, p_animations, p_looping);
+			return play(p_name, p_animations, p_looping);
 		}
 	}
 
@@ -179,6 +188,129 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 			default:
 				debug writeln("Unsupported animation path: ", channel.path);
 				break;
+		}
+	}
+}
+
+/// A struct for composing animations sequentially
+struct AnimationSequence
+{
+	struct Element
+	{
+		GLBAnimation* animation;
+		// 0 for the real start
+		float startTime;
+		// float.infinity for the real end
+		float endTime;
+	}
+	SkeletalAnimationInstance* instance;
+	GLBAnimation[] animations;
+	Element[] sequence;
+	void delegate(int) onTransition;
+	// Current element of the sequence
+	private int current;
+	bool loopFinalAnimation, completed;
+
+	this(SkeletalAnimationInstance* p_instance, GLBAnimation[] p_animations) @nogc nothrow
+	{
+		instance = p_instance;
+		animations = p_animations;
+		current = 0;
+	}
+
+	void clear() 
+	{
+		onTransition = null;
+		sequence.length = 0;
+		current = 0;
+		instance.pause();
+	}
+
+	void add(string p_anim, float p_start= 0, float p_end = float.infinity)
+	{
+		Element e;
+
+		foreach(ref a; animations)
+		{
+			if(a.name == p_anim)
+			{
+				e.animation = &a;
+			}
+		}
+		if(e.animation !is null)
+		{
+			e.startTime = p_start;
+			e.endTime = p_end;
+
+			sequence ~= e;
+		}
+		else debug
+		{
+			import std.stdio;
+			writefln("Could not add '%s' to animation sequence", p_anim);
+		}
+	}
+
+	void restart()
+	{
+		current = 0;
+		completed = false;
+		instance.play(sequence[current].animation, sequence.length == 1? loopFinalAnimation : false);
+		instance.time = sequence[current].startTime;
+	}
+
+	void update(float p_delta)
+	{
+		if(sequence is null || sequence.length == 0)
+		{
+			return;
+		}
+		if(!instance.is_playing || instance.time + p_delta >= sequence[current].endTime)
+		{
+			if(!completed && onTransition !is null)
+				onTransition(current);
+			if(current < sequence.length - 1)
+			{
+				current += 1;
+				bool loop = false;
+				if(current == sequence.length - 1 && loopFinalAnimation)
+					loop = true;
+				instance.play(sequence[current].animation, loop);
+				instance.time = sequence[current].startTime;
+			}
+			else
+			{
+				completed = true;
+			}
+		}
+	}
+}
+
+/// Overlay an animation on top of another, weighted per bone
+struct AnimationOverlay
+{
+	GLBNode[] base;
+	GLBNode[] overlay;
+	// 0 for the base, 1 for the overlay
+	float[] weights;
+
+	void clearOverlay()
+	{
+		weights[] = 0;
+	}
+
+	void update()
+	{
+		import lantana.math.func;
+		foreach(i, ref b; base)
+		{
+			float w = weights[i];
+			with(overlay[i])
+			{
+				b.translation = lerp(b.translation, translation, w);
+				b.scale = lerp(b.scale, scale, w);
+				b.rotation = qlerp(b.rotation, rotation, w);
+			}
 		}
 	}
 }
