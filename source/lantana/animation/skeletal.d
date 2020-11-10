@@ -82,7 +82,7 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 	foreach(ref channel; anim.channels)
 	{
 		auto keyTimes = anim.bufferViews[channel.timeBuffer].asArray!float(p_data);
-		ulong frame = 0;
+		size_t frame = 0;
 		foreach(i; 0..keyTimes.length)
 		{
 			if(inst.time <= keyTimes[i])
@@ -91,7 +91,7 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 			}
 			frame = i;
 		}
-		ulong nextframe = (frame + 1) % keyTimes.length;
+		size_t nextframe = (frame + 1) % keyTimes.length;
 		float interp;
 
 		if(nextframe > frame)

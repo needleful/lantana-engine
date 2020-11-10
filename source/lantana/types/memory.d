@@ -29,7 +29,7 @@ template AlignT(Type)
 	}
 	else
 	{
-		enum AlignT = size_t.sizeof;
+		enum AlignT = ulong.sizeof;
 	}
 }
 
@@ -62,9 +62,9 @@ void readData(T, U)(ref T p_dest, ref U p_source)
 	//memcpy(cast(void*)p_dest.ptr, cast(void*)p_source.ptr, T.sizeof*p_source.length);
 }
 
-T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
+T[] readArray(T)(ubyte[] p_bytes, size_t p_byteOffset, size_t p_count)
 {
-	ulong byteEnd = p_byteOffset + p_count*T.sizeof;
+	size_t byteEnd = p_byteOffset + p_count*T.sizeof;
 	assert(byteEnd <= p_bytes.length);
 
 	return p_bytes.offset!T(p_byteOffset)[0..p_count];
@@ -119,7 +119,7 @@ struct OwnedList(Type)
 		return m_capacity;
 	}
 
-	ref Type opIndex(int p_index) @nogc nothrow
+	ref Type opIndex(uint p_index) @nogc nothrow
 	{
 		debug assert(p_index >= 0 && p_index < m_length, "Out of range");
 
@@ -264,7 +264,7 @@ struct BaseRegion
 
 	~this() @nogc
 	{
-		ulong cap = region.capacity();
+		size_t cap = region.capacity();
 		region.disable();
 
 		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
@@ -327,12 +327,12 @@ struct Region
 		setCapacity(p_capacity);
 		setSpaceUsed(2*size_t.sizeof);
 
-		debug printf("Creating Region with %llu bytes\n", capacity());
+		debug printf("Creating Region with %llu bytes\n", cast(ulong) capacity());
 	}
 
 	void disable() @nogc
 	{
-		debug printf("Deleting Region with %llu/%llu bytes allocated\n", spaceUsed(), capacity());
+		debug printf("Deleting Region with %llu/%llu bytes allocated\n", cast(ulong) spaceUsed(), cast(ulong) capacity());
 		setCapacity(0);
 		setSpaceUsed(0);
 		data = null;
@@ -405,7 +405,7 @@ struct Region
 		if((bytes + spaceUsed()) > capacity())
 		{
 			import std.stdio;
-			printf("Exceeded memory limits: %llu > %llu\n", bytes + spaceUsed(), capacity());
+			printf("Exceeded memory limits: %llu > %llu\n", cast(ulong) bytes + spaceUsed(), cast(ulong) capacity());
 			debug
 				assert(false, "Out of memory");
 			else

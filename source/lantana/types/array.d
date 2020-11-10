@@ -19,7 +19,7 @@ long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow
 	return -1;
 }
 
-void removeAt(Type)(ref Type[] list, ulong index)
+void removeAt(Type)(ref Type[] list, size_t index)
 {
 	if(index == 0)
 	{
@@ -41,7 +41,7 @@ void removeAt(Type)(ref Type[] list, ulong index)
 }
 
 // Insert before the provided index
-void insert(Type)(ref Type[] list, ulong index, Type value)
+void insert(Type)(ref Type[] list, size_t index, Type value)
 {
 	list.length += 1;
 
@@ -107,7 +107,7 @@ bool binarySearch(alias fn, T, U)(T list, U value, out size_t index)
 	return false;
 }
 
-void place(Type, A...)(Type[] list, ulong index, auto ref A args)
+void place(Type, A...)(Type[] list, size_t index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);
 }
@@ -155,7 +155,7 @@ T* append(T)(ref T[] list, T object)
 }
 
 // Returns true if we had to reserve more space, false otherwise
-bool addSpace(T)(ref T[] list, uint space)
+bool addSpace(T)(ref T[] list, size_t space)
 {
 	bool realloc_required = false;
 	if((list.length + space) > list.capacity)

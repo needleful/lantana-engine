@@ -112,40 +112,40 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 
 		with(result.accessor)
 		{
-			auto ac_indeces = primitives["indices"].integer();
+			size_t ac_indeces = cast(size_t) primitives["indices"].integer();
 			
 			indices = GLBBufferView(access[ac_indeces], bufferViews);
 			results.bufferSize = max(results.bufferSize, indices.byteOffset + indices.byteLength);
 
 			static foreach(field; Spec.attribType.fields)
 			{{
-				auto ac = atr[mixin("Spec.loader."~field)].integer();
+				size_t ac = cast(size_t) atr[mixin("Spec.loader."~field)].integer();
 
 				mixin(field) = GLBBufferView(access[ac], bufferViews);
 				results.bufferSize = max(results.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
 			}}
 			
-			auto material = scn["materials"][primitives["material"].integer()];
-			auto idx_texture = material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+			auto material = scn["materials"][cast(size_t) primitives["material"].integer()];
+			size_t idx_texture = cast(size_t) material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
 			auto img_albedo = scn["images"][
-				scn["textures"][idx_texture]["source"].integer()
+				cast(size_t) scn["textures"][idx_texture]["source"].integer()
 			];
 
 			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
-			auto buf_albedo = bufferViews[img_albedo["bufferView"].integer()];
+			auto buf_albedo =  bufferViews[cast(size_t) img_albedo["bufferView"].integer()];
 			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
 			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
 		}
 
 		static if(Spec.isAnimated)
 		{
-			auto scn_index = scn["scene"].integer();
+			size_t scn_index = cast(size_t) scn["scene"].integer();
 			auto scene = scn["scenes"].array()[scn_index];
 			auto anims = scn["animations"].array();
 
 			result.animations = p_alloc.makeList!GLBAnimation(anims.length);
 
-			uint idx = 0;
+			size_t idx = 0;
 			foreach(animation; anims)
 			{
 				result.animations[idx++] = animationFromJSON(p_alloc, animation, bufferViews, access);
@@ -154,7 +154,7 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 			auto nodes = scn["nodes"].array();
 			auto skin = scn["skins"].array()[0];
 
-			auto ibm_index = skin["inverseBindMatrices"].integer();
+			size_t ibm_index = cast(size_t) skin["inverseBindMatrices"].integer();
 			result.inverseBindMatrices = GLBBufferView(access[ibm_index], bufferViews);
 			auto joints = skin["joints"].array();
 			result.bones = p_alloc.makeList!GLBNode(joints.length);
@@ -163,7 +163,7 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 			idx = 0;
 			foreach(joint; joints)
 			{
-				long node_idx = joint.integer();
+				size_t node_idx = cast(size_t) joint.integer();
 				auto node = nodes[node_idx];
 
 				string name = p_alloc.copy(node["name"].str());
@@ -262,7 +262,7 @@ GLBAnimation animationFromJSON(ref Region p_alloc, JSONValue p_anim, JSONValue[]
 
 	foreach(index, ref channel; jchan)
 	{
-		auto sourceSampler = channel["sampler"].integer();
+		size_t sourceSampler = cast(size_t) channel["sampler"].integer();
 		auto sampler = samplers[sourceSampler];
 		auto target = channel["target"];
 
