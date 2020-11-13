@@ -100,7 +100,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			clearMeshes();
 		}
 
-		void reserveMeshes(ref Region p_alloc, ushort p_count)
+		void reserveMeshes(ref Region p_alloc, uint p_count)
 		{
 			meshes = p_alloc.makeOwnedList!Mesh(p_count);
 			vbos = p_alloc.makeOwnedList!GLuint(p_count);
@@ -347,7 +347,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		static if(Spec.isAnimated)
 		{
-			package SkeletalAnimationInstance anim;
+			SkeletalAnimationInstance anim;
 
 			this(Mesh* p_mesh, Transform p_transform, ref Region p_alloc) 
 			{

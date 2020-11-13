@@ -83,6 +83,18 @@ struct Transform
 		}
 	}
 
+	vec3 rotation() {
+		return _rotation;
+	}
+
+	void setRotation(vec3 r) {
+		_rotation = r;
+	}
+
+	void setPosition(vec3 p) {
+		_position = p;
+	}
+
 	mat4 rotation_matrix()   nothrow
 	{
 		float sx, sy, sz;

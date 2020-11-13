@@ -88,7 +88,7 @@ struct Camera
 	}
 }
 
-struct LongRangeOrbitalCamera
+struct OrbitalCamera
 {
 	mat4 projection;
 	vec3 target;

@@ -125,10 +125,10 @@ T[] reverse(T)(T[] input)
 		return input;
 	}
 
-	ulong end = input.length - 1;
-	foreach(ulong i; 0..input.length/2)
+	size_t end = input.length - 1;
+	foreach(size_t i; 0..input.length/2)
 	{
-		ulong opp = end-i;
+		size_t opp = end-i;
 
 		auto temp = input[i];
 		input[i] = input[opp];

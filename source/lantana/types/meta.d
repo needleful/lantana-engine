@@ -6,7 +6,6 @@ module lantana.types.meta;
 
 import std.meta;
 import std.traits;
-import std.string : split;
 
 enum isSimpleType(Type) = isBasicType!Type || isStaticArray!Type;
 enum isSimpleStruct(Type) = isSimpleType!Type || allSatisfy!(isSimpleType, Fields!Type);
@@ -35,6 +34,7 @@ mixin template Import(Type)
 
 	static if(__traits(compiles, moduleName!absType))
 	{
+		import std.array : split;
 		alias templateName = TemplateOf!absType;
 		static if(is(templateName == void))
 		{
@@ -45,6 +45,6 @@ mixin template Import(Type)
 			alias toImport = templateName;
 		}
 		alias pkg = moduleName!toImport;
-		mixin("import "~pkg~": "~toImport.stringof.split("(")[0]~";\n");
+		mixin("import "~pkg~": "~split(toImport.stringof, '(')[0] ~ ";\n");
 	}
 }

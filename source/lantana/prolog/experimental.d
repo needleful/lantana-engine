@@ -14,11 +14,11 @@ struct Predicate
 {
 	predicate_t predicate;
 	module_t m_module;
-	uint arity;
+	size_t arity;
 
-	this(string p_name, uint p_arity, string p_module = "") @nogc nothrow
+	this(string p_name, size_t p_arity, string p_module = "") @nogc nothrow
 	{
-		predicate = PL_predicate(cast(char*)p_name.ptr, p_arity, cast(char*) p_module.ptr);
+		predicate = PL_predicate(cast(char*)p_name.ptr, cast(int) p_arity, cast(char*) p_module.ptr);
 		PL_predicate_info(predicate, null, &arity, &m_module);
 	}
 
@@ -235,7 +235,7 @@ struct Term
 				size_t arity;
 				atom_t name;
 				PL_get_name_arity_sz(t, &name, &arity);
-				printf("%s/%u(", PL_atom_chars(name), arity);
+				printf("%s/%llu(", PL_atom_chars(name), cast(ulong) arity);
 				term_t arg;
 				for(size_t i = 1; i <= arity; i++)
 				{

@@ -143,7 +143,7 @@ struct Window
 		SDL_Quit();
 	}
 
-	void grab_mouse(bool grabbed)
+	void grabMouse(bool grabbed)
 	{
 		SDL_SetRelativeMouseMode(grabbed? SDL_TRUE : SDL_FALSE);
 	}
@@ -233,7 +233,7 @@ struct Window
 		return vec2(dx, dy);
 	}
 
-	void begin_frame(bool clear_color = true)() 
+	void beginFrame(bool clear_color = true)() 
 	{
 		glDepthMask(GL_TRUE);
 		assert(glGetError() == GL_NO_ERROR);
@@ -248,7 +248,7 @@ struct Window
 		assert(glGetError() == GL_NO_ERROR);
 	}
 
-	void end_frame() 
+	void endFrame() 
 	{
 		SDL_GL_SwapWindow(window);
 		assert(glGetError() == GL_NO_ERROR);
