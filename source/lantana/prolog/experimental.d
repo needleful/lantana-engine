@@ -112,6 +112,13 @@ struct Term
 		return t;
 	}
 
+	static Term of(term_t t2) @nogc nothrow
+	{
+		Term t;
+		t.term = t2;
+		return t;
+	}
+
 	this(string s) @nogc nothrow
 	{
 		term = PL_new_term_ref();
@@ -180,26 +187,23 @@ struct Term
 		PL_put_pointer(term, p);
 	}
 
-	static void print(term_t t) @nogc nothrow
+	string toString()
 	{
-		import std.stdio;
-		switch(PL_term_type(t))
+		import std.format;
+		switch(PL_term_type(term))
 		{
 			case PL_VARIABLE:
-				printf("_Var");
-				break;
+				return "_Var";
 			case PL_ATOM:
 				size_t size;
 				char* text;
-				PL_get_atom_nchars(t, &size, &text);
-				printf(text);
-				break;
+				PL_get_atom_nchars(term, &size, &text);
+				return format("'%s'", text);
 			case PL_STRING:
 				size_t size;
 				char* text;
-				PL_get_string_chars(t, &text, &size);
-				printf("\"%s\"", text);
-				break;
+				PL_get_string_chars(term, &text, &size);
+				return format("\"%s\"", text);
 			case PL_SHORT:
 			case PL_INT:
 			case PL_LONG:
@@ -207,89 +211,72 @@ struct Term
 			case PL_INTPTR:
 			case PL_INT64:
 				long l;
-				if(PL_get_int64(t, &l))
+				if(PL_get_int64(term, &l))
 				{
-					printf("%lli", l);
-					break;
+					return format("%lli", l);
 				}
 				else
 				{
-					printf("<big int>");
-					break;
+					return format("<big int>");
 				}
 			case PL_DOUBLE:
 			case PL_FLOAT:
 				double d;
-				if(PL_get_float(t, &d))
+				if(PL_get_float(term, &d))
 				{
-					printf("%lf", d);
-					break;
+					return format("%lf", d);
 				}
 				else
 				{
-					printf("<big float>");
-					break;
+					return "<big float>";
 				}
 
 			case PL_TERM:
 				size_t arity;
 				atom_t name;
-				PL_get_name_arity_sz(t, &name, &arity);
-				printf("%s/%llu(", PL_atom_chars(name), cast(ulong) arity);
-				term_t arg;
+				PL_get_name_arity_sz(term, &name, &arity);
+				string s = format("%s(", PL_atom_chars(name));
+				string terms;
+				Term arg;
 				for(size_t i = 1; i <= arity; i++)
 				{
-					PL_get_arg_sz(i, t, arg);
+					PL_get_arg_sz(i, term, arg.term);
 					if(i == 1)
 					{
-						Term.print(arg);
+						terms ~= arg.toString();
 					}
 					else
 					{
-						printf(", ");
-						Term.print(arg);
+						terms ~= ", " ~ arg.toString();
 					}
 				}
-				printf(")");
-				break;
+				return s ~ terms ~ ")";
 			case PL_NIL:
-				printf( "nil");
-				break;
+				return "nil";
 			case PL_BLOB:
-				printf( "blob");
-				break;
+				return "blob";
 			case PL_LIST_PAIR:
-				printf( "list pair");
-				break;
+				return "list pair";
 			case PL_FUNCTOR:
-				printf( "functor");
-				break;
+				return "functor";
 			case PL_LIST:
-				printf( "list");
-				break;
+				return "list";
 			case PL_CHARS:
-				printf( "chars");
-				break;
+				return "chars";
 			case PL_POINTER:
-				printf( "pointer");
-				break;
+				return "pointer";
 			case PL_CODE_LIST:
-				printf( "code list");
-				break;
+				return "code list";
 			case PL_CHAR_LIST:
-				printf( "char list");
-				break;
+				return "char list";
 			case PL_BOOL:
 				int i;
-				PL_get_bool(t, &i);
-				printf( i == TRUE? "true" : "false");
-				break;
+				PL_get_bool(term, &i);
+				return i == TRUE? "true" : "false";
 			case PL_FUNCTOR_CHARS:
-				printf( "functor chars");
-				break;
+				return( "functor chars");
 			case _PL_PREDICATE_INDICATOR:
-				printf( "precicate indicator");
-				break;
+				return "precicate indicator";
 			case PL_NCHARS:
 			case PL_UTF8_CHARS:
 			case PL_UTF8_STRING:
@@ -301,26 +288,20 @@ struct Term
 			case PL_MBCHARS:
 			case PL_MBCODES:
 			case PL_MBSTRING:
-				printf( "some sorta string");
-				break;
+				return "some sorta string";
 			case PL_CHAR:
 			case PL_CODE:
 			case PL_BYTE:
-				printf( "char/byte");
-				break;
+				return "char/byte";
 			case PL_PARTIAL_LIST:
 			case PL_CYCLIC_TERM:
-				printf( "list");
-				break;
+				return "list";
 			case PL_NOT_A_LIST:
-				printf( "not a list");
-				break;
+				return "not a list";
 			case PL_DICT:
-				printf( "dict");
-				break;
+				return "dict";
 			default:
-				printf( "<??>");
-				break;
+				return "<??>";
 		}
 	}
 }
