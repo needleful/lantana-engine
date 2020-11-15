@@ -189,6 +189,7 @@ struct Term
 
 	string toString()
 	{
+		import std.conv;
 		import std.format;
 		switch(PL_term_type(term))
 		{
@@ -198,12 +199,12 @@ struct Term
 				size_t size;
 				char* text;
 				PL_get_atom_nchars(term, &size, &text);
-				return format("'%s'", text);
+				return format("'%s'", to!string(text));
 			case PL_STRING:
 				size_t size;
 				char* text;
 				PL_get_string_chars(term, &text, &size);
-				return format("\"%s\"", text);
+				return format("\"%s\"", to!string(text));
 			case PL_SHORT:
 			case PL_INT:
 			case PL_LONG:
@@ -213,7 +214,7 @@ struct Term
 				long l;
 				if(PL_get_int64(term, &l))
 				{
-					return format("%lli", l);
+					return format("%d", cast(int) l);
 				}
 				else
 				{
@@ -235,7 +236,7 @@ struct Term
 				size_t arity;
 				atom_t name;
 				PL_get_name_arity_sz(term, &name, &arity);
-				string s = format("%s(", PL_atom_chars(name));
+				string s = format("%s(", to!string(PL_atom_chars(name)));
 				string terms;
 				Term arg;
 				for(size_t i = 1; i <= arity; i++)
@@ -256,11 +257,43 @@ struct Term
 			case PL_BLOB:
 				return "blob";
 			case PL_LIST_PAIR:
-				return "list pair";
+				string s = "[";
+				Term list = Term.copy(term);
+				Term head = Term.empty();
+				int i = 0;
+				while(PL_get_list(list, head, list))
+				{
+					if(i == 0)
+					{
+						s ~= head.toString();
+					}
+					else
+					{
+						s ~= ", " ~ head.toString();
+					}
+					i++;
+				}
+				return s ~ "]";
 			case PL_FUNCTOR:
 				return "functor";
 			case PL_LIST:
-				return "list";
+				string s = "[";
+				Term list = Term.copy(term);
+				Term head = Term.empty();
+				int i = 0;
+				while(PL_get_list(list, head, list))
+				{
+					if(i == 0)
+					{
+						s ~= head.toString();
+					}
+					else
+					{
+						s ~= ", " ~ head.toString();
+					}
+					i++;
+				}
+				return s ~ "]";
 			case PL_CHARS:
 				return "chars";
 			case PL_POINTER:
