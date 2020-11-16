@@ -33,6 +33,20 @@ struct Predicate
 		return opCall(Term(p_value), p_debug);
 	}
 
+	int opCall(T, A...)(T value, A values) @nogc nothrow
+		if(!is(T == Term) && values.length > 0)
+	{
+		enum len = values.length + 1;
+		Term args = Term.args(len);
+		args = value;
+		foreach(i, v; values)
+		{
+			Term t = Term.of(args.term + i + 1);
+			t = v;
+		}
+		return opCall(args);
+	}
+
 	Query open(Term p_term, int p_debug = PL_Q_NORMAL) @nogc nothrow
 	{
 		return Query(this, p_term, p_debug);
@@ -155,6 +169,11 @@ struct Term
 		PL_put_pointer(term, p);
 	}
 
+	this(Term t) @nogc nothrow
+	{
+		term = PL_copy_term_ref(t.term);
+	}
+
 	// Assignment
 
 	void opAssign(string s) @nogc nothrow
@@ -185,6 +204,11 @@ struct Term
 	void opAssign(void* p) @nogc nothrow
 	{
 		PL_put_pointer(term, p);
+	}
+
+	void opAssign(Term t) @nogc nothrow
+	{
+		PL_put_term(term, t.term);
 	}
 
 	string toString()
