@@ -2,6 +2,7 @@ name "lantana"
 description "The Lantana Game Engine"
 authors "Devin Hastings"
 license "GPL-3.0"
+version "1.0"
 
 dependency "bindbc-sdl" version=">=0.13.0"
 versions "SDL_204"
@@ -16,6 +17,7 @@ dependency "sdlang-d" version="~>0.10.5"
 
 libs "sdl2" "freetype" platform="posix"
 libs "user32" platform="windows"
+libs "libswipl" platform="windows"
 
 preGenerateCommands "copy lantana.manifest bin\\game.exe.manifest" platform="windows" configuration="game"
 preGenerateCommands "copy lantana.manifest bin\\editor.exe.manifest" platform="windows" configuration="editor"
