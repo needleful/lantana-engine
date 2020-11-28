@@ -280,27 +280,10 @@ struct Term
 				return "nil";
 			case PL_BLOB:
 				return "blob";
-			case PL_LIST_PAIR:
-				string s = "[";
-				Term list = Term.copy(term);
-				Term head = Term.empty();
-				int i = 0;
-				while(PL_get_list(list, head, list))
-				{
-					if(i == 0)
-					{
-						s ~= head.toString();
-					}
-					else
-					{
-						s ~= ", " ~ head.toString();
-					}
-					i++;
-				}
-				return s ~ "]";
 			case PL_FUNCTOR:
 				return "functor";
 			case PL_LIST:
+			case PL_LIST_PAIR:
 				string s = "[";
 				Term list = Term.copy(term);
 				Term head = Term.empty();

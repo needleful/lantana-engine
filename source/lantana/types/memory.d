@@ -104,17 +104,17 @@ struct OwnedList(Type)
 		m_length = 0;
 	}
 
-	@property const(Type*) ptr()  nothrow const
+	@property const(Type*) ptr() @nogc nothrow const
 	{
 		return m_ptr;
 	}
 
-	@property uint length()  nothrow const
+	@property uint length() @nogc nothrow const
 	{
 		return m_length;
 	}
 
-	@property uint capacity()  nothrow const
+	@property uint capacity() @nogc nothrow const
 	{
 		return m_capacity;
 	}
@@ -157,12 +157,12 @@ struct OwnedList(Type)
 		return &m_ptr[m_length-1];
 	}
 
-	@property int opDollar()  const nothrow
+	@property int opDollar() @nogc const nothrow
 	{
 		return m_length;
 	}
 
-	Type[] borrow() nothrow
+	Type[] borrow() @nogc nothrow
 	{
 		return m_ptr[0..m_length];
 	}
@@ -179,7 +179,7 @@ struct OwnedList(Type)
 		return -1;
 	}
 
-	void insert(uint index, Type value)
+	void insert(uint index, Type value) @nogc
 	{
 		assert(m_length + 1 <= m_capacity, "List Capacity exceeded");
 		for(uint i = m_length; i > index; i--)
@@ -264,11 +264,14 @@ struct BaseRegion
 
 	~this() @nogc
 	{
-		size_t cap = region.capacity();
-		region.disable();
+		if(region.data)
+		{
+			size_t cap = region.capacity();
+			region.disable();
 
-		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
-		GC.removeRange(region.data);
+			MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
+			GC.removeRange(region.data);
+		}
 	}
 
 	SubRegion provideRemainder() 
