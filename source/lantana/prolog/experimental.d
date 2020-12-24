@@ -206,11 +206,6 @@ struct Term
 		PL_put_pointer(term, p);
 	}
 
-	void opAssign(Term t) @nogc nothrow
-	{
-		PL_put_term(term, t.term);
-	}
-
 	string toString()
 	{
 		import std.conv;
