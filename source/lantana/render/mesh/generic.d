@@ -26,32 +26,7 @@ import lantana.render.textures;
 
 import lantana.types;
 
-struct DefaultUniforms
-{
-	mat4 projection;
-
-	vec3 light_direction;
-	float light_bias;
-	float area_span;
-	float area_ceiling;
-	float gamma;
-
-	int light_palette;
-	int tex_albedo;
-
-	float nearPlane, farPlane;
-}
-
-struct DefaultSettings
-{
-	enum alphaBlend = false;
-	enum depthTest = true;
-	enum depthWrite = true;
-	enum filter = Filter(TexFilter.Linear, TexFilter.MipMaps);
-	alias textureType = Color;
-}
-
-template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
+template GenericMesh(Attrib, Loader, GlobalUniforms, Settings)
 {
 	alias texture = Texture!(Settings.textureType);
 
