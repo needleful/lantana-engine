@@ -33,8 +33,8 @@ struct Projection
 		double t = tan(radians(fov)/2);
 		double ar = aspectRatio;
 
-		double z1 = (-nearPlane)/(nearPlane - farPlane);
-		double z2 = (nearPlane*farPlane)/(nearPlane - farPlane); 
+		double z1 = (farPlane + nearPlane)/(farPlane - nearPlane);
+		double z2 = -nearPlane - nearPlane*z1;
 
 		_matrix = mat4(
 			vec4(1/(ar*t),   0,  0, 0f),

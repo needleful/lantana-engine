@@ -19,11 +19,18 @@ struct Camera
 	vec3 pos;
 	vec2 rot;
 
-	this(vec3 position, float aspect, float fov)  nothrow
+	this(vec3 position, float aspect, float fov) nothrow
 	{
 		projection = Projection(aspect, fov, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE).matrix;
 		pos = position;
 		rot = vec2(0,0);
+	}
+
+	this(mat4 proj_matrix, vec3 position, vec2 rotation) nothrow
+	{
+		projection = proj_matrix;
+		pos = position;
+		rot = rotation;
 	}
 
 	void set_projection(Projection p)  nothrow
@@ -57,9 +64,7 @@ struct Camera
 
 	@property mat4 vp()  nothrow
 	{
-		mat4 res = projection;
-		res *= calculate_view();
-		return res;
+		return projection * calculate_view();
 	}
 
 	@property vec3 forward()  nothrow

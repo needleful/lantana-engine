@@ -15,11 +15,12 @@ struct FrameBuffer
 {
 	private struct Vert
 	{
+		float position;
 		float uv;
-		int position;
 	}
+
 	Material mat;
-	private UniformId uTex;
+	private UniformId uTex, uDepth;
 	private GLuint buffer;
 	// 0: color
 	// 1: depth
@@ -51,43 +52,53 @@ struct FrameBuffer
 
 	@disable this();
 
-	public this(const string p_vert, const string p_frag, RealSize p_size, float p_scale = 1)
+	public this(const string p_vert, const string p_frag, RealSize p_size, bool p_color = true, bool p_depth = true)
 	{
-		scale = p_scale;
+		scale = 1;
+		// Create Material
+		mat = loadMaterial(p_vert, p_frag);
+		assert(mat.canRender());
+
+		attrib = Attr!Vert(mat);
+		if(p_color) uTex = mat.getUniformId("in_tex");
+		if(p_depth) uDepth = mat.getUniformId("in_depth");
+
+		// Create FrameBuffers and textures
 		glGenFramebuffers(1, &buffer);
 		glGenTextures(tex.length, tex.ptr);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+		if(p_color)
+		{
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
+			glcheck();
 
-		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex[0], 0);
-		glcheck();
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glcheck();
+		}
+		else
+		{
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+		}
 
-		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex[1], 0);
-		glcheck();
-
-		glcheck();
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glcheck();
+		if(p_depth)
+		{
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex[1], 0);
+			glcheck();
+		}
 
 		size = p_size;
 		assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		mat = loadMaterial(p_vert, p_frag);
-		attrib = Attr!Vert(mat);
-
-		uTex = mat.getUniformId("in_tex");
-		//uDepth = mat.getUniformId("in_depth");
-		//uResolution = mat.getUniformId("resolution");
-		assert(mat.canRender());
 
 		// Create VBO
 		glGenBuffers(vbo.length, vbo.ptr);
@@ -150,6 +161,12 @@ struct FrameBuffer
 		glViewport(0, 0, cast(int)(size.width*scale), cast(int)(size.height*scale));
 	}
 
+	public void unbind(RealSize windowSize)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, windowSize.width, windowSize.height);
+	}
+
 	public void render()
 	{
 		mat.enable();
@@ -159,14 +176,18 @@ struct FrameBuffer
 		glDisable(GL_BLEND);
 
 		glBindVertexArray(vao);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		mat.setUniform(uTex, 0);
-
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, tex[1]);
-		//mat.setUniform(uDepth, 1);
-		//mat.setUniform(uResolution, vec2(size.width, size.height));
+		if(tex[0])
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			mat.setUniform(uTex, 0);
+		}
+		if(tex[1])
+		{
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			mat.setUniform(uDepth, 1);
+		}
 
 		glDrawElements(
 			GL_TRIANGLES, 
@@ -175,12 +196,6 @@ struct FrameBuffer
 			cast(void*) 0);
 
 		glBindVertexArray(0);
-	}
-
-	public void unbind()
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, size.width, size.height);
 	}
 
 	public void resize(RealSize p_size)

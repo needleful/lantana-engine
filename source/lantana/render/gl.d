@@ -22,6 +22,17 @@ debug
 	import std.format;
 }
 
+static immutable GLenum[] gl_texture = [
+	GL_TEXTURE0,
+	GL_TEXTURE1,
+	GL_TEXTURE2,
+	GL_TEXTURE3,
+	GL_TEXTURE4,
+	GL_TEXTURE5,
+	GL_TEXTURE6,
+	GL_TEXTURE7
+];
+
 void glcheck() @nogc
 {
 	string errorString(GLint err) @nogc

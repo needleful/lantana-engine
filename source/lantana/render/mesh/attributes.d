@@ -14,7 +14,6 @@ import lantana.render.material;
 
 struct Attr(Struct)
 {
-
 	enum fields = FieldNameTuple!Struct;
 	AttribId[fields.length] ids;
 
