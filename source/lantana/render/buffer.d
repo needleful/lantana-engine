@@ -206,4 +206,14 @@ struct FrameBuffer
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, cast(int)(p_size.width*scale), cast(int)(p_size.height*scale), 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
 		size = p_size;
 	}
+
+	public GLuint color_texture()
+	{
+		return tex[0];
+	}
+
+	public GLuint depth_texture()
+	{
+		return tex[1];
+	}
 }

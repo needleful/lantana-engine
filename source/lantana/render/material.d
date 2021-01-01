@@ -13,7 +13,6 @@ debug
 import std.string;
 
 import lantana.render.gl;
-import lantana.render.lights;
 import lantana.types.core;
 
 struct MaterialId

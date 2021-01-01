@@ -9,8 +9,9 @@ import std.traits;
 
 import lantana.file.gltf2.types;
 import lantana.render.gl;
-import lantana.render.lights;
 import lantana.render.material;
+import lantana.render.textures;
+import lantana.types : isTemplateType;
 
 struct Attr(Struct)
 {
@@ -83,6 +84,20 @@ struct MeshSpec(Attributes, Loader)
 	enum isAnimated = hasUDA!(Attributes, animated);
 }
 
+private int textureTypeCount(UniformT)()
+	if(is(UniformT == struct))
+{
+	uint t = 0;
+	static foreach(Type; Fields!UniformT)
+	{
+		static if(isTemplateType!(Texture, Type))
+		{
+			t += 1;
+		}
+	}
+	return t;
+}
+
 struct UniformT(Global, Instance)
 	if(is(Global == struct) && is(Instance == struct))
 {
@@ -92,6 +107,9 @@ struct UniformT(Global, Instance)
 	private enum gFields = FieldNameTuple!Global;
 	private enum iFields = FieldNameTuple!Instance;
 	private enum gFieldCount = gFields.length;
+
+	private static uint gTextureCount = textureTypeCount!Global();
+	private static uint iTextureCount = textureTypeCount!Instance();
 
 	UniformId[gFields.length + iFields.length] ids;
 
@@ -110,20 +128,63 @@ struct UniformT(Global, Instance)
 
 	void setGlobals(ref Material mat, ref Global globals)
 	{
+		int textures_used = 0;
 		glcheck();
 		static foreach(i, type; Fields!Global)
+		{{
+			scope(failure)
+			{
+				import std.stdio;
+				writeln("globals."~gFields[i]);
+			}
+			static if(is(type == TextureID))
+			{
+				mat.setUniform(ids[i], textures_used);
+				glActiveTexture(gl_texture[textures_used++]);
+				glBindTexture(GL_TEXTURE_2D, mixin("globals."~gFields[i]));
+			}
+			else static if(isTemplateType!(Texture, type))
+			{
+				mat.setUniform(ids[i], textures_used);
+				glActiveTexture(gl_texture[textures_used++]);
+				glBindTexture(GL_TEXTURE_2D, mixin("globals."~gFields[i]~".id"));
+			}
+			else
+			{
+				mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
+			}
+		}}
+		static foreach(i, type; Fields!Instance)
 		{
-			mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
+			// Texture uniforms are set globally
+			static if(is(type == TextureID) || isTemplateType!(Texture, type))
+			{
+				mat.setUniform(ids[gFieldCount + i], textures_used++);
+			}
 		}
 		glcheck();
 	}
 
 	void setInstance(ref Material mat, ref Instance instance)
 	{
+		int textures_used = gTextureCount;
 		glcheck();
 		static foreach(i, type; Fields!Instance)
 		{
-			mat.setUniform!type(ids[gFieldCount + i], mixin("instance."~iFields[i]));
+			static if(is(type == TextureID))
+			{
+				glActiveTexture(gl_texture[textures_used++]);
+				glBindTexture(GL_TEXTURE_2D, mixin("instance."~iFields[i]));
+			}
+			else static if(isTemplateType!(Texture, type))
+			{
+				glActiveTexture(gl_texture[textures_used++]);
+				glBindTexture(GL_TEXTURE_2D, mixin("instance."~iFields[i]~".id"));
+			}
+			else
+			{
+				mat.setUniform!type(ids[gFieldCount + i], mixin("instance."~iFields[i]));
+			}
 		}
 		glcheck();
 	}
