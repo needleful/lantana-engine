@@ -90,7 +90,7 @@ private int textureTypeCount(UniformT)()
 	uint t = 0;
 	static foreach(Type; Fields!UniformT)
 	{
-		static if(isTemplateType!(Texture, Type))
+		static if(isTemplateType!(Texture, Type) || is(Type == TextureID))
 		{
 			t += 1;
 		}
@@ -154,6 +154,7 @@ struct UniformT(Global, Instance)
 				mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
 			}
 		}}
+		assert(textures_used == gTextureCount);
 		static foreach(i, type; Fields!Instance)
 		{
 			// Texture uniforms are set globally
@@ -162,6 +163,8 @@ struct UniformT(Global, Instance)
 				mat.setUniform(ids[gFieldCount + i], textures_used++);
 			}
 		}
+		assert(textures_used == gTextureCount + iTextureCount);
+
 		glcheck();
 	}
 
