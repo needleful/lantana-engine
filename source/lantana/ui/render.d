@@ -240,7 +240,8 @@ public final class UIRenderer
 				atlasText.reload();
 			}
 			
-			invalidated.clear();
+			invalidated[AtlasState.Sprite] = false;
+			invalidated[AtlasState.Text] = false;
 		}
 		
 		if(alwaysRender || updated != 0)
