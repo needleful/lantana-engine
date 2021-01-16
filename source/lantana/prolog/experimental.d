@@ -452,11 +452,11 @@ struct variadic
 template ForeignPredicate(uint Arity)
 {
 	import std.meta: Repeat;
-	alias ForeignPredicate = extern(System) foreign_t function(Repeat!(Arity, term_t)) @nogc nothrow; 
+	alias ForeignPredicate = extern(System) foreign_t function(Repeat!(Arity, term_t)) nothrow; 
 }
 
 /// Variadic foreign predicate
-alias ForeignPredicateVariadic = extern(System) foreign_t function(term_t, int, void*) @nogc nothrow;
+alias ForeignPredicateVariadic = extern(System) foreign_t function(term_t, int, void*) nothrow;
 
 private bool foreignIsVariadic(uint Arity)(ForeignPredicate!Arity func)
 {
