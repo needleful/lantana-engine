@@ -133,6 +133,12 @@ struct Term
 		return t;
 	}
 
+	static bool tryParse(string s, out Term result) @nogc nothrow
+	{
+		result.overwrite(Term.nil());
+		return PL_put_term_from_chars(result.term, REP_UTF8, s.length, s.ptr) == TRUE;
+	}
+
 	this(string s) @nogc nothrow
 	{
 		term = PL_new_term_ref();
@@ -174,7 +180,27 @@ struct Term
 		term = PL_copy_term_ref(t.term);
 	}
 
+	void overwrite(term_t p_term) @nogc nothrow
+	{
+		term = p_term;
+	}
+
+	void overwrite(Term rhs) @nogc nothrow
+	{
+		term = rhs.term;
+	}
+
 	// Assignment
+
+	void opAssign(ref Term rhs) @nogc nothrow
+	{
+		PL_put_term(term, rhs.term);
+	}
+
+	void opAssign(Term rhs) @nogc nothrow
+	{
+		PL_put_term(term, rhs.term);
+	}
 
 	void opAssign(string s) @nogc nothrow
 	{
@@ -204,6 +230,17 @@ struct Term
 	void opAssign(void* p) @nogc nothrow
 	{
 		PL_put_pointer(term, p);
+	}
+
+	void opOpAssign(string op)(Term rhs)
+		if(op == "~")
+	{
+		PL_unify_list(term, rhs, term);
+	}
+
+	void addHead(Term rhs)
+	{
+		PL_unify_list(term, rhs, term);
 	}
 
 	string toString()
@@ -244,7 +281,7 @@ struct Term
 				double d;
 				if(PL_get_float(term, &d))
 				{
-					return format("%lf", d);
+					return format("%f", d);
 				}
 				else
 				{
@@ -257,7 +294,7 @@ struct Term
 				PL_get_name_arity_sz(term, &name, &arity);
 				string s = format("%s(", to!string(PL_atom_chars(name)));
 				string terms;
-				Term arg;
+				Term arg = Term.empty();
 				for(size_t i = 1; i <= arity; i++)
 				{
 					PL_get_arg_sz(i, term, arg.term);
@@ -334,7 +371,7 @@ struct Term
 			case PL_NOT_A_LIST:
 				return "not a list";
 			case PL_DICT:
-				return "dict";
+				return "{dict}";
 			default:
 				return "<??>";
 		}

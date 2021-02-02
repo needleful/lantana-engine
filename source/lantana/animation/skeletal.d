@@ -246,8 +246,8 @@ struct AnimationSequence
 		}
 		else debug
 		{
-			import std.stdio;
-			writefln("Could not add '%s' to animation sequence", p_anim);
+			import std.format;
+			assert(false, format("Could not add '%s' to animation sequence", p_anim));
 		}
 	}
 

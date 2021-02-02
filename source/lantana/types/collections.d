@@ -446,7 +446,7 @@ struct ConcurrentQueue(V)
 
 	private bool dq(out V value) @nogc nothrow
 	{
-		if(ulEmpty())
+		if(empty())
 		{
 			return false;
 		}
@@ -491,7 +491,7 @@ struct ConcurrentQueue(V)
 		return (rear == capacity - 1 && front == 0) || (rear == front-1);
 	}
 
-	private bool ulEmpty() @nogc nothrow
+	bool empty() @nogc nothrow
 	{
 		return front == -1;
 	}
