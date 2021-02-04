@@ -14,6 +14,7 @@ import gl3n.linalg;
 import lantana.math.transform;
 import lantana.file.gltf2;
 import lantana.render.mesh.attributes;
+import lantana.types.collections: Bitfield;
 
 struct SkeletalAnimationInstance
 {
@@ -203,13 +204,21 @@ struct AnimationSequence
 		// float.infinity for the real end
 		float endTime;
 	}
+
+	enum StateFlags
+	{
+		loopFinal,
+		transitioning,
+		completed
+	}
+
 	SkeletalAnimationInstance* instance;
 	GLBAnimation[] animations;
 	Element[] sequence;
 	void delegate(int) onTransition;
 	// Current element of the sequence
 	private int current;
-	bool loopFinalAnimation, completed;
+	Bitfield!StateFlags flags;
 
 	this(SkeletalAnimationInstance* p_instance, GLBAnimation[] p_animations) @nogc nothrow
 	{
@@ -254,8 +263,8 @@ struct AnimationSequence
 	void restart()
 	{
 		current = 0;
-		completed = false;
-		instance.play(sequence[current].animation, sequence.length == 1? loopFinalAnimation : false);
+		flags[StateFlags.completed] = false;
+		instance.play(sequence[current].animation, sequence.length == 1? flags[StateFlags.loopFinal] : false);
 		instance.time = sequence[current].startTime;
 	}
 
@@ -265,24 +274,34 @@ struct AnimationSequence
 		{
 			return;
 		}
-		if(!instance.is_playing || instance.time + p_delta >= sequence[current].endTime)
+		else if(flags[StateFlags.transitioning])
 		{
-			if(!completed && onTransition !is null)
-				onTransition(current);
+			flags[StateFlags.transitioning] = false;
 			if(current < sequence.length - 1)
 			{
 				current += 1;
-				bool loop = false;
-				if(current == sequence.length - 1 && loopFinalAnimation)
-					loop = true;
+				bool loop = current == sequence.length - 1 && flags[StateFlags.loopFinal];
 				instance.play(sequence[current].animation, loop);
 				instance.time = sequence[current].startTime;
 			}
 			else
 			{
-				completed = true;
+				flags[StateFlags.completed] = true;
 			}
+
 		}
+		else if(!instance.is_playing)
+		{
+			if(!flags[StateFlags.completed] && onTransition !is null)
+				onTransition(current);
+			flags[StateFlags.transitioning] = true;
+		}
+	}
+
+	@property
+	void loopFinalAnimation(bool loop)
+	{
+		flags[StateFlags.loopFinal] = loop;
 	}
 }
 
