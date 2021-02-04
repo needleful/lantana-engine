@@ -264,7 +264,7 @@ struct AnimationSequence
 	{
 		current = 0;
 		flags[StateFlags.completed] = false;
-		instance.play(sequence[current].animation, sequence.length == 1? flags[StateFlags.loopFinal] : false);
+		instance.play(sequence[current].animation, sequence.length == 1 && flags[StateFlags.loopFinal]);
 		instance.time = sequence[current].startTime;
 	}
 
