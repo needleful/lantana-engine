@@ -135,7 +135,7 @@ struct Term
 
 	static bool tryParse(string s, out Term result) @nogc nothrow
 	{
-		result.overwrite(Term.nil());
+		result.overwrite(Term.empty());
 		return PL_put_term_from_chars(result.term, REP_UTF8, s.length, s.ptr) == TRUE;
 	}
 
