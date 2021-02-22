@@ -19,55 +19,18 @@ import lantana.file.lgbt;
 import lantana.math.transform;
 
 import lantana.render.gl;
-import lantana.render.lights;
 import lantana.render.material;
 import lantana.render.mesh.attributes;
 import lantana.render.textures;
 
 import lantana.types;
 
-struct DefaultUniforms
-{
-	mat4 projection;
-
-	vec3 light_direction;
-	float light_bias;
-	float area_span;
-	float area_ceiling;
-	float gamma;
-
-	int light_palette;
-	int tex_albedo;
-
-	float nearPlane, farPlane;
-}
-
-struct DefaultSettings
-{
-	enum alphaBlend = false;
-	enum depthTest = true;
-	enum depthWrite = true;
-	enum filter = Filter(TexFilter.Linear, TexFilter.MipMaps);
-	alias textureType = Color;
-}
-
-template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
+template GenericMesh(Attrib, Loader, Uniforms, Settings)
 {
 	alias texture = Texture!(Settings.textureType);
 
 	alias Spec = MeshSpec!(Attrib, Loader);
 	private alias MeshData = GLBLoadResults!Spec.MeshData;
-
-	struct InstanceUniforms
-	{
-		mat4 transform;
-		static if(Spec.isAnimated)
-		{
-			mat4[] bones;
-		}
-	}
-
-	alias Uniforms = UniformT!(GlobalUniforms, InstanceUniforms);
 
 	enum hasLightPalette = __traits(compiles, {
 		Uniforms.global g;
@@ -140,7 +103,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			return result;
 		}
 
-		void render(ref Uniforms.global p_globals, ref Texture!Color p_palette, Instance[] p_instances)
+		void render(ref Uniforms.global p_globals, Instance[] p_instances)
 		{
 			glcheck();
 			glEnable(GL_CULL_FACE);
@@ -170,36 +133,19 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			mat.enable();
 			
 			glcheck();
-			static if(hasLightPalette)
-			{
-				p_globals.light_palette = 0;
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, p_palette.id);
-			}
-			glcheck();
-			p_globals.tex_albedo = 1;
 
 			un.setGlobals(mat, p_globals);
 
 			GLuint current_vao = 0;
 			foreach(ref inst; p_instances)
 			{
-				glcheck();
-				inst.transform.computeMatrix();
-				mat.setUniform(un.i_transform(), inst.transform.matrix);
-
-				static if(Spec.isAnimated)
-				{
-					mat.setUniform(un.i_bones(), inst.anim.boneMatrices);
-				}
+				inst.applyTransform();
+				un.setInstance(mat, inst.uniforms);
 
 				if(current_vao != inst.mesh.vao)
 				{
 					current_vao = inst.mesh.vao;
 					glBindVertexArray(current_vao);
-
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, inst.mesh.tex_albedo.id);
 				}
 				glcheck();
 
@@ -336,13 +282,22 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 	struct Instance
 	{
-		Transform transform;
 		Mesh* mesh;
+		// TODO: uniforms aren't handled well!
+		Uniforms.instance uniforms;
+		Transform transform;
 
 		this(Mesh* p_mesh, Transform p_transform)
 		{
 			mesh = p_mesh;
 			transform = p_transform;
+			uniforms.tex_albedo = mesh.tex_albedo.id;
+		}
+
+		void applyTransform()
+		{
+			transform.computeMatrix();
+			uniforms.transform = transform.matrix;
 		}
 
 		static if(Spec.isAnimated)
@@ -353,11 +308,15 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			{
 				mesh = p_mesh;
 				transform = p_transform;
+
 				anim.boneMatrices = p_alloc.makeList!mat4(p_mesh.bones.length);
 				anim.bones = p_alloc.makeList!GLBNode(p_mesh.bones.length);
 				anim.bones[0..$] = p_mesh.bones[0..$];
 				anim.is_playing = false;
 				anim.time = 0;
+				
+				uniforms.tex_albedo = mesh.tex_albedo.id;
+				uniforms.bones = anim.boneMatrices;
 			}
 
 			bool play(string p_anim, bool loop = false)

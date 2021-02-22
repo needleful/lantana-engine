@@ -7,23 +7,28 @@ module lantana.math.func;
 public import std.math: sin, cos, tan, PI;
 import gl3n.linalg: quat;
 
-double radians(double p_degrees)   nothrow
+double radians(double p_degrees) @safe @nogc pure nothrow
 {
 	return (p_degrees/180)*PI;
 }
 
-void sincos(float p_radians, ref float s, ref float c)   nothrow
+double degrees(double p_radians) @safe @nogc pure nothrow
+{
+    return(p_radians/PI)*180;
+}
+
+void sincos(float p_radians, ref float s, ref float c) @safe @nogc nothrow
 {
 	s = sin(p_radians);
 	c = cos(p_radians);
 }
 
-public T max(T)(T a, T b) nothrow
+public T max(T)(T a, T b) @safe @nogc pure nothrow
 {
 	return a > b? a : b;
 }
 
-public quat qlerp(quat a, quat b, float t)  nothrow
+public quat qlerp(quat a, quat b, float t) @safe @nogc pure nothrow
 {
     float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
 

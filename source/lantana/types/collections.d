@@ -409,3 +409,128 @@ struct SOA(Type)
 		opDispatch!"clear"();
 	}
 }
+
+// TODO: consider lock-free mechanism
+struct ConcurrentQueue(V)
+{
+	import core.sync.mutex;
+
+	V* values;
+	size_t capacity;
+	int front = -1;
+	int rear = -1;
+	shared Mutex mtx;
+
+	this(size_t p_capacity)
+	{
+		mtx = new shared Mutex();
+		V[] list;
+		list.reserve(p_capacity);
+		values = list.ptr;
+		capacity = p_capacity;
+	}
+
+	this(V[] p_values)
+	{
+		mtx = new shared Mutex();
+		values = p_values.ptr;
+		capacity = p_values.length;
+	}
+
+	this(V* p_values, size_t p_capacity)
+	{
+		mtx = new shared Mutex();
+		values = p_values;
+		capacity = p_capacity;
+	}
+
+	private bool dq(out V value) @nogc nothrow
+	{
+		if(empty())
+		{
+			return false;
+		}
+		else
+		{
+			value = values[front];
+
+			if(front == rear)
+			{
+				front = -1;
+				rear = -1;
+			}
+			else
+			{
+				front = cast(int) ((front + 1) % capacity);
+			}
+			return true;
+		}
+	}
+
+	private bool nq(V value) @nogc nothrow
+	{
+		if(ulFull())
+		{
+			return false;
+		}
+		else
+		{
+			if(front == -1)
+			{
+				front = 0;
+			}
+
+			rear = cast(int) ((rear + 1) % capacity);
+			values[rear] = value;
+			return true;
+		}
+	}
+
+	private bool ulFull() @nogc nothrow
+	{
+		return (rear == capacity - 1 && front == 0) || (rear == front-1);
+	}
+
+	bool empty() @nogc nothrow
+	{
+		return front == -1;
+	}
+
+	bool tryDequeue(out V value) @nogc nothrow
+	{
+		if(!mtx.tryLock_nothrow())
+		{
+			return false;
+		}
+		scope(exit) mtx.unlock_nothrow();
+
+		return dq(value);
+	}
+
+	bool dequeue(out V value) @nogc nothrow
+	{
+		mtx.lock_nothrow();
+		scope(exit) mtx.unlock_nothrow();
+
+		return dq(value);
+	}
+
+	bool tryEnqueue(V value) @nogc nothrow
+	{
+		if(!mtx.tryLock_nothrow())
+		{
+			return false;
+		}
+		scope(exit) mtx.unlock_nothrow();
+
+		return nq(value);
+	}
+
+	bool enqueue(V value) @nogc nothrow
+	{
+		mtx.lock_nothrow();
+		scope(exit) mtx.unlock_nothrow();
+
+		return nq(value);
+	}
+}

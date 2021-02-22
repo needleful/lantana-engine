@@ -10,8 +10,9 @@ debug
 	import std.stdio;
 }
 
+import std.string;
+
 import lantana.render.gl;
-import lantana.render.lights;
 import lantana.types.core;
 
 struct MaterialId
@@ -174,12 +175,11 @@ struct Material
 	{
 		scope(exit) glcheck();
 
-		auto val = AttribId(matId.glGetAttribLocation(p_attrib.ptr));
+		auto val = AttribId(matId.glGetAttribLocation(p_attrib.toStringz()));
 		
 		debug if(val <= -1)
 		{
-			printf("Invalid attribute: %s\n", p_attrib.ptr);
-			assert(false);
+			assert(false, format("Invalid attribute: %s\n", p_attrib));
 		}
 		return val;
 	}

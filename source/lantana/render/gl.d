@@ -22,6 +22,17 @@ debug
 	import std.format;
 }
 
+static immutable GLint[] gl_texture = [
+	GL_TEXTURE0,
+	GL_TEXTURE1,
+	GL_TEXTURE2,
+	GL_TEXTURE3,
+	GL_TEXTURE4,
+	GL_TEXTURE5,
+	GL_TEXTURE6,
+	GL_TEXTURE7
+];
+
 void glcheck() @nogc
 {
 	string errorString(GLint err) @nogc
@@ -38,6 +49,8 @@ void glcheck() @nogc
 				return "Invalid Framebuffer Operation";
 			case GL_OUT_OF_MEMORY:
 				return "Out of Memory";
+			case GL_INVALID_OPERATION:
+				return "Invalid Operation";
 			default:
 				return "Unknown Error";
 		}

@@ -15,6 +15,11 @@ import lantana.types;
 import lantana.render.gl;
 import lantana.render.material;
 
+struct TextureID
+{
+	mixin StrictAlias!GLuint;
+}
+
 struct Bitmap(TextureDataType)
 {
 	private FIBITMAP* _bits;
@@ -75,7 +80,7 @@ struct Texture(TextureDataType)
 	}
 
 	tex* buffer;
-	GLuint id;
+	TextureID id;
 	RealSize size;
 
 	this(ImageType p_type, ubyte[] p_data, ref Region p_alloc, Filter p_filter) 
@@ -105,7 +110,7 @@ struct Texture(TextureDataType)
 		buffer[0..length] = (cast(tex*)FreeImage_GetBits(bitmap))[0..length];
 		FreeImage_Unload(bitmap);
 
-		glGenTextures(1, &id);
+		glGenTextures(1, id.ptr());
 		glBindTexture(GL_TEXTURE_2D, id);
 
 		int mip = 0;
@@ -134,7 +139,7 @@ struct Texture(TextureDataType)
 		buffer = p_alloc.makeList!tex(length).ptr;
 		buffer[0..length] = b.buffer[0..length];
 
-		glGenTextures(1, &id);
+		glGenTextures(1, id.ptr());
 		glBindTexture(GL_TEXTURE_2D, id);
 
 		// Swap blue and red channels for FreeImage bitmaps
@@ -157,7 +162,7 @@ struct Texture(TextureDataType)
 		size = p_size;
 		buffer = p_buffer;
 
-		glGenTextures(1, &id);
+		glGenTextures(1, id.ptr());
 		glBindTexture(GL_TEXTURE_2D, id);
 		initialize(p_filter);
 	}
@@ -168,7 +173,7 @@ struct Texture(TextureDataType)
 		id = rhs.id;
 		size = rhs.size;
 
-		rhs.id = 0;
+		rhs.id = TextureID(0);
 	}
 
 	public this(RealSize p_size, ref Region p_alloc, Filter p_filter) 
@@ -176,7 +181,7 @@ struct Texture(TextureDataType)
 		size = p_size;
 		buffer = p_alloc.makeList!tex(size.width*size.height).ptr;
 
-		glGenTextures(1, &id);
+		glGenTextures(1, id.ptr());
 		glBindTexture(GL_TEXTURE_2D, id);
 		initialize(p_filter);
 	}
@@ -206,8 +211,8 @@ struct Texture(TextureDataType)
 
 	public ~this()  nothrow
 	{
-		debug printf("Deleting Texture %u\n", id);
-		glDeleteTextures(1, &id);
+		debug printf("Deleting Texture %u\n", id.handle());
+		glDeleteTextures(1, id.ptr());
 	}
 
 	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data, bool p_swap_red_blue = false) 
