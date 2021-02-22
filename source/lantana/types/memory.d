@@ -33,16 +33,16 @@ template AlignT(Type)
 	}
 }
 
-T* offset(T)(ref ubyte[] p_bytes, ulong p_offset)
+T* offset(T)(ref ubyte[] p_bytes, size_t p_offset)
 {
 	return cast(T*) (&p_bytes[p_offset]);
 }
 
-T[] addSpace(T)(ref ubyte[] p_bytes, ulong p_count, ref ulong p_start)
+T[] addSpace(T)(ref ubyte[] p_bytes, size_t p_count, ref size_t p_start)
 {
 	/// Aligns data to size_t
 	//ushort shiftAlign = (cast(size_t)p_start) % AlignT!T;
-	//ulong size = T.sizeof*p_count+shiftAlign;
+	//size_t size = T.sizeof*p_count+shiftAlign;
 	//p_start = p_bytes.length+shiftAlign;
 	//p_bytes.length += size+shiftAlign;
 	p_start = p_bytes.length;
@@ -62,9 +62,9 @@ void readData(T, U)(ref T p_dest, ref U p_source)
 	//memcpy(cast(void*)p_dest.ptr, cast(void*)p_source.ptr, T.sizeof*p_source.length);
 }
 
-T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
+T[] readArray(T)(ubyte[] p_bytes, size_t p_byteOffset, size_t p_count)
 {
-	ulong byteEnd = p_byteOffset + p_count*T.sizeof;
+	size_t byteEnd = p_byteOffset + p_count*T.sizeof;
 	assert(byteEnd <= p_bytes.length);
 
 	return p_bytes.offset!T(p_byteOffset)[0..p_count];
@@ -72,11 +72,12 @@ T[] readArray(T)(ubyte[] p_bytes, ulong p_byteOffset, ulong p_count)
 
 struct OwnedList(Type)
 {
+	alias index_t = ushort;
 	private Type* m_ptr;
-	private ushort m_length;
-	private ushort m_capacity;
+	private index_t m_length;
+	private index_t m_capacity;
 
-	this(Type* p_ptr, ushort p_cap) @nogc nothrow @safe
+	this(Type* p_ptr, index_t p_cap) @nogc nothrow @safe
 	{
 		m_ptr = p_ptr;
 		m_capacity = p_cap;
@@ -109,12 +110,12 @@ struct OwnedList(Type)
 		return m_ptr;
 	}
 
-	@property ushort length()  nothrow const @safe
+	@property index_t length()  nothrow const @safe
 	{
 		return m_length;
 	}
 
-	@property ushort capacity()  nothrow const @safe
+	@property index_t capacity()  nothrow const @safe
 	{
 		return m_capacity;
 	}
@@ -195,7 +196,7 @@ struct BaseRegion
 
 	~this() @nogc
 	{
-		ulong cap = region.capacity();
+		size_t cap = region.capacity();
 		region.disable();
 
 		MmapAllocator.instance.deallocate(cast(void[]) region.data[0..cap]);
@@ -342,7 +343,7 @@ struct Region
 
 	private void* allocAligned(uint alignment)(size_t bytes) @nogc
 	{
-		ulong address = ((cast(ulong)data)+spaceUsed());
+		size_t address = ((cast(size_t)data)+spaceUsed());
 		auto alignShift = address % alignment;
 		alignShift = (alignment - alignShift) % alignment;
 

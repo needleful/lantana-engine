@@ -305,7 +305,7 @@ void uiRun()
 			}
 		}
 
-		for(ulong i = setButtons; i < ds.buttons.length; i++)
+		for(size_t i = setButtons; i < ds.buttons.length; i++)
 		{
 			ds.buttons[i].setVisible(false);
 		}

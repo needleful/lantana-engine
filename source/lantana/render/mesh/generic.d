@@ -243,7 +243,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 					}
 				}
 
-				foreach(ulong i; 0..inst.mesh.bones.length)
+				foreach(size_t i; 0..inst.mesh.bones.length)
 				{
 					inst.anim.boneMatrices[i] = 
 						applyParentTransform(inst.anim.bones[i], inst.anim.bones) 
@@ -256,9 +256,9 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		void clearMeshes() @nogc
 		{
 			glDeleteBuffers(vbos.length, vbos.ptr);
-			foreach(i; 0..meshes.length)
+			foreach(size_t i; 0..meshes.length)
 			{
-				meshes[i].clear();
+				meshes[cast(int)i].clear();
 			}
 			meshes.clearNoGC();
 			vbos.clearNoGC();

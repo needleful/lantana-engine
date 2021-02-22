@@ -96,7 +96,7 @@ struct Material
 
 	const bool canRender() 
 	{
-		scope(exit) glcheck;
+		scope(exit) glcheck();
 
 		matId.glValidateProgram();
 		GLint success;
@@ -112,16 +112,14 @@ struct Material
 				error.length = loglen;
 
 				matId.glGetProgramInfoLog(cast(GLint)error.length, null, error.ptr);
-				throw new Exception(format("Cannot render Material: %s", error));
+				assert(false, format("Cannot render Material: %s", error));
 			}
 			else
 			{
 				return false;
 			}
 		}
-		else {
-			return true;
-		}
+		return true;
 	}
 
 	UniformId getUniformId(string p_name)  const

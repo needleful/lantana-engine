@@ -492,7 +492,7 @@ public final class UIView
 
 		setQuadUV(uvstart, Rect(node.position, node.size));
 
-		ulong elemStart = elemSprite.length;
+		size_t elemStart = elemSprite.length;
 		bool elemRealloc = elemSprite.addSpace(6);
 
 		elemSprite[elemStart..elemStart+6] = [

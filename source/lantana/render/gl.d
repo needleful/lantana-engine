@@ -92,7 +92,7 @@ GLuint compileShader(string filename, GLenum type)
 	GLuint shader = glCreateShader(type);
 
 	char[] s;
-	s.length = input.size;
+	s.length = cast(size_t) input.size;
 	debug 
 	{
 		assert(s.length > 0, format("Shader file empty: %s", filename));

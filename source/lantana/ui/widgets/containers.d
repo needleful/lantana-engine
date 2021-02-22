@@ -36,7 +36,14 @@ public class HodgePodge : MultiContainer
 		foreach(child; children)
 		{
 			RealSize csize = child.layout(childRequest);
-			top_right = ivec2(cast(int) fmax(csize.width, top_right.x), cast(int) fmax(csize.height, top_right.y));
+			int _max(int a, int b)
+			{
+				if(a > b)
+					return a;
+				else
+					return b;
+			}
+			top_right = ivec2(_max(csize.width, top_right.x), _max(csize.height, top_right.y));
 		}
 
 		return RealSize(top_right.x, top_right.y).constrained(request);

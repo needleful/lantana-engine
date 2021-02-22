@@ -8,7 +8,8 @@
 				"dub",
 				"run",
 				"--config=game",
-				"--parallel"
+				"--parallel",
+				"--arch=x86_64"
 			],
 			"working_dir": "$project_path"
 		},
@@ -20,7 +21,8 @@
 				"run",
 				"--config=game",
 				"--build=release-debug",
-				"--parallel"
+				"--parallel",
+				"--arch=x86_64"
 			],
 			"working_dir": "$project_path"
 		},
@@ -31,7 +33,8 @@
 				"dub",
 				"run",
 				"--config=editor",
-				"--parallel"
+				"--parallel",
+				"--arch=x86_64"
 			],
 			"working_dir": "$project_path"
 		},
@@ -57,7 +60,7 @@
 				"--combined",
 				"--config=game",
 				"--arch=x86_64",
-				"--parallel"
+				"--parallel",
 			],
 			"working_dir": "$project_path"
 		},

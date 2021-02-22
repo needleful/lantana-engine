@@ -165,7 +165,8 @@ GLBDataType typeFromString(string p_type)
 		case "MAT3"  : return GLBDataType.MAT3;
 		case "MAT4"  : return GLBDataType.MAT4;
 		default: 
-			debug throw new Exception("Invalid GLBDataType name: "~p_type);
+			debug
+				assert(false, "Invalid GLBDataType name: "~p_type);
 			else 
 				return GLBDataType.UNKNOWN;
 	}

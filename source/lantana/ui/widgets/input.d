@@ -224,7 +224,7 @@ final class TextInput : Widget, Interactible
 		}
 		text.length += str.length;
 
-		for(ulong i = text.length-1; i > index + str.length-1; i--)
+		for(size_t i = text.length-1; i > index + str.length-1; i--)
 		{
 			text[i] = text[i-str.length];
 		}
@@ -242,7 +242,7 @@ final class TextInput : Widget, Interactible
 			return;
 		}
 
-		for(ulong i = index; i < text.length; i++)
+		for(size_t i = index; i < text.length; i++)
 		{
 			text[i-1] = text[i];
 		}

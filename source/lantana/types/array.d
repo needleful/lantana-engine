@@ -19,7 +19,7 @@ long indexOf(Type)(Type[] list, auto ref Type toFind) @nogc nothrow @safe
 	return -1;
 }
 
-void place(Type, A...)(Type[] list, ulong index, auto ref A args)
+void place(Type, A...)(Type[] list, size_t index, auto ref A args)
 {
 	emplace!(Type, A)(&list[index], args);
 }
@@ -37,10 +37,10 @@ T[] reverse(T)(T[] input)
 		return input;
 	}
 
-	ulong end = input.length - 1;
-	foreach(ulong i; 0..input.length/2)
+	size_t end = input.length - 1;
+	foreach(size_t i; 0..input.length/2)
 	{
-		ulong opp = end-i;
+		size_t opp = end-i;
 
 		auto temp = input[i];
 		input[i] = input[opp];
@@ -67,7 +67,7 @@ T* append(T)(ref T[] list, T object)
 }
 
 // Returns true if we had to reserve more space, false otherwise
-bool addSpace(T)(ref T[] list, uint space)
+bool addSpace(T)(ref T[] list, size_t space)
 {
 	bool realloc_required = false;
 	if((list.length + space) > list.capacity)
