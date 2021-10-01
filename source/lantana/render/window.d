@@ -57,9 +57,6 @@ struct Window
 		SDLSupport sdlresult = loadSDL();
 		assert(sdlresult == sdlSupport, "Could not load SDL2");
 
-		GLSupport glResult = loadOpenGL();
-		assert(glResult == GLSupport.gl46, "OpenGL 4.6 required!");
-
 		state.clear();
 
 		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0){
@@ -121,6 +118,9 @@ struct Window
 			}
 
 		}
+
+		GLSupport glResult = loadOpenGL();
+		assert(glResult >= GLSupport.gl43, format("OpenGL 4.3 or higher required! Got %d", glResult));
 
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 		//glEnable(GL_MULTISAMPLE);
