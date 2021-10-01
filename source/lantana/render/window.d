@@ -57,7 +57,8 @@ struct Window
 		SDLSupport sdlresult = loadSDL();
 		assert(sdlresult == sdlSupport, "Could not load SDL2");
 
-		DerelictGL3.load();
+		GLSupport glResult = loadOpenGL();
+		assert(glResult == GLSupport.gl46, "OpenGL 4.6 required!");
 
 		state.clear();
 
@@ -74,8 +75,8 @@ struct Window
 
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 		window = SDL_CreateWindow(
@@ -105,8 +106,6 @@ struct Window
 			SDL_GL_DeleteContext(glContext);
 			printf("Deleting GL context");
 		}
-
-		DerelictGL3.reload();
 
 		if(SDL_GL_SetSwapInterval(-1) < 0)
 		{

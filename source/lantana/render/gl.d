@@ -3,8 +3,7 @@
 // Licensed under GPL v3.0
 
 module lantana.render.gl;
-public import derelict.opengl;
-mixin glFreeFuncs!(GLVersion.gl33, false);
+public import bindbc.opengl;
 
 import std.file;
 import std.stdio;
