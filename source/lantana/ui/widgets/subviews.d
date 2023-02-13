@@ -7,9 +7,8 @@ module lantana.ui.widgets.subviews;
 import std.math;
 debug import std.stdio;
 
-import gl3n.linalg: vec2;
-
 import lantana.input;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.ui.interaction;
 import lantana.ui.render;
@@ -33,7 +32,7 @@ public final class Scrolled : Widget
 			m_priority = p_priority;
 		}
 
-		public override void drag(ivec2 p_dragAmount) 
+		public override void drag(iVec2 p_dragAmount) 
 		{
 			parent.scrollBy(cast(int) p_dragAmount.y, pan);
 		}
@@ -71,7 +70,7 @@ public final class Scrolled : Widget
 	private RectWidget scrollbarHandle;
 
 	private InteractibleId idHandle, idPan;
-	private ivec2 drawPos;
+	private iVec2 drawPos;
 	private int scrollSpan;
 	private double scrollPercent = 0;
 	private RealSize childSize, widgetSize;
@@ -147,9 +146,9 @@ public final class Scrolled : Widget
 		if(scrollSpan < 0) scrollSpan = 0;
 
 		// Readjusting scroll to match old position as best as possible
-		childView.translation = ivec2(0, cast(int)(-scrollPercent* (widgetSize.height - childSize.height)));
+		childView.translation = iVec2(0, cast(int)(-scrollPercent* (widgetSize.height - childSize.height)));
 
-		scrollbar.position = ivec2(childSize.width, 0);
+		scrollbar.position = iVec2(childSize.width, 0);
 
 		view.setInteractSize(idHandle, barsize);
 		view.setInteractSize(idPan, childSize);
@@ -157,10 +156,10 @@ public final class Scrolled : Widget
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		drawPos = scrollbar.position + p_pen;
-		scrollbarHandle.position = drawPos + ivec2(0, cast(int)(scrollSpan*scrollPercent));
+		scrollbarHandle.position = drawPos + iVec2(0, cast(int)(scrollSpan*scrollPercent));
 
 		childView.setRect(Rect(p_pen, childSize));
 		scrollbar.prepareRender(drawPos);
@@ -247,14 +246,14 @@ public class Panned : Widget, Interactible
 		return viewSize;
 	}
 
-	public override void prepareRender(ivec2 p_pen)
+	public override void prepareRender(iVec2 p_pen)
 	{
 		view.setInteractSize(pan, viewSize);
 		view.setInteractPosition(pan, p_pen);
 		childView.setRect(Rect(p_pen, viewSize));
 	}
 
-	public ivec2 dragPosition()
+	public iVec2 dragPosition()
 	{
 		return childView.translation;
 	}
@@ -269,7 +268,7 @@ public class Panned : Widget, Interactible
 		return 0;
 	}
 
-	public override void drag(ivec2 p_dragAmount) 
+	public override void drag(iVec2 p_dragAmount) 
 	{
 		childView.translation += p_dragAmount;
 	}
@@ -298,7 +297,7 @@ public final class Modal : Widget
 
 		foreach(w; widgets)
 		{
-			UIView v = p_view.addView(Rect(ivec2(0,0), p_renderer.getSize()));
+			UIView v = p_view.addView(Rect(iVec2(0,0), p_renderer.getSize()));
 
 			v.setVisible(false);
 			v.setRootWidget(w);
@@ -311,7 +310,7 @@ public final class Modal : Widget
 
 	public void addMode(Widget w)
 	{
-		UIView v = view.addView(Rect(ivec2(0,0), view.renderer.getSize()));
+		UIView v = view.addView(Rect(iVec2(0,0), view.renderer.getSize()));
 		v.setVisible(false);
 		v.setRootWidget(w);
 		widgets ~= w;
@@ -335,13 +334,13 @@ public final class Modal : Widget
 
 		foreach(v; views)
 		{
-			v.setRect(Rect(ivec2(0,0), view.renderer.getSize()));
+			v.setRect(Rect(iVec2(0,0), view.renderer.getSize()));
 		}
 
 		return widgets[currentMode].layout(p_request);
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		Widget wi = widgets[currentMode];
 

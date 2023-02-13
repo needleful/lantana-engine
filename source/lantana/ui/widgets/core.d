@@ -4,7 +4,7 @@
 
 module lantana.ui.widgets.core;
 
-import lantana.types.core : ivec2;
+import lantana.math.vectors : iVec2;
 import lantana.types.layout;
 import lantana.ui.render;
 import lantana.ui.view;
@@ -25,7 +25,7 @@ public abstract class Widget
 
 	/// Pixel position of the widget, from the bottom left of the screen to the bottom left of the widget
 	/// As a rule, the position should ONLY be read by the parent
-	public ivec2 position;
+	public iVec2 position;
 
 	/// Force the Widget to be within these bounds.  Overrides the parent request.
 	/// This should be used sparingly!  It can break things!
@@ -43,7 +43,7 @@ public abstract class Widget
 	public abstract RealSize layout(SizeRequest p_request);
 
 	/// Second phase of layout: this is 
-	public abstract void prepareRender(ivec2 p_pen);
+	public abstract void prepareRender(iVec2 p_pen);
 
 	public Widget withBounds(Bounds p_width, Bounds p_height)
 	{
@@ -78,7 +78,7 @@ public abstract class Container : Widget
 		}
 	}
 
-	public override void prepareRender(ivec2 p_pen)
+	public override void prepareRender(iVec2 p_pen)
 	{
 		foreach(child; getChildren())
 		{
@@ -138,5 +138,5 @@ public abstract class RectWidget : Widget
 {
 	public void setSprite(SpriteId p_sprite);
 
-	public void setPosition(ivec2 p_position);
+	public void setPosition(iVec2 p_position);
 }

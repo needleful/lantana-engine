@@ -6,6 +6,7 @@ module lantana.types.layout;
 
 import std.stdio;
 
+import lantana.math.vectors;
 import lantana.types.collections;
 import lantana.types.core;
 
@@ -150,7 +151,7 @@ public struct RealSize
 		height = p_height;
 	}
 
-	public this(ivec2 p_vector)  nothrow
+	public this(iVec2 p_vector)  nothrow
 	{
 		width = p_vector.x;
 		height = p_vector.y;
@@ -199,26 +200,26 @@ public struct RealSize
 
 struct Rect
 {
-	ivec2 pos;
+	iVec2 pos;
 	RealSize size;
 
-	this(ivec2 p_pos, RealSize p_size) nothrow @nogc
+	this(iVec2 p_pos, RealSize p_size) nothrow @nogc
 	{
 		pos = p_pos;
 		size = p_size;
 	}
 
-	bool contains(ivec2 p_point) const nothrow @nogc
+	bool contains(iVec2 p_point) const nothrow @nogc
 	{
-		ivec2 p = p_point - pos;
+		iVec2 p = p_point - pos;
 
 		return (p.x >= 0 && p.x <= size.width) && (p.y >= 0 && p.y <= size.height);
 	}
 
 	bool intersects(Rect rhs) const nothrow @nogc
 	{
-		ivec2 topRight = ivec2(pos.x + size.width, pos.y + size.height);
-		ivec2 topRightRhs = ivec2(rhs.pos.x + rhs.size.width, rhs.pos.y + rhs.size.height);
+		iVec2 topRight = iVec2(pos.x + size.width, pos.y + size.height);
+		iVec2 topRightRhs = iVec2(rhs.pos.x + rhs.size.width, rhs.pos.y + rhs.size.height);
 
 		return ( (pos.x >= rhs.pos.x && pos.x <= topRightRhs.x) 
 		         || (topRight.x >= rhs.pos.x && topRight.x <= topRightRhs.x))

@@ -8,17 +8,14 @@ import std.algorithm: endsWith;
 debug import std.stdio;
 debug import std.format;
 
-import gl3n.interpolate;
-import gl3n.linalg;
-
-import lantana.math.transform;
+import lantana.math;
 import lantana.file.gltf2;
 import lantana.render.mesh.attributes;
 
 struct SkeletalAnimationInstance
 {
 	GLBNode[] bones;
-	mat4[] boneMatrices;
+	Mat4[] boneMatrices;
 	const(GLBAnimation)* currentAnimation;
 	float time;
 	bool is_updated;
@@ -135,9 +132,9 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 		switch(channel.path)
 		{
 			case GLBAnimationPath.TRANSLATION:
-				auto valueFrames = valueBuffer.asArray!vec3(p_data);
-				vec3 current = valueFrames[frame];
-				vec3 next = valueFrames[nextframe];
+				auto valueFrames = valueBuffer.asArray!Vec3(p_data);
+				Vec3 current = valueFrames[frame];
+				Vec3 next = valueFrames[nextframe];
 				inst.bones[channel.targetBone].translation = lerp(current, next, interp);
 				break;
 
@@ -145,7 +142,7 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 				void get_rot(T)() 
 				{
 					import lantana.math.func;
-					quat value;
+					Quat value;
 					auto rotations = valueBuffer.asArray!(Vector!(T, 4))(p_data);
 
 					auto current = getQuat(rotations[frame]);
@@ -176,7 +173,7 @@ public void updateAnimation(float p_delta, ref SkeletalAnimationInstance inst, G
 				break;
 
 			case GLBAnimationPath.SCALE:
-				auto valueFrames = valueBuffer.asArray!vec3(p_data);
+				auto valueFrames = valueBuffer.asArray!Vec3(p_data);
 				auto current = valueFrames[frame];
 				auto next = valueFrames[nextframe];
 				inst.bones[channel.targetBone].scale = lerp(current, next, interp);

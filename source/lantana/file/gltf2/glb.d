@@ -10,9 +10,8 @@ import std.json;
 import std.stdio;
 import std.typecons: tuple;
 
-import gl3n.linalg;
 import lantana.file.gltf2.types;
-import lantana.math.func;
+import lantana.math;
 import lantana.types;
 
 import lantana.render.mesh.attributes;

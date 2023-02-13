@@ -7,10 +7,10 @@ module lantana.ui.widgets.objects;
 import std.math;
 debug import std.stdio;
 
-import gl3n.linalg: vec2, vec3;
 
-import lantana.types;
 import lantana.input;
+import lantana.math.vectors;
+import lantana.types;
 import lantana.ui.interaction;
 import lantana.ui.render;
 import lantana.ui.view;
@@ -55,9 +55,9 @@ public class PatchRect : RectWidget
 		return size;
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
-		view.translateMesh(mesh, ivec2(p_pen));
+		view.translateMesh(mesh, p_pen);
 	}
 
 	public override void setSprite(SpriteId p_sprite) 
@@ -65,10 +65,10 @@ public class PatchRect : RectWidget
 		view.setPatchRectUV(mesh, p_sprite, pad);
 	}
 
-	public override void setPosition(ivec2 p_position)
+	public override void setPosition(iVec2 p_position)
 	{
 		view.setPatchRectSize(mesh, size, pad);
-		view.translateMesh(mesh, ivec2(p_position));
+		view.translateMesh(mesh, p_position);
 	}
 }
 
@@ -194,7 +194,7 @@ public class ImageBox : RectWidget
 		return resultSize;
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		view.translateMesh(vertices, p_pen);
 	}
@@ -204,10 +204,10 @@ public class ImageBox : RectWidget
 		view.setSprite(vertices, p_sprite);
 	}
 
-	public override void setPosition(ivec2 p_position)
+	public override void setPosition(iVec2 p_position)
 	{
 		view.setQuadSize(vertices, resultSize);
-		view.translateMesh(vertices, ivec2(p_position));
+		view.translateMesh(vertices, p_position);
 	}
 }
 
@@ -225,7 +225,7 @@ public final class Spacer : Widget
 		return size.constrained(p_request);
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		return;
 	}
@@ -237,9 +237,9 @@ public class TextBox: Widget
 	string text;
 	uint allocCapacity;
 	TextId mesh;
-	vec3 color;
+	Vec3 color;
 
-	public this(FontId p_font, string p_text, vec3 p_color = vec3(-1), bool p_dynamic = false)
+	public this(FontId p_font, string p_text, Vec3 p_color = Vec3(-1), bool p_dynamic = false)
 	{
 		if(p_dynamic)
 		{
@@ -254,7 +254,7 @@ public class TextBox: Widget
 		color = p_color;
 	}
 
-	public this(string p_text, vec3 p_color = vec3(-1), bool p_dynamic = false)
+	public this(string p_text, Vec3 p_color = Vec3(-1), bool p_dynamic = false)
 	{
 		if(p_dynamic)
 		{
@@ -269,7 +269,7 @@ public class TextBox: Widget
 		color = p_color;
 	}
 
-	public this(FontId p_font, string p_text, uint allocLen, vec3 p_color = vec3(-1))
+	public this(FontId p_font, string p_text, uint allocLen, Vec3 p_color = Vec3(-1))
 	{
 		font = p_font;
 		text = p_text;
@@ -277,7 +277,7 @@ public class TextBox: Widget
 		color = p_color;
 	}
 
-	public this(string p_text, uint allocLen, vec3 p_color = vec3(-1))
+	public this(string p_text, uint allocLen, Vec3 p_color = Vec3(-1))
 	{
 		font = FontId.invalid;
 		text = p_text;
@@ -288,7 +288,7 @@ public class TextBox: Widget
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
-		if(color == vec3(-1))
+		if(color == Vec3(-1))
 		{
 			color = p_renderer.style.defaultFontColor;
 		}
@@ -316,7 +316,7 @@ public class TextBox: Widget
 		return view.textBoundingBox(mesh).constrained(req);
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		view.translateTextMesh(mesh, p_pen);
 	}
@@ -330,7 +330,7 @@ public class TextBox: Widget
 		}
 	}
 
-	public void setColor(vec3 p_color)
+	public void setColor(Vec3 p_color)
 	{
 		if(p_color == color)
 		{

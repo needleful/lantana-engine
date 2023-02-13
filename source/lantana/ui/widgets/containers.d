@@ -7,9 +7,8 @@ module lantana.ui.widgets.containers;
 import std.math;
 debug import std.stdio;
 
-import gl3n.linalg: vec2;
-
 import lantana.math.func: max;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.ui.interaction;
 import lantana.ui.render;
@@ -30,14 +29,14 @@ public class HodgePodge : MultiContainer
 
 		SizeRequest request = p_request.constrained(absoluteWidth, absoluteHeight);
 
-		ivec2 top_right;
+		iVec2 top_right;
 
 		auto childRequest = SizeRequest(Bounds(0, request.width.max), Bounds(0, request.height.max));
 
 		foreach(child; children)
 		{
 			RealSize csize = child.layout(childRequest);
-			top_right = ivec2(max(csize.width, top_right.x), max(csize.height, top_right.y));
+			top_right = iVec2(max(csize.width, top_right.x), max(csize.height, top_right.y));
 		}
 
 		return RealSize(top_right.x, top_right.y).constrained(request);
@@ -47,10 +46,10 @@ public class HodgePodge : MultiContainer
 /// Relative positioning with no size constraints on object
 public class Positioned: SingularContainer
 {
-	vec2 anchor;
-	vec2 childAnchor;
+	Vec2 anchor;
+	Vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor) 
+	public this(Widget p_child, Vec2 p_anchor, Vec2 p_childAnchor) 
 	{
 		child = p_child;
 		anchor = p_anchor;
@@ -65,7 +64,7 @@ public class Positioned: SingularContainer
 		RealSize childSize = child.layout(childRequest);
 
 		RealSize parent = RealSize(cast(int) p_request.width.max, cast(int) p_request.height.max);
-		child.position = ivec2(
+		child.position = iVec2(
 			cast(int)(parent.width*anchor.x - childSize.width*childAnchor.x),
 			cast(int)(parent.height*anchor.y - childSize.height*childAnchor.y));
 
@@ -78,14 +77,14 @@ public class Anchor: SingularContainer
 {
 	UIView view;
 	// Normalized coordinates, (0,0) is bottom left of the MultiContainer
-	vec2 anchor;
+	Vec2 anchor;
 	// Normalized coordinates of anchor for child element.  This is what's moved to the anchor
-	vec2 childAnchor;
+	Vec2 childAnchor;
 
-	public this(Widget p_child, vec2 p_anchor, vec2 p_childAnchor = vec2(0,0)) 
+	public this(Widget p_child, Vec2 p_anchor, Vec2 p_childAnchor = Vec2(0,0)) 
 	{
 		child = p_child;
-		child.position = ivec2(0,0);
+		child.position = iVec2(0,0);
 
 		anchor = p_anchor;
 		childAnchor = p_childAnchor;
@@ -213,7 +212,7 @@ public class Anchor: SingularContainer
 
 		RealSize childSize = child.layout(childIntrinsic);
 
-		child.position = ivec2(
+		child.position = iVec2(
 			cast(int)(parentWidth*anchor.x - childSize.width*childAnchor.x),
 			cast(int)(parentHeight*anchor.y - childSize.height*childAnchor.y));
 
@@ -229,10 +228,10 @@ public class Anchor: SingularContainer
 
 public class AnchoredBox : MultiContainer
 {
-	vec2 bottomLeft;
-	vec2 topRight;
+	Vec2 bottomLeft;
+	Vec2 topRight;
 
-	public this(Widget[] p_children, vec2 p_bLeft, vec2 p_tRight)
+	public this(Widget[] p_children, Vec2 p_bLeft, Vec2 p_tRight)
 	{
 		children = p_children;
 		bottomLeft = p_bLeft;
@@ -246,7 +245,7 @@ public class AnchoredBox : MultiContainer
 		// AnchoredBox forces its children to occupy the full box
 		SizeRequest childRequest;
 
-		vec2 vSize = topRight - bottomLeft;
+		Vec2 vSize = topRight - bottomLeft;
 		childRequest.width = Bounds(p_request.width.max * vSize.x);
 		childRequest.height = Bounds(p_request.height.max * vSize.y);
 
@@ -254,7 +253,7 @@ public class AnchoredBox : MultiContainer
 
 		foreach(child; children)
 		{
-			child.position = ivec2(cast(int)(p_request.width.max*bottomLeft.x), cast(int)(p_request.height.max*bottomLeft.y));
+			child.position = iVec2(cast(int)(p_request.width.max*bottomLeft.x), cast(int)(p_request.height.max*bottomLeft.y));
 			child.layout(childRequest);
 		}
 
@@ -304,14 +303,14 @@ public class Padding : SingularContainer
 		SizeRequest childIntrinsic = SizeRequest(Bounds(minWidth, maxWidth), Bounds(minHeight, maxHeight));
 
 		RealSize csize = child.layout(childIntrinsic);
-		child.position = ivec2(pad.left, pad.bottom);
+		child.position = iVec2(pad.left, pad.bottom);
 
 		RealSize res = RealSize(csize.width + pad.left + pad.right, csize.height + pad.top + pad.bottom);
 		if(panel) panel.layout(SizeRequest(res));
 		return res.constrained(SizeRequest(absoluteWidth, absoluteHeight));
 	}
 
-	public override void prepareRender(ivec2 p_pen)
+	public override void prepareRender(iVec2 p_pen)
 	{
 		if(panel) panel.prepareRender(p_pen);
 		super.prepareRender(p_pen);
@@ -341,7 +340,7 @@ public class HBox: MultiContainer
 
 		//TODO: respect intrinsics properly
 		RealSize size;
-		ivec2 pen = ivec2(0,0);
+		iVec2 pen = iVec2(0,0);
 		foreach(child; children)
 		{
 			RealSize childSize = child.layout(request);

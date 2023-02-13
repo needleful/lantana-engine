@@ -6,14 +6,15 @@ module lantana.math.angles;
 
 import std.math;
 
-import gl3n.linalg;
+import lantana.math.vectors;
+import lantana.math.matrix;
 
 struct Angles
 {
-	vec3 axis;
+	Vec3 axis;
 	float angle;
 
-	this(vec3 axis, float angle)   nothrow
+	this(Vec3 axis, float angle) nothrow
 	{
 		this.axis = axis;
 		this.axis.normalize();
@@ -22,7 +23,7 @@ struct Angles
 		normalize();
 	}
 
-	void normalize()   nothrow
+	void normalize() nothrow
 	{
 		while(angle > 2*PI)
 		{
@@ -34,13 +35,13 @@ struct Angles
 		}
 	}
 
-	void rotate(float f)   nothrow
+	void rotate(float f) nothrow
 	{
 		angle += f;
 		normalize();
 	}
 
-	const mat4 to_matrix()   nothrow
+	const Mat4 to_matrix() nothrow
 	{
 		float c = cos(angle);
 		float s = sin(angle);
@@ -48,11 +49,11 @@ struct Angles
 		float y = axis.y;
 		float z = axis.z;
 
-		return mat4(
-			vec4(  c + (1-c)*x*x, (1-c)*x*y - s*z, (1-c)*x*z + s*y, 0.0f),
-			vec4((1-c)*x*y + s*z,   c + (1-c)*y*y, (1-c)*y*z - s*x, 0.0f),
-			vec4((1-c)*x*z - s*y, (1-c)*y*z + s*x,   c + (1-c)*z*z, 0.0f),
-			vec4(           0.0f,            0.0f,            0.0f, 1.0f)
-		);
+		return Mat4([
+			[  c + (1-c)*x*x, (1-c)*x*y - s*z, (1-c)*x*z + s*y, 0.0f],
+			[(1-c)*x*y + s*z,   c + (1-c)*y*y, (1-c)*y*z - s*x, 0.0f],
+			[(1-c)*x*z - s*y, (1-c)*y*z + s*x,   c + (1-c)*z*z, 0.0f],
+			[           0.0f,            0.0f,            0.0f, 1.0f]
+		]);
 	}
 }

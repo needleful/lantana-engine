@@ -11,8 +11,8 @@ debug import std.stdio;
 import bindbc.sdl;
 import derelict.freetype;
 
-import gl3n.linalg: vec2, vec3, Vector;
 import lantana.input;
+import lantana.math.vectors;
 import lantana.render.gl;
 import lantana.render.material;
 import lantana.render.mesh.attributes;
@@ -78,7 +78,7 @@ public final class UIRenderer
 	package UIView[] views;
 
 	package RealSize windowSize;
-	private vec2 screenDPI;
+	private Vec2 screenDPI;
 
 	/// The index of the focused interactive widget
 	package Interactible focused;
@@ -125,21 +125,21 @@ public final class UIRenderer
 	
 	struct TextUniforms
 	{
-		/// uvec2
+		/// uVec2
 		UniformId cam_resolution;
-		/// ivec2
+		/// iVec2
 		UniformId translation;
 		/// uint
 		UniformId in_tex;
-		/// vec3
+		/// Vec3
 		UniformId color;
 	}
 
 	struct SpriteUniforms
 	{
-		/// uvec2
+		/// uVec2
 		UniformId cam_resolution;
-		/// ivec2
+		/// iVec2
 		UniformId translation;
 		/// uint
 		UniformId in_tex;
@@ -161,7 +161,7 @@ public final class UIRenderer
 		public methods -- basic
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public this(RealSize p_windowSize, vec2 p_dpi)
+	public this(RealSize p_windowSize, Vec2 p_dpi)
 	{
 		FT_Error error = FT_Init_FreeType(&fontLibrary);
 		screenDPI = p_dpi;
@@ -184,7 +184,7 @@ public final class UIRenderer
 		}
 		invalidated.setAll();
 
-		views ~= new UIView(this, Rect(ivec2(0), p_windowSize));
+		views ~= new UIView(this, Rect(iVec2(0), p_windowSize));
 		m_style = new UIStyle();
 	}
 
@@ -197,7 +197,7 @@ public final class UIRenderer
 		FT_Done_FreeType(fontLibrary);
 	}
 
-	public vec2 getDPI()
+	public Vec2 getDPI()
 	{
 		return screenDPI;
 	}
@@ -267,7 +267,7 @@ public final class UIRenderer
 	{
 		if(focused)
 		{
-			if(p_input.mouseWheel != ivec2(0))
+			if(p_input.mouseWheel != iVec2(0))
 			{
 				// FIXME: BAD HACK! BAD HACK!! BAD HACK!!!
 				if(focused.priority() % 3 == 0)
@@ -276,7 +276,7 @@ public final class UIRenderer
 				}
 				else
 				{
-					focused.drag(ivec2(p_input.mouseWheel.x, -p_input.mouseWheel.y)*15);
+					focused.drag(iVec2(p_input.mouseWheel.x, -p_input.mouseWheel.y)*15);
 				}
 			}
 			if(p_input.isJustClicked(Input.Mouse.Left))
@@ -289,7 +289,7 @@ public final class UIRenderer
 			}
 			else if(p_input.isClicked(Input.Mouse.Left))
 			{
-				ivec2 drag = ivec2(cast(int) p_input.mouseMove.x, cast(int) p_input.mouseMove.y);
+				iVec2 drag = iVec2(cast(int) p_input.mouseMove.x, cast(int) p_input.mouseMove.y);
 				focused.drag(drag);
 			}
 			else if(p_input.isJustReleased(Input.Mouse.Left))
@@ -578,27 +578,27 @@ public final class UIRenderer
 		views[0].vertpos.length = 8;
 
 		views[0].uvs[0..$] = [
-			vec2(0,0),
-			vec2(0,1),
-			vec2(1,0),
-			vec2(1,1),
+			Vec2(0,0),
+			Vec2(0,1),
+			Vec2(1,0),
+			Vec2(1,1),
 
-			vec2(0,0),
-			vec2(0,1),
-			vec2(1,0),
-			vec2(1,1)
+			Vec2(0,0),
+			Vec2(0,1),
+			Vec2(1,0),
+			Vec2(1,1)
 		];
 
 		views[0].vertpos[0..$] = [
-			ivec2(0, 0),
-			ivec2(0, 256),
-			ivec2(256, 0),
-			ivec2(256, 256),
+			iVec2(0, 0),
+			iVec2(0, 256),
+			iVec2(256, 0),
+			iVec2(256, 256),
 
-			ivec2(256, 256),
-			ivec2(256, 256+1024),
-			ivec2(256+1024, 256),
-			ivec2(256+1024, 256+1024)
+			iVec2(256, 256),
+			iVec2(256, 256+1024),
+			iVec2(256+1024, 256),
+			iVec2(256+1024, 256+1024)
 		];
 
 		views[0].elemText.length = 6;

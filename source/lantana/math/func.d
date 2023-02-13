@@ -5,7 +5,7 @@
 module lantana.math.func;
 
 public import std.math: sin, cos, tan, PI;
-import gl3n.linalg: quat;
+import lantana.math.quaternion;
 
 double radians(double p_degrees)   nothrow
 {
@@ -23,12 +23,14 @@ public T max(T)(T a, T b) nothrow
 	return a > b? a : b;
 }
 
-public quat qlerp(quat a, quat b, float t)  nothrow
-{
-    float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+public T lerp(T)(T a, T b, float t) nothrow {
+    return a*(1.0 - t) + b*t;
+}
 
-    quat result;
-    if(dot < 0) { // Determine the "shortest route"...
+public Quat qlerp(Quat a, Quat b, float t)  nothrow
+{
+    Quat result;
+    if(a.dot(b) < 0) { // Determine the "shortest route"...
         result = a - (b + a) * t; // use -b instead of b
     } else {
         result = a + (b - a) * t;

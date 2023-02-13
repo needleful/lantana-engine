@@ -7,8 +7,8 @@ module lantana.input.core;
 debug import std.stdio;
 
 import bindbc.sdl;
-import gl3n.linalg;
 
+import lantana.math.vectors;
 import lantana.input.keyboard;
 import lantana.types;
 
@@ -23,9 +23,9 @@ struct Input
 
 	KeyboardInput keyboard;
 	// Relative mouse movement since last frame
-	vec2 mouseMove;
+	Vec2 mouseMove;
 	// Absolute position of the mouse
-	ivec2 mousePos, mouseWheel;
+	iVec2 mousePos, mouseWheel;
 
 	uint mouse, mouseLast;
 
@@ -62,8 +62,8 @@ struct Input
 	// Reset input, for example when re-entering the window
 	void clear()  nothrow
 	{
-		mouseMove = vec2(0,0);
-		mouseWheel = ivec2(0,0);
+		mouseMove = Vec2(0,0);
+		mouseWheel = iVec2(0,0);
 		keyboard.pressed.clearAll();
 		keyboard.text.length = 0;
 		mouse = 0;

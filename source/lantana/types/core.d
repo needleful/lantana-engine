@@ -4,31 +4,29 @@
 
 module lantana.types.core;
 
-import gl3n.linalg: Vector;
-alias svec2 = Vector!(short, 2);
-alias ivec2 = Vector!(int, 2);
-alias uvec2 = Vector!(uint, 2);
+import lantana.math.vectors;
+alias sVec2 = Vector!(short, 2);
 
 alias Color = Vector!(ubyte, 3);
 alias AlphaColor = Vector!(ubyte, 4);
 
 /// Cannot automatically coerce int literals to shorts in constructor, 
 /// so this is a function that does exactly that.
-/// Otherwise, svec2 requires casting when constructing, like
-/// `svec2(cast(short)0, cast(short)1);`
-public svec2 svec(int x, int y)  nothrow
+/// Otherwise, sVec2 requires casting when constructing, like
+/// `sVec2(cast(short)0, cast(short)1);`
+public sVec2 svec(int x, int y)  nothrow
 {
-	return svec2(cast(short) x, cast(short) y);
+	return sVec2(cast(short) x, cast(short) y);
 }
 
-public svec2 svec(ivec2 v)  nothrow
+public sVec2 svec(iVec2 v)  nothrow
 {
-	return svec2(cast(short) v.x, cast(short) v.y);
+	return sVec2(cast(short) v.x, cast(short) v.y);
 }
 
-public svec2 add(svec2 lhs, svec2 rhs)  nothrow pure
+public sVec2 add(sVec2 lhs, sVec2 rhs) nothrow pure
 {
-	svec2 ret;
+	sVec2 ret;
 	ret.x = cast(short)(lhs.x + rhs.x);
 	ret.y = cast(short)(lhs.y + rhs.y);
 	return ret;
@@ -38,7 +36,7 @@ public auto vmax(L, R)(L lhs, R rhs)
 	if(is(L == R) && isTemplateType!(Vector, R))
 {
 	L ret;
-	foreach(v; 0..R.dimension)
+	foreach(v; 0..R.size)
 	{
 		ret.vector[v] = rhs.vector[v] > lhs.vector[v] ? rhs.vector[v] : lhs.vector[v];
 	}
@@ -49,7 +47,7 @@ public auto vmin(L, R)(L lhs, R rhs)
 	if(is(L == R) && isTemplateType!(Vector, R))
 {
 	L ret;
-	foreach(v; 0..R.dimension)
+	foreach(v; 0..R.size)
 	{
 		ret.vector[v] = rhs.vector[v] < lhs.vector[v] ? rhs.vector[v] : lhs.vector[v];
 	}
@@ -107,12 +105,12 @@ mixin template StrictAlias(T)
 
 	@disable this(U)(U u);
 
-	this(T data)   nothrow
+	this(T data) nothrow
 	{
 		_handle = data;
 	}
 
-	T handle() const nothrow   pure
+	T handle() const nothrow pure
 	{
 		return _handle;
 	}

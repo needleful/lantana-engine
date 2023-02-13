@@ -8,9 +8,9 @@ import std.format;
 debug import std.stdio;
 import std.string;
 import deimos.freeimage;
-import gl3n.linalg: vec2, vec3, Vector;
 
 import lantana.file.gltf2.types : ImageType;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.render.gl;
 import lantana.render.material;
@@ -210,11 +210,11 @@ struct Texture(TextureDataType)
 		glDeleteTextures(1, &id);
 	}
 
-	public bool blit(RealSize p_size, ivec2 p_position, tex* p_data, bool p_swap_red_blue = false) 
+	public bool blit(RealSize p_size, iVec2 p_position, tex* p_data, bool p_swap_red_blue = false) 
 	{
 		debug import std.format;
 		// Return false if the texture can't be blit
-		ivec2 end = ivec2(p_position.x + p_size.width, p_position.y + p_size.height);
+		iVec2 end = iVec2(p_position.x + p_size.width, p_position.y + p_size.height);
 		if(end.x > size.width || end.y > size.height)
 		{
 			return false;
@@ -234,11 +234,11 @@ struct Texture(TextureDataType)
 				{
 					static if(is(tex == AlphaColor))
 					{
-						buffer[target] = p_data[source].bgra;
+						buffer[target] = p_data[source].swizzle!"bgra";
 					}
 					else static if(is(tex == Color))
 					{
-						buffer[target] = p_data[source].bgr;
+						buffer[target] = p_data[source].swizzle!"bgr";
 					}
 				}
 				else 
@@ -296,11 +296,11 @@ struct Texture(TextureDataType)
 struct TextureNode
 {
 	TextureNode* left, right;
-	ivec2 position;
+	iVec2 position;
 	RealSize size;
 	bool occupied;
 
-	this(ivec2 p_position, RealSize p_size)   nothrow
+	this(iVec2 p_position, RealSize p_size)   nothrow
 	{
 		position = p_position;
 		size = p_size;
@@ -331,14 +331,14 @@ struct TextureAtlas(IdType, TextureDataType)
 
 	public this(RealSize p_size, ref Region p_alloc) 
 	{
-		tree = TextureNode(ivec2(0,0), p_size);
+		tree = TextureNode(iVec2(0,0), p_size);
 
 		texture = Texture!TextureDataType(p_size, p_alloc, Filter.init);
 	}
 
 	public this(RealSize p_size)
 	{
-		tree = TextureNode(ivec2(0,0), p_size);
+		tree = TextureNode(iVec2(0,0), p_size);
 		texture = Texture!TextureDataType(p_size, new TextureDataType[p_size.width*p_size.height].ptr, Filter.init);
 	}
 
@@ -399,12 +399,12 @@ struct TextureAtlas(IdType, TextureDataType)
 				// Create a right node if it can contain this texture
 				RealSize space = p_node.size - p_node.left.size;
 				RealSize newSize;
-				ivec2 newPos;
+				iVec2 newPos;
 				// It was split vertically if the heights are the same
 				if(space.height == 0)
 				{
 					newSize = RealSize(space.width, p_node.size.height);
-					newPos = ivec2(p_node.position.x + p_node.left.size.width, p_node.position.y);
+					newPos = iVec2(p_node.position.x + p_node.left.size.width, p_node.position.y);
 					// Making sure my assumption is correct
 					// Laying the left and right nodes side-by-side should equal the parent node
 					assert(p_node.size == 
@@ -413,7 +413,7 @@ struct TextureAtlas(IdType, TextureDataType)
 				else
 				{
 					newSize = RealSize(p_node.size.width, space.height);
-					newPos = ivec2(p_node.position.x, p_node.position.y + p_node.left.size.height);
+					newPos = iVec2(p_node.position.x, p_node.position.y + p_node.left.size.height);
 
 					assert(p_node.size == 
 						RealSize(newSize.width, newSize.height + p_node.left.size.height));

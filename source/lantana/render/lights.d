@@ -4,8 +4,6 @@
 
 module lantana.render.lights;
 
-import gl3n.linalg: vec3;
-
 import lantana.render.gl;
 import lantana.render.textures;
 import lantana.types.core;

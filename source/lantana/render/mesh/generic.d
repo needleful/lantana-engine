@@ -9,14 +9,11 @@ import std.format;
 debug import std.stdio;
 import std.traits: FieldNameTuple;
 
-import gl3n.interpolate;
-import gl3n.linalg;
-
 import lantana.animation.skeletal;
 
 import lantana.file.gltf2;
 import lantana.file.lgbt;
-import lantana.math.transform;
+import lantana.math;
 
 import lantana.render.gl;
 import lantana.render.lights;
@@ -28,9 +25,9 @@ import lantana.types;
 
 struct DefaultUniforms
 {
-	mat4 projection;
+	Mat4 projection;
 
-	vec3 light_direction;
+	Vec3 light_direction;
 	float light_bias;
 	float area_span;
 	float area_ceiling;
@@ -60,10 +57,10 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 	struct InstanceUniforms
 	{
-		mat4 transform;
+		Mat4 transform;
 		static if(Spec.isAnimated)
 		{
-			mat4[] bones;
+			Mat4[] bones;
 		}
 	}
 
@@ -232,7 +229,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 					updateAnimation(p_delta, inst.anim, inst.mesh.bones, inst.mesh.data);
 				}
 
-				mat4 applyParentTransform(ref GLBNode node, ref GLBNode[] nodes) 
+				Mat4 applyParentTransform(ref GLBNode node, ref GLBNode[] nodes) 
 				{
 					if(node.parent >= 0)
 					{
@@ -272,7 +269,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		{
 			GLBNode[] bones;
 			GLBAnimation[] animations;
-			mat4[] inverseBindMatrices;
+			Mat4[] inverseBindMatrices;
 		}
 
 		ubyte[] data;
@@ -294,7 +291,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 				animations = p_data.animations;
 				auto ibmStart = p_data.inverseBindMatrices.byteOffset;
 				auto ibmEnd = p_data.inverseBindMatrices.byteLength;
-				inverseBindMatrices = (cast(mat4*) &p_bytes[ibmStart])[0..ibmEnd/mat4.sizeof];
+				inverseBindMatrices = (cast(Mat4*) &p_bytes[ibmStart])[0..ibmEnd/Mat4.sizeof];
 			}
 
 			glcheck();
@@ -353,7 +350,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			{
 				mesh = p_mesh;
 				transform = p_transform;
-				anim.boneMatrices = p_alloc.makeList!mat4(p_mesh.bones.length);
+				anim.boneMatrices = p_alloc.makeList!Mat4(p_mesh.bones.length);
 				anim.bones = p_alloc.makeList!GLBNode(p_mesh.bones.length);
 				anim.bones[0..$] = p_mesh.bones[0..$];
 				anim.is_playing = false;

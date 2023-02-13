@@ -5,13 +5,13 @@
 module lantana.ui.interaction;
 
 import lantana.input;
-import lantana.types : ivec2;
+import lantana.math.vectors : iVec2;
 import lantana.ui.widgets;
 
 public interface Interactible
 {
 	alias Callback = void delegate(Widget source);
-	alias DragCallback = void delegate(ivec2 dragAmount);
+	alias DragCallback = void delegate(iVec2 dragAmount);
 	
 	public void focus();
 
@@ -21,7 +21,7 @@ public interface Interactible
 
 	public void interact();
 
-	public void drag(ivec2 p_dragAmount);
+	public void drag(iVec2 p_dragAmount);
 
 	// When selecting elements, overlapping elements are selected based on maximum priority (undefined if they overlap and are the same)
 	public short priority();

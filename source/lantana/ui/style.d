@@ -4,8 +4,7 @@
 
 module lantana.ui.style;
 
-import gl3n.linalg : vec3;
-
+import lantana.math.vectors;
 import lantana.types;
 
 import lantana.ui.render;
@@ -74,7 +73,7 @@ struct ScrollbarStyle
 struct TextInputStyle
 {
 	SpriteId cursor;
-	vec3 focused, normal;
+	Vec3 focused, normal;
 }
 
 final class UIStyle
@@ -83,7 +82,7 @@ final class UIStyle
 	public PanelStyle panel;
 	public ScrollbarStyle scrollbar;
 	public FontId defaultFont;
-	public vec3 defaultFontColor;
+	public Vec3 defaultFontColor;
 	public TextInputStyle textInput;
 	public SpriteId line; 
 }

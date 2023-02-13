@@ -7,5 +7,8 @@ module lantana.math;
 
 public import lantana.math.angles;
 public import lantana.math.func;
+public import lantana.math.matrix;
 public import lantana.math.projection;
+public import lantana.math.quaternion;
 public import lantana.math.transform;
+public import lantana.math.vectors;

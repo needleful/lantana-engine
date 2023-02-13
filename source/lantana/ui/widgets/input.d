@@ -4,7 +4,7 @@
 
 module lantana.ui.widgets.input;
 
-import gl3n.linalg: vec2, vec3;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.ui.interaction;
 import lantana.ui.render;
@@ -26,8 +26,8 @@ public class Button: MultiContainer, Interactible
 		children ~= new Padding(p_child, p_renderer.style.button.pad);
 		onReleased = p_onReleased;
 
-		children[0].position = ivec2(0,0);
-		children[1].position = ivec2(0,0);
+		children[0].position = iVec2(0,0);
+		children[1].position = iVec2(0,0);
 		flags = p_flags;
 	}
 
@@ -63,7 +63,7 @@ public class Button: MultiContainer, Interactible
 		if(flags[HFlag.Center])
 		{
 			RealSize diff = res - childSize;
-			children[1].position = ivec2(diff.width, diff.height)/2;
+			children[1].position = iVec2(diff.width, diff.height)/2;
 		}
 
 		children[0].layout(SizeRequest(res));
@@ -72,7 +72,7 @@ public class Button: MultiContainer, Interactible
 		return res;
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		view.setInteractPosition(id, p_pen);
 		super.prepareRender(p_pen);
@@ -99,7 +99,7 @@ public class Button: MultiContainer, Interactible
 		onReleased(this);
 	}
 
-	public override void drag(ivec2 p_drag) 
+	public override void drag(iVec2 p_drag) 
 	{
 		if(onDragged)
 			onDragged(p_drag);
@@ -181,7 +181,7 @@ final class TextInput : Widget, Interactible
 		return textSize;
 	}
 
-	public override void prepareRender(ivec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen) 
 	{
 		view.setInteractPosition(interactible, p_pen);
 		view.translateTextMesh(mesh, p_pen);
@@ -264,7 +264,7 @@ final class TextInput : Widget, Interactible
 	public override void focus(){}
 	public override void unfocus(){}
 	public override void release(){}
-	public override void drag(ivec2 _) {}
+	public override void drag(iVec2 _) {}
 
 	public override void interact()
 	{

@@ -4,6 +4,7 @@
 
 module lantana.ui.widgets.primitives;
 
+import lantana.math.vectors;
 import lantana.types;
 
 import lantana.ui.render;
@@ -12,14 +13,14 @@ import lantana.ui.widgets;
 
 public class Line : Widget
 {
-	Thunk!ivec2 start;
-	Thunk!ivec2 end;
+	Thunk!iVec2 start;
+	Thunk!iVec2 end;
 	float thickness;
 
 	SpriteId sprite;
 	MeshRef mesh;
 
-	public this(Thunk!ivec2 p_start, Thunk!ivec2 p_end, float p_thickness = 2.5)
+	public this(Thunk!iVec2 p_start, Thunk!iVec2 p_end, float p_thickness = 2.5)
 	{
 		start = p_start;
 		end = p_end;
@@ -38,7 +39,7 @@ public class Line : Widget
 		return RealSize(0);
 	}
 
-	public override void prepareRender(ivec2 p_pen)
+	public override void prepareRender(iVec2 p_pen)
 	{
 		if(!isVisible())
 			view.setLineQuad(mesh, start(), start(), 0);

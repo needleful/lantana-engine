@@ -6,13 +6,11 @@ module lantana.math.projection;
 
 import std.math: tan, PI;
 
-import gl3n.linalg;
-
-import lantana.math.func;
+import lantana.math;
 
 struct Projection
 {
-	private mat4 _matrix;
+	private Mat4 _matrix;
 	float aspectRatio;
 	float fov;
 	float nearPlane;
@@ -30,21 +28,21 @@ struct Projection
 
 	void compute_matrix() nothrow
 	{
-		double t = tan(radians(fov)/2);
-		double ar = aspectRatio;
+		float t = tan(radians(fov)/2);
+		float ar = aspectRatio;
 
-		double z1 = (-nearPlane)/(nearPlane - farPlane);
-		double z2 = (nearPlane*farPlane)/(nearPlane - farPlane); 
+		float z1 = (-nearPlane)/(nearPlane - farPlane);
+		float z2 = (nearPlane*farPlane)/(nearPlane - farPlane); 
 
-		_matrix = mat4(
-			vec4(1/(ar*t),   0,  0, 0f),
-			vec4(       0, 1/t,  0, 0f),
-			vec4(       0,   0, z1, z2),
-			vec4(       0,   0, 1f, 0f)
-		);
+		_matrix = Mat4([
+			[1f/(ar*t),   0,  0, 0f],
+			[       0f, 1/t,  0, 0f],
+			[       0f,   0f, z1, z2],
+			[       0f,   0f, 1f, 0f]
+		]);
 	}
 
-	@property ref mat4 matrix() return nothrow
+	@property ref Mat4 matrix() return nothrow
 	{
 		compute_matrix();
 		return _matrix;

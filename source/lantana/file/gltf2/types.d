@@ -10,8 +10,7 @@ import std.json;
 import std.stdio;
 import std.typecons: tuple;
 
-import gl3n.linalg;
-import lantana.math.func;
+import lantana.math;
 import lantana.types;
 
 enum GLBComponentType
@@ -51,15 +50,15 @@ bool isCompatible(T)(GLBComponentType p_type) @nogc nothrow
 {
 	static if(isTemplateType!(Vector, T))
 	{
-		alias ValueType = T.vt;
+		alias ValueType = T.dataType;
 	}
 	else static if(isTemplateType!(Matrix, T))
 	{
-		alias ValueType = T.mt;
+		alias ValueType = T.dataType;
 	}
-	else static if(isTemplateType!(Quaternion, T))
+	else static if(is(T == Quat))
 	{
-		alias ValueType = T.qt;
+		alias ValueType = float;
 	}
 	else
 	{
@@ -119,11 +118,11 @@ bool isCompatible(T)(GLBDataType p_type)  nothrow
 		switch(p_type)
 		{
 			case GLBDataType.VEC2:
-				return T.dimension == 2;
+				return T.size == 2;
 			case GLBDataType.VEC3:
-				return T.dimension == 3;
+				return T.size == 3;
 			case GLBDataType.VEC4:
-				return T.dimension == 4;
+				return T.size == 4;
 			default:
 				return false;
 		}
@@ -134,7 +133,7 @@ bool isCompatible(T)(GLBDataType p_type)  nothrow
 			return T.rows == 2 && T.columns == 2;
 		case GLBDataType.MAT3:
 			return T.rows == 3 && T.columns == 3;
-		case GLBDataType.MAT4:
+		case GLBDataType.Mat4:
 			return T.rows == 4 && T.columns == 4;
 		default:
 			return false;
@@ -354,38 +353,38 @@ struct GLBAnimationChannel
 
 struct GLBNode
 {
-	vec3 translation;
-	vec3 scale;
-	quat rotation;
+	Vec3 translation;
+	Vec3 scale;
+	Quat rotation;
 	// -1 means it has no parent
 	byte parent;
 
-	mat4 computeMatrix() 
+	Mat4 computeMatrix() 
 	{
-		mat4 result = mat4(
-			vec4(scale.x, 0.0f,     0.0f,     0),
-			vec4(0.0f,     scale.y, 0.0f,     0),
-			vec4(0.0f,     0.0f,     scale.z, 0),
-			vec4(0.0f,     0.0f,     0.0f,  1.0f)
-		);
-		result *= rotation.to_matrix!(4,4)();
-		result[0][3] = translation.x;
-		result[1][3] = translation.y;
-		result[2][3] = translation.z;
+		Mat4 result = Mat4([
+			[scale.x, 0.0f,     0.0f,     0],
+			[0.0f,     scale.y, 0.0f,     0],
+			[0.0f,     0.0f,     scale.z, 0],
+			[0.0f,     0.0f,     0.0f,  1.0f]
+		]);
+		result *= rotation.matrix();
+		result[0, 3] = translation.x;
+		result[1, 3] = translation.y;
+		result[2, 3] = translation.z;
 
 		return result;
 	}
 
 	this (JSONValue p_node)
 	{
-		this.translation = vec3(0);
-		this.scale = vec3(1);
-		this.rotation = quat.identity();
+		this.translation = Vec3(0);
+		this.scale = Vec3(1);
+		this.rotation = Quat.identity();
 		
 		if("translation" in p_node)
 		{
 			auto tr = p_node["translation"].array();
-			this.translation = vec3(
+			this.translation = Vec3(
 				tr[0].type == JSONType.float_ ? tr[0].floating(): tr[0].integer(),
 				tr[1].type == JSONType.float_ ? tr[1].floating(): tr[1].integer(),
 				tr[2].type == JSONType.float_ ? tr[2].floating(): tr[2].integer());
@@ -395,7 +394,7 @@ struct GLBNode
 		{
 			auto rot = p_node["rotation"].array();
 
-			this.rotation = quat(
+			this.rotation = Quat(
 				rot[3].type == JSONType.float_ ? rot[3].floating(): rot[3].integer(),
 				rot[0].type == JSONType.float_ ? rot[0].floating(): rot[0].integer(),
 				rot[1].type == JSONType.float_ ? rot[1].floating(): rot[1].integer(),
@@ -406,7 +405,7 @@ struct GLBNode
 		{
 			auto scl = p_node["scale"].array();
 
-			this.scale = vec3(
+			this.scale = Vec3(
 				scl[0].type == JSONType.float_ ? scl[0].floating(): scl[0].integer(),
 				scl[1].type == JSONType.float_ ? scl[1].floating(): scl[1].integer(),
 				scl[2].type == JSONType.float_ ? scl[2].floating(): scl[2].integer());
@@ -442,9 +441,9 @@ struct GLBSkin
 	ubyte inverseBindMatrices;
 }
 
-quat getQuat(T)(Vector!(T, 4) p_val)
+Quat getQuat(T)(Vector!(T, 4) p_val)
 {
-	return quat(
+	return Quat(
 		glbConvert!(float, T)(p_val.w),
 		glbConvert!(float, T)(p_val.x),
 		glbConvert!(float, T)(p_val.y),

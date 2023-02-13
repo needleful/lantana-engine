@@ -10,7 +10,7 @@ debug import std.stdio;
 
 import derelict.freetype;
 
-import gl3n.linalg: vec2, vec3, Vector;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.input;
 import lantana.render.gl;
@@ -34,9 +34,9 @@ private struct TextMesh
 	// The total bounding box
 	RealSize boundingSize;
 	// Translation of the mesh
-	ivec2 translation;
+	iVec2 translation;
 	// In linear space for now
-	vec3 color;
+	Vec3 color;
 	// (between 0 and 1) the proportion of characters visible.
 	float visiblePortion;
 	// Offset within the EBO
@@ -136,7 +136,7 @@ public final class UIView
 	package Rect rect;
 
 	// Translate the root item against the rectangle
-	package ivec2 translation;
+	package iVec2 translation;
 
 	/// What UI data was invalidated by a recent change
 	/// Invalidation means that data has to be refreshed (expensive)
@@ -163,8 +163,8 @@ public final class UIView
 
 	package ebo_t[] elemText;
 	package ebo_t[] elemSprite;
-	package ivec2[] vertpos;
-	package vec2[] uvs;
+	package iVec2[] vertpos;
+	package Vec2[] uvs;
 
 	/// A buffer is altered at max once per frame by checking these ranges.
 	package BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
@@ -220,7 +220,7 @@ public final class UIView
 
 	public void prepareRender()
 	{
-		root.prepareRender(ivec2(0,0));
+		root.prepareRender(iVec2(0,0));
 	}
 
 	package int updateBuffers()
@@ -283,7 +283,7 @@ public final class UIView
 
 	package void render(RealSize p_windowSize)
 	{
-		uvec2 wsize = uvec2(p_windowSize.width, p_windowSize.height);
+		uVec2 wsize = uVec2(p_windowSize.width, p_windowSize.height);
 		glScissor(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height);
 		// Render sprites
 		renderer.matSprite.enable();
@@ -372,7 +372,7 @@ public final class UIView
 		invalidated[ViewState.Layout] = true;
 	}
 
-	public ivec2 position() 
+	public iVec2 position() 
 	{
 		return rect.pos;
 	}
@@ -382,12 +382,12 @@ public final class UIView
 		return rect.size;
 	}
 
-	public void translate(ivec2 mov) 
+	public void translate(iVec2 mov) 
 	{
 		translation += mov;
 	}
 
-	public ivec2 getTranslation()
+	public iVec2 getTranslation()
 	{
 		return translation;
 	}
@@ -435,12 +435,12 @@ public final class UIView
 		interactAreas[p_id].size = p_size;
 	}
 
-	public void setInteractPosition(InteractibleId p_id, ivec2 p_position) 
+	public void setInteractPosition(InteractibleId p_id, iVec2 p_position) 
 	{
 		interactAreas[p_id].pos = p_position;
 	}
 
-	public bool getFocusedObject(ivec2 p_point, out InteractibleId id, short priority = short.max)
+	public bool getFocusedObject(iVec2 p_point, out InteractibleId id, short priority = short.max)
 	{
 		if(interactAreas.length == 0)
 		{
@@ -517,12 +517,12 @@ public final class UIView
 	private void setQuadUV(ebo_t p_start, Rect p_rect) 
 	{
 		// UV start, normalized
-		vec2 uv_pos = vec2(p_rect.pos.x, p_rect.pos.y);
+		Vec2 uv_pos = Vec2(p_rect.pos.x, p_rect.pos.y);
 		uv_pos.x /= renderer.atlasSprite.texture.size.width;
 		uv_pos.y /= renderer.atlasSprite.texture.size.height;
 
 		// UV offset, normalized
-		vec2 uv_size = vec2(p_rect.size.width, p_rect.size.height);
+		Vec2 uv_size = Vec2(p_rect.size.width, p_rect.size.height);
 
 		uv_size.x /= renderer.atlasSprite.texture.size.width;
 		uv_size.y /= renderer.atlasSprite.texture.size.height;
@@ -539,8 +539,8 @@ public final class UIView
 		// This applies to both texture UV and screen position.
 		uvs[p_start..p_start+4] = [
 			uv_pos,
-			uv_pos + vec2(0, uv_size.y),
-			uv_pos + vec2(uv_size.x, 0),
+			uv_pos + Vec2(0, uv_size.y),
+			uv_pos + Vec2(uv_size.x, 0),
 			uv_pos + uv_size
 		];
 
@@ -553,26 +553,26 @@ public final class UIView
 		assert(p_mesh.tris == 2);
 		// Consult the diagram in addSpriteQuad for explanation
 		auto quadStart = elemSprite[p_mesh.start];
-		vertpos[quadStart] = ivec2(0,0);
-		vertpos[quadStart + 1] = ivec2(0, p_size.height);
-		vertpos[quadStart + 2] = ivec2(p_size.width, 0);
-		vertpos[quadStart + 3] = ivec2(p_size.width, p_size.height);
+		vertpos[quadStart] = iVec2(0,0);
+		vertpos[quadStart + 1] = iVec2(0, p_size.height);
+		vertpos[quadStart + 2] = iVec2(p_size.width, 0);
+		vertpos[quadStart + 3] = iVec2(p_size.width, p_size.height);
 
 		invalidated[ViewState.PositionBufferPartial] = true;
 		posInvalid.apply(quadStart, quadStart + 4);
 	}
 
-	public void setLineQuad(MeshRef p_mesh, ivec2 p_start, ivec2 p_end, float p_thickness)
+	public void setLineQuad(MeshRef p_mesh, iVec2 p_start, iVec2 p_end, float p_thickness)
 	{
 		auto quadstart = elemSprite[p_mesh.start];
-		ivec2 dir = p_start - p_end;
-		vec2 orth = vec2(-dir.y, dir.x).normalized*p_thickness;
+		iVec2 dir = p_start - p_end;
+		Vec2 orth = Vec2(-dir.y, dir.x).normalized*p_thickness;
 		vertpos[quadstart..quadstart+4] = 
 		[
 			p_start,
-			p_start + ivec2(cast(int)orth.x, cast(int)orth.y),
+			p_start + iVec2(cast(int)orth.x, cast(int)orth.y),
 			p_end,
-			p_end + ivec2(cast(int)orth.x, cast(int)orth.y)
+			p_end + iVec2(cast(int)orth.x, cast(int)orth.y)
 		];
 		invalidated[ViewState.PositionBufferPartial] = true;
 		posInvalid.apply(quadstart, quadstart + 4);
@@ -670,17 +670,17 @@ public final class UIView
 		TextureNode * node = renderer.atlasSprite.map[p_sprite];
 
 		// Each rectangle has its own position
-		ivec2 bot_left = node.position;
+		iVec2 bot_left = node.position;
 
-		ivec2 top_left = ivec2(
+		iVec2 top_left = iVec2(
 			node.position.x, 
 			node.position.y + node.size.height - p_pad.top);
 
-		ivec2 bot_right = ivec2(
+		iVec2 bot_right = iVec2(
 			node.position.x + node.size.width - p_pad.right,
 			node.position.y);
 
-		ivec2 top_right = ivec2(
+		iVec2 top_right = iVec2(
 			node.position.x + node.size.width - p_pad.right,
 			node.position.y + node.size.height - p_pad.top);
 
@@ -714,31 +714,31 @@ public final class UIView
 		int rightbar = p_size.width - p_pad.right;
 
 		vertpos[vecstart..vecstart+p_mesh.vertices] = [
-			ivec2(0,          0),
-			ivec2(0,          p_pad.bottom),
-			ivec2(p_pad.left, 0),
-			ivec2(p_pad.left, p_pad.bottom),
+			iVec2(0,          0),
+			iVec2(0,          p_pad.bottom),
+			iVec2(p_pad.left, 0),
+			iVec2(p_pad.left, p_pad.bottom),
 
-			ivec2(0,          topbar),
-			ivec2(0,          p_size.height),
-			ivec2(p_pad.left, topbar),
-			ivec2(p_pad.left, p_size.height),
+			iVec2(0,          topbar),
+			iVec2(0,          p_size.height),
+			iVec2(p_pad.left, topbar),
+			iVec2(p_pad.left, p_size.height),
 
-			ivec2(rightbar,     0),
-			ivec2(rightbar,     p_pad.bottom),
-			ivec2(p_size.width, 0),
-			ivec2(p_size.width, p_pad.bottom),
+			iVec2(rightbar,     0),
+			iVec2(rightbar,     p_pad.bottom),
+			iVec2(p_size.width, 0),
+			iVec2(p_size.width, p_pad.bottom),
 
-			ivec2(rightbar,     topbar),
-			ivec2(rightbar,     p_size.height),
-			ivec2(p_size.width, topbar),
-			ivec2(p_size.width, p_size.height),
+			iVec2(rightbar,     topbar),
+			iVec2(rightbar,     p_size.height),
+			iVec2(p_size.width, topbar),
+			iVec2(p_size.width, p_size.height),
 		];
 	}
 
 	/// p_count is the number of vertices to change
 	/// Assumes the mesh is continuous
-	public void translateMesh(MeshRef p_mesh, ivec2 p_translation) 
+	public void translateMesh(MeshRef p_mesh, iVec2 p_translation) 
 	{
 		auto vert = elemSprite[p_mesh.start];
 
@@ -832,7 +832,7 @@ public final class UIView
 		uint lineCount = 1;
 
 		// Write the buffers
-		ivec2 pen = ivec2(0,baseline);
+		iVec2 pen = iVec2(0,baseline);
 		foreach(i, c; p_text)
 		{
 			if(c == '\n')
@@ -854,7 +854,7 @@ public final class UIView
 
 			if(c.isWhite())
 			{
-				pen += ivec2(
+				pen += iVec2(
 					cast(int)(ftGlyph.advance.x >> 6), 
 					cast(int)(ftGlyph.advance.y >> 6));
 
@@ -907,10 +907,10 @@ public final class UIView
 			// 		{0, 2, 1}
 			// 		{1, 2, 3}
 
-			ivec2 left = ivec2(ftGlyph.bitmap_left, 0);
-			ivec2 right = ivec2(ftGlyph.bitmap_left + ftGlyph.bitmap.width, 0);
-			ivec2 bottom = ivec2(0, ftGlyph.bitmap_top - ftGlyph.bitmap.rows);
-			ivec2 top = ivec2(0, ftGlyph.bitmap_top);
+			iVec2 left = iVec2(ftGlyph.bitmap_left, 0);
+			iVec2 right = iVec2(ftGlyph.bitmap_left + ftGlyph.bitmap.width, 0);
+			iVec2 bottom = iVec2(0, ftGlyph.bitmap_top - ftGlyph.bitmap.rows);
+			iVec2 top = iVec2(0, ftGlyph.bitmap_top);
 
 			vertpos[vertQuad..vertQuad+4] = [
 				pen + left + bottom,
@@ -919,29 +919,29 @@ public final class UIView
 				pen + right + top
 			];
 
-			ivec2 blchar = vertpos[vertQuad];
-			ivec2 trchar = vertpos[vertQuad+3];
+			iVec2 blchar = vertpos[vertQuad];
+			iVec2 trchar = vertpos[vertQuad+3];
 
 			leftBound = leftBound < blchar.x ? leftBound : blchar.x;
 			rightBound = rightBound > trchar.x ? rightBound : trchar.x;
 
 			// UV start, normalized
-			vec2 uv_pos = vec2(node.position.x, node.position.y);
+			Vec2 uv_pos = Vec2(node.position.x, node.position.y);
 			uv_pos.x /= renderer.atlasText.texture.size.width;
 			uv_pos.y /= renderer.atlasText.texture.size.height;
 
 			// UV offset, normalized
-			vec2 uv_off = vec2(node.size.width, node.size.height);
+			Vec2 uv_off = Vec2(node.size.width, node.size.height);
 
 			uv_off.x /= renderer.atlasText.texture.size.width;
 			uv_off.y /= renderer.atlasText.texture.size.height;
 
 			// FreeType blits text upside-down relative to images
 			uvs[vertQuad..vertQuad+4] = [
-				uv_pos + vec2(0, uv_off.y),
+				uv_pos + Vec2(0, uv_off.y),
 				uv_pos,
 				uv_pos + uv_off,
-				uv_pos + vec2(uv_off.x, 0),
+				uv_pos + Vec2(uv_off.x, 0),
 			];
 
 			elemText[eboQuad..eboQuad+6] = [
@@ -957,7 +957,7 @@ public final class UIView
 			vertQuad += 4;
 			eboQuad += 6;
 
-			pen += ivec2(
+			pen += iVec2(
 				cast(int)(ftGlyph.advance.x >> 6), 
 				cast(int)(ftGlyph.advance.y >> 6));
 		}
@@ -974,12 +974,12 @@ public final class UIView
 		mesh.boundingSize = RealSize(rightBound - leftBound, lineCount*lineHeight);
 	}
 	
-	public void translateTextMesh(TextId p_id, ivec2 p_translation)  
+	public void translateTextMesh(TextId p_id, iVec2 p_translation)  
 	{
 		textMeshes[p_id].translation = p_translation;
 	}
 
-	public void setTextColor(TextId p_id, vec3 p_color)
+	public void setTextColor(TextId p_id, Vec3 p_color)
 	{
 		textMeshes[p_id].color = p_color;
 	}
@@ -994,12 +994,12 @@ public final class UIView
 		textMeshes[p_id].visiblePortion = p_vis;
 	}
 
-	public ivec2 getCursorPosition(TextId p_id, string p_text, uint p_index)
+	public iVec2 getCursorPosition(TextId p_id, string p_text, uint p_index)
 	{
 		import std.uni: isWhite;
 		uint meshIndex = p_index*4 + elemText[textMeshes[p_id].offset];
 
-		ivec2 offset = ivec2(-2, -4);
+		iVec2 offset = iVec2(-2, -4);
 
 		if(p_text.length == 0)
 		{
@@ -1024,7 +1024,7 @@ public final class UIView
 			offset.x = 0;
 		}
 
-		ivec2 pos = vertpos[meshIndex] + offset;
+		iVec2 pos = vertpos[meshIndex] + offset;
 		return pos;
 	}
 

@@ -4,7 +4,7 @@
 
 module lantana.render.buffer;
 
-import gl3n.linalg: vec2, vec3, Vector;
+import lantana.math.vectors;
 
 import lantana.render.gl;
 import lantana.render.material;
@@ -35,15 +35,15 @@ struct FrameBuffer
 	private static immutable(ubyte[3]) s_triangle = [
 	        0, 1, 2
 	];
-	private static immutable(vec2[3]) s_verts = [
-	        vec2(-1,-2),
-	        vec2( 3, 0),
-	        vec2(-1, 2)
+	private static immutable(Vec2[3]) s_verts = [
+	        Vec2(-1,-2),
+	        Vec2( 3, 0),
+	        Vec2(-1, 2)
 	];
-	private static immutable(vec2[3]) s_uvs = [
-	        vec2(0, -0.5),
-	        vec2(2, 0.5),
-	        vec2(0, 1.5)
+	private static immutable(Vec2[3]) s_uvs = [
+	        Vec2(0, -0.5),
+	        Vec2(2, 0.5),
+	        Vec2(0, 1.5)
 	];
 
 	private RealSize size;
@@ -106,7 +106,7 @@ struct FrameBuffer
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			s_verts.length*vec2.sizeof,
+			s_verts.length*Vec2.sizeof,
 			s_verts.ptr,
 			GL_STATIC_DRAW);
 		glVertexAttribPointer(
@@ -119,7 +119,7 @@ struct FrameBuffer
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			s_uvs.length*vec2.sizeof,
+			s_uvs.length*Vec2.sizeof,
 			s_uvs.ptr,
 			GL_STATIC_DRAW);
 		glVertexAttribPointer(
@@ -166,7 +166,7 @@ struct FrameBuffer
 		//glActiveTexture(GL_TEXTURE1);
 		//glBindTexture(GL_TEXTURE_2D, tex[1]);
 		//mat.setUniform(uDepth, 1);
-		//mat.setUniform(uResolution, vec2(size.width, size.height));
+		//mat.setUniform(uResolution, Vec2(size.width, size.height));
 
 		glDrawElements(
 			GL_TRIANGLES, 

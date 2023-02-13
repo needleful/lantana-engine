@@ -11,10 +11,10 @@ import std.stdio;
 
 import bindbc.sdl;
 import derelict.freetype;
-
-import gl3n.linalg;
+import derelict.util.exception;
 
 import lantana.math.transform;
+import lantana.math.vectors;
 import lantana.types;
 import lantana.input;
 import lantana.render.gl;
@@ -45,7 +45,7 @@ struct Window
 		{
 			DerelictFT.load();
 		}
-		catch(derelict.util.exception.SymbolLoadException e)
+		catch(SymbolLoadException e)
 		{
 			// FT_Stream_OpenBzip2 is a known missing symbol
 			if(e.symbolName() != "FT_Stream_OpenBzip2")
@@ -150,8 +150,8 @@ struct Window
 	void pollEvents(Input* input)  nothrow
 	{
 		state.clear();
-		input.mouseMove = vec2(0);
-		input.mouseWheel = ivec2(0);
+		input.mouseMove = Vec2(0);
+		input.mouseWheel = iVec2(0);
 		input.keyboard.pressedLast = input.keyboard.pressed;
 		input.keyboard.text.length = 0;
 		input.mouseLast = input.mouse;
@@ -187,10 +187,10 @@ struct Window
 					input.keyboard.release(event.key.keysym.scancode);
 					break;
 				case SDL_MOUSEMOTION:
-					input.mouseMove += vec2(event.motion.xrel, -event.motion.yrel);
+					input.mouseMove += Vec2(event.motion.xrel, -event.motion.yrel);
 					break;
 				case SDL_MOUSEWHEEL:
-					input.mouseWheel += ivec2(event.wheel.x, -event.wheel.y);
+					input.mouseWheel += iVec2(event.wheel.x, -event.wheel.y);
 					break;
 				case SDL_TEXTINPUT:
 					import std.string : fromStringz;
@@ -214,22 +214,22 @@ struct Window
 		return RealSize(w, h);
 	}
 
-	public vec2 getDPI() nothrow
+	public Vec2 getDPI() nothrow
 	{
-		vec2 defaultDPI;
+		Vec2 defaultDPI;
 		version(Windows)
 		{
-			defaultDPI = vec2(96);
+			defaultDPI = Vec2(96);
 		}
 		else
 		{
-			defaultDPI = vec2(72);
+			defaultDPI = Vec2(72);
 		}
 
 		float dx, dy;
 		SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window), null, &dx, &dy);
 
-		return vec2(dx, dy);
+		return Vec2(dx, dy);
 	}
 
 	void beginFrame(bool clear_color = true)() 
