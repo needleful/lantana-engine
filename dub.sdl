@@ -17,7 +17,6 @@ dependency "sdlang-d" version="~>0.10.5"
 
 libs "sdl2" "freetype" platform="posix"
 libs "user32" platform="windows"
-libs "libswipl" platform="windows"
 
 preGenerateCommands "copy lantana.manifest bin\\game.exe.manifest" platform="windows" configuration="game"
 preGenerateCommands "copy lantana.manifest bin\\editor.exe.manifest" platform="windows" configuration="editor"
