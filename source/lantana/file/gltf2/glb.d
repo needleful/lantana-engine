@@ -124,16 +124,21 @@ private GLBLoadResults!Spec glbJsonParse(Spec)(char[] p_json, ref Region p_alloc
 				results.bufferSize = max(results.bufferSize, mixin(field).byteOffset + mixin(field).byteLength);
 			}}
 			
-			auto material = scn["materials"][cast(size_t) primitives["material"].integer()];
-			size_t idx_texture = cast(size_t) material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
-			auto img_albedo = scn["images"][
-				cast(size_t) scn["textures"][idx_texture]["source"].integer()
-			];
+			if("material" in primitives) {
+				auto material = scn["materials"][cast(size_t) primitives["material"].integer()];
+				
+				if("baseColorTexture" in material["pbrMetallicRoughness"]) {
+					size_t idx_texture = cast(size_t) material["pbrMetallicRoughness"]["baseColorTexture"]["index"].integer();
+					auto img_albedo = scn["images"][
+						cast(size_t) scn["textures"][idx_texture]["source"].integer()
+					];
 
-			tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
-			auto buf_albedo =  bufferViews[cast(size_t) img_albedo["bufferView"].integer()];
-			tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
-			tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+					tex_albedo.type = imageTypeFromString(img_albedo["mimeType"].str());
+					auto buf_albedo =  bufferViews[cast(size_t) img_albedo["bufferView"].integer()];
+					tex_albedo.byteOffset = cast(uint) buf_albedo["byteOffset"].integer();
+					tex_albedo.byteLength = cast(uint) buf_albedo["byteLength"].integer();
+				}
+			}
 		}
 
 		static if(Spec.isAnimated)
