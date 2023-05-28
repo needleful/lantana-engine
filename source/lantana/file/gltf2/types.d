@@ -293,6 +293,33 @@ struct GLBAccessor(Attribs)
 	{
 		mixin(format("GLBBufferView %s;", field));
 	}
+
+	void bounds(out uint start, out uint length) {
+		start = indices.byteOffset;
+		uint end = start + indices.byteLength;
+
+		static foreach(field; FieldNameTuple!Attribs) {{
+			uint new_start = mixin(field~".byteOffset");
+			uint new_end = new_start + mixin(field~".byteLength");
+
+			if (new_start < start) {
+				start = new_start;
+			}
+
+			if(new_end > end) {
+				end = new_end;
+			}
+		}}
+
+		length = end - start;
+	}
+
+	void subtractOffset(uint start) {
+		indices.byteOffset -= start;
+		static foreach(field; FieldNameTuple!Attribs) {{
+			mixin(field~".byteOffset") -= start;
+		}}
+	}
 	GLBImage tex_albedo;
 }
 

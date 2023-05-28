@@ -8,13 +8,11 @@ import std.format;
 import std.traits;
 
 import lantana.file.gltf2.types;
-import lantana.render.gl;
-import lantana.render.lights;
-import lantana.render.material;
+import lantana.math.transform;
+import lantana.render;
 
 struct Attr(Struct)
 {
-
 	enum fields = FieldNameTuple!Struct;
 	AttribId[fields.length] ids;
 
@@ -65,6 +63,7 @@ struct Attr(Struct)
 					0,
 					cast(void*) mixin("bufferViews."~fields[i]).byteOffset);
 			}
+			glcheck();
 		}
 	}
 
@@ -109,24 +108,41 @@ struct UniformT(Global, Instance)
 		}
 	}
 
-	void setGlobals(ref Material mat, ref Global globals)
+	void setUniforms(Uniforms)(ref Material mat, ref Uniforms uniforms)
+		if(is(Uniforms == Global) || is(Uniforms == Instance))
 	{
-		glcheck();
-		static foreach(i, type; Fields!Global)
-		{
-			mat.setUniform!type(ids[i], mixin("globals."~gFields[i]));
+		enum isGlobal = is(Uniforms == Global);
+		static if (isGlobal) {
+			alias fieldTuple = gFields;
 		}
-		glcheck();
-	}
+		else {
+			alias fieldTuple = iFields;
+		}
 
-	void setInstance(ref Material mat, ref Instance instance)
-	{
+		import lantana.types.core: isTemplateType;
 		glcheck();
-		static foreach(i, type; Fields!Instance)
-		{
-			mat.setUniform!type(ids[gFieldCount + i], mixin("instance."~iFields[i]));
-		}
-		glcheck();
+
+		int texId = 0;
+
+		static foreach(i, Type; Fields!Uniforms)
+		{{
+			UniformId id = ids[isGlobal? i : i+gFieldCount];
+
+			static if (isTemplateType!(Texture, Type)) {
+				mat.setUniform(id, texId);
+				glActiveTexture(GL_TEXTURE0 + texId);
+				glBindTexture(GL_TEXTURE_2D, mixin("uniforms."~fieldTuple[i]~".id"));
+				texId ++;
+			}
+			else static if(is(Type == Transform)) {
+			 	mixin("uniforms."~fieldTuple[i]~".computeMatrix();");
+				mat.setUniform(id,  mixin("uniforms."~fieldTuple[i]~".matrix"));
+			}
+			else {
+				mat.setUniform(id, mixin("uniforms."~fieldTuple[i]));
+			}
+			glcheck();
+		}}
 	}
 
 	static foreach(i, field; gFields)

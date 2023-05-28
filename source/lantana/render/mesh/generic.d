@@ -23,7 +23,7 @@ import lantana.render.textures;
 
 import lantana.types;
 
-struct DefaultUniforms
+struct DefaultGlobalUniforms
 {
 	Mat4 projection;
 
@@ -33,10 +33,10 @@ struct DefaultUniforms
 	float area_ceiling;
 	float gamma;
 
-	int light_palette;
-	int tex_albedo;
+	Texture!Color light_palette;
+}
 
-	float nearPlane, farPlane;
+struct DefaultInstanceUniforms {
 }
 
 struct DefaultSettings
@@ -46,37 +46,41 @@ struct DefaultSettings
 	enum depthWrite = true;
 	enum filter = Filter(TexFilter.Linear, TexFilter.MipMaps);
 	alias textureType = Color;
+	alias globalUniforms = DefaultGlobalUniforms;
+	alias instanceUniforms = DefaultInstanceUniforms;
 }
 
-template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = DefaultSettings)
+template GenericMesh(Attrib, Loader, Settings = DefaultSettings)
 {
 	alias texture = Texture!(Settings.textureType);
 
 	alias Spec = MeshSpec!(Attrib, Loader);
 	private alias MeshData = GLBLoadResults!Spec.MeshData;
 
-	struct InstanceUniforms
-	{
-		Mat4 transform;
-		static if(Spec.isAnimated)
+	alias GlobalUniforms = Settings.globalUniforms;
+	static if (is(Settings.instanceUniforms == DefaultInstanceUniforms)) {
+		struct InstanceUniforms
 		{
-			Mat4[] bones;
+			Transform transform;
+			static if(Spec.isAnimated)
+			{
+				Mat4[] bones;
+			}
+			Texture!Color tex_albedo;
 		}
+	}
+	else {
+		alias InstanceUniforms = Settings.instanceUniforms;
 	}
 
 	alias Uniforms = UniformT!(GlobalUniforms, InstanceUniforms);
 
-	enum hasLightPalette = __traits(compiles, {
-		Uniforms.global g;
-		g.light_palette = 0;
-	});
-
 	struct System
 	{
 		Spec.attribType atr;
-		OwnedList!Mesh meshes;
-		OwnedList!GLuint vbos;
-		OwnedList!texture textures;
+		Mesh[] meshes;
+		GLuint[] vbos;
+		texture[] textures;
 
 		Material mat;
 		Uniforms un;
@@ -97,13 +101,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			clearMeshes();
 		}
 
-		void reserveMeshes(ref Region p_alloc, uint p_count)
-		{
-			meshes = p_alloc.makeOwnedList!Mesh(p_count);
-			vbos = p_alloc.makeOwnedList!GLuint(p_count);
-			textures = p_alloc.makeOwnedList!texture(p_count);
-		}
-
 		Mesh*[string] loadMeshes(string p_filename, ref Region p_alloc)
 		{
 			glcheck();
@@ -111,25 +108,31 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			GLBLoadResults!Spec loaded;
 			loaded = glbLoad!Spec(p_filename, p_alloc);
 
-			GLuint vbo;
-			glGenBuffers(1, &vbo);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, loaded.bufferSize, loaded.data.ptr, GL_STATIC_DRAW);
-			vbos ~= vbo;
-
 			GLBImage currentImage;
 			Mesh*[string] result;
-			foreach(name, mesh; loaded.meshes)
+			foreach(name, meshData; loaded.meshes)
 			{
-				if(currentImage != mesh.accessor.tex_albedo)
+				if(currentImage != meshData.accessor.tex_albedo)
 				{
-					currentImage = mesh.accessor.tex_albedo;
-					with(mesh.accessor.tex_albedo)
+					currentImage = meshData.accessor.tex_albedo;
+					with(meshData.accessor.tex_albedo)
 					{
-						textures.place(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
+						textures ~= texture(type, loaded.data[byteOffset..byteOffset+byteLength], p_alloc, Settings.filter);
 					}
 				}
-				meshes.place(this, mesh, loaded.data, vbo, &textures[$-1]);
+
+				uint offset, length;
+				meshData.accessor.bounds(offset, length);
+				meshData.accessor.subtractOffset(offset);
+				debug writefln("Offset: %u, length: %u, of total %u", offset, length, loaded.data.length);
+
+				GLuint vbo;
+				glGenBuffers(1, &vbo);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBufferData(GL_ARRAY_BUFFER, length, &loaded.data[offset], GL_STATIC_DRAW);
+				vbos ~= vbo;
+
+				meshes ~= Mesh(this, meshData, loaded.data, vbo);
 
 				result[name] = &meshes[$-1];
 			}
@@ -137,7 +140,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			return result;
 		}
 
-		void render(ref Uniforms.global p_globals, ref Texture!Color p_palette, Instance[] p_instances)
+		void render(ref Uniforms.global p_globals, Instance[] p_instances)
 		{
 			glcheck();
 			glEnable(GL_CULL_FACE);
@@ -167,36 +170,19 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			mat.enable();
 			
 			glcheck();
-			static if(hasLightPalette)
-			{
-				p_globals.light_palette = 0;
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, p_palette.id);
-			}
-			glcheck();
-			p_globals.tex_albedo = 1;
 
-			un.setGlobals(mat, p_globals);
+			un.setUniforms(mat, p_globals);
 
 			GLuint current_vao = 0;
 			foreach(ref inst; p_instances)
 			{
 				glcheck();
-				inst.transform.computeMatrix();
-				mat.setUniform(un.i_transform(), inst.transform.matrix);
-
-				static if(Spec.isAnimated)
-				{
-					mat.setUniform(un.i_bones(), inst.anim.boneMatrices);
-				}
+				un.setUniforms(mat, inst.instanceData);
 
 				if(current_vao != inst.mesh.vao)
 				{
 					current_vao = inst.mesh.vao;
 					glBindVertexArray(current_vao);
-
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, inst.mesh.tex_albedo.id);
 				}
 				glcheck();
 
@@ -216,7 +202,6 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 		void update(float p_delta, Instance[] p_instances) 
 		{
 			glcheck();
-			debug uint inst_id = 0;
 			foreach(ref inst; p_instances)
 			{
 				if(inst.anim.is_updated && !inst.anim.is_playing)
@@ -243,7 +228,7 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 				foreach(size_t i; 0..inst.mesh.bones.length)
 				{
-					inst.anim.boneMatrices[i] = 
+					inst.instanceData.bones[i] = 
 						applyParentTransform(inst.anim.bones[i], inst.anim.bones) 
 						* inst.mesh.inverseBindMatrices[i].transposed();
 				}
@@ -251,15 +236,15 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			glcheck();
 		}
 
-		void clearMeshes() @nogc
+		void clearMeshes()
 		{
-			glDeleteBuffers(vbos.length, vbos.ptr);
+			glDeleteBuffers(cast(int) vbos.length, vbos.ptr);
 			foreach(i; 0..meshes.length)
 			{
 				meshes[i].clear();
 			}
-			meshes.clearNoGC();
-			vbos.clearNoGC();
+			meshes.clear();
+			vbos.clear();
 		}
 	}
 
@@ -274,15 +259,13 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 		ubyte[] data;
 		Spec.accessor accessor;
-		texture* tex_albedo;
 		GLuint vao;
 
-		this(ref System p_system, MeshData p_data, ubyte[] p_bytes, GLuint p_vbo, texture* p_texture)
+		this(ref System p_system, MeshData p_data, ubyte[] p_bytes, GLuint p_vbo)
 		{
 			glcheck();
 
 			data = p_bytes;
-			tex_albedo = p_texture;
 			accessor = p_data.accessor;
 
 			static if(Spec.isAnimated)
@@ -298,18 +281,14 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
 			p_system.atr.enable();
-
-			glBindBuffer(GL_ARRAY_BUFFER, p_vbo);
 			p_system.atr.initialize(accessor);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, p_vbo);
-
-			glBindVertexArray(0);
 			p_system.atr.disable();
+			glBindVertexArray(0);
 
 			glcheck();
 		}
 
-		this(ref Mesh rhs) @nogc nothrow
+		this(ref Mesh rhs) nothrow
 		{
 			static foreach(field; FieldNameTuple!Mesh)
 			{
@@ -319,12 +298,12 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 			rhs.vao = 0;
 		}
 
-		~this() @nogc
+		~this()
 		{
 			clear();
 		}
 
-		void clear() @nogc
+		void clear()
 		{
 			glDeleteVertexArrays(1, &vao);
 			glcheck();
@@ -333,24 +312,22 @@ template GenericMesh(Attrib, Loader, GlobalUniforms=DefaultUniforms, Settings = 
 
 	struct Instance
 	{
-		Transform transform;
 		Mesh* mesh;
+		Uniforms.instance instanceData;
 
-		this(Mesh* p_mesh, Transform p_transform)
+		this(Mesh* p_mesh)
 		{
 			mesh = p_mesh;
-			transform = p_transform;
 		}
 
 		static if(Spec.isAnimated)
 		{
 			SkeletalAnimationInstance anim;
 
-			this(Mesh* p_mesh, Transform p_transform, ref Region p_alloc) 
+			this(Mesh* p_mesh, ref Region p_alloc) 
 			{
 				mesh = p_mesh;
-				transform = p_transform;
-				anim.boneMatrices = p_alloc.makeList!Mat4(p_mesh.bones.length);
+				instanceData.bones = p_alloc.makeList!Mat4(p_mesh.bones.length);
 				anim.bones = p_alloc.makeList!GLBNode(p_mesh.bones.length);
 				anim.bones[0..$] = p_mesh.bones[0..$];
 				anim.is_playing = false;

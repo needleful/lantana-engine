@@ -132,10 +132,7 @@ struct Material
 		}
 
 		GLint res = matId.glGetUniformLocation(p_name.ptr);
-		assert(res != -1, "Missing parameter ID: "~p_name);
-
 		return UniformId(res);
-
 	}
 
 	bool setUniform(T)(const UniformId p_uniform, auto ref T p_value) 

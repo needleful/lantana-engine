@@ -15,7 +15,6 @@ import lantana.render.mesh.attributes;
 struct SkeletalAnimationInstance
 {
 	GLBNode[] bones;
-	Mat4[] boneMatrices;
 	const(GLBAnimation)* currentAnimation;
 	float time;
 	bool is_updated;

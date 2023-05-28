@@ -23,12 +23,12 @@ struct Camera
 		rot = Vec2(0,0);
 	}
 
-	void set_projection(Projection p)  nothrow
+	void setProjection(Projection p)  nothrow
 	{
 		projection = p.matrix;
 	}
 
-	Mat4 calculate_view()  nothrow
+	Mat4 calculateView()  nothrow
 	{
 		Vec3 f = forward();
 		Vec3 r = right();
@@ -55,7 +55,7 @@ struct Camera
 	@property Mat4 vp()  nothrow
 	{
 		Mat4 res = projection;
-		res *= calculate_view();
+		res *= calculateView();
 		return res;
 	}
 

@@ -126,10 +126,10 @@ struct Window
 		//glEnable(GL_MULTISAMPLE);
 
 		// Our default OpenGL settings
-		glEnable(GL_CULL_FACE);
-		glDepthFunc(GL_LESS);
+		//glDisable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
-		glClearColor(0, 0, 0, 1);
+		glDepthFunc(GL_LESS);
+		glClearColor(0.5, 0.5, 0.5, 1);
 		glClearDepth(1.0f);
 
 		assert(glGetError() == GL_NO_ERROR);
