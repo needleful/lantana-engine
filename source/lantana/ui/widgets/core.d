@@ -108,8 +108,10 @@ public abstract class MultiContainer : Container
 	public void addChild(Widget w)
 	{
 		children ~= w;
-		w.initialize(view.renderer, view);
-		view.requestUpdate();
+		if(view) {
+			w.initialize(view.renderer, view);
+			view.requestUpdate();
+		}
 	}
 }
 

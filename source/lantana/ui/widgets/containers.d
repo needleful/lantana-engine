@@ -453,4 +453,9 @@ class VBox: MultiContainer
 
 		return size.constrained(SizeRequest(absoluteWidth, absoluteHeight));
 	}
+
+	VBox withFlags(HFlags p_flags) {
+		flags = p_flags;
+		return this;
+	}
 }

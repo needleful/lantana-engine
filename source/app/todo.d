@@ -25,8 +25,9 @@ struct Project {
 struct View {
 	string[] requiredTags = [];
 	string[] excludedTags = [];
-	int minPriority;
 	string titleSearch;
+	int minPriority;
+	bool showCompleted;
 }
 
 /// Non-crashing exceptions for NP-ToDo
@@ -41,16 +42,17 @@ Project loadProject(string path) {
 	import std.conv;
 	import std.regex;
 
+	static auto rKeyValue = regex(r"^\(([^:]*): (.*)\)$", "m");
+	static auto rSummary = regex(r"^(\s*)- (.*)$", "m");
+	static auto rNotes = regex(r"^(\s*)/ (.*)$", "m");
+	static auto rPriority = regex(r"^(\s*)@ (.*)$", "m");
+	static auto rTags = regex(r"^(\s*)# (.*)$", "m");
+
 	if (!exists(path)) {
 		throw new NptException("Project file was not found: "~path);
 	}
-	auto pfile = File(path, "r");
 
-	auto rKeyValue = regex(r"^\(([^:]*): (.*)\)$", "m");
-	auto rSummary = regex(r"^(\s*)- (.*)$", "m");
-	auto rNotes = regex(r"^(\s*)/ (.*)$", "m");
-	auto rPriority = regex(r"^(\s*)@ (.*)$", "m");
-	auto rTags = regex(r"^(\s*)# (.*)$", "m");
+	auto pfile = File(path, "r");
 
 	Project result;
 	struct ParsingTask {

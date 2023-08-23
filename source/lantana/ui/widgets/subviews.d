@@ -17,7 +17,7 @@ import lantana.ui.widgets;
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public final class Scrolled : Widget
+public class Scrolled : Widget
 {
 	private final class ScrollGrab : Interactible
 	{

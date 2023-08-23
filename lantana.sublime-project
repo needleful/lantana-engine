@@ -2,12 +2,11 @@
 	"build_systems":
 	[
 		{
-			"name": "Dub Build Debug",
+			"name": "Dub Run Debug",
 			"cmd":
 			[
 				"dub",
-				"run",
-				"--parallel"
+				"run"
 			],
 			"working_dir": "$project_path"
 		},
@@ -16,7 +15,7 @@
 			"cmd":
 			[
 				"dub",
-				"run",
+				"build",
 				"--build=release-debug",
 				"--parallel"
 			],
