@@ -19,9 +19,6 @@ import lantana.types;
 import lantana.ui;
 
 private enum forcedMain = false;
-enum MAX_MEMORY = 1024*1024*64;
-enum cam_speed = 1;
-
 
 static if(forcedMain)
 {
