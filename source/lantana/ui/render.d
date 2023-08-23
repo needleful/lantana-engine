@@ -214,6 +214,7 @@ public final class UIRenderer
 		foreach(view; views)
 		{
 			view.initBuffers();
+			glcheck();
 		}
 		initialized = true;
 	}

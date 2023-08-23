@@ -1,5 +1,5 @@
-name "lantana"
-description "The Lantana Game Engine"
+name "np-todo"
+description "Needleful's Pragmatic Todo List"
 authors "Devin Hastings"
 license "GPL-3.0"
 version "1.0.0"
@@ -18,11 +18,11 @@ dependency "sdlang-d" version="~>0.10.5"
 libs "sdl2" "freetype" platform="posix"
 libs "user32" platform="windows"
 
-preGenerateCommands "copy lantana.manifest bin\\game.exe.manifest" platform="windows" configuration="game"
-preGenerateCommands "copy lantana.manifest bin\\editor.exe.manifest" platform="windows" configuration="editor"
+preGenerateCommands "copy lantana.manifest bin\\np-todo.exe.manifest" platform="windows"
 
 buildType "release-ultra" {
 	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck" "warningsAsErrors" "stackStomping"
 }
 
-targetType "library"
+targetPath "bin"
+targetType "executable"

@@ -28,6 +28,8 @@ void glcheck() @nogc
 				return "Invalid Enum";
 			case GL_INVALID_VALUE:
 				return "Invalid Value";
+			case GL_INVALID_OPERATION:
+				return "Invalid Operation";
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
 				return "Invalid Framebuffer Operation";
 			case GL_OUT_OF_MEMORY:
