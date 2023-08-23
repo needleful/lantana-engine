@@ -70,7 +70,6 @@ int runGame()
 	auto ui = makeRenderer(window);
 
 	auto editor = new ProjectEditor(loadProject("np-todo.todo"));
-	ui.initialize();
 	ui.setRootWidget(editor);
 
 	Input input = Input();
@@ -98,6 +97,5 @@ int runGame()
 		window.endFrame();
 		glcheck();
 	}
-	//storeProject(project, "np-todo.todo");
 	return 0;
 }

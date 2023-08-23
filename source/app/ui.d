@@ -41,6 +41,7 @@ UIRenderer makeRenderer(ref Window window) {
 		textInput.focused = Vec3(1,1,1);
 		textInput.normal = Vec3(0, 0, 0);
 	}
+	ui.initialize();
 	return ui;
 }
 

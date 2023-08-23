@@ -454,20 +454,21 @@ public final class UIView
 		bool found = false;
 		foreach(i, const Rect r; interactAreas)
 		{
-			if(r.contains(p_point - translation))
+			if(!r.contains(p_point - translation))
 			{
-				if(interactibles[i].priority() == priority)
-				{
-					found = true;
-					id = InteractibleId(cast(InteractibleId.dt)i);
-					break;
-				}
-				else if(!found 
-					|| (found && interactibles[id].priority() < interactibles[i].priority()))
-				{
-					id = InteractibleId(cast(InteractibleId.dt)i);
-					found = true;
-				}
+				continue;
+			}
+			if(interactibles[i].priority() == priority)
+			{
+				found = true;
+				id = InteractibleId(cast(InteractibleId.dt)i);
+				break;
+			}
+			else if(!found 
+				|| (found && interactibles[id].priority() < interactibles[i].priority()))
+			{
+				id = InteractibleId(cast(InteractibleId.dt)i);
+				found = true;
 			}
 		}
 		return found;

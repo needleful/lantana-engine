@@ -163,7 +163,7 @@ struct Vector(T, uint Size)
 		return val;
 	}
 
-	Self opBinary(string op)(const T val) @nogc @safe const
+	Self opBinary(string op, U)(const U val) @nogc @safe const
 	{
 		auto v = Self();
 		static foreach(uint i; 0..Size)
@@ -191,7 +191,7 @@ struct Vector(T, uint Size)
 		}
 	}
 
-	void opOpAssign(string op)(const T val) @nogc @safe nothrow
+	void opOpAssign(string op, U)(const U val) @nogc @safe nothrow
 	{
 		static foreach(uint i; 0..Size)
 		{

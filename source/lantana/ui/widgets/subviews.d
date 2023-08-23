@@ -75,7 +75,7 @@ public class Scrolled : Widget, Scrollable
 	private int scrollSpan;
 	private double scrollPercent = 0;
 	private RealSize childSize, widgetSize;
-	private double scrollSpeed = 35;
+	private int scrollSpeed = 35;
 
 	public this(Widget p_child, float p_scroll = 1)
 	{
@@ -218,13 +218,15 @@ public class Scrolled : Widget, Scrollable
 	}
 }
 
-public class Panned : Widget, Interactible
+public class Panned : Widget, Interactible, Scrollable
 {
 	UIView childView;
 	MultiContainer widget;
 
 	RealSize viewSize;
 	InteractibleId pan;
+	ScrollableId scrollId;
+	int scrollSpeed = 35;
 
 	public this(MultiContainer p_widget)
 	{
@@ -243,6 +245,7 @@ public class Panned : Widget, Interactible
 		childView.setRootWidget(widget);
 
 		pan = view.addInteractible(this);
+		scrollId = view.addScrollable(this);
 	}
 
 	public override RealSize layout(SizeRequest p_request)
@@ -262,6 +265,8 @@ public class Panned : Widget, Interactible
 	{
 		view.setInteractSize(pan, viewSize);
 		view.setInteractPosition(pan, p_pen);
+		view.setScrollSize(scrollId, viewSize);
+		view.setScrollPosition(scrollId, p_pen);
 		childView.setRect(Rect(p_pen, viewSize));
 	}
 
@@ -283,6 +288,10 @@ public class Panned : Widget, Interactible
 	public override void drag(iVec2 p_dragAmount)
 	{
 		childView.translation += p_dragAmount;
+	}
+
+	public override void scroll(iVec2 p_scroll) {
+		childView.translation -= p_scroll*scrollSpeed;
 	}
 	
 	public override void interact() {}
