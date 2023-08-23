@@ -18,26 +18,28 @@ public class Button: MultiContainer, Interactible
 	private InteractibleId id;
 	private bool pressed;
 	private HFlags flags;
+	private Widget child;
 
-	public this(UIRenderer p_renderer, Widget p_child, Interactible.Callback p_onReleased, HFlags p_flags = HFlags.init)
+	public this(Widget p_child, Interactible.Callback p_onReleased = null, HFlags p_flags = HFlags.init)
 	{
-		children.reserve(2);
-		children ~= p_renderer.style.button.mesh.create(p_renderer);
-		children ~= new Padding(p_child, p_renderer.style.button.pad);
+		child = p_child;
 		onReleased = p_onReleased;
-
-		children[0].position = iVec2(0,0);
-		children[1].position = iVec2(0,0);
 		flags = p_flags;
 	}
 
-	this(UIRenderer p_renderer, string p_text, Interactible.Callback p_callback, HFlags p_flags = HFlags.init)
+	this(string p_text, Interactible.Callback p_callback = null, HFlags p_flags = HFlags.init)
 	{
-		this(p_renderer, new TextBox(p_text), p_callback, p_flags);
+		this(new TextBox(p_text), p_callback, p_flags);
 	}
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
+		children.reserve(2);
+		children ~= p_renderer.style.button.mesh.create(p_renderer);
+		children ~= new Padding(child, p_renderer.style.button.pad);
+		children[0].position = iVec2(0,0);
+		children[1].position = iVec2(0,0);
+
 		super.initialize(p_renderer, p_view);
 		id = p_view.addInteractible(this);
 	}
@@ -96,7 +98,8 @@ public class Button: MultiContainer, Interactible
 	public override void release()
 	{
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.focused);
-		onReleased(this);
+		if(onReleased)
+			onReleased(this);
 	}
 
 	public override void drag(iVec2 p_drag) 

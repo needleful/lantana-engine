@@ -266,20 +266,26 @@ public final class UIRenderer
 
 	public void updateInteraction(float delta, Input* p_input)
 	{
-		if(focused)
+		/*if(p_input.mouseWheel != iVec2(0))
 		{
-			if(p_input.mouseWheel != iVec2(0))
+			Scrollable scrolling;
+			foreach(view; views)
 			{
-				// FIXME: BAD HACK! BAD HACK!! BAD HACK!!!
-				if(focused.priority() % 3 == 0)
+				if(!view.isVisible() || !view.rect.contains(p_input.mousePos))
 				{
-					focused.drag(p_input.mouseWheel*30);
+					continue;
 				}
-				else
+				InteractibleId newId;
+
+				if(view.getScrollableObject(p_input.mousePos, newId))
 				{
-					focused.drag(iVec2(p_input.mouseWheel.x, -p_input.mouseWheel.y)*15);
+					scrolling = cast(Scrollable) view.interactibles[newId];
 				}
 			}
+			scrolling.scroll(p_input.mouseWheel);
+		}*/
+		if(focused)
+		{
 			if(p_input.isJustClicked(Input.Mouse.Left))
 			{
 				focused.interact();
@@ -378,28 +384,29 @@ public final class UIRenderer
 			}
 		}
 
-		Interactible newFocus = null;
+		Interactible focusedObject = null;
 		if(!p_input.isClicked(Input.Mouse.Left))
 		{
 			foreach(view; views)
 			{
-				if(view.isVisible() && view.rect.contains(p_input.mousePos))
+				if(!view.isVisible() || !view.rect.contains(p_input.mousePos))
 				{
-					InteractibleId newId;
+					continue;
+				}
+				InteractibleId newId;
 
-					if(view.getFocusedObject(p_input.mousePos, newId))
-					{
-						Interactible newObject = view.interactibles[newId];
-						if(!newFocus || newObject.priority() >= newFocus.priority())
-							newFocus = newObject;
-					}
+				if(view.getFocusedObject(p_input.mousePos, newId))
+				{
+					Interactible foundObject = view.interactibles[newId];
+					if(!focusedObject || foundObject.priority() >= focusedObject.priority())
+						focusedObject = foundObject;
 				}
 			}
-			if(newFocus !is focused)
+			if(focusedObject !is focused)
 			{
 				if(focused)
 					focused.unfocus();
-				focused = newFocus;
+				focused = focusedObject;
 				if(focused)
 					focused.focus();
 			}

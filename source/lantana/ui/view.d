@@ -440,6 +440,38 @@ public final class UIView
 		interactAreas[p_id].pos = p_position;
 	}
 
+	/+public bool getScrollableObject(iVec2 p_point, out InteractibleId id, short priority = short.max) {
+		if(interactAreas.length == 0)
+		{
+			return false;
+		}
+
+		bool found = false;
+		foreach(i, const Rect r; interactAreas)
+		{
+			if(r.contains(p_point - translation))
+			{
+				if(interactiles[i] !is Scrollable) {
+					continue;
+				}
+
+				if(interactibles[i].priority() == priority)
+				{
+					found = true;
+					id = InteractibleId(cast(InteractibleId.dt)i);
+					break;
+				}
+				else if(!found 
+					|| (found && interactibles[id].priority() < interactibles[i].priority()))
+				{
+					id = InteractibleId(cast(InteractibleId.dt)i);
+					found = true;
+				}
+			}
+		}
+		return found;
+	}+/
+
 	public bool getFocusedObject(iVec2 p_point, out InteractibleId id, short priority = short.max)
 	{
 		if(interactAreas.length == 0)

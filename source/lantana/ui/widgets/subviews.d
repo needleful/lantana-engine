@@ -25,23 +25,23 @@ public class Scrolled : Widget
 		short m_priority;
 		bool pan;
 
-		this(Scrolled p_parent, bool p_pan, short p_priority) 
+		this(Scrolled p_parent, bool p_pan, short p_priority)
 		{
 			parent = p_parent;
 			pan = p_pan;
 			m_priority = p_priority;
 		}
 
-		public override void drag(iVec2 p_dragAmount) 
+		public override void drag(iVec2 p_dragAmount)
 		{
 			parent.scrollBy(cast(int) p_dragAmount.y, pan);
 		}
 		
-		public override void interact() 
+		public override void interact()
 		{
 			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.pressed);
 		}
-		public override void unfocus() 
+		public override void unfocus()
 		{
 			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
 		}
@@ -52,12 +52,12 @@ public class Scrolled : Widget
 			else
 				parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
 		}
-		public override short priority() 
+		public override short priority()
 		{
 			return m_priority;
 		}
 		/// Unimplemented Interactible methods
-		public override void focus() 
+		public override void focus()
 		{
 			if(!pan) parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.focused);
 		}
@@ -75,13 +75,13 @@ public class Scrolled : Widget
 	private double scrollPercent = 0;
 	private RealSize childSize, widgetSize;
 
-	public this(Widget p_child, float p_scroll = 1) 
+	public this(Widget p_child, float p_scroll = 1)
 	{
 		child = p_child;
 		scrollPercent = p_scroll;
 	}
 
-	public override void initialize(UIRenderer p_ui, UIView p_view) 
+	public override void initialize(UIRenderer p_ui, UIView p_view)
 	{
 		super.initialize(p_ui, p_view);
 
@@ -100,7 +100,7 @@ public class Scrolled : Widget
 		scrollTo(scrollPercent);
 	}
 
-	public override RealSize layout(SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request)
 	{
 		if(!visible || p_request == SizeRequest.hide)
 		{
@@ -119,7 +119,7 @@ public class Scrolled : Widget
 		int scrollbarWidth = view.renderer.style.scrollbar.width;
 
 		SizeRequest childReq = SizeRequest(
-			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth), 
+			Bounds(p_request.width.min - scrollbarWidth, p_request.width.max - scrollbarWidth),
 			Bounds.none)
 		.constrained(absoluteWidth, absoluteHeight);
 
@@ -136,7 +136,7 @@ public class Scrolled : Widget
 		RealSize barsize = scrollbar.layout(SizeRequest(RealSize(scrollbarWidth, childSize.height)));
 		RealSize handleSize = scrollbarHandle.layout(
 			SizeRequest(
-				Bounds(barsize.width), 
+				Bounds(barsize.width),
 				Bounds(cast(int)(barsize.height*scrollRatio))
 			).constrained(Bounds.none, Bounds(barsize.width))
 		);
@@ -156,7 +156,7 @@ public class Scrolled : Widget
 		return RealSize(childSize.width + scrollbarWidth, childSize.height);
 	}
 
-	public override void prepareRender(iVec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen)
 	{
 		drawPos = scrollbar.position + p_pen;
 		scrollbarHandle.position = drawPos + iVec2(0, cast(int)(scrollSpan*scrollPercent));
@@ -169,7 +169,7 @@ public class Scrolled : Widget
 		view.setInteractPosition(idPan, p_pen);
 	}
 
-	public void scrollBy(double p_pixels, bool pan) 
+	public void scrollBy(double p_pixels, bool pan)
 	{
 		double newLoc = scrollPercent;
 		if(pan)
@@ -196,7 +196,7 @@ public class Scrolled : Widget
 		scrollTo(newLoc);
 	}
 
-	public void scrollTo(double p_position) 
+	public void scrollTo(double p_position)
 	{
 		scrollPercent = p_position;
 
@@ -268,7 +268,7 @@ public class Panned : Widget, Interactible
 		return 0;
 	}
 
-	public override void drag(iVec2 p_dragAmount) 
+	public override void drag(iVec2 p_dragAmount)
 	{
 		childView.translation += p_dragAmount;
 	}
@@ -285,13 +285,13 @@ public final class Modal : Widget
 
 	private uint currentMode;
 
-	public this(Widget[] p_widgets) 
+	public this(Widget[] p_widgets)
 	{
 		widgets = p_widgets;
 		views.reserve(widgets.length);
 	}
 
-	public override void initialize(UIRenderer p_renderer, UIView p_view) 
+	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
 		super.initialize(p_renderer, p_view);
 
@@ -317,7 +317,7 @@ public final class Modal : Widget
 		views ~= v;
 	}
 
-	public override RealSize layout(SizeRequest p_request) 
+	public override RealSize layout(SizeRequest p_request)
 	{
 		if(!visible || p_request == SizeRequest.hide)
 		{
@@ -340,7 +340,7 @@ public final class Modal : Widget
 		return widgets[currentMode].layout(p_request);
 	}
 
-	public override void prepareRender(iVec2 p_pen) 
+	public override void prepareRender(iVec2 p_pen)
 	{
 		Widget wi = widgets[currentMode];
 

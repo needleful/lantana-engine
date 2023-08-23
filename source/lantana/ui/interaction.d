@@ -26,3 +26,7 @@ public interface Interactible
 	// When selecting elements, overlapping elements are selected based on maximum priority (undefined if they overlap and are the same)
 	public short priority();
 }
+
+public interface Scrollable {
+	public void scroll(iVec2 p_scrollAmount);
+}
