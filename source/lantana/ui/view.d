@@ -151,6 +151,10 @@ public final class UIView
 	/// Corresponding interactive objects
 	package Interactible[] interactibles;
 
+	/// Comparable to the interactAreas and interactibles
+	package Rect[] scrollAreas;
+	package Scrollable[] scrollables;
+
 	/// 0: text elements
 	/// 1: sprite elements
 	/// 2: vertex positions, in pixels (all)
@@ -440,38 +444,6 @@ public final class UIView
 		interactAreas[p_id].pos = p_position;
 	}
 
-	/+public bool getScrollableObject(iVec2 p_point, out InteractibleId id, short priority = short.max) {
-		if(interactAreas.length == 0)
-		{
-			return false;
-		}
-
-		bool found = false;
-		foreach(i, const Rect r; interactAreas)
-		{
-			if(r.contains(p_point - translation))
-			{
-				if(interactiles[i] !is Scrollable) {
-					continue;
-				}
-
-				if(interactibles[i].priority() == priority)
-				{
-					found = true;
-					id = InteractibleId(cast(InteractibleId.dt)i);
-					break;
-				}
-				else if(!found 
-					|| (found && interactibles[id].priority() < interactibles[i].priority()))
-				{
-					id = InteractibleId(cast(InteractibleId.dt)i);
-					found = true;
-				}
-			}
-		}
-		return found;
-	}+/
-
 	public bool getFocusedObject(iVec2 p_point, out InteractibleId id, short priority = short.max)
 	{
 		if(interactAreas.length == 0)
@@ -504,6 +476,49 @@ public final class UIView
 	public Interactible getInteractible(InteractibleId p_id)
 	{
 		return interactibles[p_id];
+	}
+
+	public ScrollableId addScrollable(Scrollable p_source)
+	{
+		assert(scrollAreas.length == scrollables.length);
+		auto id = cast(ScrollableId.dt) scrollAreas.length;
+		scrollAreas ~= Rect.init;
+		scrollables ~= p_source;
+
+		return ScrollableId(id);
+	}
+
+	public void setScrollSize(ScrollableId p_id, RealSize p_size) {
+		scrollAreas[p_id].size = p_size;
+	}
+
+	public void setScrollPosition(ScrollableId p_id, iVec2 p_position) {
+		scrollAreas[p_id].pos = p_position;
+	}
+
+	public bool getScrollableObject(iVec2 p_point, out ScrollableId id) {
+		if(scrollAreas.length == 0)
+		{
+			return false;
+		}
+
+		bool found = false;
+		Rect smallest = Rect.init;
+
+		foreach(i, const Rect r; scrollAreas)
+		{
+			if(!r.contains(p_point - translation))
+			{
+				continue;
+			}
+			if(!found || smallest.size.area() < r.size.area())
+			{
+				found = true;
+				smallest = r;
+				id = ScrollableId(cast(ScrollableId.dt) i);
+			}
+		}
+		return found;
 	}
 
 	public MeshRef addSpriteQuad(SpriteId p_sprite) 

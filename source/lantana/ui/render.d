@@ -41,6 +41,11 @@ struct InteractibleId
 	mixin StrictAlias!uint;
 }
 
+struct ScrollableId
+{
+	mixin StrictAlias!ushort;
+}
+
 struct GlyphId
 {
 	// Can be changed later for ligatures.
@@ -266,7 +271,7 @@ public final class UIRenderer
 
 	public void updateInteraction(float delta, Input* p_input)
 	{
-		/*if(p_input.mouseWheel != iVec2(0))
+		if(p_input.mouseWheel != iVec2(0))
 		{
 			Scrollable scrolling;
 			foreach(view; views)
@@ -275,15 +280,15 @@ public final class UIRenderer
 				{
 					continue;
 				}
-				InteractibleId newId;
+				ScrollableId newId;
 
 				if(view.getScrollableObject(p_input.mousePos, newId))
 				{
-					scrolling = cast(Scrollable) view.interactibles[newId];
+					scrolling = cast(Scrollable) view.scrollables[newId];
 				}
 			}
 			scrolling.scroll(p_input.mouseWheel);
-		}*/
+		}
 		if(focused)
 		{
 			if(p_input.isJustClicked(Input.Mouse.Left))

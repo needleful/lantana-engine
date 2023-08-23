@@ -17,7 +17,7 @@ import lantana.ui.widgets;
 
 /// Unlimited vertical space!
 /// Other dimensions are still constrained
-public class Scrolled : Widget
+public class Scrolled : Widget, Scrollable
 {
 	private final class ScrollGrab : Interactible
 	{
@@ -70,10 +70,12 @@ public class Scrolled : Widget
 	private RectWidget scrollbarHandle;
 
 	private InteractibleId idHandle, idPan;
+	private ScrollableId idScroll;
 	private iVec2 drawPos;
 	private int scrollSpan;
 	private double scrollPercent = 0;
 	private RealSize childSize, widgetSize;
+	private double scrollSpeed = 35;
 
 	public this(Widget p_child, float p_scroll = 1)
 	{
@@ -96,6 +98,7 @@ public class Scrolled : Widget
 
 		idHandle = p_view.addInteractible(new ScrollGrab(this, false, 4));
 		idPan = p_view.addInteractible(new ScrollGrab(this, true, 3));
+		idScroll = p_view.addScrollable(this);
 
 		scrollTo(scrollPercent);
 	}
@@ -109,6 +112,7 @@ public class Scrolled : Widget
 			childView.setVisible(false);
 			view.setInteractSize(idHandle, RealSize(0));
 			view.setInteractSize(idPan, RealSize(0));
+			view.setScrollSize(idScroll, RealSize(0));
 			return RealSize(0);
 		}
 		else
@@ -153,7 +157,10 @@ public class Scrolled : Widget
 		view.setInteractSize(idHandle, barsize);
 		view.setInteractSize(idPan, childSize);
 
-		return RealSize(childSize.width + scrollbarWidth, childSize.height);
+		RealSize result_size = RealSize(childSize.width + scrollbarWidth, childSize.height);
+		view.setScrollSize(idScroll, result_size);
+
+		return result_size;
 	}
 
 	public override void prepareRender(iVec2 p_pen)
@@ -167,6 +174,11 @@ public class Scrolled : Widget
 
 		view.setInteractPosition(idHandle, scrollbar.position + p_pen);
 		view.setInteractPosition(idPan, p_pen);
+		view.setScrollPosition(idScroll, p_pen);
+	}
+
+	public override void scroll(iVec2 scroll) {
+		scrollBy(-scrollSpeed*scroll.y, false);
 	}
 
 	public void scrollBy(double p_pixels, bool pan)

@@ -192,6 +192,11 @@ public struct RealSize
 		return RealSize(req.width.inRange(width), req.height.inRange(height)); 
 	}
 
+	long area() @nogc nothrow const
+	{
+		return width*height;
+	}
+
 	void print() @nogc nothrow const
 	{
 		printf("rs[%d, %d]", width, height);
