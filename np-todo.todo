@@ -1,4 +1,4 @@
-(project: NP-ToDo)
+(project: NP-ToDo: Needleful's Pragmatic todo list)
 (version: 1)
 - Human-readable file format
 	@ 2
@@ -12,10 +12,9 @@
 - Lantana UI
 	@ 2
 	/ There's a lot of stuff that'll need to get done.
-	# editing; v2;
+	# editing; v2
 	- Basic UI functionality.
 		- Checkboxes
 		- Hiding/showing elements
-		- 
 	- Theming
 	- Accessibility

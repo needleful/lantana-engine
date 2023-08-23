@@ -1,6 +1,5 @@
-// Part of the Lantana Engine
-// developed by needleful
-// Licensed under GPL v3.0
+// Part of NP-ToDo
+// copyright Devin Lee Hastings a.k.a. needleful
 
 module app.main;
 
@@ -8,7 +7,6 @@ import core.memory;
 import std.format;
 import std.math;
 import std.stdio;
-import std.string: split;
 
 import bindbc.sdl;
 
@@ -18,7 +16,9 @@ import lantana.render;
 import lantana.types;
 import lantana.ui;
 
-private enum forcedMain = false;
+import app.todo;
+
+private enum forcedMain = true;
 
 static if(forcedMain)
 {
@@ -65,6 +65,9 @@ else
 
 int runGame()
 {
+	Project project = loadProject("np-todo.todo");
+	storeProject(project, "np-todo.todo");
+
 	Window window = Window(1280, 720, "NP ToDo");
 	RealSize ws = window.getSize();
 	auto ui = new UIRenderer(ws, window.getDPI());
