@@ -70,15 +70,13 @@ int run()
 		{"Save &As...", key('s').shift().ctrl(), &saveAs},
 		{"E&xit", key('w').shift().ctrl(), &exit}
 	];
-	
-	void delegate()[ushort] shortcuts;
 
 	foreach(ref action a; fileActions) {
-		shortcuts[a.shortcut.toInt()] = a.callback;
+		window.shortcuts[a.shortcut.toInt()] = a.callback;
 	}
 
 	ui = makeRenderer(window);
-	window.createMenu(fileActions, shortcuts);
+	window.createMenu(fileActions);
 	newFile();
 
 	Input input = Input();

@@ -49,7 +49,7 @@ else
 	}
 }
 
-void createMenu(ref Window window, action[] fileActions, void delegate()[ushort] shortcuts) {
+void createMenu(ref Window window, action[] fileActions) {
 	SDL_SysWMinfo sysInfo;
 	SDL_GetWindowWMInfo(window.window, &sysInfo);
 
@@ -71,8 +71,8 @@ void createMenu(ref Window window, action[] fileActions, void delegate()[ushort]
 		try {
 			if(msg.msg.win.msg == WM_COMMAND) {
 				auto cmd = LOWORD(msg.msg.win.wParam);
-				if (cmd in shortcuts) {
-					shortcuts[cmd]();
+				if (cmd in window.shortcuts) {
+					window.shortcuts[cmd]();
 				}
 			}
 		}

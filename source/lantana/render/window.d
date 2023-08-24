@@ -18,6 +18,7 @@ import lantana.math.vectors;
 import lantana.types;
 import lantana.input;
 import lantana.render.gl;
+import lantana.ui.keyboard;
 
 enum WindowState
 {
@@ -36,6 +37,7 @@ struct Window
 	public SDL_Window *window;
 	public SDL_GLContext glContext;
 	public void delegate(ref Window window, SDL_SysWMmsg* message) nothrow onSystemMessage;
+	public void delegate() [ushort] shortcuts; 
 	private SDL_Event event;
 	private StopWatch time;
 
@@ -188,6 +190,16 @@ struct Window
 					break;
 				case SDL_KEYDOWN:
 					input.keyboard.press(event.key.keysym.scancode);
+					// handling shortcuts
+					ushort comboId = key(event.key.keysym).toInt();
+					if(comboId in shortcuts) {
+						try{
+							shortcuts[comboId]();
+						}
+						catch(Exception e){
+							//TODO: put this somewhere safe
+						}
+					}
 					break;
 				case SDL_KEYUP:
 					input.keyboard.release(event.key.keysym.scancode);
