@@ -95,11 +95,15 @@ public class Button: MultiContainer, Interactible
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.normal);
 	}
 
-	public override void release()
+	public override void release(bool p_focus)
 	{
 		(cast(RectWidget)children[0]).setSprite(view.renderer.style.button.focused);
-		if(onReleased)
+		if(onReleased && p_focus)
 			onReleased(this);
+	}
+
+	public override bool canDrag() {
+		return !!onDragged;
 	}
 
 	public override void drag(iVec2 p_drag) 
@@ -266,7 +270,8 @@ final class TextInput : Widget, Interactible
 	/// Interactible methods
 	public override void focus(){}
 	public override void unfocus(){}
-	public override void release(){}
+	public override void release(bool _){}
+	public override bool canDrag() {return false;}
 	public override void drag(iVec2 _) {}
 
 	public override void interact()

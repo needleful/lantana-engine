@@ -80,6 +80,8 @@ public final class UIRenderer
 
 	Bitfield!AtlasState invalidated;
 
+	public bool needsRedraw;
+
 	package UIView[] views;
 
 	package RealSize windowSize;
@@ -209,7 +211,9 @@ public final class UIRenderer
 
 	public void updateLayout()
 	{
-		views[0].updateLayout();
+		bool changed;
+		views[0].updateLayout(changed);
+		needsRedraw |= changed;
 	}
 
 	public void initialize()
@@ -267,10 +271,45 @@ public final class UIRenderer
 			}
 			glDisable(GL_SCISSOR_TEST);
 		}
+		needsRedraw = false;
 	}
 
 	public void updateInteraction(float delta, Input* p_input)
 	{
+		// Get mouse focus
+		Interactible focusedObject = null;
+		if(!focused || !p_input.isClicked(Input.Mouse.Left) || !focused.canDrag())
+		{
+			foreach(view; views)
+			{
+				if(!view.isVisible() || !view.rect.contains(p_input.mousePos))
+				{
+					continue;
+				}
+				InteractibleId newId;
+
+				if(view.getFocusedObject(p_input.mousePos, newId))
+				{
+					Interactible foundObject = view.interactibles[newId];
+					if(!focusedObject || foundObject.priority() >= focusedObject.priority())
+						focusedObject = foundObject;
+				}
+			}
+			if(focusedObject !is focused)
+			{
+				if(focused){
+					if(p_input.isClicked(Input.Mouse.Left)) {
+						focused.release(false);
+					}
+					focused.unfocus();
+				}
+				focused = focusedObject;
+				if(focused)
+					focused.focus();
+				needsRedraw = true;
+			}
+		}
+
 		if(p_input.mouseWheel != iVec2(0))
 		{
 			Scrollable scrolling;
@@ -288,6 +327,7 @@ public final class UIRenderer
 				}
 			}
 			scrolling.scroll(p_input.mouseWheel);
+			needsRedraw = true;
 		}
 		if(focused)
 		{
@@ -298,15 +338,18 @@ public final class UIRenderer
 				{
 					setTextFocus(null);
 				}
+				needsRedraw = true;
 			}
-			else if(p_input.isClicked(Input.Mouse.Left))
+			else if(p_input.isClicked(Input.Mouse.Left) && focused.canDrag())
 			{
 				iVec2 drag = iVec2(cast(int) p_input.mouseMove.x, cast(int) p_input.mouseMove.y);
 				focused.drag(drag);
+				needsRedraw = true;
 			}
 			else if(p_input.isJustReleased(Input.Mouse.Left))
 			{
-				focused.release();
+				focused.release(true);
+				needsRedraw = true;
 			}
 		}
 
@@ -325,6 +368,7 @@ public final class UIRenderer
 					arrowHeld = false;
 				}
 				goleft = true;
+				needsRedraw = true;
 			}
 			
 			if(p_input.keyboard.isPressed(SDL_SCANCODE_RIGHT))
@@ -337,6 +381,7 @@ public final class UIRenderer
 					arrowHeld = false;
 				}
 				goleft = false;
+				needsRedraw = true;
 			}
 
 			if(arrowPressed)
@@ -358,13 +403,19 @@ public final class UIRenderer
 						currentInput.cursorRight();
 					}
 				}
+				needsRedraw = true;
 			}
 
 			if(p_input.keyboard.text.length != 0)
+			{
 				currentInput.insert(p_input.keyboard.text);
+				needsRedraw = true;
+			}
 
-			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_RETURN))
+			if(p_input.keyboard.isJustPressed(SDL_SCANCODE_RETURN)){
 				currentInput.insert('\n');
+				needsRedraw = true;
+			}
 
 			if(p_input.keyboard.isPressed(SDL_SCANCODE_BACKSPACE))
 			{
@@ -386,34 +437,7 @@ public final class UIRenderer
 					deleteTimer = 0;
 					currentInput.backSpace();
 				}
-			}
-		}
-
-		Interactible focusedObject = null;
-		if(!p_input.isClicked(Input.Mouse.Left))
-		{
-			foreach(view; views)
-			{
-				if(!view.isVisible() || !view.rect.contains(p_input.mousePos))
-				{
-					continue;
-				}
-				InteractibleId newId;
-
-				if(view.getFocusedObject(p_input.mousePos, newId))
-				{
-					Interactible foundObject = view.interactibles[newId];
-					if(!focusedObject || foundObject.priority() >= focusedObject.priority())
-						focusedObject = foundObject;
-				}
-			}
-			if(focusedObject !is focused)
-			{
-				if(focused)
-					focused.unfocus();
-				focused = focusedObject;
-				if(focused)
-					focused.focus();
+				needsRedraw = true;
 			}
 		}
 	}

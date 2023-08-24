@@ -89,24 +89,24 @@ package struct BufferRange
 	uint start;
 	uint end;
 
-	this(int p_start, int p_end)  
+	this(int p_start, int p_end) 
 	{
 		start = p_start;
 		end = p_end;
 	}
 
-	void clear()   
+	void clear()  
 	{
 		start = uint.max;
 		end = uint.min;
 	}
 
-	void apply(BufferRange rhs)  
+	void apply(BufferRange rhs) 
 	{
 		apply(rhs.start, rhs.end);
 	}
 
-	void apply(uint p_start, uint p_end)  
+	void apply(uint p_start, uint p_end) 
 	{
 		start = start < p_start? start : p_start;
 		end = end > p_end? end : p_end;
@@ -173,7 +173,7 @@ public final class UIView
 	/// A buffer is altered at max once per frame by checking these ranges.
 	package BufferRange textInvalid, spriteInvalid, uvInvalid, posInvalid;
 
-	public this(UIRenderer p_renderer, Rect p_rect) 
+	public this(UIRenderer p_renderer, Rect p_rect)
 	{
 		renderer = p_renderer;
 		rect = p_rect;
@@ -181,7 +181,7 @@ public final class UIView
 		textMeshes.reserve(8);
 	}
 
-	public this(UIView p_view, Rect p_rect) 
+	public this(UIView p_view, Rect p_rect)
 	{
 		parent = p_view;
 		renderer = p_view.renderer;
@@ -189,14 +189,14 @@ public final class UIView
 		textMeshes.reserve(8);
 	}
 
-	public ~this() 
+	public ~this()
 	{
 		clearData();
 		glDeleteVertexArrays(vao.length, vao.ptr);
 		glDeleteBuffers(vbo.length, vbo.ptr);
 	}
 
-	public void requestUpdate() 
+	public void requestUpdate()
 	{
 		invalidated[ViewState.Layout] = true;
 		if(parent)
@@ -205,15 +205,19 @@ public final class UIView
 		}
 	}
 
-	public RealSize updateLayout() 
+	public RealSize updateLayout(out bool changed)
 	{
-		return updateLayout(SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)));
+		return updateLayout(SizeRequest(Bounds(rect.size.width), Bounds(rect.size.height)), changed);
 	}
 
-	public RealSize updateLayout(SizeRequest p_request) 
+	public RealSize updateLayout(SizeRequest p_request, out bool changed)
 	{
 		if(!invalidated[ViewState.Layout])
+		{
+			changed = false;
 			return rect.size;
+		}
+		changed = !!invalidated.realValue();
 
 		RealSize cs = root.layout(p_request);
 		prepareRender();
@@ -341,7 +345,7 @@ public final class UIView
 		glcheck();
 	}
 
-	public void setRootWidget(Widget p_root) 
+	public void setRootWidget(Widget p_root)
 	{
 		clearData();
 		root = p_root;
@@ -354,7 +358,7 @@ public final class UIView
 		return root;
 	}
 
-	public UIView addView(Rect p_rect) 
+	public UIView addView(Rect p_rect)
 	{
 		UIView v = new UIView(this, p_rect);
 		renderer.views ~= v;
@@ -366,7 +370,7 @@ public final class UIView
 		return v;
 	}
 
-	public void setRect(Rect p_rect) 
+	public void setRect(Rect p_rect)
 	{
 		if(p_rect == rect)
 		{
@@ -376,17 +380,17 @@ public final class UIView
 		invalidated[ViewState.Layout] = true;
 	}
 
-	public iVec2 position() 
+	public iVec2 position()
 	{
 		return rect.pos;
 	}
 
-	public RealSize size() 
+	public RealSize size()
 	{
 		return rect.size;
 	}
 
-	public void translate(iVec2 mov) 
+	public void translate(iVec2 mov)
 	{
 		translation += mov;
 	}
@@ -423,7 +427,7 @@ public final class UIView
 		public methods -- interactive objects
 	+++++++++++++++++++++++++++++++++++++++/
 
-	public InteractibleId addInteractible(Interactible p_source) 
+	public InteractibleId addInteractible(Interactible p_source)
 	{
 		assert(interactAreas.length == interactibles.length);
 		auto id = cast(InteractibleId.dt) interactAreas.length;
@@ -434,12 +438,12 @@ public final class UIView
 		return InteractibleId(id);
 	}
 
-	public void setInteractSize(InteractibleId p_id, RealSize p_size) 
+	public void setInteractSize(InteractibleId p_id, RealSize p_size)
 	{
 		interactAreas[p_id].size = p_size;
 	}
 
-	public void setInteractPosition(InteractibleId p_id, iVec2 p_position) 
+	public void setInteractPosition(InteractibleId p_id, iVec2 p_position)
 	{
 		interactAreas[p_id].pos = p_position;
 	}
@@ -464,7 +468,7 @@ public final class UIView
 				id = InteractibleId(cast(InteractibleId.dt)i);
 				break;
 			}
-			else if(!found 
+			else if(!found
 				|| (found && interactibles[id].priority() < interactibles[i].priority()))
 			{
 				id = InteractibleId(cast(InteractibleId.dt)i);
@@ -522,13 +526,13 @@ public final class UIView
 		return found;
 	}
 
-	public MeshRef addSpriteQuad(SpriteId p_sprite) 
+	public MeshRef addSpriteQuad(SpriteId p_sprite)
 	{
 		assert(p_sprite in renderer.atlasSprite.map);
 
 		TextureNode* node = renderer.atlasSprite.map[p_sprite];
 
-		// The positions are set by other functions, 
+		// The positions are set by other functions,
 		// so they can stay (0,0) right now
 		ebo_t vertStart = cast(ebo_t)vertpos.length;
 		vertpos.addSpace(4);
@@ -550,7 +554,7 @@ public final class UIView
 		elemSprite[elemStart..elemStart+6] += vertStart;
 
 		if(uvRealloc) invalidated[ViewState.UVBuffer] = true;
-		if(elemRealloc) 
+		if(elemRealloc)
 		{
 			invalidated[ViewState.SpriteEBO] = true;
 		}
@@ -562,7 +566,7 @@ public final class UIView
 		return MeshRef(cast(uint)elemStart, 2, 4);
 	}
 
-	private void setQuadUV(ebo_t p_start, Rect p_rect) 
+	private void setQuadUV(ebo_t p_start, Rect p_rect)
 	{
 		// UV start, normalized
 		Vec2 uv_pos = Vec2(p_rect.pos.x, p_rect.pos.y);
@@ -596,7 +600,7 @@ public final class UIView
 		uvInvalid.apply(p_start, p_start + 4);
 	}
 
-	public void setQuadSize(MeshRef p_mesh, RealSize p_size) 
+	public void setQuadSize(MeshRef p_mesh, RealSize p_size)
 	{
 		assert(p_mesh.tris == 2);
 		// Consult the diagram in addSpriteQuad for explanation
@@ -615,7 +619,7 @@ public final class UIView
 		auto quadstart = elemSprite[p_mesh.start];
 		iVec2 dir = p_start - p_end;
 		Vec2 orth = Vec2(-dir.y, dir.x).normalized*p_thickness;
-		vertpos[quadstart..quadstart+4] = 
+		vertpos[quadstart..quadstart+4] =
 		[
 			p_start,
 			p_start + iVec2(cast(int)orth.x, cast(int)orth.y),
@@ -626,14 +630,14 @@ public final class UIView
 		posInvalid.apply(quadstart, quadstart + 4);
 	}
 
-	public void setSprite(MeshRef p_mesh, SpriteId p_sprite) 
+	public void setSprite(MeshRef p_mesh, SpriteId p_sprite)
 	{
 		assert(p_mesh.tris == 2);
 		TextureNode* node = renderer.atlasSprite.map[p_sprite];
 		setQuadUV(elemSprite[p_mesh.start], Rect(node.position, node.size));
 	}
 
-	public MeshRef addPatchRect(SpriteId p_sprite, Pad p_pad) 
+	public MeshRef addPatchRect(SpriteId p_sprite, Pad p_pad)
 	{
 		uint vertstart = cast(uint)vertpos.length;
 		uint uvstart = cast(uint)uvs.length;
@@ -694,7 +698,7 @@ public final class UIView
 		setPatchRectUV(elemSprite[p_mesh.start], p_sprite, p_pad);
 	}
 
-	private void setPatchRectUV(uint p_vertstart, SpriteId p_sprite, Pad p_pad) 
+	private void setPatchRectUV(uint p_vertstart, SpriteId p_sprite, Pad p_pad)
 	{
 		/+
 			A biggun!
@@ -721,7 +725,7 @@ public final class UIView
 		iVec2 bot_left = node.position;
 
 		iVec2 top_left = iVec2(
-			node.position.x, 
+			node.position.x,
 			node.position.y + node.size.height - p_pad.top);
 
 		iVec2 bot_right = iVec2(
@@ -739,7 +743,7 @@ public final class UIView
 		setQuadUV(p_vertstart+12, Rect(top_right, RealSize(p_pad.right, p_pad.top)));
 	}
 
-	public void setPatchRectSize(MeshRef p_mesh, RealSize p_size, Pad p_pad) 
+	public void setPatchRectSize(MeshRef p_mesh, RealSize p_size, Pad p_pad)
 	{
 		/+
 			A biggun!
@@ -786,7 +790,7 @@ public final class UIView
 
 	/// p_count is the number of vertices to change
 	/// Assumes the mesh is continuous
-	public void translateMesh(MeshRef p_mesh, iVec2 p_translation) 
+	public void translateMesh(MeshRef p_mesh, iVec2 p_translation)
 	{
 		auto vert = elemSprite[p_mesh.start];
 
@@ -796,7 +800,7 @@ public final class UIView
 		posInvalid.apply(vert, vert + p_mesh.vertices);
 	}
 
-	public TextId addTextMesh(FontId p_font, string p_text, int allocLen) 
+	public TextId addTextMesh(FontId p_font, string p_text, int allocLen)
 	{
 		import std.uni: isWhite;
 
@@ -844,7 +848,7 @@ public final class UIView
 		return id;
 	}
 
-	public void setTextMesh(TextId p_id, FontId p_font, string p_text, Bounds p_width=Bounds.none, bool p_forceEBOUpdate = false) 
+	public void setTextMesh(TextId p_id, FontId p_font, string p_text, Bounds p_width=Bounds.none, bool p_forceEBOUpdate = false)
 	{
 		TextMesh* mesh = &textMeshes[p_id];
 		import std.uni: isWhite;
@@ -903,7 +907,7 @@ public final class UIView
 			if(c.isWhite())
 			{
 				pen += iVec2(
-					cast(int)(ftGlyph.advance.x >> 6), 
+					cast(int)(ftGlyph.advance.x >> 6),
 					cast(int)(ftGlyph.advance.y >> 6));
 
 				//get the size of the following word and break if needed
@@ -1006,7 +1010,7 @@ public final class UIView
 			eboQuad += 6;
 
 			pen += iVec2(
-				cast(int)(ftGlyph.advance.x >> 6), 
+				cast(int)(ftGlyph.advance.x >> 6),
 				cast(int)(ftGlyph.advance.y >> 6));
 		}
 
@@ -1022,7 +1026,7 @@ public final class UIView
 		mesh.boundingSize = RealSize(rightBound - leftBound, lineCount*lineHeight);
 	}
 	
-	public void translateTextMesh(TextId p_id, iVec2 p_translation)  
+	public void translateTextMesh(TextId p_id, iVec2 p_translation) 
 	{
 		textMeshes[p_id].translation = p_translation;
 	}
@@ -1076,7 +1080,7 @@ public final class UIView
 		return pos;
 	}
 
-	package void initBuffers() 
+	package void initBuffers()
 	{
 		glcheck();
 		elemText.reserve(6);
@@ -1099,7 +1103,7 @@ public final class UIView
 		glVertexAttribIPointer(
 			renderer.atrText.position,
 			2, GL_INT,
-			0, 
+			0,
 			cast(void*) 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
@@ -1125,7 +1129,7 @@ public final class UIView
 		glVertexAttribIPointer(
 			renderer.atrSprite.position,
 			2, GL_INT,
-			0, 
+			0,
 			cast(void*) 0);
 		glcheck();
 
@@ -1143,7 +1147,7 @@ public final class UIView
 		glcheck();
 	}
 
-	package void clearBufferInvalidation() 
+	package void clearBufferInvalidation()
 	{
 		bool layoutInvalid = invalidated[ViewState.Layout];
 		invalidated.clear();
@@ -1156,7 +1160,7 @@ public final class UIView
 		uvInvalid.clear();
 	}
 
-	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer) 
+	private void replaceBuffer(T)(GLenum p_type, GLuint p_vbo, T[] p_buffer)
 	{
 		glcheck();
 		glBindBuffer(p_type, p_vbo);
@@ -1181,7 +1185,7 @@ public final class UIView
 		glcheck();
 	}
 
-	package void clearData() 
+	package void clearData()
 	{
 		textMeshes.clear();
 		elemSprite.clear();

@@ -4,6 +4,9 @@
 module app.main;
 
 import core.memory;
+import core.thread.osthread: Thread;
+import core.time;
+
 import std.format;
 import std.math;
 import std.stdio;
@@ -88,14 +91,17 @@ int runGame()
 			ui.setSize(window.getSize());
 		}
 
-		window.beginFrame();
-		
 		ui.updateInteraction(delta, &input);
 		ui.updateLayout();
-		ui.render();
 
-		window.endFrame();
-		glcheck();
+		if(ui.needsRedraw) {
+			window.beginFrame();
+			ui.render();
+			window.endFrame();
+		}
+		else {
+			Thread.sleep(dur!"msecs"(16));
+		}
 	}
 	return 0;
 }

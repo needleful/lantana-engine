@@ -32,6 +32,10 @@ public class Scrolled : Widget, Scrollable
 			m_priority = p_priority;
 		}
 
+		public override bool canDrag() {
+			return true;
+		}
+
 		public override void drag(iVec2 p_dragAmount)
 		{
 			parent.scrollBy(cast(int) p_dragAmount.y, pan);
@@ -45,7 +49,7 @@ public class Scrolled : Widget, Scrollable
 		{
 			parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
 		}
-		public override void release()
+		public override void release(bool _)
 		{
 			if(pan)
 				parent.scrollbarHandle.setSprite(parent.childView.renderer.style.button.normal);
@@ -127,7 +131,8 @@ public class Scrolled : Widget, Scrollable
 			Bounds.none)
 		.constrained(absoluteWidth, absoluteHeight);
 
-		widgetSize = childView.updateLayout(childReq);
+		bool c;
+		widgetSize = childView.updateLayout(childReq, c);
 		childSize = widgetSize.constrained(SizeRequest(childReq.width, p_request.height));
 
 		double scrollRatio = childSize.height / (cast(double) widgetSize.height);
@@ -256,7 +261,8 @@ public class Panned : Widget, Interactible, Scrollable
 			return RealSize(0);
 		}
 		childView.setVisible(true);
-		viewSize = childView.updateLayout(p_request.constrained(absoluteWidth, absoluteWidth));
+		bool c;
+		viewSize = childView.updateLayout(p_request.constrained(absoluteWidth, absoluteWidth), c);
 
 		return viewSize;
 	}
@@ -285,6 +291,10 @@ public class Panned : Widget, Interactible, Scrollable
 		return 0;
 	}
 
+	public override bool canDrag() {
+		return true;
+	}
+
 	public override void drag(iVec2 p_dragAmount)
 	{
 		childView.translation += p_dragAmount;
@@ -297,7 +307,7 @@ public class Panned : Widget, Interactible, Scrollable
 	public override void interact() {}
 	public override void unfocus() {}
 	public override void focus() {}
-	public override void release() {}
+	public override void release(bool _) {}
 }
 public final class Modal : Widget
 {

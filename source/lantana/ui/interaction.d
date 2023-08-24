@@ -17,9 +17,14 @@ public interface Interactible
 
 	public void unfocus();
 
-	public void release();
+	/// If p_focused is false, the item was released by pressing and
+	/// then removing focus while holding the button.
+	/// This will generally not call any effects. 
+	public void release(bool p_focused);
 
 	public void interact();
+
+	public bool canDrag();
 
 	public void drag(iVec2 p_dragAmount);
 
