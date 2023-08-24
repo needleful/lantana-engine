@@ -5,6 +5,7 @@
 module lantana.ui;
 
 public import lantana.ui.interaction;
+public import lantana.ui.keyboard;
 public import lantana.ui.render;
 public import lantana.ui.style;
 public import lantana.ui.view;

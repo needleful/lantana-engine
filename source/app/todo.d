@@ -20,6 +20,12 @@ struct Task {
 struct Project {
 	string[string] info;
 	Task[] tasks = [];
+	static Project empty() {
+		Project p;
+		p.info["project"] = "My Project";
+		p.info["version"] = "1";
+		return p;
+	}
 }
 
 struct View {
@@ -107,9 +113,6 @@ Project loadProject(string path) {
 			Task* t = &parsed_tasks[findTask(indent)].task;
 			string[] tagList = tags[2].split("; ");
 			t.tags ~= tagList;
-		}
-		else{
-			writefln("ERROR: Unidentified text: %s", line);
 		}
 	}
 

@@ -11,8 +11,6 @@ import std.format;
 import std.math;
 import std.stdio;
 
-import bindbc.sdl;
-
 import lantana.input;
 import lantana.math;
 import lantana.render;
@@ -22,58 +20,66 @@ import lantana.ui;
 import app.todo;
 import app.ui;
 
-private enum forcedMain = true;
-
-static if(forcedMain)
-{
-	int main()
-	{
-		writeln("Starting Lantana in main...");
-		return runGame();
-	}
-}
-else version(Windows)
-{
-	import core.runtime;
-	import core.sys.windows.windows;
-	import std.string : toStringz;
-
-	extern(Windows)
-	int WinMain(HINSTANCE p_instance, HINSTANCE p_prev, LPSTR p_command, int p_show)
-	{
-		int result;
-		try
-		{
-			Runtime.initialize();
-			result = runGame();
-			Runtime.terminate();
-		}
-		catch(Throwable e)
-		{
-			auto msg = format("There was an error:\r\n%s"w, e);
-			msg ~= '\0';
-			MessageBoxW(null, msg.ptr, null, MB_ICONEXCLAMATION);
-			result = 0;
-		}
-		return result;
-	}
+version(Windows) {
+	import app.platform.windows;
 }
 else
 {
 	int main()
 	{
-		writeln("Starting Lantana in main...");
-		return runGame();
+		writeln("Starting NP-ToDo in main...");
+		return run();
 	}
 }
 
-int runGame()
+struct action {
+	string name;
+	key shortcut;
+	void delegate() callback;
+}
+
+int run()
 {
 	Window window = Window(1280, 720, "NP ToDo");
-	auto ui = makeRenderer(window);
+	UIRenderer ui;
 
-	auto editor = new ProjectEditor(loadProject("np-todo.todo"));
-	ui.setRootWidget(editor);
+	void newFile() {
+		auto editor = new ProjectEditor(Project.empty());
+		ui.setRootWidget(editor);
+	}
+
+	void open() {
+		auto editor = new ProjectEditor(loadProject("np-todo.todo"));
+		ui.setRootWidget(editor);
+	}
+
+	void save() {
+	}
+
+	void saveAs() {
+	}
+
+	void exit() {
+		window.requestClose();
+	}
+
+	action[] fileActions = [
+		{"&New Project", key('n').ctrl(), &newFile},
+		{"&Open Project...", key('o').ctrl(), &open},
+		{"&Save", key('s').ctrl(), &save},
+		{"Save &As...", key('s').shift().ctrl(), &saveAs},
+		{"E&xit", key('w').shift().ctrl(), &exit}
+	];
+	
+	void delegate()[ushort] shortcuts;
+
+	foreach(ref action a; fileActions) {
+		shortcuts[a.shortcut.toInt()] = a.callback;
+	}
+
+	ui = makeRenderer(window);
+	window.createMenu(fileActions, shortcuts);
+	newFile();
 
 	Input input = Input();
 	float delta = 0.001f;

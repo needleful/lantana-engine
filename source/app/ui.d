@@ -29,7 +29,7 @@ UIRenderer makeRenderer(ref Window window) {
 		panel.mesh = new SpriteQuadStyle(panel.sprite);
 
 		scrollbar.width = cast(ubyte)(ui.getDPI().x/5.75);
-		scrollbar.trough.sprite = ui.addSinglePixel(color(0, 148, 255, 128));
+		scrollbar.trough.sprite = ui.addSinglePixel(color(0, 148, 255, 255));
 		scrollbar.trough.mesh = new SpriteQuadStyle(scrollbar.trough.sprite);
 		scrollbar.upArrow = ui.loadSprite("data/ui/sprites/arrow-up.png");
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");

@@ -79,6 +79,7 @@ bool linkShader(GLuint p_program)
 
 GLuint compileShader(string filename, GLenum type)
 {
+	glcheck();
 	debug
 	{
 		assert(exists(filename), format("Shader file does not exist: %s", filename));

@@ -33,8 +33,9 @@ enum WindowState
 struct Window
 {
 	Bitfield!WindowState state;
-	private SDL_Window *window;
-	private SDL_GLContext glContext;
+	public SDL_Window *window;
+	public SDL_GLContext glContext;
+	public void delegate(ref Window window, SDL_SysWMmsg* message) nothrow onSystemMessage;
 	private SDL_Event event;
 	private StopWatch time;
 
@@ -132,7 +133,7 @@ struct Window
 		glClearColor(0.5, 0.5, 0.5, 1);
 		glClearDepth(1.0f);
 
-		assert(glGetError() == GL_NO_ERROR);
+		glcheck();
 	}
 
 	~this()  nothrow
@@ -164,7 +165,7 @@ struct Window
 					switch(event.window.event)
 					{
 						case SDL_WINDOWEVENT_CLOSE:
-							state[WindowState.CLOSED] = true;
+							requestClose();
 							break;
 						case SDL_WINDOWEVENT_MAXIMIZED:
 							continue;
@@ -178,6 +179,11 @@ struct Window
 							break;
 						default:
 							break;
+					}
+					break;
+				case SDL_SYSWMEVENT:
+					if(onSystemMessage) {
+						onSystemMessage(this, event.syswm.msg);
 					}
 					break;
 				case SDL_KEYDOWN:
@@ -205,6 +211,10 @@ struct Window
 		input.mouse = SDL_GetMouseState(&(input.mousePos.x()), &(input.mousePos.y()));
 		// SDL has flipped coordinates for y-axis
 		input.mousePos.y = getSize().height - input.mousePos.y;
+	}
+
+	public void requestClose() nothrow {
+		state[WindowState.CLOSED] = true;
 	}
 
 	public RealSize getSize() nothrow

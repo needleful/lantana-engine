@@ -9,6 +9,14 @@
 	- Importing written files
 	- Exporting files from the UI
 	- Proper persistent editing
+- Editing v2: The existing functionality
+	- Live filtering
+	- Saving and loading
+	- Shortcuts
+- Editing v2: the new functionality
+	- Undo/redo
+	- Win32 menu bars
+	- Win32 file selection
 - Lantana UI
 	@ 2
 	/ There's a lot of stuff that'll need to get done.
@@ -18,10 +26,17 @@
 		- Delete nodes
 	- Basic UI functionality.
 		- Checkboxes
+		- Option boxes
 		- Hiding/showing elements
 		- Highlighting text
 		- Copy and paste
 		- Tab navigation
 		- Effects on return
-	- Theming
+		- Keyboard shortcuts
+			- CTRL + Arrows/Backspace/Delete
+			- CTRL + F: to to the "search by title" menu
+	- Fancy things
+		- Theming
+		- Animations
 	- Accessibility
+
