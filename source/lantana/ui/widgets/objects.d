@@ -79,21 +79,22 @@ public class ImageBox : RectWidget
 	// indeces into the UIRenderer vertex buffer
 	MeshRef vertices;
 	float scale;
+	string filename;
+	AlphaColor color;
 
 	// Instead of rendering a sprite, render a colored rectangle
-	public this(UIRenderer p_renderer, AlphaColor p_color, RealSize p_size) 
+	public this(AlphaColor p_color, RealSize p_size) 
 	{
-		spriteId = p_renderer.addSinglePixel(p_color);
+		color = p_color;
 		textureSize = p_size;
 		scale = 1;
 	}
 
 	/// Currently no way for the UIRenderer to check if an image is loaded,
 	/// so only use this if the image is going to be shown once on screen
-	public this(UIRenderer p_renderer, string filename, float p_scale = 1) 
+	public this(string p_filename, float p_scale = 1) 
 	{
-		spriteId = p_renderer.loadSprite(filename);
-		assert(spriteId != 0);
+		filename = p_filename;
 		scale = p_scale;
 	}
 
@@ -105,6 +106,16 @@ public class ImageBox : RectWidget
 
 	public override void initialize(UIRenderer p_renderer, UIView p_view)
 	{
+		if(!spriteId) {
+			if(filename) {
+				spriteId = p_renderer.loadSprite(filename);
+			}
+			else {
+				spriteId = p_renderer.addSinglePixel(color);
+			}
+			assert(spriteId != 0);
+		}
+		
 		super.initialize(p_renderer, p_view);
 		vertices = p_view.addSpriteQuad(spriteId);
 		if(textureSize.width == 0 && textureSize.height == 0)

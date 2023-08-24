@@ -193,6 +193,7 @@ public final class UIRenderer
 
 		views ~= new UIView(this, Rect(iVec2(0), p_windowSize));
 		m_style = new UIStyle();
+		needsRedraw = true;
 	}
 
 	public ~this()
@@ -465,12 +466,14 @@ public final class UIRenderer
 
 		focused = null;
 		views[0].setRootWidget(p_root);
+		needsRedraw = true;
 	}
 
 	public void setRootWidgets(Widget[] p_widgets)
 	{
 		focused = null;
 		views[0].setRootWidget(new HodgePodge(p_widgets));
+		needsRedraw = true;
 	}
 
 	public Widget getRootWidget()
@@ -482,6 +485,7 @@ public final class UIRenderer
 	{
 		windowSize = p_size;
 		views[0].setRect(Rect(views[0].position, p_size));
+		needsRedraw = true;
 	}
 
 	public RealSize getSize() 

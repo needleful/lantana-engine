@@ -13,8 +13,15 @@
 	@ 2
 	/ There's a lot of stuff that'll need to get done.
 	# editing; v2
+	- Basic editing
+		- Save and load
+		- Delete nodes
 	- Basic UI functionality.
 		- Checkboxes
 		- Hiding/showing elements
+		- Highlighting text
+		- Copy and paste
+		- Tab navigation
+		- Effects on return
 	- Theming
 	- Accessibility

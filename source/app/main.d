@@ -95,7 +95,6 @@ int runGame()
 		ui.updateLayout();
 
 		if(ui.needsRedraw) {
-			window.beginFrame();
 			ui.render();
 			window.endFrame();
 		}

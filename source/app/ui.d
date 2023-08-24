@@ -35,11 +35,11 @@ UIRenderer makeRenderer(ref Window window) {
 		scrollbar.downArrow = ui.loadSprite("data/ui/sprites/arrow-down.png");
 
 		defaultFont = ui.loadFont("data/ui/fonts/ClearSans.ttf", 13);
-		defaultFontColor = Vec3(0,0,0);
+		defaultFontColor = Vec3(.7, .7, .7);
 
-		textInput.cursor = ui.addSinglePixel(color(12, 12, 12, 255));
-		textInput.focused = Vec3(1,1,1);
-		textInput.normal = Vec3(0, 0, 0);
+		textInput.cursor = ui.addSinglePixel(color(255, 255, 255, 255));
+		textInput.focused = Vec3(1, 1, 1);
+		textInput.normal = Vec3(.7, .7, .7);
 	}
 	ui.initialize();
 	return ui;
@@ -54,7 +54,11 @@ class ProjectEditor : Scrolled {
 			taskList = new VBox(array(project.tasks.map!edit)),
 			new Button("New Task", (Widget source) {createTask();})
 		]);
-		super(new Padding(mainWindow, Pad(10, 15)));
+		super(new Padding(
+			mainWindow, 
+			Pad(10, 15), 
+			new ImageBox(color(0,0,0,255), RealSize(128, 128)))
+		);
 	}
 
 	void createTask() {
