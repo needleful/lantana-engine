@@ -15,7 +15,7 @@
 	- Shortcuts
 - Editing v2: the new functionality
 	- Undo/redo
-	- Win32 menu bars
+	- Recently opened files
 	- Win32 file selection
 - Lantana UI
 	@ 2
@@ -25,6 +25,10 @@
 		- Save and load
 		- Delete nodes
 	- Basic UI functionality.
+		- Clearing UI
+			/ This is currently broken
+			/ I think things don't properly clear.
+			/ This is important for loading and unloading stuff.
 		- Checkboxes
 		- Option boxes
 		- Hiding/showing elements
